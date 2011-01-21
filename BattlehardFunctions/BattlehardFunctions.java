@@ -10151,7 +10151,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					}
 					 auAmts = new int[r.getAu().size()];
 					 auNames = new String[r.getAu().size()];
-
+///changes
 					int k = 0;
 					while(k<auAmts.length) {
 						auAmts[k] = r.getAu().get(k).getSize();
