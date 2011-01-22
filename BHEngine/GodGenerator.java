@@ -11579,6 +11579,7 @@ public boolean checkForGenocides(Town t) {
 			sendMail(p.getEmail(),p.getUsername(),"Email","Beta 3 is beginning!","This is an automated message from A.I. Wars to let you know that beta 3 is beginning soon, within the next 24 hours. We are restarting our beta to solve some latent issues with lag and troop disappearances. Your old account will be deleted as part of the beta wipe. We invite you to return and forge a new future in the brave new world of A.I. Wars beta 3!");
 			i++;
 		}
+		System.out.println("Done email sending.");
 		i= 0;
 		
 		try {
