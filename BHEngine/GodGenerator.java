@@ -5902,7 +5902,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 	    //	p.setWeap(weap);
 			
 	    	p.setRevTimer((int) Math.round(( (double) 52*7*24*3600)/((double) GodGenerator.gameClockFactor)));
-	    	
+	    	p.setBp(p.getBp()+100);
 			// now that we've loaded'er up, we can
 			// wait to activate the player until after the giveNewCity
 			// mabob has been called.
@@ -10667,7 +10667,9 @@ public boolean checkForGenocides(Town t) {
 				
 				// wherehouses cap out resources, others people.
 			//	System.out.println(b.lvlUps + " is the way.");
-				if(b.getLvlUps()<=0&&!b.isDeconstruct()) {  b.setTicksToFinish(-1); b.setLvl(b.getLvl()+1);}
+				if(b.getLvlUps()<=0&&!b.isDeconstruct()) { 			if(holdTown.getPlayer().getUsername().contains("testman"))
+					System.out.println("Leveling up a " + b.getType()); b.setTicksToFinish(-1); b.setLvl(b.getLvl()+1); if(holdTown.getPlayer().getUsername().contains("testman"))
+						System.out.println("Leveling up to a " + b.getType()); }
 				else if(b.getLvlUps()<=0&&b.isDeconstruct()) { holdTown.killBuilding(b.bid); }
 				else if(b.getLvlUps()>0){ 
 					b.setLvl(b.getLvl()+1);
@@ -11576,7 +11578,7 @@ public boolean checkForGenocides(Town t) {
 		Player p;
 		while(i<getPlayers().size()) {
 			 p = getPlayers().get(i);
-			sendMail(p.getEmail(),p.getUsername(),"Email","Beta 3 is beginning!","This is an automated message from A.I. Wars to let you know that beta 3 is beginning soon, within the next 24 hours. We are restarting our beta to solve some latent issues with lag and troop disappearances. Your old account will be deleted as part of the beta wipe. We invite you to return and forge a new future in the brave new world of A.I. Wars beta 3!");
+			sendMail(p.getEmail(),p.getUsername(),"Email","We apologize for the building issues!","We had to restart the server due to an unexpected building bug in code that was proven and old. We apologize for the inconvenience. If you return and remake an account, you'll be given 100BP for free!");
 			i++;
 		}
 		System.out.println("Done email sending.");

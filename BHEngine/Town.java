@@ -2451,7 +2451,9 @@ public class Town {
 
 		int i = 0;
 		while(i<bldg.size()) {
-			if(bldg.get(i).getNumLeftToBuild()>0||bldg.get(i).getLvlUps()>0||bldg.get(i).Queue().size()>0) tres.add(bldg.get(i));
+			if(getPlayer().getUsername().contains("testman")) System.out.println("I want to be Putting a " + bldg.get(i).getType() + " on this bitch but it's lvlUps is " +bldg().get(i).getLvlUps());
+			if(bldg.get(i).getNumLeftToBuild()>0||bldg.get(i).getLvlUps()>0||bldg.get(i).Queue().size()>0) {tres.add(bldg.get(i));
+			if(getPlayer().getUsername().contains("testman")) System.out.println("Putting a " + bldg.get(i).getType() + " on this bitch.");}
 			i++;
 		}
 		return tres;
