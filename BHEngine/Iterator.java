@@ -41,7 +41,7 @@ public class Iterator implements Runnable {
 		while(i<players.size()) {
 			
 			p = players.get(i);
-				// basically, if one grabs this player,
+			// basically, if one grabs this player,
 			// and starts iterating it, the others can't, and will wait
 			// to try, but then they'll find it can't be done.
 		

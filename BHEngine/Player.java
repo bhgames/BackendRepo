@@ -26,6 +26,7 @@ public class Player  {
 	private String pushLog="";
 	public int iterTicks = 0;
 	public int playedTicks=0;
+	public int owedTicks =0;
 	private String version;
 	private ArrayList<Hashtable> achievements;
 	public int last_auto_blast;
@@ -88,6 +89,7 @@ public class Player  {
 	       password = rs.getString(26);
 	       stealth = rs.getInt(3);
 	       playedTicks=rs.getInt(45);
+	       owedTicks = rs.getInt(82);
 	       version = rs.getString(81);
 	       fuid = rs.getLong(57);
 	       knowledge = rs.getInt(4);
@@ -772,6 +774,7 @@ public class Player  {
 	       flicker = rs.getString(58);
 	       tPushes = rs.getInt(60);
 	       version = rs.getString(81);
+	       owedTicks = rs.getInt(82);
 
 
 	       setPassword(rs.getString(26));
@@ -1118,7 +1121,14 @@ public class Player  {
 		      UberStatement stmt= con.createStatement();
 		      ResultSet rs = stmt.executeQuery("select chg from player where pid = " + ID);
 		      rs.next();
-		      if(rs.getInt(1)==0) {
+		      if(rs.getInt(1)==0&&(owedTicks<GodGenerator.saveWhenTicks)) {
+		    	  // when do we save with owedTicks?
+		    	  // we know if owedTicks is less than saveWhenTicks, then
+		    	  // the player has been changed since last save. 
+		    	  // because if the last save was 10 ticks ago, and owedTicks is 5,
+		    	  // that means the player stopped cycling at 5 ticks ago, needs a save.
+		    	  // If owed ticks is 15, player stopped cycling 15 ticks ago, and 
+		    	  // that player was saved.
 		   int co = 0;
 	       String weapStr = "";
 	       boolean weap[] = getWeapTech();
@@ -1233,6 +1243,9 @@ public class Player  {
 	public int getStealth() {
 		return getStealthTech();
 	}
+	/*public boolean isLoggedIn() {
+		if()
+	}*/
 	public void setLeagueBool(boolean league) {
 		this.isLeague=league;
 	}

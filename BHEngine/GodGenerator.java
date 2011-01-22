@@ -69,9 +69,13 @@ import java.security.SecureRandom;
  
  0. Add an "owed" playedTicks amount to each player - they can each write that to their
  saves without writing anything else. If owed ticks is less than the time since the last server save in ticks,
- then we know that this person hasn't done anything since that save, and doesn't need saving.
+ then we know that this person hasn't done anything since that save, and doesn't need saving. Well if
+ server ticks aren't the same as owedTicks, owedTicks is ticks over all, server ticks is just
+ since the server began ticking. but generally, if owedTicks is greater than the ticks since
+ the last save, or since server start, then we know not to save.
  1. The iterators no longer look for things with lower playedTicks, they look for towns
  and players with sessions, or towns with outgoing raids/trades. Id is not cycled anymore this way.
+ 
  2. In the attackServerCheck, if a raid of any sort arrives, town 2 is cycled as well
  as the player and all it's other towns, unless it's Id, then it's just that town.
  3. Same goes for tradeServerCheck, except for Id.
