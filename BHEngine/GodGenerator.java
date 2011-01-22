@@ -50,10 +50,14 @@ import java.security.SecureRandom;
  
  Fixing the scaling issue:
  
+ 		// so if the player is older than 4 days, we don't take the risk of letting them lose all that progress
+		// if there is an accidental restart, they had logged in and done stuff in the fifteen minute time period since the last save,
+		// and not been saved. That'd SUCK! Though if they then refreshed, they'd be back to being updated. No difference.
+		// What if there is an unexpected server shutdown? the player loses a heck of a lot more...having not logged on.
  
  The scaling issue has to do with threads. Now we limit the amount of threads to 5 iterators.
  
- The iterators do not need to cycle every town every time. We need to set up protocols:
+ The iterators do not need to cycle every town every time, or every player, though they still need every league. We need to set up protocols:
  
  1. If a town has a raid outgoing, it gets cycled until there are no outgoing raids.
  2. If a player logs in, all his towns are cycled and he is cycled until he is up to date,
@@ -63,6 +67,7 @@ import java.security.SecureRandom;
  4. If a trade arrives, town and player gets cycled.
  5. If a trade is outgoing, town gets cycled.
  6. If an Id town is attacked, it gets cycled, but the other ones do not.
+ 7. If a league is cycled, then all players that it collects taxes from get updated too. No fix for that yet.
  
  
  Implementation:
@@ -72,15 +77,25 @@ import java.security.SecureRandom;
  then we know that this person hasn't done anything since that save, and doesn't need saving. Well if
  server ticks aren't the same as owedTicks, owedTicks is ticks over all, server ticks is just
  since the server began ticking. but generally, if owedTicks is greater than the ticks since
- the last save, or since server start, then we know not to save.
+ the last save, or since server start, then we know not to save.---CHECK---
+ 
  1. The iterators no longer look for things with lower playedTicks, they look for towns
- and players with sessions, or towns with outgoing raids/trades. Id is not cycled anymore this way.
+ and players with sessions, or towns with outgoing raids/trades. Id is not cycled anymore this way.---CHECK---
  
  2. In the attackServerCheck, if a raid of any sort arrives, town 2 is cycled as well
- as the player and all it's other towns, unless it's Id, then it's just that town.
- 3. Same goes for tradeServerCheck, except for Id.
+ as the player and all it's other towns, unless it's Id, then it's just that town.---CHECK---
  
+ 3. Same goes for tradeServerCheck, except for Id.---CHECK---
  
+ 4. If a player logs in with owed ticks, he gets cycled back to full. This way, players cannot accrue owedTicks
+ and get cycled. Like, an iterator should never be cycling a player with owedTicks. owedTicks disappear on login,
+ and when the player has timed out, the owedTicks keeps stacking, if they sent a raid it just extends the time they
+ have the server focus for. If a program is running, the player of course is kept cycling.---CHECK---
+
+5. Leagues update players before taxing them. But why should they? If they have an owedTicks of greater than say, three days,
+they have no incoming resources of any sort other than passive, which hasn't been upgraded.---CHECK---
+
+
  The Record-Keeper AI:
  
  1. This AI CANNOT use the database. It seems that shit just gets lost that way. I also don't
@@ -4239,6 +4254,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	// Metal is 0, timber is 1. Stealthtech is 2. Population is 3.
 	// 28.3 for .01, 2.83 for .1, 
 	public static double gameClockFactor=10; // At 1, 1 tick = 1s.
+	public static double sessionLagTime = 2*3600000; // How much time in Date speech till a session logs out.
 	// so with timers, you'll want to divide by the gameClockFactor, diminishing it...
 	// so divide 10 ticks by 10, then with 1 tick=1s at ticks = 10 is 10s to do,
 	// now at 1 tick = 10s, the timer will be 1 tick means 10s to do. Same dealie.
@@ -9128,7 +9144,9 @@ public boolean checkForGenocides(Town t) {
 				 holdAttack = attackServer[i];
 				 if(holdAttack.getTID1()==t1.townID) { // because we grab incomings also with userraids.
 					r = t1.findRaid(holdAttack.raidID());
-
+					if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&r.getTown2().owedTicks>0) {
+						r.getTown2().update(); 
+					}
 			//	System.out.println("raidOver is currently " + holdAttack.raidOver);
 					// this else UberStatement is for the actual attack server to use, the above is the facsimile treatment.
 				if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&!holdAttack.raidType().equals("support")&&!holdAttack.raidType().equals("offsupport")&&!holdAttack.raidType().equals("scout")&&!holdAttack.raidType().equals("resupply")&&!holdAttack.raidType().equals("debris")) { 
@@ -9364,6 +9382,8 @@ public boolean checkForGenocides(Town t) {
 			if(t.getTicksToHit()>0) {
 				actt.setTicksToHit(t.getTicksToHit() - 1);
 			} else if(t.getTicksToHit()<=0&&!t.isTradeOver()) {
+					actt.getTown2().update(); // update beforehand.
+				
 				/*
 				 * Time to offload resources!
 				 */
@@ -9572,6 +9592,7 @@ public boolean checkForGenocides(Town t) {
 		 * unless they are threadSafe, instead, their mate's reset their timers.
 		 */
 		Town t1 = actts.getTown1(); Town t2 = actts.getTown2();
+		t2.update(); // obviously need to update before sending trade!
 		UserBuilding[] bldg;
 		UserTradeSchedule ts = actts.getTown1().getPlayer().getPs().b.getUserTradeSchedule(actts.tradeScheduleID);
 		if(ts.isTwoway()&&!ts.isAgreed()) return false;
@@ -10671,7 +10692,7 @@ public boolean checkForGenocides(Town t) {
 				
 				// wherehouses cap out resources, others people.
 			//	System.out.println(b.lvlUps + " is the way.");
-				if(b.getLvlUps()<=0&&!b.isDeconstruct()) {  b.setTicksToFinish(-1); b.setLvl(b.getLvl()+1);}
+				if(b.getLvlUps()<=0&&!b.isDeconstruct()) { System.out.println("Setting lvl for "+b.bid); b.setTicksToFinish(-1); b.setLvl(b.getLvl()+1);}
 				else if(b.getLvlUps()<=0&&b.isDeconstruct()) { holdTown.killBuilding(b.bid); }
 				else if(b.getLvlUps()>0){ 
 					b.setLvl(b.getLvl()+1);
@@ -11580,7 +11601,7 @@ public boolean checkForGenocides(Town t) {
 		Player p;
 		while(i<getPlayers().size()) {
 			 p = getPlayers().get(i);
-			sendMail(p.getEmail(),p.getUsername(),"Email","Beta 3 is beginning!","This is an automated message from A.I. Wars to let you know that beta 3 is beginning soon, within the next 24 hours. We are restarting our beta to solve some latent issues with lag and troop disappearances. Your old account will be deleted as part of the beta wipe. We invite you to return and forge a new future in the brave new world of A.I. Wars beta 3!");
+			sendMail(p.getEmail(),p.getUsername(),"Email","Apologies for the Building errors!","This is an automated message from AI Wars. We wanted to apologize if you joined the game and were unable to build anything. We were unaware of this bug as we hadn't changed a thing in that section of the code. But we've found the bug and fixed it, and we hope you'll come back and try again!");
 			i++;
 		}
 		i= 0;
@@ -11819,7 +11840,7 @@ public boolean checkForGenocides(Town t) {
 		}
 			
 		// now we iterate.
-		p.saveAndIterate(); // This ought to make it so all that stuff above gets
+		p.saveAndIterate(1); // This ought to make it so all that stuff above gets
 		//deleted! Well, actually, Id will make sure that all of your attacks and stuff
 		// get deleted when it iterates. This just runs through any delete mes we might
 		// have missed.

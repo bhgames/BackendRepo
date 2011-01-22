@@ -388,7 +388,7 @@ public class Player  {
 		} while(i<towns.size());*/
 		synchronize=false; // because we're done synchronizing!
 	} 
-	public void saveAndIterate() {
+	public void saveAndIterate(int number) {
 	
 		UberStatement stmt=null;
 		ResultSet checkChange;
@@ -403,7 +403,8 @@ public class Player  {
 		  String updateAU[]; String weapStr,soldierPicStr,tankPicStr,juggerPicStr,bomberPicStr; String updatePlayer;
 		  AttackUnit hau; String weapons;
 		     boolean transacted=false;
-		  
+		  int ke = 0;
+		  while(ke<number) {
 		//    lagTimer = new Timer();
 	//	for(;;) {
 			try {
@@ -663,6 +664,7 @@ public class Player  {
 		} 
 		*/
 		
+			
 		} 
 		  catch(OutOfMemoryError exc) {
 			 God.killGod=true;
@@ -674,8 +676,34 @@ public class Player  {
 		//  System.out.println(getUsername() + " has been iterated at " + getInternalClock() + "!");
 			setInternalClock(getInternalClock() + 1); // we only iterate after FINISHING THE SAVE!
 			playedTicks++;
+			ke++;
+		  }
 	}
-	
+	public void update() {
+		// This method brings the player up to standard time.
+		if(owedTicks>0) {
+		saveAndIterate(owedTicks);
+		owedTicks=0; 
+		int i = 0;
+		while(i<towns().size()) {
+			towns().get(i).owedTicks=0; // player towns and players normally will have around the same owedTicks...
+			// we only keep owedTicks on towns for Id's sake.
+			i++;
+		}
+		}
+		
+	}
+	public boolean stuffOut() {
+		int i = 0;
+		while(i<towns().size()) {
+			if(towns().get(i).stuffOut()) {
+				return true;
+			}
+			i++;
+		}
+		if(getPs().b.isAlive()) return true; // program running means the player keeps cycling.
+		return false;
+	}
 	public boolean completedQuest(int qid) {
 		try {
 			UberStatement stmt = con.createStatement();
@@ -1129,6 +1157,10 @@ public class Player  {
 		    	  // that means the player stopped cycling at 5 ticks ago, needs a save.
 		    	  // If owed ticks is 15, player stopped cycling 15 ticks ago, and 
 		    	  // that player was saved.
+		    	  // Bad situation: Player's owed ticks are incremented just beyond
+		    	  // the save limit and he logs in, putting him in line for a save,
+		    	  // but the server shuts down without him. Then he loses stuff, loses
+		    	  // that he should even be saved for a bit. But this is always true.
 		   int co = 0;
 	       String weapStr = "";
 	       boolean weap[] = getWeapTech();
@@ -1181,7 +1213,7 @@ public class Player  {
 	    		   	+ ", timberRefTech = " + timberRefTech + ", manMatRefTech = " + manMatRefTech + ", foodRefTech = " + foodRefTech +", attackAPI = " + attackAPI +
 	    		   	", advancedAttackAPI = " + advancedAttackAPI + ", tradingAPI = " + tradingAPI + ", advancedTradingAPI = " + advancedTradingAPI + ", smAPI = " + smAPI + ", researchAPI = " + researchAPI + 
 	    		   	", buildingAPI = " + buildingAPI + ", advancedBuildingAPI = " + advancedBuildingAPI + ", messagingAPI = " + messagingAPI + ", zeppelinAPI = " + zeppelinAPI + 
-	    		   	", completeAnalyticAPI = " + completeAnalyticAPI +", version = '" + version + "', nukeAPI = " + nukeAPI +", worldMapAPI = " + worldMapAPI + ", email ='"+ email +"', pushLog = \"" + pushLog + "\", password = '" + password +  "' where pid = " + ID + ";";
+	    		   	", completeAnalyticAPI = " + completeAnalyticAPI +", version = '" + version + "', nukeAPI = " + nukeAPI +", worldMapAPI = " + worldMapAPI +", owedTicks = " + owedTicks+ ", email ='"+ email +"', pushLog = \"" + pushLog + "\", password = '" + password +  "' where pid = " + ID + ";";
 	      stmt.executeUpdate(updatePlayer);
 	      
 	      // First, let's get and write to au. I'm not sure if querying first is more labor intensive than just writing. Let's not

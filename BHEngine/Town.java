@@ -26,6 +26,7 @@ public class Town {
 	 private long res[], debris[];
 	 private double resEffects[],resBuff[];
 	 private Player p;
+	 public int owedTicks;
 	 private ArrayList<Trade> tradeServer;
 	 private ArrayList<TradeSchedule> tradeSchedules;
 	 private ArrayList<Raid> attackServer;
@@ -183,6 +184,7 @@ public class Town {
 		if(isZeppelin()) {
 		destX = getMemInt("destX");
 		destY = getMemInt("destY");
+		owedTicks = getMemInt("owedTicks");
 
 		fuelCells = getMemInt("fuelcells");
 		ticksTillMove = getMemInt("ticksTillMove");
@@ -211,6 +213,7 @@ public class Town {
 		getAu();bldg();
 		x = getMemX();
 		y = getMemY();
+		owedTicks = getMemInt("owedTicks");
 		debris = getMemDebris();
 		zeppelin = getMemBoolean("zeppelin");
 		if(isZeppelin()) {
@@ -1196,7 +1199,36 @@ public class Town {
 		}
 		}
 	}
+	 public void update() {
+			if(owedTicks>0) {
+
+		 if(getPlayer().ID==5||getPlayer().isQuest()) {
+			 iterate(owedTicks);
+			 owedTicks=0;
+		 }
+		 else getPlayer().update();
+			}
+	 }
+	 public boolean stuffOut() {
+			int i = 0;
+			while(i<attackServer().size()) {
+				if(attackServer().get(i).getTown1().townID==townID) {
+					return true;
+				}
+				i++;
+			}
+			 i = 0;
+			while(i<tradeServer().size()) {
+				if(tradeServer().get(i).getTown1().townID==townID) {
+					return true;
+				}
+				i++;
+			}
+			return false;
+		}
 	 public void iterate(int num) {
+		 int ke = 0;
+		 while(ke<num) {
 	//	 if(townID==2958)
 			//System.out.println("Town's player is now " + getPlayer());
 		 double[] resInc=getResInc();
@@ -1258,7 +1290,7 @@ public class Town {
 		} catch(Exception exc) { exc.printStackTrace(); System.out.println("Zeppelins saved."); }
 		
 		setInternalClock(getInternalClock() + 1); // we only iterate after FINISHING THE SAVE!
-
+		 }
 	 }
 	 
 	 synchronized public void save() {
@@ -1296,7 +1328,7 @@ public class Town {
 	    	  ", m = " + getRes()[0] + ", t = " + getRes()[1] + ", mm = " + getRes()[2] + ", f = " + getRes()[3] + ", pop = " + getRes()[4] +
 	    	   ", au1 = " +
 	    	  au.get(0).getSize() + ", au2 = " +  au.get(1).getSize() + ", au3 = " +  au.get(2).getSize() + ", au4 = " +  au.get(3).getSize() +
-	    	  ", au5 = " + au.get(4).getSize() + ", au6 =" +  au.get(5).getSize() +", zeppelin = " + zeppelin + ",  fuelcells = " + fuelCells + 
+	    	  ", au5 = " + au.get(4).getSize() + ", au6 =" +  au.get(5).getSize() +", owedTicks = " + owedTicks+", zeppelin = " + zeppelin + ",  fuelcells = " + fuelCells + 
 	    	  ", ticksTillMove = " + ticksTillMove + ", destX = " + destX +", destY = " + destY + ", debm = " + getDebris()[0] + ", debt = " + getDebris()[1] + ", debmm = " + getDebris()[2] + ", debf = " + getDebris()[3] +" where tid = " + townID + ";";
 	    	  stmt.executeUpdate(update);
 	    	  

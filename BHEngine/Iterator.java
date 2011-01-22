@@ -3,6 +3,7 @@ package BHEngine;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class Iterator implements Runnable {
 
@@ -38,6 +39,8 @@ public class Iterator implements Runnable {
 		// Then at the end of this iteration, we should check.
 		int i = 0; 
 		Player p;
+		Date today = new Date();
+
 		while(i<players.size()) {
 			
 			p = players.get(i);
@@ -66,7 +69,9 @@ public class Iterator implements Runnable {
 				System.out.println(iterateID + " is iterating " + p.getUsername() + " at " + internalClock + " when GC is " + God.gameClock);
 				try {
 			//	System.out.println(iterateID + " is iterating " + p.username);
-				p.saveAndIterate();
+					if(p.last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||p.stuffOut())
+						p.saveAndIterate(internalClock-p.getInternalClock());
+					else {  p.owedTicks+=internalClock-p.getInternalClock(); p.setInternalClock(internalClock); } 
 				} catch(Exception exc) { exc.printStackTrace(); } 
 			}
 			
@@ -90,6 +95,8 @@ public class Iterator implements Runnable {
 		
 	}
 	public void checkTowns() {
+		Date today = new Date();
+
 			ArrayList<Town> players = God.getIteratorTowns();
 	//		System.out.println(iterateID + "'s internal clock is off.");
 			
@@ -126,7 +133,9 @@ public class Iterator implements Runnable {
 			
 				try {
 			//	System.out.println(iterateID + " is iterating " + p.username);
-				p.iterate(internalClock-p.getInternalClock());
+					if(p.getPlayer().last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||p.stuffOut())
+						p.iterate(internalClock-p.getInternalClock());
+					else {  p.owedTicks+=internalClock-p.getInternalClock(); p.setInternalClock(internalClock); } 
 				} catch(Exception exc) { exc.printStackTrace(); } 
 			
 				p.setHoldingIteratorID("-1");
@@ -142,6 +151,7 @@ public class Iterator implements Runnable {
 		
 	}
 	public void checkLeagues() {
+		// GOTTA UPDATE LEAGUES CONSTANTLY, COULD COME ON AND GET TAXES FROM ALL NEW MINES INSTEAD OF OLDER UNUPGRADED ONES!
 			ArrayList<Player> players = God.getIteratorPlayers();
 	//		System.out.println(iterateID + "'s internal clock is off.");
 		// only need to loop once - think about it, with two iterators,
