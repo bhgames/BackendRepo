@@ -3130,7 +3130,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					// Like gone, done, deaderoo, holy crap we just lost one. etc. etc.
 					// Let's do the dirty work!
 					
-					if(b.getLvl()==0) holdT.killBuilding(slotNum);
+					if(b.getLvl()==0) holdT.killBuilding(b.bid);
 					
 				} else b.setLvlUps(lvlUps - 1);
 				
