@@ -96,6 +96,24 @@ import java.security.SecureRandom;
 they have no incoming resources of any sort other than passive, which hasn't been upgraded.---CHECK---
 
 
+Tests:
+
+1. Test with players that are inactive that they just accrue owedTicks and do not cycle.
+2. Test via savePlayer string updates that if owedTicks goes beyond save ticks, it just doesn't save.
+3. Test that when you login, the player gets updated.
+4. Test that while logged in, player is continuing to get updated(easy to do by having it print iterator ticks.)
+5. Test that if you attack an inactive player, he both iterates AND gets saved.
+6. Test that if you trade with an inactive, he both iterates and gets saved.
+7. Test across server restarts that players that are inactive still accrue owedTicks.
+8. Test that savePlayer updates only those active across a restart.
+9. Test that while logged in across a restart, continue to get updated.
+10. Attack a player, restart before attack hits, see if the update still happens.
+
+
+
+
+
+
  The Record-Keeper AI:
  
  1. This AI CANNOT use the database. It seems that shit just gets lost that way. I also don't
