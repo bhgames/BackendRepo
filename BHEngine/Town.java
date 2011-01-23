@@ -2477,6 +2477,7 @@ public class Town {
 	}
 	public Raid findRaid(int rid) {
 		int i =0;
+		
 		while(i<attackServer().size()) {
 			if(attackServer().get(i).raidID==rid) return attackServer().get(i);
 			i++;
@@ -2484,11 +2485,31 @@ public class Town {
 		return null;
 	}
 	public void auCheck() {
-		
 		int i = 0;
+		int ie = 0;int totalCheckedSize=0;
+		Raid r;
+
+		while(i<attackServer().size()) {
+			r = attackServer().get(i);
+			 ie = 0;
+			 totalCheckedSize=0;
+				while(ie<r.getAu().size()) {
+					totalCheckedSize+=r.getAu().get(ie).getSize();
+					// SuggestTitleVideoId
+					ie++;
+				}
+				if(totalCheckedSize==0&&!r.isRaidOver()) { // if raid is over, AU has been loaded 
+					// and checked in combat logic.
+					// this means we called getAu() for the first time before the au statements got to update and put
+					// the units into the raid!
+					r.setAu(null);
+					r.getAu(); // reset.
+				}
+			i++;
+		}
+		 i = 0;
 		Town t;
 		ArrayList<AttackUnit> au;
-		Raid r;
 		ArrayList<Raid> as;
 		AttackUnit a;
 		AttackUnit ourA;
