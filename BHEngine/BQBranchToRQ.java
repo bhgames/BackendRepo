@@ -50,11 +50,12 @@ public class BQBranchToRQ extends QuestListener {
 			t2 = God.findTown(r.getTID2());
 			if(t2.getPlayer().ID==ID) {
 				mem = readFromMemory(pid);
-				if(r.raidType().equals("scout")&&!r.raidOver()&&r.eta()==1&&!mem.contains("raidHit;")) {
+				if(r.raidType().equals("scout")&&!r.raidOver()&&r.eta()<=2&&!mem.contains("raidHit;")) {
 					// so if you have a scout heading over there and none has hit before...record it.
+					if(!mem.contains("raidHit;"))
 					writeToMemory(mem+"raidHit;",pid);
 					break;
-				} else if(r.raidType().equals("scout")&&r.raidOver()&&r.eta()==1&&mem.contains("raidHit;")) {
+				} else if(r.raidType().equals("scout")&&r.raidOver()&&r.eta()<=2&&mem.contains("raidHit;")) {
 					// if a scout is returning from there and at least one has hit before...win it.
 					String rd = readFromMemory(pid);
 					reward(pid);

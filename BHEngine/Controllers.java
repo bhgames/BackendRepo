@@ -806,10 +806,10 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					if(ty<=(centery+(int) Math.round((double) GodGenerator.mapTileWidthY/2.0))&&ty>=(centery-(int) Math.round((double) GodGenerator.mapTileWidthY/2.0))
 							 &&tx<=(centerx+(int) Math.round((double) GodGenerator.mapTileWidthX/2.0))&&tx>=(centerx-(int) Math.round((double) GodGenerator.mapTileWidthX/2.0))) {
 							// this town is within the limit!
-							if(p.completedQuest("BQ1")&&p.getPs().b.getCSL(p.getCapitaltid())>100&&p.last_login.getTime()>(today.getTime()-2*24*3600000))
+							if((p.completedQuest("BQ1")||p.getPs().b.getCSL(p.getCapitaltid())>100)&&p.last_login.getTime()>(today.getTime()-2*24*3600000))
 								dailyActives++;
 							
-							 if(p.completedQuest("BQ1")&&p.getPs().b.getCSL(p.getCapitaltid())>100&&p.last_login.getTime()>(today.getTime()-7*24*3600000))
+							 if((p.completedQuest("BQ1")||p.getPs().b.getCSL(p.getCapitaltid())>100)&&p.last_login.getTime()>(today.getTime()-7*24*3600000))
 								weeklyActives++;
 							 
 							 numberOfPlayers++;
