@@ -98,16 +98,17 @@ they have no incoming resources of any sort other than passive, which hasn't bee
 
 Tests:
 
-1. Test with players that are inactive that they just accrue owedTicks and do not cycle.
-2. Test via savePlayer string updates that if owedTicks goes beyond save ticks, it just doesn't save.
-3. Test that when you login, the player gets updated.
-4. Test that while logged in, player is continuing to get updated(easy to do by having it print iterator ticks.)
+1. Test with players that are inactive that they just accrue owedTicks and do not cycle.---CHECK---
+2. Test via savePlayer string updates that if owedTicks goes beyond save ticks, it just doesn't save.---CHECK---
+3. Test that when you login, the player gets updated.---CHECK---
+4. Test that while logged in, player is continuing to get updated(easy to do by having it print iterator ticks.)---CHECK---
 5. Test that if you attack an inactive player, he both iterates AND gets saved.
 6. Test that if you trade with an inactive, he both iterates and gets saved.
 7. Test across server restarts that players that are inactive still accrue owedTicks.
 8. Test that savePlayer updates only those active across a restart.
 9. Test that while logged in across a restart, continue to get updated.
 10. Attack a player, restart before attack hits, see if the update still happens.
+11. Check that attacking an Id town only updates the Id town.
 
 
 
@@ -4043,44 +4044,6 @@ http://www.javabeginner.com/
 
 Common bug list
 
-To do:
-1. Make restartServer email all the old people and tell them wtf is going on. Or make a masser yourself.---CHECK---
-2. MAKE username REQTYPE param is username
-2. make the fucking createPlayer part update.
-2. Make the getTiles---CHECK---
-kay getTiles() will return [0,0,grass, [player1username,player1fuid,playerage], ...]
-3:58 PM
- 
-yeah but still being able to point it out for them may be valuable as a future addition
-3:58 PM
- 
-so I'll just send it down, don't worry about it for now
-Markus
-3:58 PM
-okay
-Jordan
-3:58 PM
-actually this needs tobe a reqtype
-3:58 PM
- 
-so the reqtype is getTiles
-3:58 PM
- 
-it's session-free,
-3:58 PM
- 
-then createNewPlayer now has two new variables
-3:59 PM
- 
-chosenTileX and chosenTileY , skipMe
-3:59 PM
- 
-and I'll put them as close as possible tot he center of that tile
-
-3. Fix scaling issue
-
-[ tilex,tiley,grass,dailyActives,weeklyActives,averagePlayerAge,[ [player1username,player1fuid], ...] ]
-
 
 
 Okay so to do:
@@ -4093,22 +4056,13 @@ Build Automation(check buildcombatunit)
 
 
 
-Post Zepp Tests:
-
-1. Test that Ground Nukes STILL work as said.---CHECK---
-2. Test that Sky Nukes work.---CHECK---
-3. Test that genocides actually end AIs.---CHECK---
-4. Test that lifecycle of cloud is proportional to %.---CHECK---
-5. Change and test the Raid detection and make the CC bring that shit.---CHECK---
-6. Add support
-7. Achievements
-8. Add Notepad
 
 The Schedule:
 
 
-
-
+Fixes to master branch:
+1. Make it so you set the height of the images explicitly to fix the scrollbar problem.
+2. Make it so genocide is 50% take again
 
 
 

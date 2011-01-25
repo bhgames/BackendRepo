@@ -674,7 +674,10 @@ public class Player  {
 	//	}
 			//if(ID==73) System.out.println("7");
 		//  System.out.println(getUsername() + " has been iterated at " + getInternalClock() + "!");
+		  	
 			setInternalClock(getInternalClock() + 1); // we only iterate after FINISHING THE SAVE!
+			if(getInternalClock()>God.gameClock) setInternalClock(God.gameClock); // means owedTicks stretches past the last server restart,
+			//so we just hold the internalClock steady while we update.
 			playedTicks++;
 			ke++;
 		  }
@@ -686,6 +689,7 @@ public class Player  {
 		owedTicks=0; 
 		int i = 0;
 		while(i<towns().size()) {
+			towns().get(i).iterate(towns().get(i).owedTicks);
 			towns().get(i).owedTicks=0; // player towns and players normally will have around the same owedTicks...
 			// we only keep owedTicks on towns for Id's sake.
 			i++;

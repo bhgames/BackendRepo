@@ -180,11 +180,11 @@ public class Town {
 
 		zeppelin = getMemBoolean("zeppelin");
 		debris = getMemDebris();
+		owedTicks = getMemInt("owedTicks");
 
 		if(isZeppelin()) {
 		destX = getMemInt("destX");
 		destY = getMemInt("destY");
-		owedTicks = getMemInt("owedTicks");
 
 		fuelCells = getMemInt("fuelcells");
 		ticksTillMove = getMemInt("ticksTillMove");
@@ -1228,6 +1228,7 @@ public class Town {
 		}
 	 public void iterate(int num) {
 		 int ke = 0;
+		 if(getPlayer().getUsername().equals("scooter81")) System.out.println("Getting iterated " + num + " times.");
 		 while(ke<num) {
 	//	 if(townID==2958)
 			//System.out.println("Town's player is now " + getPlayer());
@@ -1290,6 +1291,9 @@ public class Town {
 		} catch(Exception exc) { exc.printStackTrace(); System.out.println("Zeppelins saved."); }
 		
 		setInternalClock(getInternalClock() + 1); // we only iterate after FINISHING THE SAVE!
+		if(getInternalClock()>God.gameClock) setInternalClock(God.gameClock); // means owedTicks stretches past the last server restart,
+
+		ke++;
 		 }
 	 }
 	 

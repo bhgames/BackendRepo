@@ -47,7 +47,8 @@ public class Iterator implements Runnable {
 			// basically, if one grabs this player,
 			// and starts iterating it, the others can't, and will wait
 			// to try, but then they'll find it can't be done.
-		
+		//	if(p.getUsername().equals("scooter81")) System.out.println("last login was " +p.last_login.getTime() + " and it needs to be > than " +(today.getTime()-GodGenerator.sessionLagTime) + " and if this is negative, it is: " + (p.last_login.getTime()-(today.getTime()-GodGenerator.sessionLagTime)) + " also his internalClock is " + p.getInternalClock() + " and my internalClock is " + internalClock + " and his owedTicks is " + p.owedTicks);
+
 			if(p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock) {
 			
 	//			System.out.println(iterateID + " 1");
@@ -65,13 +66,16 @@ public class Iterator implements Runnable {
 				if(p.getHoldingIteratorID().equals(iterateID)) {
 			//		System.out.println(iterateID + " caught " + p.username + "'s focus and is iterating at " + internalClock);
 			while(p.getInternalClock()<internalClock) {
-				if(God.printCounter==God.printWhenTicks) 
-				System.out.println(iterateID + " is iterating " + p.getUsername() + " at " + internalClock + " when GC is " + God.gameClock);
+				if(God.printCounter==God.printWhenTicks||p.getUsername().equals("JigglyYoWigly")) 
+				System.out.println(iterateID + " is iterating " + p.getUsername() + " at " + internalClock + " when GC is " + God.gameClock + " and p internal clock is " + p.getInternalClock());
 				try {
 			//	System.out.println(iterateID + " is iterating " + p.username);
-					if(p.last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||p.stuffOut())
-						p.saveAndIterate(internalClock-p.getInternalClock());
-					else {  p.owedTicks+=internalClock-p.getInternalClock(); p.setInternalClock(internalClock); } 
+					if(p.last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||p.stuffOut()){ 
+					//	 System.out.println(p.getUsername() + " is active and has " + p.owedTicks + " ticks owed.");
+
+						p.saveAndIterate(internalClock-p.getInternalClock());}
+					else { // System.out.println(p.getUsername() + " is inactive and has " + p.owedTicks + " ticks owed.");
+						p.owedTicks+=(internalClock-p.getInternalClock()); p.setInternalClock(internalClock); } 
 				} catch(Exception exc) { exc.printStackTrace(); } 
 			}
 			
@@ -133,9 +137,14 @@ public class Iterator implements Runnable {
 			
 				try {
 			//	System.out.println(iterateID + " is iterating " + p.username);
-					if(p.getPlayer().last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||p.stuffOut())
-						p.iterate(internalClock-p.getInternalClock());
-					else {  p.owedTicks+=internalClock-p.getInternalClock(); p.setInternalClock(internalClock); } 
+					if(p.getPlayer().last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||p.stuffOut()) {
+						 System.out.println(p.getTownName() + ","+ p.getPlayer().getUsername() + " is active and has " + p.owedTicks + " ticks owed.");
+
+						p.iterate(internalClock-p.getInternalClock()); }
+					else { 
+						// System.out.println(p.getTownName() + ","+ p.getPlayer().getUsername() + " is inactive and has " + p.owedTicks + " ticks owed.");
+
+						p.owedTicks+=(internalClock-p.getInternalClock()); p.setInternalClock(internalClock); } 
 				} catch(Exception exc) { exc.printStackTrace(); } 
 			
 				p.setHoldingIteratorID("-1");
