@@ -35,11 +35,11 @@ public class RQ5 extends QuestListener {
 										"purchase the attack API from the Institute's AI Research tab if you wish. If you do not, your Autofarmer will cease to function after quest completion! In this challenge, we're going to make a rather simple upgrade to the Autofarmer you already built by expanding" +
 										" it's single target to three different targets that it hits every hour. This triples your hourly raid income!<br /><br />Goal: Attack three towns(they can be the same in each attack wave) at least three times with Eve at the appointed time difference of one hour between waves to pass this quest.<br /><br />Tutorial:" +
 								" <br /><br /> Step A:<br /><br /> Create a for loop as you did previously, so it will run the inner script three times." +
-								"<br /><br /> <img src='../images/quests/RQ4-1.png' />" +
+								"<br /><br /> <img src='../images/quests/RQ4-1.png' style='height:137px' />" +
 								"<br /><br /> Step B: <br /><br /> Set up the rest of the variables you need and make the function call to attack. You need to start using your townID instead of your town name," +
 								" as your townID is a unique identifier for your town, and every town has one. Also, most of the functions you use in this game require your townID, not it's name. Your main town's townID is " + God.getPlayer(pid).towns().get(0).townID + ". Then use the " +
-										" wait function, which takes seconds as it's argument, to cause Eve to freeze for an hour every iteration to create the desired one-hour-hit effect. <br /><br /> <img src='../images/quests/RQ4-2.png' /> "
-								+"<br /><br /> Step C: <br /><br /> Replicate your attacking code two more times with different Id town x's and y's so you send out three attacks every loop iteration. <br /><br /> <img src='../images/quests/RQ5-1.png' /> "
+										" wait function, which takes seconds as it's argument, to cause Eve to freeze for an hour every iteration to create the desired one-hour-hit effect. <br /><br /> <img src='../images/quests/RQ4-2.png' style='height:299px' /> "
+								+"<br /><br /> Step C: <br /><br /> Replicate your attacking code two more times with different Id town x's and y's so you send out three attacks every loop iteration. <br /><br /> <img src='../images/quests/RQ5-1.png' style='height:389px'/> "
 								
 								,"No hint.",""/*"<object width=\"425\" height=\"344\"><param name=\"movie\" value=\"http://www.youtube.com/v/Ah0CDdy6lMM?hl=en&fs=1\"></param><param name=\"allowFullScreen\" value=\"true\"></param><param name=\"allowscriptaccess\" value=\"always\"></param><embed src=\"http://www.youtube.com/v/Ah0CDdy6lMM?hl=en&fs=1\" type=\"application/x-shockwave-flash\" allowscriptaccess=\"always\" allowfullscreen=\"true\" width=\"425\" height=\"344\"></embed></object>"*/};
 						return toRet;	}

@@ -49,10 +49,10 @@ public class RQ4 extends QuestListener {
 				" that we can effectively make sure that the inner script is only read 10 times. <br /><br /> In this challenge, you will create a for loop and have an attack command inside of it. After the attack command, you'll put a new command that lets you pause the program for an hour, called bf.wait(3600);. " +
 				" It takes a number in it's () that allows it to wait for that amount of time in seconds. This script will be read three times, allowing you to attack the same town three times over a period of three hours, completely hands off, and without rewriting code! Once you hit run on Eve, she'll do all the work for you!" +
 				"<br /><br /> Step A:<br /><br /> Create a for loop that will run the script inside itself three times." +
-				"<br /><br /> <img src='../images/quests/RQ4-1.png' />" +
+				"<br /><br /> <img src='../images/quests/RQ4-1.png' style='height:137px' />" +
 				"<br /><br /> Step B: <br /><br /> Set up the rest of the variables you need and make the function call to attack. You need to start using your townID instead of your town name," +
 				" as your townID is a unique identifier for your town, and every town has one. Also, most of the functions you use in this game require your townID, not it's name. Your main town's townID is " + God.getPlayer(pid).towns().get(0).townID + ". Then use the " +
-						" wait function, which takes seconds in it's (), to cause Eve to freeze for an hour every time the script is read to create the desired one-hour-hit effect. <br /><br /> <img src='../images/quests/RQ4-2.png' /> ","No hint.",
+						" wait function, which takes seconds in it's (), to cause Eve to freeze for an hour every time the script is read to create the desired one-hour-hit effect. <br /><br /> <img src='../images/quests/RQ4-2.png' style='height:299px'/> ","No hint.",
 				""/*"<object width=\"425\" height=\"344\"><param name=\"movie\" value=\"http://www.youtube.com/v/SykkKPHjhNs?hl=en&fs=1\"></param><param name=\"allowFullScreen\" value=\"true\"></param><param name=\"allowscriptaccess\" value=\"always\"></param><embed src=\"http://www.youtube.com/v/SykkKPHjhNs?hl=en&fs=1\" type=\"application/x-shockwave-flash\" allowscriptaccess=\"always\" allowfullscreen=\"true\" width=\"425\" height=\"344\"></embed></object>"*/};
 		return toRet;
 	}

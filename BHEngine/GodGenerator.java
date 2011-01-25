@@ -8490,8 +8490,7 @@ public boolean checkForGenocides(Town t) {
 				
 				if(!genocide)
 					combatHeader+=	" This means a " + Math.round(togain) + "% take of max cargo capturable in this raid.";
-				else combatHeader+= " Due to this being a campaign, the max cargo has been diminished to 1/" + (holdAttack.getGenoRounds()+1) + "th of a full take" +
-						" after this round.";
+				else combatHeader+= " Due to this being a campaign, the max cargo has been diminished to half of a full take.";
 				resFlag = true;
 				if(numUnitsRemainingD==totalRemainingBefD&&numUnitsRemainingO==totalRemainingBefA) {
 					// Stand off occurs. No resources are taken.
@@ -10009,9 +10008,10 @@ public boolean checkForGenocides(Town t) {
 		if(totalTRes==0) return false; // just to make sure no divide by zero occurs. Why take resources otherwise?
 		int dividingfactor=1; // basic attack dividing factor.
 		if(r.isGenocide()) {
-			dividingfactor*=r.getGenoRounds(); // this is for the special requirements of foreshortening cargo on genocides.
+			//dividingfactor*=r.getGenoRounds(); // this is for the special requirements of foreshortening cargo on genocides.
 			// I do timesing so that doing a bombing run knocks it down by an extra factor of four!
 			// Shitty, no?
+			dividingfactor*=2; //divide by two because of genocide.
 			if(dividingfactor==0) dividingfactor=1; // just in case.
 		}
 		
