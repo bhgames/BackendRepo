@@ -47,6 +47,18 @@ import java.security.SecureRandom;
 /*
  Encyclopedia of questions:
  
+ List of changes for Beta 3:
+ 
+ 1. Combined bunker modes.
+ 2. Archaeological digs.
+ 3. Trade routes that generate wealth.
+ 4. Resource outcroppings.
+ 5. Non-towned areas become "territories" when you send settlers. 
+ 6. BLOCKADE mission type for trades.
+ 7. Food becomes a drainer, not in prices.
+ 
+ 
+ 
  
  Fixing the scaling issue:
  
