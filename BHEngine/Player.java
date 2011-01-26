@@ -1266,6 +1266,7 @@ public class Player  {
 			}
 		      } else { // we use else statement to close this stuff if we can't iterate, since we close it up there
 		    	  // in the if statement to prevent that statement getting plucked away by UberConnection!
+		    	 if(rs.getInt(1)==0) stmt.execute("update player set owedTicks =  "+owedTicks + " where pid = " + ID); // got to save owed ticks.
 			      rs.close();
 			      stmt.close();
 		      }

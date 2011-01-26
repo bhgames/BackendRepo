@@ -56,6 +56,9 @@ import java.security.SecureRandom;
  5. Non-towned areas become "territories" when you send settlers. 
  6. BLOCKADE mission type for trades.
  7. Food becomes a drainer, not in prices.
+ 8. RQ Common Bugs and DEBUG class
+ 9. BQ redo - Military and Civilian quest path. Make them make a tactical offensive/defensive decision
+ that branches them.
  
  
  
@@ -116,9 +119,9 @@ Tests:
 4. Test that while logged in, player is continuing to get updated(easy to do by having it print iterator ticks.)---CHECK---
 5. Test that if you attack an inactive player, he both iterates AND gets saved.
 6. Test that if you trade with an inactive, he both iterates and gets saved.
-7. Test across server restarts that players that are inactive still accrue owedTicks.
-8. Test that savePlayer updates only those active across a restart.
-9. Test that while logged in across a restart, continue to get updated.
+7. Test across server restarts that players that are inactive still accrue owedTicks.---CHECK---
+8. Test that savePlayer updates only those active across a restart.---CHECK---
+9. Test that while logged in across a restart, continue to get updated.---CHECK---
 10. Attack a player, restart before attack hits, see if the update still happens.
 11. Check that attacking an Id town only updates the Id town.
 
@@ -4326,8 +4329,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	public static int totalUnitPrice=70;
 	public static int unarmedAmt = 10; // The unarmed weapon which occurs when soldiers/tanks/juggers/bombers
 	// fight unarmed. Currently is 10.
-	public static int minIterators=10;
-	public static int maxIterators=50;
+	public static int minIterators=3;
+	public static int maxIterators=10;
 	public static int printWhenTicks=(int) (100/gameClockFactor);
 	public int printCounter=0;
 	public static int ticksTillIncrease=5;
