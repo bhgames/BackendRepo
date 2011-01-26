@@ -682,7 +682,7 @@ public class Player  {
 			ke++;
 		  }
 	}
-	public void update() {
+	synchronized public void update() {
 		// This method brings the player up to standard time.
 		if(owedTicks>0) {
 			 if(getUsername().equals("scooter81")) System.out.println("Getting player-iterated " + owedTicks + " times.");
@@ -696,6 +696,8 @@ public class Player  {
 			// we only keep owedTicks on towns for Id's sake.
 			i++;
 		}
+		save(); // Got to save whenever update is called so we don't waste resources on a server restart
+		// reiterating them!
 		}
 		
 	}
@@ -1268,7 +1270,15 @@ public class Player  {
 			}
 		      } else { // we use else statement to close this stuff if we can't iterate, since we close it up there
 		    	  // in the if statement to prevent that statement getting plucked away by UberConnection!
-		    	 if(rs.getInt(1)==0) stmt.execute("update player set owedTicks =  "+owedTicks + " where pid = " + ID); // got to save owed ticks.
+		    	 if(rs.getInt(1)==0){
+		    		 stmt.execute("update player set owedTicks =  "+owedTicks + " where pid = " + ID+";"); // got to save owed ticks.
+		    		 int i = 0;
+		    		 while(i<towns().size()) {
+			    		 stmt.execute("update town set owedTicks =  "+towns().get(i).owedTicks + " where tid = " + towns().get(i).townID + ";"); // got to save owed ticks.
+
+		    			 i++;
+		    		 }
+		    	 }
 			      rs.close();
 			      stmt.close();
 		      }

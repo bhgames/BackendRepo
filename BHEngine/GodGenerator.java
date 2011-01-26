@@ -117,13 +117,13 @@ Tests:
 2. Test via savePlayer string updates that if owedTicks goes beyond save ticks, it just doesn't save.---CHECK---
 3. Test that when you login, the player gets updated.---CHECK---
 4. Test that while logged in, player is continuing to get updated(easy to do by having it print iterator ticks.)---CHECK---
-5. Test that if you attack an inactive player, he both iterates AND gets saved.
-6. Test that if you trade with an inactive, he both iterates and gets saved.
+5. Test that if you attack an inactive player, he both iterates AND gets saved.---CHECK---
+6. Test that if you trade with an inactive, he both iterates and gets saved.---CHECK---
 7. Test across server restarts that players that are inactive still accrue owedTicks.---CHECK---
 8. Test that savePlayer updates only those active across a restart.---CHECK---
 9. Test that while logged in across a restart, continue to get updated.---CHECK---
-10. Attack a player, restart before attack hits, see if the update still happens.
-11. Check that attacking an Id town only updates the Id town.
+10. Attack a player, restart before attack hits, see if the update still happens.---CHECK---
+11. Check that attacking an Id town only updates the Id town.---CHECK---
 
 
 
@@ -4331,7 +4331,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	// fight unarmed. Currently is 10.
 	public static int minIterators=3;
 	public static int maxIterators=10;
-	public static int printWhenTicks=(int) (100/gameClockFactor);
+	public static int printWhenTicks=(int) (100000/gameClockFactor);
 	public int printCounter=0;
 	public static int ticksTillIncrease=5;
 	public static int ticksTillDecrease = 20;
@@ -9132,7 +9132,8 @@ public boolean checkForGenocides(Town t) {
 				 if(holdAttack.getTID1()==t1.townID) { // because we grab incomings also with userraids.
 					r = t1.findRaid(holdAttack.raidID());
 					if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&r.getTown2().owedTicks>0) {
-						r.getTown2().update(); 
+						r.getTown2().update();
+
 					}
 			//	System.out.println("raidOver is currently " + holdAttack.raidOver);
 					// this else UberStatement is for the actual attack server to use, the above is the facsimile treatment.
@@ -9314,7 +9315,6 @@ public boolean checkForGenocides(Town t) {
 			}
 			
 			else {
-				if(ts.getTradeScheduleID()==4979||ts.getTradeScheduleID()==4980) System.out.println("I am " + ts.getTradeScheduleID() + " and my timesDone is " + ts.getTimesDone() + " and my todo is " +ts.getTimesToDo() + " and I'm at the ticks decreaser now  with ticks of " + ts.getCurrTicks());
 
 			if(ts.getCurrTicks()>0) {
 				actts.setCurrTicks(ts.getCurrTicks() - 1);
@@ -9322,7 +9322,6 @@ public boolean checkForGenocides(Town t) {
 				/*
 				 * Time to create a new trade if possible.
 				 */
-				if(ts.getTradeScheduleID()==4979||ts.getTradeScheduleID()==4980) System.out.println("I am " + ts.getTradeScheduleID() + " and my timesDone is " + ts.getTimesDone() + " and my todo is " +ts.getTimesToDo() + " and I'm at the trade sender.");
 
 				if(!sendTradeIfPossible(actts)) actts.resetTradeTimers();
 				// 
@@ -9369,7 +9368,7 @@ public boolean checkForGenocides(Town t) {
 			if(t.getTicksToHit()>0) {
 				actt.setTicksToHit(t.getTicksToHit() - 1);
 			} else if(t.getTicksToHit()<=0&&!t.isTradeOver()) {
-					actt.getTown2().update(); // update beforehand.
+				actt.getTown2().update();
 				
 				/*
 				 * Time to offload resources!

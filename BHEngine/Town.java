@@ -1199,12 +1199,13 @@ public class Town {
 		}
 		}
 	}
-	 public void update() {
+	synchronized public void update() {
 			if(owedTicks>0) {
 
 		 if(getPlayer().ID==5||getPlayer().isQuest()) {
 			 iterate(owedTicks);
 			 owedTicks=0;
+			 save();
 		 }
 		 else getPlayer().update();
 			}
@@ -1224,6 +1225,8 @@ public class Town {
 				}
 				i++;
 			}
+			if(getPlayer().getPs().b.isAlive()) return true; // program running means the player keeps cycling.
+
 			return false;
 		}
 	 public void iterate(int num) {
