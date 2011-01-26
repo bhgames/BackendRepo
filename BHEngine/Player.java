@@ -1161,8 +1161,8 @@ public class Player  {
 	    	  co++;
 	      }
 	     String  updatePlayer = "update player set stealth = " + stealth + ", totalscho = " + totalScholars + ", totalpop = " + totalPopulation + ", alotTech = " + aLotTech + ", soldTech = " + soldierTech + ", tankTech = " + tankTech + 
-	    		  ", juggerTech = " + juggerTech +  ", bomberTech = " + bomberTech + ", weapontech = '" + weapStr+"', buildingSlotTech = " + buildingSlotTech + ", civWeap = " + civWeapChoice +
-	    		   ", townTech = " + townTech +  ", tradeTech = " + tradeTech +  ", soldierPicTech = '" + soldierPicStr + "', tankPicTech = '" + tankPicStr
+	    		  ", juggerTech = " + juggerTech +  ", bomberTech = " + bomberTech + ", afTech = " + afTech + ", bunkerTech = " + bunkerTech + ", weapontech = '" + weapStr+"', buildingSlotTech = " + buildingSlotTech + ", civWeap = " + civWeapChoice +
+	    		   ", townTech = " + townTech +  ", tradeTech = " + tradeTech +", suppTech = " + supportTech +   ", soldierPicTech = '" + soldierPicStr + "', tankPicTech = '" + tankPicStr
 	    		   + "', juggerPicTech = '" + juggerPicStr + "', bomberPicTech = '" + bomberPicStr + "', supportstaff = " + supportstaff + ", tradeTech = " + tradeTech +", lotTech = " + lotTech + ", stabilityTech = " + stabilityTech + 
 	    		   ", scholTicks = " + scholTicks + ", playedTicks = " + playedTicks +", bp = " + bp + ", premiumTimer = " + premiumTimer+ ", ubTimer = " + ubTimer + ", mineTimer = " + mineTimer + ", feroTimer = " + feroTimer +
 	    		   ", timberTimer = "  + timberTimer + ", mmTimer = " + mmTimer + ", fTimer = " + fTimer + ", knowledge = " + knowledge +/* KNOWLEDGE WAS BRKTHRUS ", brkups = " + brkups +*/", engTech = " + engTech + ", scholTech = " + scholTech  +", commsCenterTech = " + commsCenterTech + ", capitaltid = " + capitaltid 

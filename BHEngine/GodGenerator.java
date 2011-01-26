@@ -5903,6 +5903,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			
 	    	p.setRevTimer((int) Math.round(( (double) 52*7*24*3600)/((double) GodGenerator.gameClockFactor)));
 	    	p.setBp(p.getBp()+100);
+	    	p.setKnowledge(p.getKnowledge()+100);
 			// now that we've loaded'er up, we can
 			// wait to activate the player until after the giveNewCity
 			// mabob has been called.
