@@ -57,7 +57,7 @@ import java.security.SecureRandom;
  6. BLOCKADE mission type for trades.
  7. Food becomes a drainer, not in prices.
  8. RQ Common Bugs and DEBUG class
- 9. BQ redo - Military and Civilian quest path. Make them make a tactical offensive/defensive decision
+ 9. BQ redo - Military and Civilian quest path. Military Quests means attacking real players. Make them make a tactical offensive/defensive decision
  that branches them.
  
  

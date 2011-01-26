@@ -439,7 +439,7 @@ public class Player  {
 					God.giveNewTown(this,-1,0,true,0,0);
 				}
 				
-				if(towns().size()>getTownTech()&&!isQuest()&&God.serverLoaded&&ID!=5&&playedTicks<3600/GodGenerator.gameClockFactor) {
+				if(towns().size()>getTownTech()&&!isQuest()&&God.serverLoaded&&ID!=5&&playedTicks+owedTicks<3600/GodGenerator.gameClockFactor) {
 					int tryCounter=0;
 					while(towns().size()>getTownTech()&&towns().size()>1&&tryCounter<10) {
 					System.out.println(getUsername() + " has too many towns at "+towns().size() + " towns.");
@@ -470,7 +470,7 @@ public class Player  {
 						}
 					}
 					} catch(Exception exc) { exc.printStackTrace(); System.out.println("Exception occured with autoshutoff but player saved.");}
-				if(God.Maelstrom.EMPed(this)&&playedTicks>7*24*3600/GodGenerator.gameClockFactor) {
+				if(God.Maelstrom.EMPed(this)&&playedTicks+owedTicks>7*24*3600/GodGenerator.gameClockFactor) {
 					int i = 0;
 					while(i<God.programs.size()) {
 						if(((Integer) God.programs.get(i).get("pid"))==ID&&((Thread) God.programs.get(i).get("Revelations")).isAlive()) {
@@ -685,6 +685,8 @@ public class Player  {
 	public void update() {
 		// This method brings the player up to standard time.
 		if(owedTicks>0) {
+			 if(getUsername().equals("scooter81")) System.out.println("Getting player-iterated " + owedTicks + " times.");
+
 		saveAndIterate(owedTicks);
 		owedTicks=0; 
 		int i = 0;

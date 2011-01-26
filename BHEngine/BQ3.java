@@ -99,9 +99,9 @@ public class BQ3 extends QuestListener {
 		try {
 		 loadedQuestAt = Integer.parseInt(r.substring(r.indexOf("lqa")+3,r.lastIndexOf(";")));
 		} catch(NumberFormatException exc) { loadedQuestAt =Integer.parseInt(r.substring(r.indexOf("lqa")+3,r.indexOf("attackhit")-1));}
-		if((r.contains("attackhit")||(p.playedTicks-loadedQuestAt)>=60/GodGenerator.gameClockFactor)&&p.getPs().b.haveBldg("Bunker",p.getCapitaltid())) {
+		if((r.contains("attackhit")||((p.playedTicks+p.owedTicks)-loadedQuestAt)>=60/GodGenerator.gameClockFactor)&&p.getPs().b.haveBldg("Bunker",p.getCapitaltid())) {
 
-			if((p.playedTicks-loadedQuestAt)>=60/GodGenerator.gameClockFactor&&God.getTown(townID)!=null) killTown(t.townID);
+			if(((p.playedTicks+p.owedTicks)-loadedQuestAt)>=60/GodGenerator.gameClockFactor&&God.getTown(townID)!=null) killTown(t.townID);
 			
 			reward(pid);
 			destroy(p);
@@ -169,7 +169,7 @@ public class BQ3 extends QuestListener {
 			r+="loadedattack;";
 			
 		}
-		r+="lqa"+p.playedTicks+";";
+		r+="lqa"+(p.playedTicks+p.owedTicks)+";";
 		writeToMemory(r,p.ID);
 
 	}

@@ -4591,12 +4591,12 @@ public long[] returnPrice(int lotNum, int tid) {
 			
 		}
 		
-		if(!t1.getPlayer().isQuest()&&Town2.getPlayer().playedTicks<(48*3600.0/GodGenerator.gameClockFactor)&&Town2.getPlayer().ID!=5&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=t1.getPlayer().ID) {
+		if(!t1.getPlayer().isQuest()&&(Town2.getPlayer().playedTicks+Town2.getPlayer().owedTicks)<(48*3600.0/GodGenerator.gameClockFactor)&&Town2.getPlayer().ID!=5&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=t1.getPlayer().ID) {
 			// quests can attack any time...
 			setError("NOOB PROTECTION!");
 			return false;
 			
-		} else if(t1.getPlayer().playedTicks<(48*3600.0/GodGenerator.gameClockFactor)&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=5) {
+		} else if((t1.getPlayer().playedTicks+t1.getPlayer().owedTicks)<(48*3600.0/GodGenerator.gameClockFactor)&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=5) {
 			
 			// If you are under noob protection and you are attacking a player that is not a quest and not Id,
 			// then you lose your noob protection.
@@ -4902,12 +4902,12 @@ public long[] returnPrice(int lotNum, int tid) {
 			return false;
 			
 		}
-		if(!t1.getPlayer().isQuest()&&Town2.getPlayer().playedTicks<(48*3600.0/GodGenerator.gameClockFactor)&&Town2.getPlayer().ID!=5&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=t1.getPlayer().ID&&!debris) {
+		if(!t1.getPlayer().isQuest()&&(Town2.getPlayer().playedTicks+Town2.getPlayer().owedTicks)<(48*3600.0/GodGenerator.gameClockFactor)&&Town2.getPlayer().ID!=5&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=t1.getPlayer().ID&&!debris) {
 			// quests can attack any time...
 			setError("NOOB PROTECTION!");
 			return false;
 			
-		} else if(t1.getPlayer().playedTicks<(48*3600.0/GodGenerator.gameClockFactor)&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=5&&!debris) {
+		} else if(t1.getPlayer().playedTicks+t1.getPlayer().owedTicks<(48*3600.0/GodGenerator.gameClockFactor)&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=5&&!debris) {
 			
 			// If you are under noob protection and you are attacking a player that is not a quest and not Id,
 			// then you lose your noob protection.

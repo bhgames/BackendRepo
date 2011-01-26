@@ -676,7 +676,7 @@ public boolean FBBlast(HttpServletRequest req, PrintWriter out) {
 									 t.getRes()[3]+=(long) Math.round(((double) s[i].f)*.25);
 
 								 }
-								 p.last_auto_blast=p.playedTicks;
+								 p.last_auto_blast=p.playedTicks+p.owedTicks;
 								 
 							 }
 							 else {
@@ -813,7 +813,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 								weeklyActives++;
 							 
 							 numberOfPlayers++;
-							 averagePlayedTicks+=p.playedTicks;
+							 averagePlayedTicks+=(p.playedTicks+p.owedTicks);
 						towns = p.towns();
 						j.object()
 						.key("username")
