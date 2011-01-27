@@ -526,6 +526,9 @@ public class BattlehardFunctions {
 	 */
 	
 	public boolean sendYourself(String body, String subject) {
+		body.replace(";","<u3B>");
+		subject.replace(";","<u3B>");
+	
 		pushLog("sendYourself(" + body + "," + subject + ");");
 		int pid_to[] = {p.ID};
 		boolean doINeedToChange=false;
@@ -546,6 +549,7 @@ public class BattlehardFunctions {
 	 * @return
 	 */
 	public boolean sendMessage(String usernameTo[], String body, String subject, int original_subject_id) {
+		
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
 			return false;
@@ -571,10 +575,9 @@ public class BattlehardFunctions {
 			setError("You do not have the Messaging API!");
 			return false;
 		}
-		if(body.contains(";")||subject.contains(";")){
-			body.replace(";","[semicolon]");
-			subject.replace(";","[semicolon]");
-		}
+			body.replace(";","<u3B>");
+			subject.replace(";","<u3B>");
+		
 		while(j<pid_to.length) {
 			int k = 0;
 			while(k<pid_to.length) {
