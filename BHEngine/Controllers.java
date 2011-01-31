@@ -676,7 +676,7 @@ public boolean FBBlast(HttpServletRequest req, PrintWriter out) {
 									 t.getRes()[3]+=(long) Math.round(((double) s[i].f)*.25);
 
 								 }
-								 p.last_auto_blast=p.playedTicks;
+								 p.last_auto_blast=p.getPlayedTicks();
 								 
 							 }
 							 else {
@@ -813,7 +813,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 								weeklyActives++;
 							 
 							 numberOfPlayers++;
-							 averagePlayedTicks+=p.playedTicks;
+							 averagePlayedTicks+=p.getPlayedTicks();
 						towns = p.towns();
 						j.object()
 						.key("username")
@@ -1482,7 +1482,6 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					session.setMaxInactiveInterval(7200);
 					
 					success(out);
-				
 					g.updateLastLogin(pid);
 					return true;
 					
@@ -1727,6 +1726,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			// must be a player request.
 			//error WOULD ALLOW YOU TO CONTROL PLAYERS ABOVE YOU SHOULD ONE GET DELETED!
 			 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+
 			String output= ""+ p.getPs().parser(req.getParameter("command"));
 			
 			out.println(output);

@@ -2386,18 +2386,15 @@ public class BattlehardFunctions {
 			if(keep) prog = true;
 			while(j<bldg.length) {
 				currBldg = bldg[j];
-				if(currBldg.getLotNum()==lotNum) bunkerMode = currBldg.getBunkerMode();
+			//	if(currBldg.getLotNum()==lotNum) bunkerMode = currBldg.getBunkerMode();
 			
-				switch(currBldg.getBunkerMode()) {
-				case 0:
-					bunkerSize+=Math.round(.05*p.getBunkerTech()*GodGenerator.getPeople(currBldg.getLvl(),totalPoppedUnits,4,GodGenerator.totalUnitPrice));
-				case 1:
-					civvyBunkerSize+=Math.round(.05*p.getBunkerTech()*GodGenerator.getPeople(currBldg.getLvl(),3,4,GodGenerator.totalUnitPrice));
-				case 2:
-					resSize+=(long) Math.round(.05*((double) p.getBunkerTech()) *((double) Building.resourceAmt)*Math.pow(currBldg.getLvl()+2,2));
+			
+					bunkerSize+=Math.round(.33*.05*p.getBunkerTech()*GodGenerator.getPeople(currBldg.getLvl(),totalPoppedUnits,4,GodGenerator.totalUnitPrice));
+					civvyBunkerSize+=Math.round(.33*.05*p.getBunkerTech()*GodGenerator.getPeople(currBldg.getLvl(),3,4,GodGenerator.totalUnitPrice));
+					resSize+=(long) Math.round(.33*.05*((double) p.getBunkerTech()) *((double) Building.resourceAmt)*Math.pow(currBldg.getLvl()+2,2));
 
 					
-				}
+				
 		
 				j++;
 			}
@@ -2407,8 +2404,8 @@ public class BattlehardFunctions {
 
 			UserAttackUnit au[] = getUserAttackUnits(townID);
 			if(keep) prog = true;
-			switch(bunkerMode) { 
-			case 0://defense mode
+			String toRet="";
+			
 				
 				 i = 0;
 				int currentExpAdvSizeDef=0;
@@ -2422,31 +2419,27 @@ public class BattlehardFunctions {
 				 armysizefrac=bunkerSize/currentExpAdvSizeDef;
 				}
 				else
-					return "No army in this town to protect.";
+					toRet+= "No army in this town to protect.  <br /><br />";
 				if(armysizefrac>1) armysizefrac=1;
 				double percentprotection = .05*p.getBunkerTech()*armysizefrac*100;
 				
-				if(percentprotection>100)  return "Gives complete protection to your combat units in this town. "+((int) Math.round(percentprotection-100))
-						+ "% more army can be protected by your defense bunkers.";
-				else return "Your defense bunkers give " + ((int) Math.round(percentprotection)) + "% protection to your combat units in this town.";
+				if(percentprotection>100)  toRet+= "Gives complete protection to your combat units in this town. "+((int) Math.round(percentprotection-100))
+						+ "% more army can be protected by your defense bunkers.  <br /><br />";
+				else toRet+= "Your defense bunkers give " + ((int) Math.round(percentprotection)) + "% protection to your combat units in this town. <br /><br />";
 
-			case 1://VIP mode
 				long pop = t.getPop();
 				//		double civvybunkerfrac=((double) bunkerSize)/((double) pop);
 
 				double civvybunkerfrac=(civvyBunkerSize/((double) pop))*100;
-				if(civvybunkerfrac>100) return "Protects all of your civilian units from bombing and siege attacks. " + 
-						(((int)civvyBunkerSize)-pop) + " more civilians can be protected by your VIP bunkers.";
+				if(civvybunkerfrac>100) toRet+= "Your bunkers protect all of your civilian units from bombing and siege attacks. " + 
+						(((int)civvyBunkerSize)-pop) + " more civilians can be protected by your bunkers. <br /><br />";
 
-				else return "Your VIP bunkers protect " + (int) civvybunkerfrac + "% ("+ (int) civvyBunkerSize + " civilians) of your civilians from bombing/siege attacks.";
+				else toRet+= "Your bunkers protect " + (int) civvybunkerfrac + "% ("+ (int) civvyBunkerSize + " civilians) of your civilians from bombing/siege attacks.  <br /><br />";
 
 
-			case 2://cache mode
-				return "Your cache bunkers protect " + resSize + " of each resource.";
+				toRet+= "Your bunkers protect " + resSize + " of each resource.";
 
-			default:
-				return "Invalid bunker mode.";
-			}
+			return toRet;
 		}
 		/**
 		 * @deprecated
@@ -2496,6 +2489,7 @@ public class BattlehardFunctions {
 		return false;
 	}
 	/**
+	 * @deprecated
 	 * UI Implemented.
 	 * 0 is combat mode, 1 is VIP mode, and 2 is resource cache mode. This method changes
 	 * the bunker in the lot number specified in the town with the ID given to the bunkerMode
@@ -2784,7 +2778,7 @@ public long[] returnPrice(int lotNum, int tid) {
 							 multiplier=40/((double) townSize);
 							 break;
 						 case 20:
-							 multiplier=20/((double) townSize);
+							 multiplier=20;
 							 break;
 						 }
 						 
@@ -3024,7 +3018,7 @@ public long[] returnPrice(int lotNum, int tid) {
 							 multiplier=40/((double) q.getTownsAtTime());
 							 break;
 						 case 20:
-							 multiplier=20/((double) q.getTownsAtTime());
+							 multiplier=20;
 							 break;
 						 }
 						 
@@ -3851,7 +3845,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					 multiplier=40/((double) p.towns().size());
 					 break;
 				 case 20:
-					 multiplier=20/((double) p.towns().size());
+					 multiplier=20;
 					 break;
 				 }
 				 
@@ -4207,7 +4201,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					 multiplier=40/((double) p.towns().size());
 					 break;
 				 case 20:
-					 multiplier=20/((double) p.towns().size());
+					 multiplier=20;
 					 break;
 				 }
 				 
@@ -4594,12 +4588,16 @@ public long[] returnPrice(int lotNum, int tid) {
 			
 		}
 		
-		if(!t1.getPlayer().isQuest()&&Town2.getPlayer().playedTicks<(48*3600.0/GodGenerator.gameClockFactor)&&Town2.getPlayer().ID!=5&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=t1.getPlayer().ID) {
+		if(!t1.getPlayer().isQuest()&&(t1.getPlayer().getPlayedTicks())>(48*3600/GodGenerator.gameClockFactor)
+				&&(Town2.getPlayer().getPlayedTicks())<(48*3600.0/GodGenerator.gameClockFactor)&&
+				Town2.getPlayer().ID!=5&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=t1.getPlayer().ID&&!debris) {
 			// quests can attack any time...
 			setError("NOOB PROTECTION!");
 			return false;
 			
-		} else if(t1.getPlayer().playedTicks<(48*3600.0/GodGenerator.gameClockFactor)&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=5) {
+		} else if((t1.getPlayer().getPlayedTicks())<(48*3600.0/GodGenerator.gameClockFactor)
+				&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=5&&!debris
+				&&(Town2.getPlayer().getPlayedTicks())>(48*3600/GodGenerator.gameClockFactor)) {
 			
 			// If you are under noob protection and you are attacking a player that is not a quest and not Id,
 			// then you lose your noob protection.
@@ -4905,14 +4903,17 @@ public long[] returnPrice(int lotNum, int tid) {
 			return false;
 			
 		}
-		if(!t1.getPlayer().isQuest()&&Town2.getPlayer().playedTicks<(48*3600.0/GodGenerator.gameClockFactor)&&Town2.getPlayer().ID!=5&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=t1.getPlayer().ID&&!debris) {
+		if(!t1.getPlayer().isQuest()&&(t1.getPlayer().getPlayedTicks())>(48*3600/GodGenerator.gameClockFactor)
+				&&(Town2.getPlayer().getPlayedTicks())<(48*3600.0/GodGenerator.gameClockFactor)
+				&&Town2.getPlayer().ID!=5&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=t1.getPlayer().ID&&!debris) {
 			// quests can attack any time...
 			setError("NOOB PROTECTION!");
 			return false;
 			
-		} else if(t1.getPlayer().playedTicks<(48*3600.0/GodGenerator.gameClockFactor)&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=5&&!debris) {
+		} else if(t1.getPlayer().getPlayedTicks()<(48*3600.0/GodGenerator.gameClockFactor)
+				&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=5&&!debris&&(Town2.getPlayer().getPlayedTicks())>(48*3600/GodGenerator.gameClockFactor)) {
 			
-			// If you are under noob protection and you are attacking a player that is not a quest and not Id,
+			// If you are under noob protection and you are attacking a player that is not a quest and not Id and not under noob protection
 			// then you lose your noob protection.
 			
 			t1.getPlayer().playedTicks=(int) Math.round(48*3600.0/GodGenerator.gameClockFactor);
@@ -10154,7 +10155,6 @@ public long[] returnPrice(int lotNum, int tid) {
 					}
 					 auAmts = new int[r.getAu().size()];
 					 auNames = new String[r.getAu().size()];
-
 					int k = 0;
 					while(k<auAmts.length) {
 						auAmts[k] = r.getAu().get(k).getSize();
@@ -11131,7 +11131,7 @@ public long[] returnPrice(int lotNum, int tid) {
 				p.isJuggerTech(),leagueName,p.getScholTech(),p.getScholTicks(),p.getScholTicksTotal(),
 				soldierPicTech,p.isSoldierTech(),p.getStabilityTech(),p.getStealthTech(),p.getSupportTech(),
 				tankPicTech,p.isTankTech(),p.getTotalPopulation(),p.getTotalScholars(),p.getTownTech(),
-				t,p.getTradeTech(),p.getUsername(),weap,p.getCapitaltid(),p.getBp(),p.getCommsCenterTech(),p.playedTicks,p.getPremiumTimer(),
+				t,p.getTradeTech(),p.getUsername(),weap,p.getCapitaltid(),p.getBp(),p.getCommsCenterTech(),p.getPlayedTicks(),p.getPremiumTimer(),
 				p.getUbTimer(),p.getMineTimer(),p.getFeroTimer(),p.getTimberTimer(),p.getMmTimer(),p.getFTimer(),p.getRevTimer(),p.getTotalBPEarned(),p.getEmail(),p.isZeppTech(),
 				p.isMissileSiloTech(),p.isRecyclingTech(),p.isMetalRefTech(),p.isTimberRefTech(),p.isManMatRefTech(),p.isFoodRefTech(),
 				p.isAttackAPI(),p.isAdvancedAttackAPI(),p.isTradingAPI(),p.isAdvancedTradingAPI(),p.isSmAPI(),p.isResearchAPI(),
@@ -11241,7 +11241,7 @@ public long[] returnPrice(int lotNum, int tid) {
 	 * UI Implemented.
 	 * Name your poison to use your BP on. Send in a string with the following:
 	 * "ub" Gets you 50% less build times for a week. 100BP.
-	 * "troopPush" Gets you a free troop push at full CSL. 200BP.
+	 * "troopPush" Gets you a free troop push at full CSL. 1000BP.
 	 * "metal" Gets you 25% extra metal from your metal mines for a week. Same for the next three but corresponding to their resource. 50BP.
 	 * "timber"
 	 * "manmat"
@@ -11291,7 +11291,7 @@ public long[] returnPrice(int lotNum, int tid) {
 			p.setUbTimer(p.getUbTimer()+(int) Math.round(7.0*24.0*3600.0/((double) GodGenerator.gameClockFactor)));
 			p.setBp(p.getBp()-100);
 		} else if(type.startsWith("troopPush")) {
-			if(p.getBp()<200) {
+			if(p.getBp()<1000) {
 				setError("Not enough BP!");
 				return false;
 
@@ -11366,7 +11366,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					j++;
 				}
 				
-				p.setBp(p.getBp()-200);
+				p.setBp(p.getBp()-1000);
 
 		} else if(type.startsWith("metal")) {
 			if(p.getBp()<50) {
@@ -11453,12 +11453,12 @@ public long[] returnPrice(int lotNum, int tid) {
 			p.setBp(p.getBp()-100);
 
 		}*/ else if(type.startsWith("ferocity")) {
-			if(p.getBp()<500) {
+			if(p.getBp()<200) {
 				setError("Not enough BP!");
 				return false;
 			}
 			p.setFeroTimer(p.getFeroTimer()+(int) Math.round(7.0*24.0*3600.0/((double) GodGenerator.gameClockFactor)));
-			p.setBp(p.getBp()-500);
+			p.setBp(p.getBp()-200);
 		} else if(type.startsWith("instantSM")) {
 			if(p.getBp()<10) {
 				setError("Not enough BP!");

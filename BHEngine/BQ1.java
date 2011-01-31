@@ -81,7 +81,7 @@ public class BQ1 extends QuestListener {
 
 "ÔYes - Id comes after new inactive players especially. Now, there is no time. Build the Arms Factory and Institute!Õ<br /><br />"*/
 
-"<br />We've just received a signal that an attacking force of zombie robots is on it's way to pillage your new territories while you're weak! You need to prepare! If you want to survive this attack, you're going to need some soldiers, and you're going to need them quickly. Let's get prepared to raise an army!<br /><br />Goal: Build an Arms Factory and an Institute.<br /><br />"+getRewardBlock(1,pid,additional),"No Hint"};
+"<br />We've just received a signal that an attacking force of zombie robots is on it's way to pillage your new territories while you're weak! You need to prepare! If you want to survive this attack, you're going to need some soldiers, and you're going to need them quickly. Let's get prepared to raise an army!<br /><br />Note: For new players, one of our number one players has written a guide to help get you started. If you're interested, click <a href = 'http://battlehardalpha.xtreemhost.com/viewtopic.php?f=6&t=651'>here</a><br /><br />Goal: Build an Arms Factory and an Institute.<br /><br />"+getRewardBlock(1,pid,additional),"No Hint"};
 		
 		
 		return toRet;
@@ -92,11 +92,7 @@ public class BQ1 extends QuestListener {
 		Player p = findPlayer(pid);
 		ArrayList<AttackUnit> au = p.getAu();
 		PlayerScript ps = p.getPs();
-		if(p.getUsername().equals("ta2")) {
-		//	System.out.println("He has an arms?" + ps.b.haveBldg("Arms Factory", p.getCapitaltid()));
-			//System.out.println("He has an au?" + au.get(0).getName());
-
-		}
+	
 		if(ps.b.haveBldg("Arms Factory",p.getCapitaltid())&&ps.b.haveBldg("Institute",p.getCapitaltid())&&!au.get(0).getName().equals("empty")&&!au.get(0).getName().equals("locked")) {
 			reward(pid);
 			destroy(p);

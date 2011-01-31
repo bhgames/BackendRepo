@@ -26,6 +26,7 @@ public class Town {
 	 private long res[], debris[];
 	 private double resEffects[],resBuff[];
 	 private Player p;
+	 public int owedTicks;
 	 private ArrayList<Trade> tradeServer;
 	 private ArrayList<TradeSchedule> tradeSchedules;
 	 private ArrayList<Raid> attackServer;
@@ -179,6 +180,7 @@ public class Town {
 
 		zeppelin = getMemBoolean("zeppelin");
 		debris = getMemDebris();
+		owedTicks = getMemInt("owedTicks");
 
 		if(isZeppelin()) {
 		destX = getMemInt("destX");
@@ -211,6 +213,7 @@ public class Town {
 		getAu();bldg();
 		x = getMemX();
 		y = getMemY();
+		owedTicks = getMemInt("owedTicks");
 		debris = getMemDebris();
 		zeppelin = getMemBoolean("zeppelin");
 		if(isZeppelin()) {
@@ -500,7 +503,7 @@ public class Town {
 	}*/
 	 
 	
-	public void makeZeppelinFuel() {
+	public void makeZeppelinFuel(int num) {
 		/*
 		 * This method checks for buildings that are Airship Platforms and loads them with teh fuels.
 		 */
@@ -520,16 +523,19 @@ public class Town {
 						
 						// so we find out how many we can put in one platform.
 					//	System.out.println("Adding fuel cell...");
+						 double howMany = ((double) b.getTicksLeft())/((double) b.getTicksPerPerson());
+						 int howManyRounded = (int) Math.floor(howMany);
+						 int newTicksLeft =  (int) Math.floor((howMany-howManyRounded)*b.getTicksPerPerson());
 						if(b.getPeopleInside()<b.getCap())
-						b.setPeopleInside(b.getPeopleInside()+1); // PEOPLE'RE FUEL NOW!
+						b.setPeopleInside(b.getPeopleInside()+howManyRounded); // PEOPLE'RE FUEL NOW!
 						
-						b.setTicksLeft(0);
+						b.setTicksLeft(newTicksLeft);
 				
 					
 
 					} else {
 					//	System.out.println("How many ticks left?" +b.getTicksLeft() + " of " +  b.getTicksPerPerson());
-						b.setTicksLeft(b.getTicksLeft()+1); }
+						b.setTicksLeft(b.getTicksLeft()+num); }
 					
 				
 			}
@@ -538,7 +544,7 @@ public class Town {
 		}
 	}
 	
-	public void giveFuelToZeppelin() {
+	public void giveFuelToZeppelin(int num) {
 		// Gives the fuel to the Zeppelin if the Zeppelin is over a town.
 		Town t = getPlayer().God.findZeppelin(getX(),getY()); 
 	//	if(townID==3844)
@@ -564,16 +570,19 @@ public class Town {
 						
 						 // if we just loaded, then ticksPerPerson isn't set and must be.
 						if(b.getRefuelTicks()>=realTicks) {
+							 double howMany = ((double) b.getRefuelTicks())/((double) realTicks);
+							 int howManyRounded = (int) Math.floor(howMany);
+							 int newFuelTicks =  (int) Math.floor((howMany-howManyRounded)*realTicks);
 							// SHIT NEED ANOTHER TICKER...
 					//		System.out.println("Giving up a fuel cell!");
 							if(t.getFuelCells()<maxZeppFuel) {
-							t.setFuelCells(t.getFuelCells()+1);
-							b.setPeopleInside(b.getPeopleInside()-1);
-							b.setRefuelTicks(0);
+							t.setFuelCells(t.getFuelCells()+howManyRounded);
+							b.setPeopleInside(b.getPeopleInside()-howManyRounded);
+							b.setRefuelTicks(newFuelTicks);
 							}
 
 						} else {
-							b.setRefuelTicks(b.getRefuelTicks()+1); }
+							b.setRefuelTicks(b.getRefuelTicks()+num); }
 						
 					
 				}
@@ -1196,7 +1205,49 @@ public class Town {
 		}
 		}
 	}
+	synchronized public void update() {
+			if(owedTicks>0) {
+
+		 if(getPlayer().ID==5||getPlayer().isQuest()) {
+			 iterate(God.gameClock-owedTicks);
+			 owedTicks=0;
+			 save();
+		 }
+		 else getPlayer().update();
+			}
+	 }
+	 public boolean stuffOut() {
+			int i = 0;
+			while(i<attackServer().size()) {
+				if(attackServer().get(i).getTown1().townID==townID) {
+					return true;
+				}
+				i++;
+			}
+			 i = 0;
+			while(i<tradeServer().size()) {
+				if(tradeServer().get(i).getTown1().townID==townID) {
+					return true;
+				}
+				i++;
+			}
+			 if(bldgserver().size()>0) return true;
+			 i = 0; Building b;
+			 while(i<bldg().size()) {
+				  b = bldg().get(i);
+					if(b.getType().equals("Missile Silo")&&b.getTicksLeft()>0) {
+						return true; //NUKE ALERTS.
+					}
+					i++;
+			 }
+			 if(isZeppelin()&&(getX()!=getDestX()||getY()!=getDestY())) return true;
+			 // if this zeppelin is moving, then stuff is "out".
+			if(getPlayer().getPs().b.isAlive()) return true; // program running means the player keeps cycling.
+
+			return false;
+		}
 	 public void iterate(int num) {
+	
 	//	 if(townID==2958)
 			//System.out.println("Town's player is now " + getPlayer());
 		 double[] resInc=getResInc();
@@ -1220,7 +1271,7 @@ public class Town {
 		synchronized(resBuff) {
 		do {
 			
-			resBuff[j]+=(newIncs[j]*(1-taxRate)*(resEffects[j]+1));
+			resBuff[j]+=num*(newIncs[j]*(1-taxRate)*(resEffects[j]+1));
 			
 			
 			j++;
@@ -1246,19 +1297,21 @@ public class Town {
 		
 		auCheck();
 		checkForBadRaids();
-		GodGenerator.attackServerCheck(this,p);
-		
-		GodGenerator.tradeServerCheck(this,p);
-		GodGenerator.buildingServerCheck(this);
-		nukeCheck();
+		GodGenerator.attackServerCheck(this,p); // NONE of these things would be iterating ANYTHING if this player had
+		// a num of iterations>1. Because that'd imply an update. And a player is never FROZEN if:
+		// 1. It's AI is on
+		// 2. It's got Raid, Trade, or Building building.
+		GodGenerator.tradeServerCheck(this,p); // Not this thing.
+		GodGenerator.buildingServerCheck(this); // Not this thing
+		nukeCheck(); // Not this thing, either.
 		try {
-		makeZeppelinFuel();
-		giveFuelToZeppelin();
-		checkZeppelinMovement();
+		makeZeppelinFuel(num);
+		giveFuelToZeppelin(num);
+		checkZeppelinMovement(); // Not this thing...
 		} catch(Exception exc) { exc.printStackTrace(); System.out.println("Zeppelins saved."); }
 		
-		setInternalClock(getInternalClock() + 1); // we only iterate after FINISHING THE SAVE!
-
+		setInternalClock(getInternalClock() + num); // we only iterate after FINISHING THE SAVE!
+		if(getInternalClock()>God.gameClock) setInternalClock(God.gameClock); // means owedTicks stretches past the last server restart,
 	 }
 	 
 	 synchronized public void save() {
@@ -1296,7 +1349,7 @@ public class Town {
 	    	  ", m = " + getRes()[0] + ", t = " + getRes()[1] + ", mm = " + getRes()[2] + ", f = " + getRes()[3] + ", pop = " + getRes()[4] +
 	    	   ", au1 = " +
 	    	  au.get(0).getSize() + ", au2 = " +  au.get(1).getSize() + ", au3 = " +  au.get(2).getSize() + ", au4 = " +  au.get(3).getSize() +
-	    	  ", au5 = " + au.get(4).getSize() + ", au6 =" +  au.get(5).getSize() +", zeppelin = " + zeppelin + ",  fuelcells = " + fuelCells + 
+	    	  ", au5 = " + au.get(4).getSize() + ", au6 =" +  au.get(5).getSize() +", owedTicks = " + owedTicks+", zeppelin = " + zeppelin + ",  fuelcells = " + fuelCells + 
 	    	  ", ticksTillMove = " + ticksTillMove + ", destX = " + destX +", destY = " + destY + ", debm = " + getDebris()[0] + ", debt = " + getDebris()[1] + ", debmm = " + getDebris()[2] + ", debf = " + getDebris()[3] +" where tid = " + townID + ";";
 	    	  stmt.executeUpdate(update);
 	    	  

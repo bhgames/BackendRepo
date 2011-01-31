@@ -2586,7 +2586,7 @@ try {
 			return false;
 		}
 
-		if(player.God.Maelstrom.EMPed(player)&&player.playedTicks>7*24*3600/GodGenerator.gameClockFactor) {
+		if(player.God.Maelstrom.EMPed(player)&&player.getPlayedTicks()>7*24*3600/GodGenerator.gameClockFactor) {
 			if(otherb==null)
 			b.setError("Some of your cities have been EMPed recently, and cannot run AI programs!");
 			else

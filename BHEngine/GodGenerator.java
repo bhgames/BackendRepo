@@ -47,13 +47,98 @@ import java.security.SecureRandom;
 /*
  Encyclopedia of questions:
  
+
+ 
+ 
+ 
+ List of changes for Beta 3:
+ 
+ 1. Combined bunker modes.---CHECK---
+ 	a. BP change 1000 for Troop Push---CHECK---
+ 	b. Loser gets 50% of winner's BP---CHECK---
+ 	c. Bunker protect adjusts based on #towns you have.
+ 	d. Check that AF Protect adjust based on #towns you have, and is 3x as much now.
+ 2. Archaeological digs.
+ 3. Trade routes that generate wealth.
+ 4. Resource outcroppings.
+ 5. Non-towned areas become "territories" when you send settlers. 
+ 6. BLOCKADE mission type for trades.
+ 7. Food becomes a drainer, not in prices.
+ 8. RQ Common Bugs and DEBUG class
+ 9. BQ redo - Military and Civilian quest path. Military Quests means attacking real players. Make them make a tactical offensive/defensive decision
+ that branches them.
+ 10. Hero
+ 11. Fake players - evolving their AIs. They kill one another, and replace them with their AIs. Random defects every day.
+ 12. Alliances between players so he can visit each other.
+ 13. In Facebook
+ 14. Redo Revelations to be event-driven AI. Unlockable Events, like onTick
+ 15. Buildable built in code plugins that run before event code.
+ 16. Global Server Clock---CHECK---
+ 
+ 
+ 
+ 
+ Archaeological Digs:
+ 
+ Digs are an odd form of raid, that have a second set of timers. They are not the same data-type, we will have to offer a new one.
+ Only Civilians can be sent on digs, but to send protection, you should just send soldiers on support to that dig site. The Civilians
+ really aren't "at" the dig site, I just keep them in a variable somewhere, they don't travel there or back, that's part of the "dig timer."
+ If an Id town is attacked and there is no defense there, then the Civilians flee. A Dig lasts for 24 hours, at which point,
+ the Civilians return. You then have a 24 hour window to log on and send another group to do a Dig at that Id site, to continue
+ building the likelihood of finding something cool. A Dig site degrades over time, so you have to send regular digs to keep
+ going deeper, is the reasoning behind it. If you go beyond the 24 hour window, the likelihood restarts.
+ Digs show up on the world map as markers over Id towns for all to see.
+ 
+ When something has been found, a mail is sent to your character. It tells you what you found ex
+
+"We found some sort of tomb. We can open the door but we'll destroy the passageways beyond - we won't be able to search further
+on this dig."
+
+So if you respond yes, you get whatever you earned, if you respond no, you keep on building probability of finding something better.
+We also ask them to post to facebook whenever they find something.
+
+When civilians encounter other civilians at a dig site, they leave. If a person attacks and wipes out a Civilian dig after an email
+has been sent to the player but before the player has had a chance to answer it and earn their prize, the prize goes to
+the person who attacks. The Prize is visible to all on the WM as ripe for the picking while the player has not answered the email.
+Also, the dig crew stays on site until the user has answered it.
+
+Prizes offered:
+1. Varying degrees of KP
+2. In the future, new event handlers for your AI.
+3. Blueprints of exotic attack units outside the normal ones. 
+4. Resources of varying degrees.
+5. Occasionally, extra Tech Points.
+6. Nuclear Missile Silo, fully stocked.
+7. Zeppelin.
+8. In the future, code blocks written by the Devs for your AI to use. Rarity: Depends on the code.
+9. In the future, the ability to control the Id town becomes yours, by finding the central core of the AI there. It'll be AI-controlled,
+but will protect you, or attack others.
+
+What you find is based on the mix of civvies you send.
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
  
  Fixing the scaling issue:
  
+ 		// so if the player is older than 4 days, we don't take the risk of letting them lose all that progress
+		// if there is an accidental restart, they had logged in and done stuff in the fifteen minute time period since the last save,
+		// and not been saved. That'd SUCK! Though if they then refreshed, they'd be back to being updated. No difference.
+		// What if there is an unexpected server shutdown? the player loses a heck of a lot more...having not logged on.
  
  The scaling issue has to do with threads. Now we limit the amount of threads to 5 iterators.
  
- The iterators do not need to cycle every town every time. We need to set up protocols:
+ The iterators do not need to cycle every town every time, or every player, though they still need every league. We need to set up protocols:
  
  1. If a town has a raid outgoing, it gets cycled until there are no outgoing raids.
  2. If a player logs in, all his towns are cycled and he is cycled until he is up to date,
@@ -63,20 +148,70 @@ import java.security.SecureRandom;
  4. If a trade arrives, town and player gets cycled.
  5. If a trade is outgoing, town gets cycled.
  6. If an Id town is attacked, it gets cycled, but the other ones do not.
+ 7. If a league is cycled, then all players that it collects taxes from get updated too. No fix for that yet.
  
+ 
+UPDATE: epoch fix
+
+0. Add notion of saving gameClock. ---CHECK---
+1. all the playedTicks + owedticks need to be changed to playedTicks+(serverclock-owedticks)---CHECK--
+2. Iterators only set owedTick equal to serverClock when the last_login is greater than half an hour
+and owedTick is 0.---CHECK---
+4. If an iterator comes across a player with an owedTick that isn't 0, then don't fucking touch it.---CHECK---
+5. Update now does by serverTick-owedTick---CHECK---
+6. POST RESET: Set gameClock = Id's max played plus owed, then set everybody's owed = Idplayed+Idowed-owedTicks.
+ON BOTH TEST AND MAIN
+
+Tests you'll need to do for this update:
+1. that update function works as it should
+2. That iterators do not touch owedTicks>0
+3. That iterators set owedTicks correctly when the time is right.
  
  Implementation:
  
  0. Add an "owed" playedTicks amount to each player - they can each write that to their
  saves without writing anything else. If owed ticks is less than the time since the last server save in ticks,
- then we know that this person hasn't done anything since that save, and doesn't need saving.
+ then we know that this person hasn't done anything since that save, and doesn't need saving. Well if
+ server ticks aren't the same as owedTicks, owedTicks is ticks over all, server ticks is just
+ since the server began ticking. but generally, if owedTicks is greater than the ticks since
+ the last save, or since server start, then we know not to save.---CHECK---
+ 
  1. The iterators no longer look for things with lower playedTicks, they look for towns
- and players with sessions, or towns with outgoing raids/trades. Id is not cycled anymore this way.
+ and players with sessions, or towns with outgoing raids/trades. Id is not cycled anymore this way.---CHECK---
+ 
  2. In the attackServerCheck, if a raid of any sort arrives, town 2 is cycled as well
- as the player and all it's other towns, unless it's Id, then it's just that town.
- 3. Same goes for tradeServerCheck, except for Id.
+ as the player and all it's other towns, unless it's Id, then it's just that town.---CHECK---
  
+ 3. Same goes for tradeServerCheck, except for Id.---CHECK---
  
+ 4. If a player logs in with owed ticks, he gets cycled back to full. This way, players cannot accrue owedTicks
+ and get cycled. Like, an iterator should never be cycling a player with owedTicks. owedTicks disappear on login,
+ and when the player has timed out, the owedTicks keeps stacking, if they sent a raid it just extends the time they
+ have the server focus for. If a program is running, the player of course is kept cycling.---CHECK---
+
+5. Leagues update players before taxing them. But why should they? If they have an owedTicks of greater than say, three days,
+they have no incoming resources of any sort other than passive, which hasn't been upgraded.---CHECK---
+
+
+Tests:
+
+1. Test with players that are inactive that they just accrue owedTicks and do not cycle.---CHECK---
+2. Test via savePlayer string updates that if owedTicks goes beyond save ticks, it just doesn't save.---CHECK---
+3. Test that when you login, the player gets updated.---CHECK---
+4. Test that while logged in, player is continuing to get updated(easy to do by having it print iterator ticks.)---CHECK---
+5. Test that if you attack an inactive player, he both iterates AND gets saved.---CHECK---
+6. Test that if you trade with an inactive, he both iterates and gets saved.---CHECK---
+7. Test across server restarts that players that are inactive still accrue owedTicks.---CHECK---
+8. Test that savePlayer updates only those active across a restart.---CHECK---
+9. Test that while logged in across a restart, continue to get updated.---CHECK---
+10. Attack a player, restart before attack hits, see if the update still happens.---CHECK---
+11. Check that attacking an Id town only updates the Id town.---CHECK---
+
+
+
+
+
+
  The Record-Keeper AI:
  
  1. This AI CANNOT use the database. It seems that shit just gets lost that way. I also don't
@@ -4006,44 +4141,6 @@ http://www.javabeginner.com/
 
 Common bug list
 
-To do:
-1. Make restartServer email all the old people and tell them wtf is going on. Or make a masser yourself.---CHECK---
-2. MAKE username REQTYPE param is username
-2. make the fucking createPlayer part update.
-2. Make the getTiles---CHECK---
-kay getTiles() will return [0,0,grass, [player1username,player1fuid,playerage], ...]
-3:58 PM
- 
-yeah but still being able to point it out for them may be valuable as a future addition
-3:58 PM
- 
-so I'll just send it down, don't worry about it for now
-Markus
-3:58 PM
-okay
-Jordan
-3:58 PM
-actually this needs tobe a reqtype
-3:58 PM
- 
-so the reqtype is getTiles
-3:58 PM
- 
-it's session-free,
-3:58 PM
- 
-then createNewPlayer now has two new variables
-3:59 PM
- 
-chosenTileX and chosenTileY , skipMe
-3:59 PM
- 
-and I'll put them as close as possible tot he center of that tile
-
-3. Fix scaling issue
-
-[ tilex,tiley,grass,dailyActives,weeklyActives,averagePlayerAge,[ [player1username,player1fuid], ...] ]
-
 
 
 Okay so to do:
@@ -4056,22 +4153,13 @@ Build Automation(check buildcombatunit)
 
 
 
-Post Zepp Tests:
-
-1. Test that Ground Nukes STILL work as said.---CHECK---
-2. Test that Sky Nukes work.---CHECK---
-3. Test that genocides actually end AIs.---CHECK---
-4. Test that lifecycle of cloud is proportional to %.---CHECK---
-5. Change and test the Raid detection and make the CC bring that shit.---CHECK---
-6. Add support
-7. Achievements
-8. Add Notepad
 
 The Schedule:
 
 
-
-
+Fixes to master branch:
+1. Make it so you set the height of the images explicitly to fix the scrollbar problem.
+2. Make it so genocide is 50% take again
 
 
 
@@ -4235,6 +4323,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	// Metal is 0, timber is 1. Stealthtech is 2. Population is 3.
 	// 28.3 for .01, 2.83 for .1, 
 	public static double gameClockFactor=10; // At 1, 1 tick = 1s.
+	public static double sessionLagTime = 2*3600000; // How much time in Date speech till a session logs out.
 	// so with timers, you'll want to divide by the gameClockFactor, diminishing it...
 	// so divide 10 ticks by 10, then with 1 tick=1s at ticks = 10 is 10s to do,
 	// now at 1 tick = 10s, the timer will be 1 tick means 10s to do. Same dealie.
@@ -4322,9 +4411,9 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	public static int totalUnitPrice=70;
 	public static int unarmedAmt = 10; // The unarmed weapon which occurs when soldiers/tanks/juggers/bombers
 	// fight unarmed. Currently is 10.
-	public static int minIterators=10;
-	public static int maxIterators=50;
-	public static int printWhenTicks=(int) (100/gameClockFactor);
+	public static int minIterators=3;
+	public static int maxIterators=10;
+	public static int printWhenTicks=(int) (100000/gameClockFactor);
 	public int printCounter=0;
 	public static int ticksTillIncrease=5;
 	public static int ticksTillDecrease = 20;
@@ -4547,7 +4636,12 @@ public class GodGenerator extends HttpServlet implements Runnable {
 			UberStatement qstmt = con.createStatement();
 			
 		
-
+		ResultSet rs = qstmt.executeQuery("select gameClock from God;");
+		
+		rs.next();
+		gameClock = rs.getInt(1);
+		rs.close();
+		
 		
 		int i = 0;
 		loadAchievements();
@@ -7469,7 +7563,7 @@ public boolean checkForGenocides(Town t) {
 		UserBuilding t2bldg[] = t2p.getPs().b.getUserBuildings(t2.townID,"all");
 		while(j<t2bldg.length) {
 			 b = t2bldg[j];
-			if(b.getType().equals("Bunker")&&b.getBunkerMode()==1)  bunkerSize+=Math.round(.05*t2p.getBunkerTech()*getPeople(b.getLvl(),3,4,totalUnitPrice));
+			if(b.getType().equals("Bunker"))  bunkerSize+=Math.round(.33*.05*t2p.getBunkerTech()*getPeople(b.getLvl(),3,4,totalUnitPrice));
 		//	else if(b.type.equals("Bunker")&&b.bunkerMode==1&&b.getLvl()>25) bunkerSize+=Math.exp(25)+(b.getLvl()-25)*Math.exp(25);
 			
 			j++;
@@ -7776,7 +7870,7 @@ public boolean checkForGenocides(Town t) {
 			
 				while(j<t2bldg.length) {
 					 b = t2bldg[j];
-					if(b.getType().equals("Bunker")&&b.getBunkerMode()==0)  bunkerSize+=Math.round(.05*t2p.getBunkerTech()*getPeople(b.getLvl(),totalPoppedUnits,4,totalUnitPrice));
+					if(b.getType().equals("Bunker"))  bunkerSize+=Math.round(.33*.05*t2p.getBunkerTech()*getPeople(b.getLvl(),totalPoppedUnits,4,totalUnitPrice));
 					//else if(b.type.equals("Bunker")&&b.bunkerMode==0&&b.getLvl()>25) bunkerSize+=Math.exp(25)+(b.getLvl()-25)*Math.exp(25);
 					
 					j++;
@@ -8422,6 +8516,11 @@ public boolean checkForGenocides(Town t) {
 				if(premium) {
 					t2p.setBp(t2p.getBp()+bp);
 					t2p.setTotalBPEarned(t2p.getTotalBPEarned()+bp);
+					if(t1p.getPremiumTimer()>0) {
+						t1p.setBp(t1p.getBp()+bp/2);
+						t1p.setTotalBPEarned(t1p.getTotalBPEarned()+bp/2);
+					}
+
 				}
 				} else if(percentlossdiff>0){
 					if(t1p.getPremiumTimer()>0) {
@@ -8479,6 +8578,9 @@ public boolean checkForGenocides(Town t) {
 					if(premium) {
 						t1p.setBp(t1p.getBp()+bp);
 						t1p.setTotalBPEarned(t1p.getTotalBPEarned()+bp);
+						if(t2p.getPremiumTimer()>0) {
+						t2p.setBp(t2p.getBp()+bp/2);
+						t2p.setTotalBPEarned(t2p.getTotalBPEarned()+bp/2); }
 					}
 				}
 				
@@ -8874,7 +8976,8 @@ public boolean checkForGenocides(Town t) {
 				      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
 				      
 				      int offbp=0,defbp=0;
-				      if(percentlossdiff<0) defbp=bp; else offbp=bp;
+				      if(percentlossdiff<0) { defbp=bp; offbp=bp/2;} else {offbp=bp; defbp=bp/2;} // >-30 means that positive means incoming won,
+				      // so we know what to set!
 				      
 				      if(percentlossdiff>(-30))
 				      stmt.execute("insert into statreports (defender,invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,bombbldgdata,bombppldata,combatdata,combatheader,bp,premium,ax,ay,dx,dy,offTownName,defTownName,zeppText,debm,debt,debmm,debf) values" +
@@ -8883,11 +8986,11 @@ public boolean checkForGenocides(Town t) {
 				      		+ defUnitsBefore + "\",\"" + defUnitsAfter +"\",\""+ offNames + "\",\"" + defNames + "\"," +genocide + ",\""+bombResultBldg+"\",\""
 				      		+ bombResultPpl+ "\",'" + combatData + "','" + combatHeader + "'," + offbp + "," + premium + ","+t1.getX()+","+t1.getY()+","+t2.getX()+","+t2.getY()+",'"+t1.getTownName()+"','"+t2.getTownName()+"','"+zeppText+"',"+totalCost[0]+","+totalCost[1]+","+totalCost[2]+","+totalCost[3]+");");
 				      else
-				    	  stmt.execute("insert into statreports (defender,invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,bombbldgdata,bombppldata,combatdata,combatheader,ax,ay,dx,dy,offTownName,defTownName,zeppText) values" +
+				    	  stmt.execute("insert into statreports (defender,invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,bombbldgdata,bombppldata,combatdata,combatheader,bp,ax,ay,dx,dy,offTownName,defTownName,zeppText) values" +
 						      		"(false," + invade + "," + invsucc + "," + scout + "," + actattack.getMetal() + "," + actattack.getTimber() + "," +actattack.getManmat() + "," + actattack.getFood() +","
 						      		+ t1p.ID + ","+ t1.townID + "," + t2.townID + ",\"" + offUnitsBefore + "\",\"" + offUnitsAfter + "\",\"" 
 						      		+ ",0,0,0,0,0,0" + "\",\"" + ",0,0,0,0,0,0" +"\",\""+ offNames + "\",\"" + ",???,???,???,???,???,???" + "\"," + genocide + ",\""+bombResultBldg+"\",\""
-						      		+ bombResultPpl+ "\",'" + combatData + "','" + "No data is available due to your being pwned.'" + ","+t1.getX()+","+t1.getY()+","+t2.getX()+","+t2.getY()+",'"+t1.getTownName()+"','"+t2.getTownName()+"','"+zeppText+"'"+");");
+						      		+ bombResultPpl+ "\",'" + combatData + "','" + "No data is available due to your being pwned.'" +","+offbp+ ","+t1.getX()+","+t1.getY()+","+t2.getX()+","+t2.getY()+",'"+t1.getTownName()+"','"+t2.getTownName()+"','"+zeppText+"'"+");");
 				      
 				      stmt.execute("insert into statreports (defender,invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,bombbldgdata,bombppldata,combatdata,combatheader,bp,premium,ax,ay,dx,dy,offTownName,defTownName,zeppText,debm,debt,debmm,debf) values" +
 					      		"(true," + invade + "," + invsucc + ","+ scout + ","+ actattack.getMetal() + "," + actattack.getTimber() + "," +actattack.getManmat() + "," + actattack.getFood()  +","+ t2pid + ","+ t1.townID + "," + t2.townID + ",\"" + offUnitsBefore + "\",\"" + offUnitsAfter + "\",\"" 
@@ -9124,7 +9227,10 @@ public boolean checkForGenocides(Town t) {
 				 holdAttack = attackServer[i];
 				 if(holdAttack.getTID1()==t1.townID) { // because we grab incomings also with userraids.
 					r = t1.findRaid(holdAttack.raidID());
+					if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&r.getTown2().owedTicks>0) {
+						r.getTown2().update();
 
+					}
 			//	System.out.println("raidOver is currently " + holdAttack.raidOver);
 					// this else UberStatement is for the actual attack server to use, the above is the facsimile treatment.
 				if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&!holdAttack.raidType().equals("support")&&!holdAttack.raidType().equals("offsupport")&&!holdAttack.raidType().equals("scout")&&!holdAttack.raidType().equals("resupply")&&!holdAttack.raidType().equals("debris")) { 
@@ -9305,7 +9411,6 @@ public boolean checkForGenocides(Town t) {
 			}
 			
 			else {
-				if(ts.getTradeScheduleID()==4979||ts.getTradeScheduleID()==4980) System.out.println("I am " + ts.getTradeScheduleID() + " and my timesDone is " + ts.getTimesDone() + " and my todo is " +ts.getTimesToDo() + " and I'm at the ticks decreaser now  with ticks of " + ts.getCurrTicks());
 
 			if(ts.getCurrTicks()>0) {
 				actts.setCurrTicks(ts.getCurrTicks() - 1);
@@ -9313,7 +9418,6 @@ public boolean checkForGenocides(Town t) {
 				/*
 				 * Time to create a new trade if possible.
 				 */
-				if(ts.getTradeScheduleID()==4979||ts.getTradeScheduleID()==4980) System.out.println("I am " + ts.getTradeScheduleID() + " and my timesDone is " + ts.getTimesDone() + " and my todo is " +ts.getTimesToDo() + " and I'm at the trade sender.");
 
 				if(!sendTradeIfPossible(actts)) actts.resetTradeTimers();
 				// 
@@ -9360,6 +9464,8 @@ public boolean checkForGenocides(Town t) {
 			if(t.getTicksToHit()>0) {
 				actt.setTicksToHit(t.getTicksToHit() - 1);
 			} else if(t.getTicksToHit()<=0&&!t.isTradeOver()) {
+			if(actt.getTown2().owedTicks>0)	actt.getTown2().update();
+				
 				/*
 				 * Time to offload resources!
 				 */
@@ -9568,6 +9674,7 @@ public boolean checkForGenocides(Town t) {
 		 * unless they are threadSafe, instead, their mate's reset their timers.
 		 */
 		Town t1 = actts.getTown1(); Town t2 = actts.getTown2();
+		t2.update(); // obviously need to update before sending trade!
 		UserBuilding[] bldg;
 		UserTradeSchedule ts = actts.getTown1().getPlayer().getPs().b.getUserTradeSchedule(actts.tradeScheduleID);
 		if(ts.isTwoway()&&!ts.isAgreed()) return false;
@@ -9982,7 +10089,7 @@ public boolean checkForGenocides(Town t) {
 		long bunkerSize=0; Building b;
 		while(i<r.getTown2().bldg().size()) {
 			 b = r.getTown2().bldg().get(i);
-			if(b.getType().equals("Bunker")&&b.getBunkerMode()==2)  bunkerSize+=(long)Math.round(.05*((double) r.getTown2().getPlayer().getBunkerTech()) *((double) Building.resourceAmt)*Math.pow((b.getLvl()+2),2));
+			if(b.getType().equals("Bunker"))  bunkerSize+=(long)Math.round(.33*.05*((double) r.getTown2().getPlayer().getBunkerTech()) *((double) Building.resourceAmt)*Math.pow((b.getLvl()+2),2));
 
 			i++;
 		}
@@ -10148,7 +10255,7 @@ public boolean checkForGenocides(Town t) {
 		
 		while(j<bldg.length) {
 			 b = bldg[j];
-			if(b.getType().equals("Bunker")&&b.getBunkerMode()==1)  bunkerSize+=Math.round(.05*t2p.getBunkerTech()*getPeople(b.getLvl(),3,4,totalUnitPrice));
+			if(b.getType().equals("Bunker"))  bunkerSize+=Math.round(.33*.05*t2p.getBunkerTech()*getPeople(b.getLvl(),3,4,totalUnitPrice));
 			j++;
 		}
 		j=0;
@@ -10668,9 +10775,8 @@ public boolean checkForGenocides(Town t) {
 				
 				// wherehouses cap out resources, others people.
 			//	System.out.println(b.lvlUps + " is the way.");
-				if(b.getLvlUps()<=0&&!b.isDeconstruct()) { 			if(holdTown.getPlayer().getUsername().contains("testman"))
-					System.out.println("Leveling up a " + b.getType()); b.setTicksToFinish(-1); b.setLvl(b.getLvl()+1); if(holdTown.getPlayer().getUsername().contains("testman"))
-						System.out.println("Leveling up to a " + b.getType()); }
+
+				if(b.getLvlUps()<=0&&!b.isDeconstruct()) {  b.setLvl(b.getLvl()+1);}
 				else if(b.getLvlUps()<=0&&b.isDeconstruct()) { holdTown.killBuilding(b.bid); }
 				else if(b.getLvlUps()>0){ 
 					b.setLvl(b.getLvl()+1);
@@ -11579,7 +11685,8 @@ public boolean checkForGenocides(Town t) {
 		Player p;
 		while(i<getPlayers().size()) {
 			 p = getPlayers().get(i);
-			sendMail(p.getEmail(),p.getUsername(),"Email","We apologize for the building issues!","We had to restart the server due to an unexpected building bug in code that was proven and old. We apologize for the inconvenience. If you return and remake an account, you'll be given 100BP for free!");
+
+		//	sendMail(p.getEmail(),p.getUsername(),"Email","Apologies for the Building errors!","This is an automated message from AI Wars. We wanted to apologize if you joined the game and were unable to build anything. We were unaware of this bug as we hadn't changed a thing in that section of the code. But we've found the bug and fixed it, and we hope you'll come back and try again!");
 			i++;
 		}
 		System.out.println("Done email sending.");
@@ -11819,7 +11926,7 @@ public boolean checkForGenocides(Town t) {
 		}
 			
 		// now we iterate.
-		p.saveAndIterate(); // This ought to make it so all that stuff above gets
+		p.saveAndIterate(1); // This ought to make it so all that stuff above gets
 		//deleted! Well, actually, Id will make sure that all of your attacks and stuff
 		// get deleted when it iterates. This just runs through any delete mes we might
 		// have missed.
@@ -12016,6 +12123,8 @@ public boolean checkForGenocides(Town t) {
 		return true;
 
 		} catch(SQLException exc) { exc.printStackTrace(); }*/
+		getPlayer(pid).update(); // need to update you if you have any missing owedTicks.
+
 		Date today = new Date();
 
 		getPlayer(pid).last_login =new Timestamp(today.getTime());

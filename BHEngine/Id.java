@@ -1,6 +1,7 @@
 package BHEngine;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
@@ -13,20 +14,20 @@ public class Id extends Player {
 	}
 	
 	public void iterate(int num) {
-		double hourlyLeft = playedTicks/(3600/GodGenerator.gameClockFactor);
+		double hourlyLeft = (getPlayedTicks())/(3600/GodGenerator.gameClockFactor);
 		hourlyLeft-=Math.round(hourlyLeft);
 		
 		if(hourlyLeft==0) {
 			deleteOldPlayers();
 		}
 		
-		double dailyLeft = playedTicks/(24*3600/GodGenerator.gameClockFactor);
+		double dailyLeft = (getPlayedTicks())/(24*3600/GodGenerator.gameClockFactor);
 		dailyLeft-=Math.round(dailyLeft);
 		
 		if(dailyLeft==0) {
 			dailyRoutine();
 		}
-		double weeklyLeft = playedTicks/(7*24*3600/GodGenerator.gameClockFactor);
+		double weeklyLeft = (getPlayedTicks())/(7*24*3600/GodGenerator.gameClockFactor);
 		weeklyLeft-=Math.round(weeklyLeft);
 		if(weeklyLeft==0) {
 			weeklyRoutine();
@@ -304,7 +305,7 @@ public class Id extends Player {
 							//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
 							 t = God.findTown((Integer) cslHash.get(0).get("tid"));
 
-							 if(t.getPlayer().playedTicks>(7*24*3600/GodGenerator.gameClockFactor)) {
+							 if(t.getPlayer().getPlayedTicks()>(7*24*3600/GodGenerator.gameClockFactor)) {
  
 							b = idT.addBuilding("Headquarters",4,1,0);
 							
@@ -339,7 +340,7 @@ public class Id extends Player {
 		while(i<God.getTowns().size()) {
 			
 			t = God.getTowns().get(i);
-			if(t.getPlayer().playedTicks>(7*24*3600/GodGenerator.gameClockFactor)) { // no hunting those under a week old!
+			if(t.getPlayer().getPlayedTicks()>(7*24*3600/GodGenerator.gameClockFactor)) { // no hunting those under a week old!
 			as = t.attackServer();
 			int j = 0;
 			try {
@@ -395,7 +396,14 @@ public class Id extends Player {
 			
 		}
 	}
-
+	synchronized public void save() {
+		try {
+		UberStatement stmt = con.createStatement();
+		stmt.execute("update God set gameClock = " + God.gameClock);
+		
+		} catch(SQLException exc) { exc.printStackTrace(); }
+		super.save();
+	}
 	public void deleteOldPlayers() {
 		System.out.println("Checking players.");
 		int i = 0;
@@ -406,7 +414,7 @@ public class Id extends Player {
 			p = players.get(i);
 			if(p.ID!=5&&!p.isQuest())// NOTICE LEAGUES CAN'T BE DELETED THOUGH...
 			try {
-			if(!p.completedQuest("BQ1")&&p.getPs().b.getCSL(p.getCapitaltid())<100&&p.last_login.getTime()<(today.getTime()-2*24*3600000)&&p.playedTicks<(7*24*3600/GodGenerator.gameClockFactor)) {
+			if(!p.completedQuest("BQ1")&&p.getPs().b.getCSL(p.getCapitaltid())<100&&p.last_login.getTime()<(today.getTime()-2*24*3600000)&&p.getPlayedTicks()<(7*24*3600/GodGenerator.gameClockFactor)) {
 				// kill the bastard.
 				System.out.println(p.getUsername() + " is eligible for early player deletion as their difference is " + (p.last_login.getTime()-(today.getTime()-48*3600000))+"s and last_login is " + p.last_login + " and they have not completed BQ1.");
 				
@@ -422,7 +430,7 @@ public class Id extends Player {
 				
 					if(dist<idInfluenceDistance) {
 						townsHit++;
-						avgPlayTicks+=t.getPlayer().playedTicks;
+						avgPlayTicks+=p.getPlayedTicks();
 						
 					}
 				
@@ -442,15 +450,15 @@ public class Id extends Player {
 				}
 				
 				i--; // the player was removed from the list.
-			} else if(!p.completedQuest("BQ1")&&p.getPs().b.getCSL(p.getCapitaltid())<100&&p.last_login.getTime()<(today.getTime()-24*3600000)&&p.playedTicks<(7*24*3600/GodGenerator.gameClockFactor))
+			} else if(!p.completedQuest("BQ1")&&p.getPs().b.getCSL(p.getCapitaltid())<100&&p.last_login.getTime()<(today.getTime()-24*3600000)&&p.getPlayedTicks()<(7*24*3600/GodGenerator.gameClockFactor))
 			{// send warning email if less than week and > 24 hrs
 				if(p.last_login.getTime()>=today.getTime()-25*3600000&&!p.getEmail().equals("nolinkedemail")&&!p.getEmail().equals(null))
 				God.sendMail(p.getEmail(),p.getUsername(),"Account Deletion Notice","Account Deletion Notice","");
-			} else if(p.last_login.getTime()<(today.getTime()-13*24*3600000)&&p.playedTicks>=(7*24*3600/GodGenerator.gameClockFactor))
+			} else if(p.last_login.getTime()<(today.getTime()-13*24*3600000)&&p.getPlayedTicks()>=(7*24*3600/GodGenerator.gameClockFactor))
 			{ // send email if > week and > 13 days
 				if(p.last_login.getTime()>=(today.getTime()-(13*24+1)*3600000)&&!p.getEmail().equals("nolinkedemail")&&!p.getEmail().equals(null))
 				God.sendMail(p.getEmail(),p.getUsername(),"Account Deletion Notice","Account Deletion Notice", "");
-			}else if(p.last_login.getTime()<(today.getTime()-14*24*3600000)&&p.playedTicks>=(7*24*3600/GodGenerator.gameClockFactor)) {
+			}else if(p.last_login.getTime()<(today.getTime()-14*24*3600000)&&p.getPlayedTicks()>=(7*24*3600/GodGenerator.gameClockFactor)) {
 				System.out.println(p.getUsername() + " is eligible for late deletion.");
 				God.deletePlayer(p,false);
 				i--;

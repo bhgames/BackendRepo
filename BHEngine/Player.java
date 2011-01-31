@@ -26,6 +26,7 @@ public class Player  {
 	private String pushLog="";
 	public int iterTicks = 0;
 	public int playedTicks=0;
+	public int owedTicks =0;
 	private String version;
 	private ArrayList<Hashtable> achievements;
 	public int last_auto_blast;
@@ -82,12 +83,13 @@ public class Player  {
 		   this.ID=ID;
 		   this.God=God;
 		   ResultSet rs = stmt.executeQuery("select * from player where pid = " + ID);
-	       
+	       internalClock = God.gameClock;
 		   rs.next();
 		   username = rs.getString(2);
 	       password = rs.getString(26);
 	       stealth = rs.getInt(3);
 	       playedTicks=rs.getInt(45);
+	       owedTicks = rs.getInt(82);
 	       version = rs.getString(81);
 	       fuid = rs.getLong(57);
 	       knowledge = rs.getInt(4);
@@ -236,18 +238,23 @@ public class Player  {
 		}
 		return null;
 	}
-	public void doResearch() {
+	public void doResearch(int amt) {
 		
 		 scholTicksTotal=getResearchTicksForPoint(totalScholars,God.Maelstrom.getScholarEffect(this));
 		 // if we just loaded, then ticksToFinishTotal isn't set and must be.
 		if(getScholTicks()<getScholTicksTotal()&&getScholTicks()!=-1) {
-			setScholTicks(getScholTicks() + 1); 
+			setScholTicks(getScholTicks() + amt); 
 			} 
-		else if(getScholTicks()>=getScholTicksTotal()) {
-		setKnowledge(getKnowledge() + 1); 
-		//setBrkups(getBrkups() + 1); // in this case, brkups is the number of foursomes you have left
-		// to choose at whatever time you please. Brkthrus is the total number you've gone through!
-		setScholTicks(0); // start over, bitch.
+		 if(getScholTicks()>=getScholTicksTotal()) {
+			 double howMany = ((double) getScholTicks())/((double) getScholTicksTotal());
+			 int howManyRounded = (int) Math.floor(howMany);
+			 setKnowledge(getKnowledge() + howManyRounded);  // Right, now we have the amount we gained.
+			 int newScholTicks = (int) Math.floor((howMany-howManyRounded)*getScholTicksTotal());
+			 if(getUsername().equals("JigglyYoWigly")||getUsername().equals("Trigger")) System.out.println("Number was " + amt + " Got new Schol Ticks of " + newScholTicks + " I have " + howManyRounded + " being added from  " + howMany + " from " + getScholTicks() + " scholTicks and total "+  getScholTicksTotal());
+//Number was 2 Got new Schol Ticks of 68 I have 1 being added from  1.0 from 68 scholTicks and total 68
+
+			 setScholTicks(newScholTicks); // start over, bitch. newScholTicks takes the fraction of the way
+			 // you were to the next point, multiplies it by the total to know how many you truly deserve to keep.
 		
 		}
 	}
@@ -386,7 +393,7 @@ public class Player  {
 		} while(i<towns.size());*/
 		synchronize=false; // because we're done synchronizing!
 	} 
-	public void saveAndIterate() {
+	public void saveAndIterate(int number) {
 	
 		UberStatement stmt=null;
 		ResultSet checkChange;
@@ -401,7 +408,6 @@ public class Player  {
 		  String updateAU[]; String weapStr,soldierPicStr,tankPicStr,juggerPicStr,bomberPicStr; String updatePlayer;
 		  AttackUnit hau; String weapons;
 		     boolean transacted=false;
-		  
 		//    lagTimer = new Timer();
 	//	for(;;) {
 			try {
@@ -410,13 +416,13 @@ public class Player  {
 				// not important for serverside, is always false.
 		
 				//if(ID==73) System.out.println("1");
-				doResearch();
+				doResearch(number);
 				//if(ID==73) System.out.println("2");
 				
-				populationCheck();
+				populationCheck(); // only need to do this once!
 				//if(ID==73) System.out.println("3");
 				
-				iterate(1); // doesn't do anything unless you're Id.
+				iterate(number); // doesn't do anything unless you're Id.
 				
 				
 				ArrayList<Town> towns = towns();
@@ -436,7 +442,7 @@ public class Player  {
 					God.giveNewTown(this,-1,0,true,0,0);
 				}
 				
-				if(towns().size()>getTownTech()&&!isQuest()&&God.serverLoaded&&ID!=5&&playedTicks<3600/GodGenerator.gameClockFactor) {
+				if(towns().size()>getTownTech()&&!isQuest()&&God.serverLoaded&&ID!=5&&getPlayedTicks()<3600/GodGenerator.gameClockFactor) {
 					int tryCounter=0;
 					while(towns().size()>getTownTech()&&towns().size()>1&&tryCounter<10) {
 					System.out.println(getUsername() + " has too many towns at "+towns().size() + " towns.");
@@ -446,17 +452,17 @@ public class Player  {
 					tryCounter++;
 					}
 				}
-				last_auto_blast++;
-				if(premiumTimer>0) premiumTimer--;
-				if(feroTimer>0) feroTimer--;
-				if(ubTimer>0) ubTimer--;
-				if(mineTimer>0) mineTimer--;
-				if(timberTimer>0) timberTimer--;
-				if(mmTimer>0) mmTimer--;
-				if(fTimer>0) fTimer--;
-				if(revTimer>0) revTimer--;
+				last_auto_blast+=number;
+				if(premiumTimer>0) premiumTimer-=number;
+				if(feroTimer>0) feroTimer-=number;
+				if(ubTimer>0) ubTimer-=number;
+				if(mineTimer>0) mineTimer-=number;
+				if(timberTimer>0) timberTimer-=number;
+				if(mmTimer>0) mmTimer-=number;
+				if(fTimer>0) fTimer-=number;
+				if(revTimer>0) revTimer-=number;
 				try {
-					if(revTimer==1) {
+					if(revTimer<=1) {
 						int i = 0;
 						while(i<God.programs.size()) {
 							if(((Integer) God.programs.get(i).get("pid"))==ID&&((Thread) God.programs.get(i).get("Revelations")).isAlive()) {
@@ -467,7 +473,7 @@ public class Player  {
 						}
 					}
 					} catch(Exception exc) { exc.printStackTrace(); System.out.println("Exception occured with autoshutoff but player saved.");}
-				if(God.Maelstrom.EMPed(this)&&playedTicks>7*24*3600/GodGenerator.gameClockFactor) {
+				if(God.Maelstrom.EMPed(this)&&getPlayedTicks()>7*24*3600/GodGenerator.gameClockFactor) {
 					int i = 0;
 					while(i<God.programs.size()) {
 						if(((Integer) God.programs.get(i).get("pid"))==ID&&((Thread) God.programs.get(i).get("Revelations")).isAlive()) {
@@ -485,7 +491,7 @@ public class Player  {
 					while(i<activeQuests.size()) {
 				//	System.out.println(username + " is iterating quest " + activeQuests.get(i).ID);
 
-					activeQuests.get(i).iterateQuest(1,ID);
+					activeQuests.get(i).iterateQuest(number,ID);
 					i++;
 				}
 				} catch(Exception exc) { 
@@ -498,169 +504,8 @@ public class Player  {
 				//System.out.println(username + " got through basic.");
 			}
 			
-			//	if(!God.godHere) break; // secondary check to keep from errors occuring if closed after the sleep.
-			/*	int chkChg = 0;
-				if(God.gpid==-1) {
-				checkChange = stmt.executeQuery("select chg from player where pid = " + ID);
-				checkChange.next();
-				 chkChg = checkChange.getInt(1);
-				 checkChange.close();
-				} else chkChg=1;
-				if(chkChg==2&&God.gpid==-1) {
-					// two means we resync with the server
-					synchronize();
-				} else if(chkChg==0&&God.gpid==-1) {
-					// so 0 means we update
-			while(!transacted) {	
-				
-			try {
-		      // First things first. We update the player table.
-			//	if(ID==73) System.out.println("6");
-
-		      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
-		      if(callSync) { stmt.execute("update player set outputchannel = 'true' where pid =" + ID + ";"); callSync=false; }
-		      
-		      int co = 0;
-		       weapStr = "";
-		      while(co<getWeap().length) {
-		    	  if(getWeap()[co]) weapStr+="1,";
-		    	  else weapStr+="0,";
-		    	  
-		    	  co++;
-		      }
-		      co=0;
-		      soldierPicStr="";
-		      while(co<getSoldierPicTech().length) {
-		    	  if(getSoldierPicTech()[co]) soldierPicStr+="1,";
-		    	  else soldierPicStr+="0,";
-		    	  
-		    	  co++;
-		      }
-		      co=0;
-		      tankPicStr="";
-		      while(co<getTankPicTech().length) {
-		    	  if(getTankPicTech()[co]) tankPicStr+="1,";
-		    	  else tankPicStr+="0,";
-		    	  
-		    	  co++;
-		      }
-		      co=0;
-		      juggerPicStr="";
-		      while(co<getJuggerPicTech().length) {
-		    	  if(getJuggerPicTech()[co]) juggerPicStr+="1,";
-		    	  else juggerPicStr+="0,";
-		    	  
-		    	  co++;
-		      }
-		      co=0;
-		      bomberPicStr="";
-		      while(co<getBomberPicTech().length) {
-		    	  if(getBomberPicTech()[co]) bomberPicStr+="1,";
-		    	  else bomberPicStr+="0,";
-		    	  
-		    	  co++;
-		      }
-		       updatePlayer = "update player set stealth = " + getStealthTech() + ", totalscho = " + getTotalScholars() + ", totalpop = " + getTotalPopulation() + ", alotTech = " + getALotTech() + ", soldTech = " + isSoldierTech() + ", tankTech = " + isTankTech() + 
-		    		  ", juggerTech = " + isJuggerTech() +  ", bomberTech = " + isBomberTech() + ", weapontech = '" + weapStr+"', buildingSlotTech = " + getBuildingSlotTech() + ", civWeap = " + getCivWeapChoice() +
-		    		   ", townTech = " + getTownTech() + ", suppTech = " + getSupportTech() +  ", tradeTech = " + getTradeTech() +  ", soldierPicTech = '" + soldierPicStr + "', tankPicTech = '" + tankPicStr
-		    		   + "', juggerPicTech = '" + juggerPicStr + "', bomberPicTech = '" + bomberPicStr + "', supportstaff = " + isSupportstaff() + ", tradeTech = " + getTradeTech() +", lotTech = " + getLotTech() + ", stabilityTech = " + getStabilityTech() + 
-		    		   ", scholTicks = " + getScholTicks() + ", brkthru = " + getBrkthrus() + ", brkups = " + getBrkups() +", engTech = " + getEngTech() + ", scholTech = " + getScholTech()  +", capitaltid = " + getCapitaltid() + ", scoutTech = " + getScoutTech()  + ", bunkerTech = " + getBunkerTech() + ", afTech = " + getAfTech() + ", commsCenterTech = " + getCommsCenterTech() + ", password = '" + getPassword() +  "' where pid = " + ID + ";";
-		      stmt.executeUpdate(updatePlayer);
-		      
-		      // First, let's get and write to au. I'm not sure if querying first is more labor intensive than just writing. Let's not
-		      // worry just yet!
-		      
-		      co = 0;
-	
-		       updateAU = new String[6];
-		      while(co<6) {
-		    	   hau = au.get(co);
-		    	   weapons="";
-		    	  int j = 0;
-		    	  while(j<hau.getWeap().length) { // this holds which weapon is what. And all that shizzit.
-		    		  weapons+=hau.getWeap()[j]+",";
-		    		  j++;
-		    		  
-		    	  }
-		    	  int type;
-		    	  if(hau.getPopSize()==1) type = 1;
-		    	  else if(hau.getPopSize()==5) type = 2;
-		    	  else if(hau.getPopSize()==10) type = 3;
-		    	  else if(hau.getPopSize()==20) type=4;
-		    	  else if(hau.getPopSize()==0) type=5;
-		    	  else type = 6; // means somebody went-a-hackin'.
-		    	  updateAU[co] = "update attackunit set name = \"" + hau.getName() + "\", slot = " + hau.getSlot() + ", conc = " + hau.getConcealment() + 
-		    	  ", armor = " + hau.getArmor() + ", cargo = " + hau.getCargo() + ", speed = " + hau.getSpeed() + ", type = " +type + ", weapons = '" +
-		    	  weapons + "' where pid = " + ID +" and slot = "+  hau.getSlot() + ";";
-
-		    	  stmt.executeUpdate(updateAU[co]);
-		    	  co++;
-		      }
-		      
-		     
-		      co=0;
-		      while(co<getAUTemplates().size()) {
-		   	   hau = getAUTemplates().get(co);
-	    	   weapons="";
-	    	  int j = 0;
-	    	  while(j<hau.getWeap().length) { // this holds which weapon is what. And all that shizzit.
-	    		  weapons+=hau.getWeap()[j]+",";
-	    		  j++;
-	    		  
-	    	  }
-	    	  int type;
-	    	  if(hau.getPopSize()==1) type = 1;
-	    	  else if(hau.getPopSize()==5) type = 2;
-	    	  else if(hau.getPopSize()==10) type = 3;
-	    	  else if(hau.getPopSize()==20) type=4;
-	    	  else if(hau.getPopSize()==0) type=5;
-	    	  else type = 6; // means somebody went-a-hackin'.
-	    	  
-	    	  if(hau.isAddMe()) {
-	    		  
-	    		  stmt.executeUpdate("insert into autemplate(name,pid,conc,armor,cargo,speed,type,weapons,graphic) values ('" +
-	    				  hau.getName() + "'," + ID + "," + hau.getConcealment() + "," + hau.getArmor() + "," + hau.getCargo() + "," + hau.getSpeed() +
-	    				  "," + type + ",'" + weapons + "'," + hau.getGraphicNum() + ");");
-	    		  hau.setAddMe(false);
-	    	  } else if(hau.isDeleteMe()) {
-	    		  stmt.executeUpdate("delete from autemplate where pid = " + ID + " and name = '" + hau.getName() + "';");
-	    		  getAUTemplates().remove(co);
-	    		  co--;
-	    	  } else if(hau.isEditMe()) {
-	    		  stmt.executeUpdate("update autemplate set name = \"" + hau.getName() + "\", conc = " + hau.getConcealment() + 
-		    	  ", armor = " + hau.getArmor() + ", cargo = " + hau.getCargo() + ", speed = " + hau.getSpeed() + ", type = " +type + ", weapons = '" +
-		    	  weapons + "' where pid = " + ID +" and name = '"+  hau.getName() + "';");
-	    		  hau.setEditMe(false);
-	    	  }
-	    	  
-		    	  co++;
-		      }
-		      // now to do resources for every town!
-
-		      co = 0;
-		     
-		      
-		      stmt.executeUpdate("commit;"); transacted=true; 
-		      
-			stmt.close(); // ONLY NECESSARY IF NOT IT'S OWN THREAD.
-			} catch(MySQLTransactionRollbackException exc) { }
 			
-			transacted=false; // to reset it!
-				}
-			//System.out.println(username + " got through advanced.");
 			
-		} catch(SQLException exc) { 
-			exc.printStackTrace(); //rebound.
-		try {
-			stmt.close();
-			stmt = con.createStatement();
-
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
-		*/
-		
 		} 
 		  catch(OutOfMemoryError exc) {
 			 God.killGod=true;
@@ -670,10 +515,53 @@ public class Player  {
 	//	}
 			//if(ID==73) System.out.println("7");
 		//  System.out.println(getUsername() + " has been iterated at " + getInternalClock() + "!");
-			setInternalClock(getInternalClock() + 1); // we only iterate after FINISHING THE SAVE!
-			playedTicks++;
+		  	
+			setInternalClock(getInternalClock() + number); // we only iterate after FINISHING THE SAVE!
+			if(getInternalClock()>God.gameClock) setInternalClock(God.gameClock); // means owedTicks stretches past the last server restart,
+			//so we just hold the internalClock steady while we update.
+			playedTicks+=number;
+			
 	}
-	
+	public int getPlayedTicks() {
+		
+		if(owedTicks==0) return playedTicks;
+		else return playedTicks+(God.gameClock-owedTicks);
+	}
+	synchronized public void update() {
+		// This method brings the player up to standard time.
+		boolean saveTripped=false;
+		if(owedTicks>0) {
+			saveAndIterate(God.gameClock-owedTicks);
+			owedTicks=0; 
+			saveTripped=true;
+		}
+			int i = 0;
+		while(i<towns().size()) {
+			if(towns().get(i).owedTicks>0) {
+				towns().get(i).iterate(God.gameClock-towns().get(i).owedTicks);
+				towns().get(i).owedTicks=0; // player towns and players normally will have around the same owedTicks...
+				// we only keep owedTicks on towns for Id's sake.
+				saveTripped=true;
+			}
+			i++;
+		}
+		if(saveTripped)
+		save(); // Got to save whenever update is called so we don't waste resources on a server restart
+		// reiterating them!
+		
+		
+	}
+	public boolean stuffOut() {
+		int i = 0;
+		while(i<towns().size()) {
+			if(towns().get(i).stuffOut()) {
+				return true;
+			}
+			i++;
+		}
+		if(getPs().b.isAlive()) return true; // program running means the player keeps cycling.
+		return false;
+	}
 	public boolean completedQuest(int qid) {
 		try {
 			UberStatement stmt = con.createStatement();
@@ -772,6 +660,7 @@ public class Player  {
 	       flicker = rs.getString(58);
 	       tPushes = rs.getInt(60);
 	       version = rs.getString(81);
+	       owedTicks = rs.getInt(82);
 
 
 	       setPassword(rs.getString(26));
@@ -1118,7 +1007,18 @@ public class Player  {
 		      UberStatement stmt= con.createStatement();
 		      ResultSet rs = stmt.executeQuery("select chg from player where pid = " + ID);
 		      rs.next();
-		      if(rs.getInt(1)==0) {
+		      if(rs.getInt(1)==0&&(owedTicks==0||(owedTicks>0&&(God.gameClock-owedTicks)<God.saveWhenTicks))) {
+		    	  // when do we save with owedTicks?
+		    	  // we know if owedTicks is less than saveWhenTicks, then
+		    	  // the player has been changed since last save. 
+		    	  // because if the last save was 10 ticks ago, and owedTicks is 5,
+		    	  // that means the player stopped cycling at 5 ticks ago, needs a save.
+		    	  // If owed ticks is 15, player stopped cycling 15 ticks ago, and 
+		    	  // that player was saved.
+		    	  // Bad situation: Player's owed ticks are incremented just beyond
+		    	  // the save limit and he logs in, putting him in line for a save,
+		    	  // but the server shuts down without him. Then he loses stuff, loses
+		    	  // that he should even be saved for a bit. But this is always true.
 		   int co = 0;
 	       String weapStr = "";
 	       boolean weap[] = getWeapTech();
@@ -1171,7 +1071,7 @@ public class Player  {
 	    		   	+ ", timberRefTech = " + timberRefTech + ", manMatRefTech = " + manMatRefTech + ", foodRefTech = " + foodRefTech +", attackAPI = " + attackAPI +
 	    		   	", advancedAttackAPI = " + advancedAttackAPI + ", tradingAPI = " + tradingAPI + ", advancedTradingAPI = " + advancedTradingAPI + ", smAPI = " + smAPI + ", researchAPI = " + researchAPI + 
 	    		   	", buildingAPI = " + buildingAPI + ", advancedBuildingAPI = " + advancedBuildingAPI + ", messagingAPI = " + messagingAPI + ", zeppelinAPI = " + zeppelinAPI + 
-	    		   	", completeAnalyticAPI = " + completeAnalyticAPI +", version = '" + version + "', nukeAPI = " + nukeAPI +", worldMapAPI = " + worldMapAPI + ", email ='"+ email +"', pushLog = \"" + pushLog + "\", password = '" + password +  "' where pid = " + ID + ";";
+	    		   	", completeAnalyticAPI = " + completeAnalyticAPI +", version = '" + version + "', nukeAPI = " + nukeAPI +", worldMapAPI = " + worldMapAPI +", owedTicks = " + owedTicks+ ", email ='"+ email +"', pushLog = \"" + pushLog + "\", password = '" + password +  "' where pid = " + ID + ";";
 	      stmt.executeUpdate(updatePlayer);
 	      
 	      // First, let's get and write to au. I'm not sure if querying first is more labor intensive than just writing. Let's not
@@ -1220,6 +1120,15 @@ public class Player  {
 			}
 		      } else { // we use else statement to close this stuff if we can't iterate, since we close it up there
 		    	  // in the if statement to prevent that statement getting plucked away by UberConnection!
+		    	 if(rs.getInt(1)==0){
+		    		 stmt.execute("update player set owedTicks =  "+owedTicks + " where pid = " + ID+";"); // got to save owed ticks.
+		    		 int i = 0;
+		    		 while(i<towns().size()) {
+			    		 stmt.execute("update town set owedTicks =  "+towns().get(i).owedTicks + " where tid = " + towns().get(i).townID + ";"); // got to save owed ticks.
+
+		    			 i++;
+		    		 }
+		    	 }
 			      rs.close();
 			      stmt.close();
 		      }
@@ -1233,6 +1142,9 @@ public class Player  {
 	public int getStealth() {
 		return getStealthTech();
 	}
+	/*public boolean isLoggedIn() {
+		if()
+	}*/
 	public void setLeagueBool(boolean league) {
 		this.isLeague=league;
 	}

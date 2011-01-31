@@ -59,6 +59,7 @@ public class BQ4 extends QuestListener {
 
 					"<br />It's time to fight back! As you've been told, Id towns, while home to dangerous zombie-like foes called Iddites, are also some of the largest resource and technology depots in the A.I. Wars Universe!<br /><br />Before you can attack an Id town, you'll need a Headquarters from which to direct your troops. You can only build Headquarters on the special spot at the center of your town, where there is a single lot jutting out from the top four. Then you can send attacks to any Id city on the World Map! If you are unsure how to send attacks, you can always press the ? button on the World Map.<br /><br />Goal: Build a Headquarters and successfully attack and pillage one of Id's cities.<br /><br />" + getRewardBlock(2,pid,additional) ,"No hint."};
 
+
 		return toRet;
 	}
 

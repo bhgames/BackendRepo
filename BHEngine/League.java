@@ -234,6 +234,8 @@ public class League extends Player {
 					if(curr.type>=0) {
 					int y = 0;
 					p = curr.player;
+				//	if(p.owedTicks<3*24*3600/GodGenerator.gameClockFactor) p.update(); // No need to update if a player is this old, just collect!
+					// When we try to update players here, we often deadlock them.
 					if(p!=null) {
 						ptowns = p.towns();
 					while(y<ptowns.size()) {

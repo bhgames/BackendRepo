@@ -3,6 +3,7 @@ package BHEngine;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class Iterator implements Runnable {
 
@@ -38,15 +39,18 @@ public class Iterator implements Runnable {
 		// Then at the end of this iteration, we should check.
 		int i = 0; 
 		Player p;
+		Date today = new Date();
+
 		while(i<players.size()) {
 			
 			p = players.get(i);
-				// basically, if one grabs this player,
+			// basically, if one grabs this player,
 			// and starts iterating it, the others can't, and will wait
 			// to try, but then they'll find it can't be done.
-		
-			if(p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock) {
-			
+	//		if(p.getUsername().equals("scooter81")) System.out.println("last login was " +p.last_login.getTime() + " and it needs to be > than " +(today.getTime()-GodGenerator.sessionLagTime) + " and if this is negative, it is: " + (p.last_login.getTime()-(today.getTime()-GodGenerator.sessionLagTime)) + " also his internalClock is " + p.getInternalClock() + " and my internalClock is " + internalClock + " and his owedTicks is " + p.owedTicks);
+
+			if(p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock&&p.owedTicks==0) {
+		//		if(p.getUsername().equals("scooter81")) System.out.println(" iterating this guy scooter even when I shouldn't be.");
 	//			System.out.println(iterateID + " 1");
 			//	System.out.println(iterateID + " found " + p.username + " unhooked and in need at " + internalClock);
 				// Cool, a double lock. First, if you're iterating through and you catch
@@ -62,11 +66,16 @@ public class Iterator implements Runnable {
 				if(p.getHoldingIteratorID().equals(iterateID)) {
 			//		System.out.println(iterateID + " caught " + p.username + "'s focus and is iterating at " + internalClock);
 			while(p.getInternalClock()<internalClock) {
-				if(God.printCounter==God.printWhenTicks) 
-				System.out.println(iterateID + " is iterating " + p.getUsername() + " at " + internalClock + " when GC is " + God.gameClock);
 				try {
 			//	System.out.println(iterateID + " is iterating " + p.username);
-				p.saveAndIterate();
+					if(p.last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||p.stuffOut()||p.ID==5||p.isQuest()){ 
+					//	 System.out.println(p.getUsername() + " is active and has " + p.owedTicks + " ticks owed.");
+
+						p.saveAndIterate(internalClock-p.getInternalClock());}
+					else {  
+						p.owedTicks=(God.gameClock); 
+						System.out.println(p.getUsername() + " is inactive and has " + p.owedTicks + " ticks owed.");
+						p.setInternalClock(internalClock); } 
 				} catch(Exception exc) { exc.printStackTrace(); } 
 			}
 			
@@ -90,6 +99,8 @@ public class Iterator implements Runnable {
 		
 	}
 	public void checkTowns() {
+		Date today = new Date();
+
 			ArrayList<Town> players = God.getIteratorTowns();
 	//		System.out.println(iterateID + "'s internal clock is off.");
 			
@@ -107,9 +118,8 @@ public class Iterator implements Runnable {
 				// basically, if one grabs this player,
 			// and starts iterating it, the others can't, and will wait
 			// to try, but then they'll find it can't be done.
-			if(p.getPlayer().getUsername().contains("testman")) System.out.println("Want to be Iterating a "+ p.getPlayer().getUsername() + " with clock of  "+ p.getInternalClock() + " and my clock is " + internalClock);
 
-			if(p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock) {
+			if(p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock&&p.owedTicks==0) { // we do not process players who have owedTicks>0, ie, not active.
 				if(p.getPlayer().getUsername().contains("testman")) System.out.println("Iterating a "+ p.getPlayer().getUsername());
 			//	System.out.println(iterateID + " found " + p.username + " unhooked and in need at " + internalClock);
 				// Cool, a double lock. First, if you're iterating through and you catch
@@ -127,7 +137,14 @@ public class Iterator implements Runnable {
 			
 				try {
 			//	System.out.println(iterateID + " is iterating " + p.username);
-				p.iterate(internalClock-p.getInternalClock());
+
+					if(p.getPlayer().last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||p.stuffOut()) {
+					// System.out.println(p.getTownName() + ","+ p.getPlayer().getUsername() + " is active and has " + p.owedTicks + " ticks owed.");
+						p.iterate(internalClock-p.getInternalClock()); }
+					else { 
+						// System.out.println(p.getTownName() + ","+ p.getPlayer().getUsername() + " is inactive and has " + p.owedTicks + " ticks owed.");
+					
+						p.owedTicks=God.gameClock; p.setInternalClock(internalClock); } 
 				} catch(Exception exc) { exc.printStackTrace(); } 
 			
 				p.setHoldingIteratorID("-1");
@@ -143,6 +160,7 @@ public class Iterator implements Runnable {
 		
 	}
 	public void checkLeagues() {
+		// GOTTA UPDATE LEAGUES CONSTANTLY, COULD COME ON AND GET TAXES FROM ALL NEW MINES INSTEAD OF OLDER UNUPGRADED ONES!
 			ArrayList<Player> players = God.getIteratorPlayers();
 	//		System.out.println(iterateID + "'s internal clock is off.");
 		// only need to loop once - think about it, with two iterators,
@@ -237,7 +255,7 @@ public class Iterator implements Runnable {
 			 ArrayList<Town> towns = God.getIteratorTowns();
 		//	 System.out.println(iterateID + " checking the lag timer...");
 			while(i<towns.size()) {
-				if(towns.get(i).getInternalClock()<internalClock){ 
+				if(towns.get(i).getInternalClock()<internalClock&&towns.get(i).owedTicks==0){ 
 					
 					tripped1=true; break; }
 				
@@ -247,7 +265,7 @@ public class Iterator implements Runnable {
 			 ArrayList<Player> players = God.getIteratorPlayers();
 		//	 System.out.println(iterateID + " checking the lag timer...");
 			while(i<players.size()) {
-				if(players.get(i).getInternalClock()<internalClock){ 
+				if(players.get(i).getInternalClock()<internalClock&&players.get(i).owedTicks==0){  // don't count those with owedTicks.
 					
 					tripped2=true; break; }
 				
