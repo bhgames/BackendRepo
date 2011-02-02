@@ -49,7 +49,7 @@ public class Iterator implements Runnable {
 			// to try, but then they'll find it can't be done.
 	//		if(p.getUsername().equals("scooter81")) System.out.println("last login was " +p.last_login.getTime() + " and it needs to be > than " +(today.getTime()-GodGenerator.sessionLagTime) + " and if this is negative, it is: " + (p.last_login.getTime()-(today.getTime()-GodGenerator.sessionLagTime)) + " also his internalClock is " + p.getInternalClock() + " and my internalClock is " + internalClock + " and his owedTicks is " + p.owedTicks);
 
-			if(p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock&&p.owedTicks==0) {
+			if(p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock&&(p.owedTicks==0||p.ID==5||p.isQuest())) {
 		//		if(p.getUsername().equals("scooter81")) System.out.println(" iterating this guy scooter even when I shouldn't be.");
 	//			System.out.println(iterateID + " 1");
 			//	System.out.println(iterateID + " found " + p.username + " unhooked and in need at " + internalClock);
@@ -70,7 +70,6 @@ public class Iterator implements Runnable {
 			//	System.out.println(iterateID + " is iterating " + p.username);
 					if(p.last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||p.stuffOut()||p.ID==5||p.isQuest()){ 
 					//	 System.out.println(p.getUsername() + " is active and has " + p.owedTicks + " ticks owed.");
-
 						p.saveAndIterate(internalClock-p.getInternalClock());}
 					else {  
 						p.owedTicks=(God.gameClock); 

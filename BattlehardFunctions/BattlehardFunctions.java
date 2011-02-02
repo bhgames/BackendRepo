@@ -618,10 +618,11 @@ public class BattlehardFunctions {
 				try {
 			UberStatement stmt = g.con.createStatement();
 			stmt.execute("start transaction;");
+			boolean meRead = true;
+			if(pid_to.length==1&&pid_to[0]==p.ID) meRead=false; // so sendYourself messages are new!
 			int i = 0;
-			 
 			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,readed) values (\""
-					+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+0+","+original_subject_id+","+p.ID+",true);" );
+					+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+0+","+original_subject_id+","+p.ID+","+meRead+");" );
 			rs = stmt.executeQuery("select message_id from messages where pid = " + p.ID + " order by creation_date desc;");
 			int msgid = 0;
 			if(rs.next())
@@ -4572,7 +4573,10 @@ public long[] returnPrice(int lotNum, int tid) {
 		
 
 		Town Town2 = g.findTown(x,y);
-		
+		if(Town2.townID==0) {
+			setError("Town doesn't exist!");
+			return false;
+		}
 		if(Town2.getX()==t1.getX()&&Town2.getY()==t1.getY()&&attackType.contains("support")) {
 			// This means zeppelin is directly overhead. 
 			Town possZepp = g.findZeppelin(x,y);
@@ -4889,6 +4893,10 @@ public long[] returnPrice(int lotNum, int tid) {
 		// The only two cases that matter: You find the town at the x,y, or you'll find a Zeppelin.
 		// If it's a zeppelin, it's easy to deal with, if it's a town, it's easy to deal with.
 		Town Town2 = g.findTown(x,y); // findTown auto detects the town at the x,y, not the Zeppelin, if there is one.
+		if(Town2.townID==0) {
+			setError("Town doesn't exist!");
+			return false;
+		}
 		if(Town2.getX()==t1.getX()&&Town2.getY()==t1.getY()&&attackType.contains("support")) {
 			// This means zeppelin is directly overhead. 
 			Town possZepp = g.findZeppelin(x,y);
@@ -4991,7 +4999,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		}
 
 		k=0;
-		Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, Town2, Genocide, Bomb,support,invade,name,debris);
+		Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, Town2, Genocide, Bomb,support,invade,name,debris,au);
 		if(Bomb) holdAttack.setBombTarget(target);
 		if(scout==1) holdAttack.makeScoutRun(); // never going to be a bomb+scout run.
 		while(k<au.size()) {
@@ -5377,7 +5385,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		}
 
 		k=0;
-		Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, g.findTown(x,y), Genocide, Bomb,support,invade,"noname",false);
+		Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, g.findTown(x,y), Genocide, Bomb,support,invade,"noname",false,au);
 	
 		holdAttack.setResupplyID(raidID);
 		
@@ -5815,7 +5823,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					 if(ticksToHit==0) ticksToHit=(int) Math.round(((double) 10/(holdLowSpeed*this.g.speedadjust))/GodGenerator.gameClockFactor);
 					 
 					
-						 holdAttack = new Raid(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2)), ticksToHit, myTown,t, false, false,0,false,"noname",false);
+						 holdAttack = new Raid(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2)), ticksToHit, myTown,t, false, false,0,false,"noname",false,au);
 						// myTown needs to be town1 because this is going to be the ghost destinator town - where the raid
 						// will "believe" this return raid came from.
 						g=0;
@@ -7854,7 +7862,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		}
 		
 		
-		League newLeague = (League) g.createNewPlayer(letters,"4p5v3sxQ",1, tid,"0000","nolinkedemail",true,0,0);
+		League newLeague = (League) g.createNewPlayer(letters,"4p5v3sxQ",1, tid,"0000","nolinkedemail",true,0,0,false);
 		//public void createLeague(String leagueName,String leagueLetters, Player initial) {
 		if(newLeague==null){
 			error = "Player create failed for some reason.";
@@ -10222,10 +10230,15 @@ public long[] returnPrice(int lotNum, int tid) {
 			attackServer = t.attackServer();
 			 j = 0;
 			while(j<attackServer.size()) {
+				
 				r = attackServer.get(j);
-				int totalChangeInX = (r.getTown1().getX()-r.getTown2().getX()); // So if x1 = 5 and x2 = 10, the difference is -5, and if I add
+				try {
+				int totalChangeInX = 0;
+				int totalChangeInY=0;
+				
+				 totalChangeInX = (r.getTown1().getX()-r.getTown2().getX()); // So if x1 = 5 and x2 = 10, the difference is -5, and if I add
 				// this variable to x2, I get x1. So this is something you add to x2 to transform it.
-				int totalChangeInY = (r.getTown1().getY()-r.getTown2().getY()); 
+				 totalChangeInY = (r.getTown1().getY()-r.getTown2().getY()); 
 				double lowerTheta = Math.asin(((double) totalChangeInY)/((double) r.getDistance()));
 				int d = (int) Math.round((((double ) r.getTicksToHit())/((double) r.getTotalTicks()))*r.getDistance());
 				int diffInY = (int) Math.round(Math.sin(lowerTheta)*((double) d));
@@ -10282,6 +10295,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					temp.add(new UserRaid(r.raidID,r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
 							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris()));
 					}
+			} catch(Exception exc) { exc.printStackTrace(); System.out.println("Raids saved from " + r.raidID);}
 				
 				j++;
 			}

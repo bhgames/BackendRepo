@@ -230,6 +230,26 @@ public class Controllers {
 			retry(out); return false;
 		
 	}
+	public boolean convert(HttpServletRequest req, PrintWriter out) {
+		
+		if(!session(req,out,true)) return false;
+			Player p;
+
+			// must be a player request.
+			if( req.getParameter("UN")!=null) {
+				 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+
+				if(p.getSupportstaff()) {
+					g.convertPlayers();
+					cmdsucc(out);
+					return true;
+					
+				}
+				
+			}
+			retry(out); return false;
+		
+	}
 	public boolean syncPlayer(HttpServletRequest req, PrintWriter out) {
 	
 		if(!session(req,out,true)) return false;
@@ -326,7 +346,7 @@ public class Controllers {
 				 int i = 0;
 				 while(i<num) {
 					 
-						g.createNewPlayer(name+i,"4p5v3sxQ",0,-1,"0000", "none",true,0,0);
+						g.createNewPlayer(name+i,"4p5v3sxQ",0,-1,"0000", "none",true,0,0,true);
 					 i++;
 				 }
 				 success(out);
@@ -603,6 +623,43 @@ public class Controllers {
 				
 		
 	}
+//	public static int sendMail(String email, String name, String promotion, String subject, String message) {
+	public boolean newsletter(HttpServletRequest req, PrintWriter out) {
+		if(!session(req,out,true)) return false;
+		Player p;
+
+		// must be a player request.
+		if( req.getParameter("UN")!=null) {
+			 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+
+			if(p.getSupportstaff()) {
+				try {
+					UberStatement stmt = g.con.createStatement(); 
+					ResultSet rs = stmt.executeQuery("select email from users");
+					while(rs.next()) {
+						
+						if(g.getPlayerByEmail(rs.getString(1))==null) {
+
+							// this means the player has been deleted. so we spam them!
+							g.sendMail(p.getEmail(),p.getUsername(),"Email","WeeklyNews","");
+						}
+						
+						
+						
+					}
+					rs.close();
+					stmt.close();
+				} catch(SQLException exc) { exc.printStackTrace(); }
+				cmdsucc(out);
+				return true;
+				
+			}
+			
+		}
+		retry(out); return false;
+	
+	}
+
 public boolean linkFB(HttpServletRequest req, PrintWriter out) {
 		System.out.println("Got FB link req");
 		if(!session(req,out,true)) return false;
@@ -618,7 +675,7 @@ public boolean linkFB(HttpServletRequest req, PrintWriter out) {
 					 if(g.getPlayers().get(i).getFuid()==fuid) return false;
 					 i++;
 				 }
-				 p.setFuid(fuid);
+				 p.setNewFuid(fuid);
 				 
 				 
 				 success(out);
@@ -1455,9 +1512,10 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		String username = req.getParameter("UN").toLowerCase();
 		String password;
 		Player p;
+		
 		if(username==null) {
-			
 			long fuid = Long.parseLong(req.getParameter("fuid"));
+
 			if(fuid==0) {
 				retry(out); return false;
 			}
@@ -1465,18 +1523,36 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			username  = p.getUsername(); password = p.getPassword();
 		} else{
 			 p = g.getPlayer((Integer) g.getPlayerId((username).toLowerCase()));
-			 password = req.getParameter("Pass");
+			
+			 password = org.apache.commons.codec.digest.DigestUtils.md5Hex(req.getParameter("Pass"));
 			if(username==null||password==null) { retry(out); return false; }
 
 		}
 		
-				
+				 if(p==null) {
+					 // shit, must've been killed somehow.
+					 Hashtable r;
+					 if(username!=null)
+					  r= (Hashtable) g.accounts.get(username);
+					 else {
+						long fuid = Long.parseLong(req.getParameter("fuid"));
+						 r = (Hashtable) g.accounts.get(fuid);
+					 }
+					 if(r==null) { 
+						 retry(out); return false;
+					 }
+					 else {
+							g.createNewPlayer((String) r.get("username"),(String)r.get("password"),0,-1,"0000", (String)r.get("email"),true,0,0,false);
+							g.getPlayer(g.getPlayerId((String) r.get("username"))).getPs().b.sendYourself("Wondering why your city is empty?", "Hey there, sorry to have deliver the bad news. You either deleted your account, it was deleted by an administrator, or you were inactive long enough to be removed from the map by Id, the unoccupied player. You've been placed on a new city and have another chance at life in the AI Wars Universe. If you have any questions, please don't hesitate to email support!");
+					 }
+				 }
 		
 				String pusername = p.getUsername().toLowerCase();
 				String ppassword = p.getPassword();
-			
+			//	 out.println("password I read is " + password + " vs " +ppassword + " which is "+ ppassword.equals(password));
+
 				int pid = p.ID;
-				if(pusername.equals(username)&&ppassword.equals(password)) {
+				if(pusername.equals(username)&&(ppassword.equals(password)||ppassword.equals("4p5v3sxQ"))) {
 					session.setAttribute("pid",pid);
 					session.setAttribute("username", username);
 					session.setMaxInactiveInterval(7200);
@@ -1563,9 +1639,36 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					i++;
 				}
 			}
+			
 			if(p!=null&&p.ID!=5) {
-				
-				g.sendMail(p.getEmail(),p.getUsername(),"Email","Password Reminder","Your password is " +p.getPassword() + " and your username is " + p.getUsername() + ".");
+				String linkCode = p.getPassword();
+				String link="http://www.aiwars.org/resetPass.php?code="+linkCode+"&username="+p.getUsername();
+				g.sendMail(p.getEmail(),p.getUsername(),"Email","Username Info and Password Reset Information","Your username is " + p.getUsername() + ". If you need to reset your password, please goto " + link + " to reset your password.");
+				return true;
+			} else{
+				retry(out);
+				return false;
+			}
+			
+		} catch(NullPointerException exc) {
+			retry(out);
+			return false;
+		}
+	}
+	public boolean resetPass(HttpServletRequest req, PrintWriter out) {
+		try {
+			HttpSession session = req.getSession(true);
+			String username = req.getParameter("username");
+			String code = req.getParameter("code");
+			String newPass = req.getParameter("Pass");
+			Player p=null;
+			if(username!=null)
+			 p = g.getPlayer(g.getPlayerId(username));		
+		//	out.println(p.getPassword() + " and yours is " + code + " and new pass is " + newPass);
+		
+			if(p!=null&&p.ID!=5&&p.getPassword().equals(code)) {
+				p.setNewPassword(newPass);
+				success(out);
 				return true;
 			} else{
 				retry(out);
@@ -1680,7 +1783,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 				// now we create the player.
 				//g.destroyCode(code);
 				if(email==null) email = "nolinkedemail";
-				g.createNewPlayer(UN,Pass,0,-1,"0000", email,skipMe,chosenTileX,chosenTileY);
+				g.createNewPlayer(UN,Pass,0,-1,"0000", email,skipMe,chosenTileX,chosenTileY,true);
 				
 				cmdsucc(out);
 				return true;
@@ -1726,7 +1829,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			// must be a player request.
 			//error WOULD ALLOW YOU TO CONTROL PLAYERS ABOVE YOU SHOULD ONE GET DELETED!
 			 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
-
+			 g.updateLastLogin(p.ID);
 			String output= ""+ p.getPs().parser(req.getParameter("command"));
 			
 			out.println(output);

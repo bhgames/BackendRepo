@@ -1005,9 +1005,12 @@ public class Player  {
 		// saves everything but AUTemplates, which alter themselves on change.
 		try {
 		      UberStatement stmt= con.createStatement();
-		      ResultSet rs = stmt.executeQuery("select chg from player where pid = " + ID);
+		      ResultSet rs = stmt.executeQuery("select chg,last_login from player where pid = " + ID);
 		      rs.next();
-		      if(rs.getInt(1)==0&&(owedTicks==0||(owedTicks>0&&(God.gameClock-owedTicks)<God.saveWhenTicks))) {
+		      //	       last_login=rs.getTimestamp(41);
+
+		      if(rs.getInt(1)==0&&(rs.getTimestamp(2).getTime()!=last_login.getTime()||owedTicks==0||(owedTicks>0&&(God.gameClock-owedTicks)<God.saveWhenTicks))) {
+		    	  System.out.println("Actually saving " + getUsername() + " and his owedTicks was " + owedTicks + " and gameClock diff is " + (God.gameClock-owedTicks) + " compared to " + God.saveWhenTicks + " and his last_login saved was " + rs.getTimestamp(2) + " and actual was " +last_login);
 		    	  // when do we save with owedTicks?
 		    	  // we know if owedTicks is less than saveWhenTicks, then
 		    	  // the player has been changed since last save. 
@@ -2433,6 +2436,38 @@ public class Player  {
 	public void setPassword(String password) {
 		this.password = password;
 	}
+	public void setNewPassword(String password) {
+		setMemPassword(org.apache.commons.codec.digest.DigestUtils.md5Hex(password));
+		try {
+			UberStatement stmt = God.con.createStatement();
+			stmt.executeUpdate("update users set password = md5("+password+") where username = '"+getUsername()+"';");
+			
+			stmt.close();
+		} catch(SQLException exc) { exc.printStackTrace(); }
+		setPassword(org.apache.commons.codec.digest.DigestUtils.md5Hex(password));
+		try {
+			Hashtable r = (Hashtable) God.accounts.get(getUsername());
+			r.put("password",org.apache.commons.codec.digest.DigestUtils.md5Hex(password)); // gotta update accounts!
+		} catch(NullPointerException exc) { exc.printStackTrace(); System.out.println("Whatever was setting was saved."); }
+	
+	}
+
+	public void setNewFuid(long fuid) {
+		setLong("fuid",fuid);
+		try {
+			UberStatement stmt = God.con.createStatement();
+			stmt.executeUpdate("update users set fuid = "+fuid+" where username = '"+getUsername()+"';");
+			
+			stmt.close();
+		} catch(SQLException exc) { exc.printStackTrace(); }
+		setFuid(fuid);
+
+		try {
+			Hashtable r = (Hashtable) God.accounts.get(getUsername());
+			r.put("fuid",fuid);
+			God.accounts.put(fuid,r); // gotta update accounts.
+		} catch(NullPointerException exc) { exc.printStackTrace(); System.out.println("Whatever was setting was saved."); }
+		}
 	public void setLeague(boolean isLeague) {
 		this.isLeague = isLeague;
 	}

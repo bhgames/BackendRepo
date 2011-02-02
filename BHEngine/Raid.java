@@ -231,14 +231,14 @@ public class Raid {
 		this.totalTicks=getMemTotalTicks();this.name=getMemName();this.genoRounds=getMemGenoRounds();*/
 		// we set nothing else!
 	}
-	public Raid(double distance, int ticksToHit, Town town1, Town town2, boolean Genocide, boolean Bomb, int support,boolean invade, String name, boolean debris) {
+	public Raid(double distance, int ticksToHit, Town town1, Town town2, boolean Genocide, boolean Bomb, int support,boolean invade, String name, boolean debris,ArrayList<AttackUnit> au) {
 		// Can't do an infinite number of arguments here so need to add manually.
 		// holds distance and ticksToHit in this object.
 		this.setInvade(invade);
 		this.setSupport(support);
 		this.setDebris(debris);
 		this.setName(name);
-
+		this.au = au;
 		this.setDistance(distance); this.setTicksToHit(ticksToHit);
 		if(distance==0) distance=1;
 		God = town1.getPlayer().God;

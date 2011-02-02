@@ -16,7 +16,6 @@ public class Id extends Player {
 	public void iterate(int num) {
 		double hourlyLeft = (getPlayedTicks())/(3600/GodGenerator.gameClockFactor);
 		hourlyLeft-=Math.round(hourlyLeft);
-		
 		if(hourlyLeft==0) {
 			deleteOldPlayers();
 		}

@@ -47,7 +47,59 @@ import java.security.SecureRandom;
 /*
  Encyclopedia of questions:
  
+ 
+ Splitting accounts:
+ 
+ 
+ 1. On player creation, email, fuid, username and password, registration date are now stored in a separate table that is never deleted. Encrypted passwords now!---CHECK---
+ 2. When a deleted player logs in(ie can't find login info) but can find account info, a new account is created
+ and a mail is sent describing what happened. Also, new players can't create same username of deleted player.---CHECK---
+ 3. Players who lock in FB accounts lock in on both tables. ---CHECK---
+ 4. Players with accounts but no player objects are sent periodical emails that match with a current weekly promotion we put out.---CHECK---
+ 5. You need to convert all old players to the new system.---CHECK---
+ 6. You need to come up with a way to login as other people using a master password.---CHECK---
+ 
+ Tests:
+ 
+ 1. Create an account, make sure everything works.
+ 2. Delete the account, see what happens on login.
+ 3. Delete the account, see what happens if you try to create a new account with the same username.
+ 4. Lock in an FB account and see if it updates on both tables.
+ 5. Test the periodical sending by deleting an account.
+ 6. Test the conversion works.
+ 7. test your autologin works.
+ 
+ 
+ 
+	Tracking Logins:
+	
+	1. On login, mark it down in the player object as last_session_made, and then when the player goes inactive,
+	compare it to the last_login, and then make another variable called numLogins that tracks how many last_session_mades there were,
+	so you can keep a running average attached to the account object. The running average you just add the difference of the session made
+	and last login to the total time played amount and then divide it by number of logins.
+	
+	Tests:
+	1. Make a login, then go "inactive" and come back and see when you went inactive and see if it adds it to the total alright.
+	Then do it again.
 
+
+
+ Server Stat Page
+ 
+ Number 1: Reporting Metrics
+1. Number of Registered Users (Need to split accounts up first.)
+2. Active This Week ( Can get)
+3. Average/Max/Min Age of Users(active/passive)  (Can get)
+4. Registered This Today, Yesterday, Week, Last Week, Month, Last Month, Year, Last Year (Add Registered At Date)
+5. Deleted Players' (Compare Registered Users to Players)
+6. Conversion Pipeline
+	FB Page or Fb Ad or Google Ad-> Goto App -> Home Page ->  Ad Page(A with B without) -> Viewer-> Play 
+			1					.03			.5	               .5                  .1
+(With Google Analytics)
+7. Average Time Spent in the Game (last_session_made - last_login)
+8. Server uptime (Search for an apache function or use exact readout)
+ 
+ 
  
  
  
@@ -4403,7 +4455,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	ArrayList<Iterator> iterators=new ArrayList<Iterator>();
 	
 	public ArrayList<Hashtable> programs = new ArrayList<Hashtable>();
-	
+	public Hashtable accounts;
 	private ArrayList<Player> iteratorPlayers;
 	private ArrayList<Town> iteratorTowns;
 	public Maelstrom Maelstrom;
@@ -4488,6 +4540,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		Router.flickStatus(req,out);
 	}else if(req.getParameter("reqtype").equals("getTiles")) {
 		Router.getTiles(req,out);
+	}else if(req.getParameter("reqtype").equals("resetPass")) {
+		Router.resetPass(req,out);
 	}
 	else if(req.getParameter("reqtype").equals("linkFB")) {
 		Router.linkFB(req,out);
@@ -4519,7 +4573,13 @@ public class GodGenerator extends HttpServlet implements Runnable {
 
 	if(req.getParameter("reqtype").equals("world_map")) {
 		Router.loadWorldMap(req,out);
-	} else if(req.getParameter("reqtype").equals("player")) {
+	} else if(req.getParameter("reqtype").equals("forgotPass")) {
+		Router.forgotPass(req,out);
+	}else if(req.getParameter("reqtype").equals("convert")) {
+		Router.convert(req,out);
+	}else if(req.getParameter("reqtype").equals("newsletter")) {
+		Router.newsletter(req,out);
+	}else if(req.getParameter("reqtype").equals("player")) {
 		Router.loadPlayer(req,out,false);
 	} else if(req.getParameter("reqtype").equals("league")) {
 		Router.loadPlayer(req,out,true);
@@ -4680,7 +4740,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		while(qs.next()) {
 			//	public Player createNewPlayer(String username, String password, int type, int tidToGive, String code) {
 
-			p = createNewPlayer(qs.getString(3),"4p5v3sxQ",2,-1,"0000","nolinkedemail",true,0,0);
+			p = createNewPlayer(qs.getString(3),"4p5v3sxQ",2,-1,"0000","nolinkedemail",true,0,0,false);
 		
 			q =  loadQuest(	p.ID,qs.getString(2),qs.getString(3));
 			iteratorPlayers.add(q);
@@ -5823,7 +5883,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			return toret;
 	}
 
-	public Player createNewPlayer(String username, String password, int type, int tidToGive, String code,String email, boolean skipMe, int chosenTileX,int chosenTileY) {
+	public Player createNewPlayer(String username, String password, int type, int tidToGive, String code,String email, boolean skipMe, int chosenTileX,int chosenTileY,boolean okayToMakeNewAccount) {
 		/*
 		 * This method creates a new player by giving them
 		 * a player object, kickstarting it, and then giving
@@ -5842,10 +5902,16 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		while(i<players.size()) {
 			if(players.get(i).getUsername().equals(username)) {
 			//	System.out.println("username already taken.");
-				return null;
+				return null; // player username already exists! 
 			}
 			i++;
 		}
+		
+		if(okayToMakeNewAccount&&accounts.get(username)!=null) return null; // If it's a genuinely new player request,
+		// then okayToMakeNewAccount is going to be true. If it is say an old player returning with no account, then it won't be okay
+		// to make a new account and we won't even check that it isn't there, he'll just...get a new player.
+		
+		
 		
 		if(username.contains(".")) {
 		//	System.out.println("No periods, "+ username );
@@ -5866,6 +5932,8 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				
 			try {
 			UberStatement stmt = con.createStatement(); ResultSet rs;
+			
+			
 			/*ResultSet rs = stmt.executeQuery("select pid from player where username = \"" + username + "\";");
 			if(rs.next()) {
 				int pid = rs.getInt(1);
@@ -5880,16 +5948,38 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 
 			} else
 			rs.close();*/
+			
 			stmt.executeUpdate("start transaction;");
+			if(okayToMakeNewAccount) {
+				
+				stmt.execute("insert into users(fuid,username,password,email) values (0,\""+username+"\",md5(\""+password+"\"),\""+email+"\");");
+				rs = stmt.executeQuery("select uid,password,registration_date from users where username = '"+username+"';");
+				Hashtable r = new Hashtable();
+				  r.put("uid",rs.getInt(1));
+		    	   r.put("fuid",0);
+		    	   r.put("username",username);
+		    	   r.put("password",rs.getString(2));
+		    	   r.put("registration_date",rs.getTimestamp(3));
+		    	   r.put("email",email);
+		    	 accounts.put(username,r);
+		    	   rs.close();
+				
+			}
 			int numPlayers = 0;
 			rs = stmt.executeQuery("select count(*) from player where username = '" + username+"'");
 			if(rs.next()) numPlayers=rs.getInt(1);
 			rs.close();
 			
 			if(numPlayers==0) {
+				if(okayToMakeNewAccount)
 			stmt.executeUpdate("insert into player (username,password,stealth,knowledge,totalscho,totalmess,totalpop,alotTech,soldTech,tankTech,juggerTech,weaponTech,buildingSlotTech,instructions,outputchannel,poutputchannel,civWeap,bomberTech,suppTech,townTech,bunkerTech,tradeTech,lotTech,accessCode,afTech,email) " +
-					"values (\"" + username + "\",\"" + password + "\",1,0,0,0,1,1,1,1,1,\"1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,\",2,\"null\",\"null\",\"null\",0,1,1,1,1,1,8,'" + code + "',1,'"+email+"')");
+					"values (\"" + username + "\",md5(\"" + password + "\"),1,0,0,0,1,1,1,1,1,\"1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,\",2,\"null\",\"null\",\"null\",0,1,1,1,1,1,8,'" + code + "',1,'"+email+"')");
 			//		"values (\"" + username + "\",\"" + password + "\",3,0,0,0,1,5,1,1,1,\"1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,\",3,\"null\",\"null\",\"null\",0,1,3,2,3,1,18,'" + code + "',3)");
+			
+				else  // the not okay to make new account version got it's password from an already encrypted password in users!
+					stmt.executeUpdate("insert into player (username,password,stealth,knowledge,totalscho,totalmess,totalpop,alotTech,soldTech,tankTech,juggerTech,weaponTech,buildingSlotTech,instructions,outputchannel,poutputchannel,civWeap,bomberTech,suppTech,townTech,bunkerTech,tradeTech,lotTech,accessCode,afTech,email) " +
+							"values (\"" + username + "\",\"" + password + "\",1,0,0,0,1,1,1,1,1,\"1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,\",2,\"null\",\"null\",\"null\",0,1,1,1,1,1,8,'" + code + "',1,'"+email+"')");
+			
 			}
 					// once the player is made, then we move on.
 			 rs = stmt.executeQuery("select pid from player where username = \"" + username + "\"");
@@ -11117,11 +11207,32 @@ public boolean checkForGenocides(Town t) {
 			lchkRS.close();
 	      
 	      } 
-		
+		       
+		      
+
 	      rs.close();
 	      stmt.close();
 	      qstmt.close();
 	      lchk.close();	
+	      
+	       rs= stmt.executeQuery("SELECT * from users");
+
+	       while(rs.next()) {
+	    	   
+	    	   Hashtable r = new Hashtable();
+	    	   r.put("uid",rs.getInt(1));
+	    	   r.put("fuid",rs.getLong(2));
+	    	   r.put("username",rs.getString(3));
+	    	   r.put("password",rs.getString(4));
+	    	   r.put("registration_date",rs.getTimestamp(5));
+	    	   r.put("email",rs.getString(6));
+
+	    	   accounts.put(rs.getString(3),r);
+	    	   if(rs.getLong(2)!=0)
+	    	   accounts.put(rs.getLong(2),r);
+
+	       }
+	       rs.close();
 	} catch(SQLException exc) { exc.printStackTrace(); }
 	return players;
 	}
@@ -11142,6 +11253,16 @@ public boolean checkForGenocides(Town t) {
 		if(getPlayers()==null) return null;
 		while(i<getPlayers().size()) {
 			if(getPlayers().get(i).getFuid()==fuid) return getPlayers().get(i);
+			i++;
+		}
+		
+		return null;
+	}	public Player getPlayerByEmail(String email) {
+		
+		int i = 0;
+		if(getPlayers()==null) return null;
+		while(i<getPlayers().size()) {
+			if(getPlayers().get(i).getEmail().equals(email)) return getPlayers().get(i);
 			i++;
 		}
 		
@@ -12123,12 +12244,13 @@ public boolean checkForGenocides(Town t) {
 		return true;
 
 		} catch(SQLException exc) { exc.printStackTrace(); }*/
-		getPlayer(pid).update(); // need to update you if you have any missing owedTicks.
 
 		Date today = new Date();
 
 		getPlayer(pid).last_login =new Timestamp(today.getTime());
 		
+		getPlayer(pid).update(); // need to update you if you have any missing owedTicks.
+
 		return true;
 	}
 	
@@ -12413,6 +12535,48 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		e.printStackTrace();
 	} 
 	}
+	public  void convertPlayers() {
+		// converts players from the old system to the new one.
+		// assumes passwords are ALREADY encrypted.
+		int i = 0;
+		Player p;
+		UberStatement stmt;
+		try {
+			stmt = con.createStatement();
+			ResultSet rs;
+		while(i<getPlayers().size()) {
+			p = getPlayers().get(i);
+			if(!p.isLeague()&&!p.isQuest()&&p.ID!=5) {
+				String username = p.getUsername();
+				String password = p.getPassword();
+				String email = p.getEmail();
+				try {
+				stmt.execute("insert into users(fuid,username,password,email) values (0,\""+username+"\",\""+password+"\",\""+email+"\");");
+				rs = stmt.executeQuery("select uid,password,registration_date from users where username = '"+username+"';");
+				Hashtable r = new Hashtable();
+				  r.put("uid",rs.getInt(1));
+		    	   r.put("fuid",0);
+		    	   r.put("username",username);
+		    	   r.put("password",rs.getString(2));
+		    	   r.put("registration_date",rs.getTimestamp(3));
+		    	   r.put("email",email);
+		    	 accounts.put(username,r);
+		    	 if(p.getFuid()!=0)
+		    		 accounts.put(p.getFuid(),r);
+		    	   rs.close();
+				// make new accounts.
+				} catch(SQLException exc) { exc.printStackTrace(); }
+				
+				
+			}
+			i++;
+		}
+		stmt.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+	}
 	public static int sendMail(String email, String name, String promotion, String subject, String message) {
 		HttpClient httpClient = new HttpClient();
 		PostMethod method = new PostMethod("https://api.madmimi.com/mailer");
@@ -12422,7 +12586,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		method.addParameter("recipient",name+ " <" + email + ">");
 	//	method.addParameter("recipient","Jordan Prince <jordanmprince@gmail.com>");
 		method.addParameter("subject",subject);
-		method.addParameter("from", " DNR <donotreply@aiwars.org>");
+		method.addParameter("from", " AI Wars Automated Support <donotreply@aiwars.org>");
 		//String plaintext = message;
 		method.addParameter("raw_plain_text", message);
 		try {

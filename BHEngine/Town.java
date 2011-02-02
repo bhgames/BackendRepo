@@ -2105,7 +2105,7 @@ public class Town {
 
 					lowSpeed/=totalsize;
 					int testhold = (int) Math.round(Math.sqrt(Math.pow((x-closestTown.getX()),2)+Math.pow((y-closestTown.getY()),2))*10/(lowSpeed*GodGenerator.speedadjust));
-					retAURaid = new Raid(distance,testhold,closestTown,this,false,false,0,false,"Run Away!",false);
+					retAURaid = new Raid(distance,testhold,closestTown,this,false,false,0,false,"Run Away!",false,retAU);
 					retAURaid.setRaidOver(true); // so now it's a "return raid" on the server with full
 					i = 0;
 					while(i<6) {
