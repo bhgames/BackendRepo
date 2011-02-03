@@ -236,7 +236,7 @@ public class Controllers {
 			Player p;
 
 			// must be a player request.
-			if( req.getParameter("UN")!=null) {
+			
 				 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
 
 				if(p.getSupportstaff()) {
@@ -246,7 +246,7 @@ public class Controllers {
 					
 				}
 				
-			}
+			
 			retry(out); return false;
 		
 	}
@@ -629,7 +629,6 @@ public class Controllers {
 		Player p;
 
 		// must be a player request.
-		if( req.getParameter("UN")!=null) {
 			 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
 
 			if(p.getSupportstaff()) {
@@ -641,7 +640,7 @@ public class Controllers {
 						if(g.getPlayerByEmail(rs.getString(1))==null) {
 
 							// this means the player has been deleted. so we spam them!
-							g.sendMail(p.getEmail(),p.getUsername(),"Email","WeeklyNews","");
+							g.sendMail(p.getEmail(),p.getUsername(),"WeeklyNews","AI Wars Weekly Newsletter","");
 						}
 						
 						
@@ -655,7 +654,7 @@ public class Controllers {
 				
 			}
 			
-		}
+		
 		retry(out); return false;
 	
 	}
@@ -1512,7 +1511,6 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		String username = req.getParameter("UN").toLowerCase();
 		String password;
 		Player p;
-		
 		if(username==null) {
 			long fuid = Long.parseLong(req.getParameter("fuid"));
 
@@ -1528,8 +1526,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			if(username==null||password==null) { retry(out); return false; }
 
 		}
-		
-				 if(p==null) {
+				 if(p==null||(p.ID==5&&!username.equals("Id"))) {
 					 // shit, must've been killed somehow.
 					 Hashtable r;
 					 if(username!=null)
@@ -1542,8 +1539,17 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 						 retry(out); return false;
 					 }
 					 else {
-							g.createNewPlayer((String) r.get("username"),(String)r.get("password"),0,-1,"0000", (String)r.get("email"),true,0,0,false);
-							g.getPlayer(g.getPlayerId((String) r.get("username"))).getPs().b.sendYourself("Wondering why your city is empty?", "Hey there, sorry to have deliver the bad news. You either deleted your account, it was deleted by an administrator, or you were inactive long enough to be removed from the map by Id, the unoccupied player. You've been placed on a new city and have another chance at life in the AI Wars Universe. If you have any questions, please don't hesitate to email support!");
+						 String accpassword =(String) r.get("password");
+						 if(accpassword.equals(password)) {
+							g.createNewPlayer(username,(String)r.get("password"),0,-1,"0000", (String)r.get("email"),true,0,0,false);
+						//	out.println("the users username is " + g.getPlayer((Integer) g.getPlayerId((username).toLowerCase())).getUsername());
+							g.getPlayer((Integer) g.getPlayerId((username).toLowerCase())).getPs().b.sendYourself( "Hey there, sorry to have deliver the bad news. You either deleted your account, it was deleted by an administrator, or you were inactive long enough to be removed from the map by Id, the unoccupied player. You've been placed on a new city and have another chance at life in the AI Wars Universe. If you have any questions, please don't hesitate to email support!","Wondering why your city is empty?");
+								
+							 p = g.getPlayer((Integer) g.getPlayerId((username).toLowerCase()));
+						 } else {
+							 retry(out); return false;
+						 }
+
 					 }
 				 }
 		
@@ -1552,12 +1558,14 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			//	 out.println("password I read is " + password + " vs " +ppassword + " which is "+ ppassword.equals(password));
 
 				int pid = p.ID;
-				if(pusername.equals(username)&&(ppassword.equals(password)||ppassword.equals("4p5v3sxQ"))) {
+				if(pusername.equals(username)&&(ppassword.equals(password)||password.equals(org.apache.commons.codec.digest.DigestUtils.md5Hex("4p5v3sxQ")))) {
 					session.setAttribute("pid",pid);
 					session.setAttribute("username", username);
 					session.setMaxInactiveInterval(7200);
 					
 					success(out);
+					g.updateLastSession(pid);
+
 					g.updateLastLogin(pid);
 					return true;
 					
@@ -1680,6 +1688,153 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			return false;
 		}
 	}
+	public boolean serverStatus(HttpServletRequest req, PrintWriter out) {
+		try {
+			HttpSession session = req.getSession(true);
+
+			String newPass = req.getParameter("Pass");
+	
+		//	out.println(p.getPassword() + " and yours is " + code + " and new pass is " + newPass);
+		
+			if(newPass.equals("Partner1")) {
+				
+				out.print("<h3>Server Status Report</h3><br /><br />");
+				try {
+					UberStatement stmt = g.con.createStatement();
+					ResultSet rs = stmt.executeQuery("select count(*) from users;");
+					rs.next();
+					out.print("Number of Registered Users: "+ rs.getInt(1) + "<br /><br />");
+					out.print("Number of Players: "+ (g.getPlayers().size()+18) + "<br />");
+					out.print("Note: Players are Users that own Civilizations in the game at this moment. <br /><br />");
+					out.print("Number of Users Without Civilizations: " + (rs.getInt(1)-g.getPlayers().size()+18) + "<br /><br />");
+
+					rs.close();
+					rs = stmt.executeQuery("select count(*)  from player where last_login > current_timestamp - 7*24*36000 and playedTicks>49*360 and pid != 5 and flicker!='BQ1' order by last_login asc;");
+					rs.next();
+					out.print("Weekly Actives: "+ rs.getInt(1) + "<br />");
+					out.print("Weekly Active - Any player who has logged on in the last week to play.*<br /><br />");
+					rs.close();
+					rs = stmt.executeQuery("select count(*)  from player where last_login > current_timestamp - 48*36000  and playedTicks>49*360 order by last_login asc;");
+					rs.next();
+					out.print("Daily Actives: "+ rs.getInt(1) + "<br />");
+					out.print("Daily Active - Any player who has logged on in the last 48 hours.**<br /><br />");
+					rs.close();
+					rs = stmt.executeQuery("select avg(playedTicks), max(playedTicks), min(playedTicks) from player where pid!=5 and owedTicks=0;");
+					rs.next();
+					double avg = rs.getInt(1);
+					double max = rs.getInt(2);
+					double min = rs.getInt(3);
+					rs.close();
+			
+					avg*=GodGenerator.gameClockFactor/(3600); // multiply it back in to seconds, divide by hours.
+					max*=GodGenerator.gameClockFactor/(3600); // multiply it back in to seconds, divide by hours.
+					min*=GodGenerator.gameClockFactor/(3600); // multiply it back in to seconds, divide by hours.
+
+					out.print("Max/Min/Average Player Age in Hours: "+ ((double) Math.round(max*100)/100.0)+" hrs /" +((double) Math.round(min*100)/100.0)+" hrs / "+((double) Math.round(avg*100)/100.0)+" hrs" + "<br /><br />");
+					int i = 0;
+					double maxtime=0,mintime=999999999,avgtime=0; int count=0;
+					Player p;
+					while(i<g.getPlayers().size()) {
+						p = g.getPlayers().get(i);
+						if(p.ID!=5&&!p.isQuest()) {
+							
+							if(p.totalTimePlayed!=0&&p.numLogins!=0) {
+								avgtime+=p.totalTimePlayed/p.numLogins;
+								double theirAvg = p.totalTimePlayed/p.numLogins;
+								count++;
+							
+								if(theirAvg>maxtime) {
+									maxtime = theirAvg;
+								}
+								if(theirAvg<mintime) {
+									mintime = theirAvg;
+								}
+							}
+						
+							
+						}
+						i++;
+					}
+					avgtime/=((double) count*3600000.0); // for some reason, time works differently in Java's time stamps than in SQLs.
+				//	out.print("count is " + count + " and avgtime is now " + avgtime);
+					maxtime/=3600000.0;
+					mintime/=3600000.0;
+
+					out.print("Max/Min/Average Time Spent by a Player in a Single Session: "+ ((double) Math.round(maxtime*100)/100.0)+" hrs /" +((double) Math.round(mintime*100)/100.0)+" hrs / "+((double) Math.round(avgtime*100)/100.0)+" hrs" + "<br /><br />");
+					
+					rs = stmt.executeQuery("select count(*) from users where registration_date > current_timestamp-INTERVAL 1 DAY;");
+					rs.next();
+					int thisday = rs.getInt(1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from users where registration_date > current_timestamp-INTERVAL 2 DAY;");
+					rs.next();
+					int lastday = rs.getInt(1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from users where registration_date > current_timestamp-INTERVAL 1 WEEK;");
+					rs.next();
+					int thisweek = rs.getInt(1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from users where registration_date > current_timestamp-INTERVAL 2 WEEK;");
+					rs.next();
+					int lastweek = rs.getInt(1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from users where registration_date > current_timestamp-INTERVAL 1 MONTH;");
+					rs.next();
+					int thismonth = rs.getInt(1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from users where registration_date > current_timestamp-INTERVAL 2 MONTH;");
+					rs.next();
+					int lastmonth = rs.getInt(1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from users where registration_date > current_timestamp-INTERVAL 1 YEAR;");
+					rs.next();
+					int thisyear = rs.getInt(1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from users where registration_date > current_timestamp-INTERVAL 2 YEAR;");
+					rs.next();
+					int lastyear = rs.getInt(1);
+					rs.close();
+				
+					out.print("Users registered since today/yesterday/this week/last week/this month/last month/this year/last year: "+ thisday+" / "+lastday+" / "+thisweek+" / "+lastweek+" / "+thismonth+" / "+lastmonth+" / " + thisyear+" / " + lastyear + "<br /><br />");
+				
+					
+					out.print("Uptime Data:");
+					try {
+					Process  proc = 	Runtime.getRuntime().exec("uptime");
+	  	            StreamGobbler errorGobbler = new 
+	                  StreamGobbler(proc.getErrorStream(), "ERROR");     
+	  	             
+	  	          StreamGobbler   inputGobbler = new StreamGobbler(proc.getInputStream(),"INPUT");
+	              
+	  	        StreamGobbler  outputGobbler = new 
+	                  StreamGobbler(proc.getInputStream(), "OUTPUT");
+	              errorGobbler.start();
+	              outputGobbler.start();
+	              inputGobbler.start();
+	       
+	               int exitVal = proc.waitFor();
+	              String toWrite = errorGobbler.returnRead();
+				out.print(toWrite+"<br /><br />");} catch(Exception exc) { exc.printStackTrace(); }
+				
+					out.println("*Weekly Actives used to mean 'Anybody who came in the last week, and escaped the early player deletion protocols'. This could mean a player who logged in, built two buildings, and left." +
+							" This is no longer the case. The Weekly Active count now only measures true players who have come back multiple times over multi-day periods in the last week.<br />");
+					out.println("**Most Daily Active players login every 24 hours, but sometimes they miss a day here and there, so we include an extra 24 to give lee way in the count. The strict Daily Active count varies widely, by as much as 30%, but the modifed Daily Active count does not very significantly.");
+					rs.close();
+					stmt.close();
+				} catch(SQLException exc) {
+					exc.printStackTrace();
+				}
+				return true;
+			} else{
+				retry(out);
+				return false;
+			}
+			
+		} catch(NullPointerException exc) {
+			retry(out);
+			return false;
+		}
+	}
 	public boolean growTileset(HttpServletRequest req, PrintWriter out) {
 		try {
 			HttpSession session = req.getSession(true);
@@ -1779,6 +1934,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					}
 					i++;
 				}
+				
+				if(g.accounts.get(UN)!=null) out.print(":username exists!;");
 				
 				// now we create the player.
 				//g.destroyCode(code);

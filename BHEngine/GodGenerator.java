@@ -48,6 +48,11 @@ import java.security.SecureRandom;
  Encyclopedia of questions:
  
  
+ PROCEDURE FOR SUCCESSFUL ACCOUNT SPLIT
+ 1. MAKE A SYSTEMS BACKUP
+ 2. update player set password = md5(password);
+ 3. run convert reqtype.
+ 
  Splitting accounts:
  
  
@@ -62,12 +67,16 @@ import java.security.SecureRandom;
  Tests:
  
  1. Create an account, make sure everything works.
+ 	-One server sesh---CHECK---
+ 	-Multi---CHECK---
  2. Delete the account, see what happens on login.
- 3. Delete the account, see what happens if you try to create a new account with the same username.
- 4. Lock in an FB account and see if it updates on both tables.
- 5. Test the periodical sending by deleting an account.
- 6. Test the conversion works.
- 7. test your autologin works.
+ 	-One server sesh---CHECK---
+ 	-Multi---CHECK---
+ 3. Delete the account, see what happens if you try to create a new account with the same username.---CHECK---
+ 4. Lock in an FB account and see if it updates on both tables.---CAN'T---
+ 5. Test the periodical sending by deleting an account.---CHECK---
+ 6. Test the conversion works.---CHECK---
+ 7. test your autologin works.---CHECK---
  
  
  
@@ -80,7 +89,7 @@ import java.security.SecureRandom;
 	
 	Tests:
 	1. Make a login, then go "inactive" and come back and see when you went inactive and see if it adds it to the total alright.
-	Then do it again.
+	Then do it again.---CHECK---
 
 
 
@@ -4455,7 +4464,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	ArrayList<Iterator> iterators=new ArrayList<Iterator>();
 	
 	public ArrayList<Hashtable> programs = new ArrayList<Hashtable>();
-	public Hashtable accounts;
+	public Hashtable accounts = new Hashtable();
 	private ArrayList<Player> iteratorPlayers;
 	private ArrayList<Town> iteratorTowns;
 	public Maelstrom Maelstrom;
@@ -4522,6 +4531,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		Router.command(req,out);
 	} else if(req.getParameter("reqtype").equals("saveProgram")) {
 		Router.saveProgram(req,out);
+	}else if(req.getParameter("reqtype").equals("serverStatus")) {
+		Router.serverStatus(req,out);
 	}else if(req.getParameter("reqtype").equals("createNewPlayer")) {
 		Router.createNewPlayer(req,out);
 	}else if(req.getParameter("reqtype").equals("forgotPass")) {
@@ -4575,6 +4586,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		Router.loadWorldMap(req,out);
 	} else if(req.getParameter("reqtype").equals("forgotPass")) {
 		Router.forgotPass(req,out);
+	}else if(req.getParameter("reqtype").equals("serverStatus")) {
+		Router.serverStatus(req,out);
 	}else if(req.getParameter("reqtype").equals("convert")) {
 		Router.convert(req,out);
 	}else if(req.getParameter("reqtype").equals("newsletter")) {
@@ -5954,6 +5967,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				
 				stmt.execute("insert into users(fuid,username,password,email) values (0,\""+username+"\",md5(\""+password+"\"),\""+email+"\");");
 				rs = stmt.executeQuery("select uid,password,registration_date from users where username = '"+username+"';");
+				rs.next();
 				Hashtable r = new Hashtable();
 				  r.put("uid",rs.getInt(1));
 		    	   r.put("fuid",0);
@@ -12253,7 +12267,26 @@ public boolean checkForGenocides(Town t) {
 
 		return true;
 	}
-	
+	public boolean updateLastSession(int pid) {
+		/*	try {
+			UberStatement stmt = con.createStatement();
+			stmt.execute("update player set last_login = current_timestamp where pid = "+ pid);
+			ResultSet rs = stmt.executeQuery("select last_login from player where pid = " +pid);
+			if(rs.next()) getPlayer(pid).last_login=rs.getDate(1);
+			rs.close();
+			stmt.close();
+			return true;
+
+			} catch(SQLException exc) { exc.printStackTrace(); }*/
+
+			Date today = new Date();
+			getPlayer(pid).numLogins++;
+			getPlayer(pid).last_session =new Timestamp(today.getTime());
+			
+
+			return true;
+		}
+		
 	public Town getTown(int tid) {
 		// JUST GET THE TOWN, DON'T ABSTRACT EVERYTHING JUST YET!
 		
@@ -12548,11 +12581,14 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			p = getPlayers().get(i);
 			if(!p.isLeague()&&!p.isQuest()&&p.ID!=5) {
 				String username = p.getUsername();
+				
 				String password = p.getPassword();
+				
 				String email = p.getEmail();
 				try {
-				stmt.execute("insert into users(fuid,username,password,email) values (0,\""+username+"\",\""+password+"\",\""+email+"\");");
+				stmt.execute("insert into users(fuid,username,password,email) values ("+p.getFuid()+",\""+username+"\",\""+password+"\",\""+email+"\");");
 				rs = stmt.executeQuery("select uid,password,registration_date from users where username = '"+username+"';");
+				rs.next();
 				Hashtable r = new Hashtable();
 				  r.put("uid",rs.getInt(1));
 		    	   r.put("fuid",0);
@@ -12560,7 +12596,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		    	   r.put("password",rs.getString(2));
 		    	   r.put("registration_date",rs.getTimestamp(3));
 		    	   r.put("email",email);
-		    	 accounts.put(username,r);
+		    	   accounts.put(username,r);
 		    	 if(p.getFuid()!=0)
 		    		 accounts.put(p.getFuid(),r);
 		    	   rs.close();
@@ -12586,7 +12622,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		method.addParameter("recipient",name+ " <" + email + ">");
 	//	method.addParameter("recipient","Jordan Prince <jordanmprince@gmail.com>");
 		method.addParameter("subject",subject);
-		method.addParameter("from", " AI Wars Automated Support <donotreply@aiwars.org>");
+		method.addParameter("from", " AI Wars <donotreply@aiwars.org>");
 		//String plaintext = message;
 		method.addParameter("raw_plain_text", message);
 		try {

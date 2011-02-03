@@ -26,6 +26,9 @@ public class Player  {
 	private String pushLog="";
 	public int iterTicks = 0;
 	public int playedTicks=0;
+	public long totalTimePlayed = 0;
+	public int numLogins=0;
+	public Timestamp last_session;
 	public int owedTicks =0;
 	private String version;
 	private ArrayList<Hashtable> achievements;
@@ -95,6 +98,12 @@ public class Player  {
 	       knowledge = rs.getInt(4);
 	       flicker = rs.getString(58);
 	       last_login=rs.getTimestamp(41);
+	       try {
+	       last_session=rs.getTimestamp(83);
+	       } catch(Exception exc) { last_session = new Timestamp((new Date()).getTime());}
+	       numLogins = rs.getInt(84);
+	       totalTimePlayed = rs.getLong(85);
+	       
 	       attackAPI = rs.getBoolean(68);
 	       advancedAttackAPI = rs.getBoolean(69);
 	       tradingAPI = rs.getBoolean(70);
@@ -662,7 +671,11 @@ public class Player  {
 	       version = rs.getString(81);
 	       owedTicks = rs.getInt(82);
 
-
+	       try {
+		       last_session=rs.getTimestamp(83);
+		      } catch(Exception exc) { last_session = new Timestamp((new Date()).getTime());}	       numLogins = rs.getInt(84);
+	       totalTimePlayed = rs.getLong(85);
+	       
 	       setPassword(rs.getString(26));
 	       setStealthTech(rs.getInt(3));
 	      // setKnowledge(rs.getInt(4));
@@ -1069,7 +1082,7 @@ public class Player  {
 	    		   + "', juggerPicTech = '" + juggerPicStr + "', bomberPicTech = '" + bomberPicStr + "', supportstaff = " + supportstaff + ", tradeTech = " + tradeTech +", lotTech = " + lotTech + ", stabilityTech = " + stabilityTech + 
 	    		   ", scholTicks = " + scholTicks + ", playedTicks = " + playedTicks +", bp = " + bp + ", premiumTimer = " + premiumTimer+ ", ubTimer = " + ubTimer + ", mineTimer = " + mineTimer + ", feroTimer = " + feroTimer +
 	    		   ", timberTimer = "  + timberTimer + ", mmTimer = " + mmTimer + ", fTimer = " + fTimer + ", knowledge = " + knowledge +/* KNOWLEDGE WAS BRKTHRUS ", brkups = " + brkups +*/", engTech = " + engTech + ", scholTech = " + scholTech  +", commsCenterTech = " + commsCenterTech + ", capitaltid = " + capitaltid 
-	    		   +", revTimer = " + revTimer +", totalBPEarned = " + totalBPEarned +", flicker = '" + flicker + "', fuid = " + fuid + ", last_login = '" + (last_login).toString()
+	    		   +", revTimer = " + revTimer +", totalBPEarned = " + totalBPEarned +", flicker = '" + flicker + "', fuid = " + fuid + ", totalTimePlayed = " + totalTimePlayed + ", numLogins = " + numLogins + ", last_login = '" + (last_login).toString() + "', last_session = '" + (last_session).toString() 
 	    		   	+"', last_auto_blast =" + last_auto_blast + ",tPushes = "+tPushes+", zeppTech = " + zeppTech + ", recycTech = " + recyclingTech + ", nukeTech = " + missileSiloTech + ", metalRefTech = " + metalRefTech
 	    		   	+ ", timberRefTech = " + timberRefTech + ", manMatRefTech = " + manMatRefTech + ", foodRefTech = " + foodRefTech +", attackAPI = " + attackAPI +
 	    		   	", advancedAttackAPI = " + advancedAttackAPI + ", tradingAPI = " + tradingAPI + ", advancedTradingAPI = " + advancedTradingAPI + ", smAPI = " + smAPI + ", researchAPI = " + researchAPI + 

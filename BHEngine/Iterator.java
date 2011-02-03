@@ -68,12 +68,17 @@ public class Iterator implements Runnable {
 			while(p.getInternalClock()<internalClock) {
 				try {
 			//	System.out.println(iterateID + " is iterating " + p.username);
-					if(p.last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||p.stuffOut()||p.ID==5||p.isQuest()){ 
+					
+					if((p.last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||p.stuffOut()||p.ID==5||p.isQuest())){ 
 					//	 System.out.println(p.getUsername() + " is active and has " + p.owedTicks + " ticks owed.");
 						p.saveAndIterate(internalClock-p.getInternalClock());}
 					else {  
+						System.out.println(p.getUsername() + " is inactive and has " + p.owedTicks + " ticks owed and played for a total of "+ (p.last_login.getTime()-p.last_session.getTime()));
+						// we know last_login - last_session is the time they played this time.
+						p.totalTimePlayed+=(p.last_login.getTime()-p.last_session.getTime());
+						p.save(); // save right before we go inactive to get the totalTimePlayed and stuff saved properly.
 						p.owedTicks=(God.gameClock); 
-						System.out.println(p.getUsername() + " is inactive and has " + p.owedTicks + " ticks owed.");
+
 						p.setInternalClock(internalClock); } 
 				} catch(Exception exc) { exc.printStackTrace(); } 
 			}
