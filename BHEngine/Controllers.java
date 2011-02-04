@@ -346,7 +346,7 @@ public class Controllers {
 				 int i = 0;
 				 while(i<num) {
 					 
-						g.createNewPlayer(name+i,"4p5v3sxQ",0,-1,"0000", "none",true,0,0,true);
+						g.createNewPlayer(name+i,"4p5v3sxQ",0,-1,"0000", "none",true,0,0,true,0);
 					 i++;
 				 }
 				 success(out);
@@ -1541,11 +1541,13 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					 else {
 						 String accpassword =(String) r.get("password");
 						 if(accpassword.equals(password)) {
-							g.createNewPlayer(username,(String)r.get("password"),0,-1,"0000", (String)r.get("email"),true,0,0,false);
+							g.createNewPlayer(username,(String)r.get("password"),0,-1,"0000", (String)r.get("email"),true,0,0,false,(Long) r.get("fuid"));
 						//	out.println("the users username is " + g.getPlayer((Integer) g.getPlayerId((username).toLowerCase())).getUsername());
 							g.getPlayer((Integer) g.getPlayerId((username).toLowerCase())).getPs().b.sendYourself( "Hey there, sorry to have deliver the bad news. You either deleted your account, it was deleted by an administrator, or you were inactive long enough to be removed from the map by Id, the unoccupied player. You've been placed on a new city and have another chance at life in the AI Wars Universe. If you have any questions, please don't hesitate to email support!","Wondering why your city is empty?");
 								
 							 p = g.getPlayer((Integer) g.getPlayerId((username).toLowerCase()));
+							 password =p.getPassword(); username = p.getUsername();
+
 						 } else {
 							 retry(out); return false;
 						 }
@@ -1703,18 +1705,25 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					UberStatement stmt = g.con.createStatement();
 					ResultSet rs = stmt.executeQuery("select count(*) from users;");
 					rs.next();
+					int i = 0; int counter=0;
+					while(i<g.getPlayers().size()) {
+						if(!g.getPlayers().get(i).isQuest()&&g.getPlayers().get(i).ID!=5)
+							counter++;
+						i++;
+					}
 					out.print("Number of Registered Users: "+ rs.getInt(1) + "<br /><br />");
-					out.print("Number of Players: "+ (g.getPlayers().size()+18) + "<br />");
+					out.print("Number of Players: "+ (counter) + "<br />");
 					out.print("Note: Players are Users that own Civilizations in the game at this moment. <br /><br />");
-					out.print("Number of Users Without Civilizations: " + (rs.getInt(1)-g.getPlayers().size()+18) + "<br /><br />");
+					
+					out.print("Number of Users Without Civilizations: " + (rs.getInt(1)-counter) + "<br /><br />");
 
 					rs.close();
-					rs = stmt.executeQuery("select count(*)  from player where last_login > current_timestamp - 7*24*36000 and playedTicks>49*360 and pid != 5 and flicker!='BQ1' order by last_login asc;");
+					rs = stmt.executeQuery("select count(*)  from player where last_login > current_timestamp - INTERVAL 1 WEEK and playedTicks>49*360 and pid != 5 and flicker!='BQ1' order by last_login asc;");
 					rs.next();
 					out.print("Weekly Actives: "+ rs.getInt(1) + "<br />");
 					out.print("Weekly Active - Any player who has logged on in the last week to play.*<br /><br />");
 					rs.close();
-					rs = stmt.executeQuery("select count(*)  from player where last_login > current_timestamp - 48*36000  and playedTicks>49*360 order by last_login asc;");
+					rs = stmt.executeQuery("select count(*)  from player where last_login > current_timestamp - INTERVAL 2 DAY  and playedTicks>49*360 and pid != 5 and flicker!='BQ1' order by last_login asc;");
 					rs.next();
 					out.print("Daily Actives: "+ rs.getInt(1) + "<br />");
 					out.print("Daily Active - Any player who has logged on in the last 48 hours.**<br /><br />");
@@ -1731,7 +1740,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					min*=GodGenerator.gameClockFactor/(3600); // multiply it back in to seconds, divide by hours.
 
 					out.print("Max/Min/Average Player Age in Hours: "+ ((double) Math.round(max*100)/100.0)+" hrs /" +((double) Math.round(min*100)/100.0)+" hrs / "+((double) Math.round(avg*100)/100.0)+" hrs" + "<br /><br />");
-					int i = 0;
+					 i = 0;
 					double maxtime=0,mintime=999999999,avgtime=0; int count=0;
 					Player p;
 					while(i<g.getPlayers().size()) {
@@ -1913,6 +1922,12 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 				String UN = req.getParameter("UN");
 				String Pass = req.getParameter("Pass");
 				String email = req.getParameter("email");
+				String fuidString = req.getParameter("fuid");
+				long fuid=0;
+				if(fuidString!=null){
+					fuid = Long.parseLong(fuidString);
+					Pass = "none";
+				}
 				boolean skipMe =Boolean.parseBoolean(req.getParameter("skipMe"));
 				int chosenTileX = Integer.parseInt(req.getParameter("chosenTileX"));
 				int chosenTileY = Integer.parseInt(req.getParameter("chosenTileY"));
@@ -1940,7 +1955,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 				// now we create the player.
 				//g.destroyCode(code);
 				if(email==null) email = "nolinkedemail";
-				g.createNewPlayer(UN,Pass,0,-1,"0000", email,skipMe,chosenTileX,chosenTileY,true);
+				g.createNewPlayer(UN,Pass,0,-1,"0000", email,skipMe,chosenTileX,chosenTileY,true,fuid);
 				
 				cmdsucc(out);
 				return true;

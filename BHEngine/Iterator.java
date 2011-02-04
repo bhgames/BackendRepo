@@ -75,6 +75,8 @@ public class Iterator implements Runnable {
 					else {  
 						System.out.println(p.getUsername() + " is inactive and has " + p.owedTicks + " ticks owed and played for a total of "+ (p.last_login.getTime()-p.last_session.getTime()));
 						// we know last_login - last_session is the time they played this time.
+						if(p.totalTimePlayed<0) p.totalTimePlayed=0;
+						if(p.numLogins<=0) p.numLogins=1;
 						p.totalTimePlayed+=(p.last_login.getTime()-p.last_session.getTime());
 						p.save(); // save right before we go inactive to get the totalTimePlayed and stuff saved properly.
 						p.owedTicks=(God.gameClock); 
@@ -123,8 +125,8 @@ public class Iterator implements Runnable {
 			// and starts iterating it, the others can't, and will wait
 			// to try, but then they'll find it can't be done.
 
-			if(p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock&&p.owedTicks==0) { // we do not process players who have owedTicks>0, ie, not active.
-				if(p.getPlayer().getUsername().contains("testman")) System.out.println("Iterating a "+ p.getPlayer().getUsername());
+			if(p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock&&(p.owedTicks==0||p.stuffOut())) { 
+	//			if(p.getPlayer().getUsername().contains("testman")) System.out.println("Iterating a "+ p.getPlayer().getUsername());
 			//	System.out.println(iterateID + " found " + p.username + " unhooked and in need at " + internalClock);
 				// Cool, a double lock. First, if you're iterating through and you catch
 				// a player that's held, you don't get in and you just keep going.
@@ -135,6 +137,8 @@ public class Iterator implements Runnable {
 				// his number, and when he tries to enact the iteration code, you see
 				// it's not his number, so he doesn't do it. Only you do.
 		//		System.out.println("iterating " + p.username);
+				if(p.owedTicks>0) p.update(); // could happen if suddenly a town had owed ticks but wasn't online for the raid to be sent.
+				// like a quest could get here. But we save them.
 				synchronized(p){if(p.getHoldingIteratorID().equals("-1")) p.setHoldingIteratorID(iterateID); }
 				if(p.getHoldingIteratorID().equals(iterateID)) {
 			//		System.out.println(iterateID + " caught " + p.username + "'s focus and is iterating at " + internalClock);

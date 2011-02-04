@@ -141,9 +141,7 @@ import java.security.SecureRandom;
  
  Archaeological Digs:
  
- Digs are an odd form of raid, that have a second set of timers. They are not the same data-type, we will have to offer a new one.
- Only Civilians can be sent on digs, but to send protection, you should just send soldiers on support to that dig site. The Civilians
- really aren't "at" the dig site, I just keep them in a variable somewhere, they don't travel there or back, that's part of the "dig timer."
+ 
  If an Id town is attacked and there is no defense there, then the Civilians flee. A Dig lasts for 24 hours, at which point,
  the Civilians return. You then have a 24 hour window to log on and send another group to do a Dig at that Id site, to continue
  building the likelihood of finding something cool. A Dig site degrades over time, so you have to send regular digs to keep
@@ -155,20 +153,18 @@ import java.security.SecureRandom;
 "We found some sort of tomb. We can open the door but we'll destroy the passageways beyond - we won't be able to search further
 on this dig."
 
-So if you respond yes, you get whatever you earned, if you respond no, you keep on building probability of finding something better.
-We also ask them to post to facebook whenever they find something.
+This can happen at any point during the 24 hour period of the dig. Once this mail has been sent out, you have 24 hours to reply
+before the team has to return. During this time the probability growth timer has been frozen. If they return, then the timer
+begins counting down, and if they do not and they stay and grab the item, the probability timer is reset. If you do not reply at all,
+they simply return in 24 hours. 
 
-When civilians encounter other civilians at a dig site, they leave. If a person attacks and wipes out a Civilian dig after an email
-has been sent to the player but before the player has had a chance to answer it and earn their prize, the prize goes to
-the person who attacks. The Prize is visible to all on the WM as ripe for the picking while the player has not answered the email.
-Also, the dig crew stays on site until the user has answered it.
 
 Prizes offered:
-1. Varying degrees of KP
+1. Varying degrees of KP (10 KP Centered around 2 days, 20 KP centered around 3, 30 KP centered around 4)
 2. In the future, new event handlers for your AI.
-3. Blueprints of exotic attack units outside the normal ones. 
-4. Resources of varying degrees.
-5. Occasionally, extra Tech Points.
+3. Blueprints of exotic attack units outside the normal ones. (Will come up with three, new soldier centered around 5 days, tank around 10, jugger 15)
+4. Resources of varying degrees. (10% of your mine levels in a day around 1 Day, 20% around 2 days, 30% around 3 days)
+5. Occasionally, extra Tech Points. (All the gay techs centered around 4 days, Some of the more useful ones around 5 days, Some of the most useful around 6 days.)
 6. Nuclear Missile Silo, fully stocked.
 7. Zeppelin.
 8. In the future, code blocks written by the Devs for your AI to use. Rarity: Depends on the code.
@@ -177,12 +173,56 @@ but will protect you, or attack others.
 
 What you find is based on the mix of civvies you send.
 
+How do we do this?
 
+Well, we've got to rig up support raids. We now simply just include an extra variable called scholars on raids
+that is >0, and if it is, then it's a dig, not a support raid. They can only goto Id towns. Id towns now have three things: probability
+timer associated with them, a dig count timer, well, all towns do, actually, and a saved point at when a message will be sent in the dig for
+that dig. 
+
+So, each prize has a gaussian that has it's center with a sigma around it of 2 days. Each gaussian is centered
+at a different probability tick. At any one time, the probability of getting any of the prizes at a certain tick x
+is gotten by finding the values of each gaussian at that tick x, summing them and normalizing them to 100%. Even getting
+"nothing" is considered a prize.
+
+When a dig begins, the chance of you finding something in the next 24 hours is chosen by randomly choosing a point in the next
+24 hours to enact a random search of the gaussian probabilities using probability timer.. It has to be truly random for players to get a chance to find something.
+
+A message is sent out and the timer starts up again. When the timer gets past the chosen time for finding by 24 hours, the scholars 
+are sent home, the dig timer and find time are reset, and the probability timer starts to go down. If the prize is accepted,
+all the same things happen except the probability timer goes to zero. So, to summarize:
+
+1. Probability timer is the timer that is constantly going up when a dig is on, and drifts down when it is off or when a prize is taken.
+2. Dig timer - restarts every dig, helps time how long we stay.
+3. Find Time - Randomly selected each dig, is the choice of when to send the message out.
  
+ Days:
+ 1. Center of Nothing( Relative Mag: .5)
+ 2. Center of 10% daily resources (Relative Mag: 1)
+ 3. Center of 20% Daily resources and 50 KP (Relative Mag: 1)
+ 4. Center of 30% Daily Resources, 65 KP (Relative Mag: 1)
+ 5. Center of 50% Daily Resources, 80 KP (Relative Mag: 1)
+ 6. Center of random API, of hidden soldier blueprint, random tech points (Relative Mag: .5)
+ 7. Center of hidden tank blueprint, and of the four resource increaser technologies (Relative Mag: .3)
+ 8. Center of hidden Juggernaught blueprint (Relative Mag: .1)
+ 9. Center of hidden Missile Silo(Relative Mag: .05)
+ 10. Center of hidden Zeppelin(Relative Mag: .01)
  
+ PEOPLE CANNOT SEND DUPLICATE DIGS TO SITE ALREADY DIGGED BY THEM!
  
+ So... to do:
  
- 
+ 1. Add the three variables to the town table, load them in and save them.
+ 2. Make a function that returns a takes the probability ticker and returns a prize name.
+ 3. Add it to "attack" as a possible thing to do, but make it not available unless you have the Dig API.
+ 4. Make an exception in support logic block that detects if it's a dig, and if it does, it sets the digTimer to 0,
+ and chooses a random message send time. If there is another player there, knock them off if they have civvies and you have civvies,
+ or fight them off if they are armed and you are armed, or run if you're not.
+ 5. In iterate, if dig timer is >=0, it goes up, and so does probability. If dig timer is <0, probability goes down towards 0.
+ When the random message send time hits, send the message, and then return them manually when the counter goes down.
+ 6. In Id you must begin doing checks for messages and deleting them and responding to them.
+ 7. If a player attacks an Id town with a dig, he obviously fights the units there. If all the support units die and the
+ dig is on, then the dig counter is reset, as is the find timer, and a status report is sent AND a message saying the stuff was lost.
  
  
  
@@ -4753,7 +4793,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		while(qs.next()) {
 			//	public Player createNewPlayer(String username, String password, int type, int tidToGive, String code) {
 
-			p = createNewPlayer(qs.getString(3),"4p5v3sxQ",2,-1,"0000","nolinkedemail",true,0,0,false);
+			p = createNewPlayer(qs.getString(3),"4p5v3sxQ",2,-1,"0000","nolinkedemail",true,0,0,false,0);
 		
 			q =  loadQuest(	p.ID,qs.getString(2),qs.getString(3));
 			iteratorPlayers.add(q);
@@ -5896,7 +5936,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			return toret;
 	}
 
-	public Player createNewPlayer(String username, String password, int type, int tidToGive, String code,String email, boolean skipMe, int chosenTileX,int chosenTileY,boolean okayToMakeNewAccount) {
+	public Player createNewPlayer(String username, String password, int type, int tidToGive, String code,String email, boolean skipMe, int chosenTileX,int chosenTileY,boolean okayToMakeNewAccount, long fuid) {
 		/*
 		 * This method creates a new player by giving them
 		 * a player object, kickstarting it, and then giving
@@ -5965,17 +6005,18 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			stmt.executeUpdate("start transaction;");
 			if(okayToMakeNewAccount) {
 				
-				stmt.execute("insert into users(fuid,username,password,email) values (0,\""+username+"\",md5(\""+password+"\"),\""+email+"\");");
+				stmt.execute("insert into users(fuid,username,password,email) values ("+fuid+",\""+username+"\",md5(\""+password+"\"),\""+email+"\");");
 				rs = stmt.executeQuery("select uid,password,registration_date from users where username = '"+username+"';");
 				rs.next();
 				Hashtable r = new Hashtable();
 				  r.put("uid",rs.getInt(1));
-		    	   r.put("fuid",0);
+		    	   r.put("fuid",fuid);
 		    	   r.put("username",username);
 		    	   r.put("password",rs.getString(2));
 		    	   r.put("registration_date",rs.getTimestamp(3));
 		    	   r.put("email",email);
 		    	 accounts.put(username,r);
+		    	 if(fuid!=0) accounts.put(fuid,r);
 		    	   rs.close();
 				
 			}
@@ -5986,13 +6027,13 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			
 			if(numPlayers==0) {
 				if(okayToMakeNewAccount)
-			stmt.executeUpdate("insert into player (username,password,stealth,knowledge,totalscho,totalmess,totalpop,alotTech,soldTech,tankTech,juggerTech,weaponTech,buildingSlotTech,instructions,outputchannel,poutputchannel,civWeap,bomberTech,suppTech,townTech,bunkerTech,tradeTech,lotTech,accessCode,afTech,email) " +
-					"values (\"" + username + "\",md5(\"" + password + "\"),1,0,0,0,1,1,1,1,1,\"1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,\",2,\"null\",\"null\",\"null\",0,1,1,1,1,1,8,'" + code + "',1,'"+email+"')");
+			stmt.executeUpdate("insert into player (username,password,stealth,knowledge,totalscho,totalmess,totalpop,alotTech,soldTech,tankTech,juggerTech,weaponTech,buildingSlotTech,instructions,outputchannel,poutputchannel,civWeap,bomberTech,suppTech,townTech,bunkerTech,tradeTech,lotTech,accessCode,afTech,email,fuid) " +
+					"values (\"" + username + "\",md5(\"" + password + "\"),1,0,0,0,1,1,1,1,1,\"1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,\",2,\"null\",\"null\",\"null\",0,1,1,1,1,1,8,'" + code + "',1,'"+email+"',"+fuid+")");
 			//		"values (\"" + username + "\",\"" + password + "\",3,0,0,0,1,5,1,1,1,\"1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,\",3,\"null\",\"null\",\"null\",0,1,3,2,3,1,18,'" + code + "',3)");
 			
 				else  // the not okay to make new account version got it's password from an already encrypted password in users!
-					stmt.executeUpdate("insert into player (username,password,stealth,knowledge,totalscho,totalmess,totalpop,alotTech,soldTech,tankTech,juggerTech,weaponTech,buildingSlotTech,instructions,outputchannel,poutputchannel,civWeap,bomberTech,suppTech,townTech,bunkerTech,tradeTech,lotTech,accessCode,afTech,email) " +
-							"values (\"" + username + "\",\"" + password + "\",1,0,0,0,1,1,1,1,1,\"1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,\",2,\"null\",\"null\",\"null\",0,1,1,1,1,1,8,'" + code + "',1,'"+email+"')");
+					stmt.executeUpdate("insert into player (username,password,stealth,knowledge,totalscho,totalmess,totalpop,alotTech,soldTech,tankTech,juggerTech,weaponTech,buildingSlotTech,instructions,outputchannel,poutputchannel,civWeap,bomberTech,suppTech,townTech,bunkerTech,tradeTech,lotTech,accessCode,afTech,email,fuid) " +
+							"values (\"" + username + "\",\"" + password + "\",1,0,0,0,1,1,1,1,1,\"1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,\",2,\"null\",\"null\",\"null\",0,1,1,1,1,1,8,'" + code + "',1,'"+email+"',"+fuid+")");
 			
 			}
 					// once the player is made, then we move on.
@@ -6136,6 +6177,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 					p.getPs().b.joinQuest("AQ"+k);
 					k++;
 				}
+				if(fuid==0)
 				p.getPs().b.joinQuest("ConnectWithFacebook");
 				p.getPs().b.joinQuest("BQ1"); // must be after capitalcity and after cwf
 				int weapArrayNew[] = new int[2]; weapArrayNew[0]=0; weapArrayNew[1]=0;

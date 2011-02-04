@@ -201,7 +201,7 @@ public class BattlehardFunctions {
 	 * any other use.
 	 */
 	public String getError() {
-	
+		if(error==null) error = "No error.";
 		return error;
 	}
 		/**
@@ -6179,10 +6179,14 @@ public long[] returnPrice(int lotNum, int tid) {
 		
 				double additive;
 				 // So now we have the bldg(). Now, do we have the resources?
+				boolean keepMe=false;
+				if(prog) keepMe=true;
+				prog=false;
 					if(!deconstruct&&!haveBldg(town, "Construction Yard")) {
 						setError("You need a construction yard to do this!");
 						return false;
 					}
+				if(keepMe) prog = true;
 				 boolean canBuild = true;
 				 int k = 0;
 				 if(!deconstruct) {
@@ -7862,7 +7866,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		}
 		
 		
-		League newLeague = (League) g.createNewPlayer(letters,"4p5v3sxQ",1, tid,"0000","nolinkedemail",true,0,0,false);
+		League newLeague = (League) g.createNewPlayer(letters,"4p5v3sxQ",1, tid,"0000","nolinkedemail",true,0,0,false,0);
 		//public void createLeague(String leagueName,String leagueLetters, Player initial) {
 		if(newLeague==null){
 			error = "Player create failed for some reason.";
