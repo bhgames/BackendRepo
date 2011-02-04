@@ -5481,6 +5481,7 @@ public long[] returnPrice(int lotNum, int tid) {
 			// the distance is must travel back.
 			rtokill.setTicksToHit(testhold);
 			rtokill.setRaidOver(true);
+		
 			/*
 			try { // turn back all resupplies.
 				UberStatement stmt = this.g.con.createStatement();

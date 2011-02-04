@@ -8016,7 +8016,7 @@ public boolean checkForGenocides(Town t) {
 			
 				while(j<t2bldg.length) {
 					 b = t2bldg[j];
-					if(b.getType().equals("Bunker"))  bunkerSize+=Math.round(.33*.05*t2p.getBunkerTech()*getPeople(b.getLvl(),totalPoppedUnits,4,totalUnitPrice));
+					if(b.getType().equals("Bunker"))  bunkerSize+=Math.round(.33*.05*t2p.getBunkerTech()*getPeople(b.getLvl(),totalPoppedUnits,4,totalUnitPrice/t2p.towns().size())); // because units price decrease with town size
 					//else if(b.type.equals("Bunker")&&b.bunkerMode==0&&b.getLvl()>25) bunkerSize+=Math.exp(25)+(b.getLvl()-25)*Math.exp(25);
 					
 					j++;
@@ -8032,7 +8032,7 @@ public boolean checkForGenocides(Town t) {
 				UserBuilding t1bldg[] = t1p.getPs().b.getUserBuildings(t1.townID,"Arms Factory");
 				while(j<t1bldg.length) {
 					 b = t1bldg[j];
-					if(b.getType().equals("Arms Factory"))  afSize+=Math.round(.05*t1p.getAfTech()*getPeople(b.getLvl(),totalPoppedUnitsOff,4,totalUnitPrice)); // add back the lvl<25 if you change!
+					if(b.getType().equals("Arms Factory"))  afSize+=Math.round(.05*t1p.getAfTech()*getPeople(b.getLvl(),totalPoppedUnitsOff,4,totalUnitPrice/t1p.towns().size())); // add back the lvl<25 if you change!
 				//	else if(b.type.equals("Arms Factory")&&b.getLvl()>25) afSize+=Math.exp(25)+(b.getLvl()-25)*Math.exp(25);
 					
 					j++;
@@ -10401,7 +10401,7 @@ public boolean checkForGenocides(Town t) {
 		
 		while(j<bldg.length) {
 			 b = bldg[j];
-			if(b.getType().equals("Bunker"))  bunkerSize+=Math.round(.33*.05*t2p.getBunkerTech()*getPeople(b.getLvl(),3,4,totalUnitPrice));
+			if(b.getType().equals("Bunker"))  bunkerSize+=Math.round(.33*.05*t2p.getBunkerTech()*getPeople(b.getLvl(),3,4,totalUnitPrice/t2p.towns().size()));
 			j++;
 		}
 		j=0;
