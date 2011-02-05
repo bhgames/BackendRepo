@@ -6181,7 +6181,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				p.getPs().b.joinQuest("ConnectWithFacebook");
 				p.getPs().b.joinQuest("BQ1"); // must be after capitalcity and after cwf
 				int weapArrayNew[] = new int[2]; weapArrayNew[0]=0; weapArrayNew[1]=0;
-				p.setKnowledge(soldierTechPrice);
+				p.setKnowledge(p.getKnowledge()+soldierTechPrice);
 				String toRes[] = {"ShockTrooper"};
 				ps.b.completeResearches(toRes); // give them a default template.
 				ps.b.createCombatUnit(0,"Shock Trooper");

@@ -1952,6 +1952,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 				
 				if(g.accounts.get(UN)!=null) out.print(":username exists!;");
 				
+				if(UN.contains(" ")||UN.contains(";")) out.print(":username cannot have spaces or semicolons!");
 				// now we create the player.
 				//g.destroyCode(code);
 				if(email==null) email = "nolinkedemail";
