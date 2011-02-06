@@ -23,6 +23,7 @@ public class Town {
 	 private GodGenerator God; private UberConnection con;
 	 private ArrayList<AttackUnit> au;
 	 private ArrayList<Building> bldg;
+	 private int probTimer,findTime,digCounter;
 	 private long res[], debris[];
 	 private double resEffects[],resBuff[];
 	 private Player p;
@@ -177,7 +178,9 @@ public class Town {
 				getAu();
 				bldg();
 		}
-
+		probTimer = getMemInt("probTimer");
+		findTime = getMemInt("findTime");
+		digCounter=getMemInt("digCounter");
 		zeppelin = getMemBoolean("zeppelin");
 		debris = getMemDebris();
 		owedTicks = getMemInt("owedTicks");
@@ -213,6 +216,9 @@ public class Town {
 		getAu();bldg();
 		x = getMemX();
 		y = getMemY();
+		probTimer = getMemInt("probTimer");
+		findTime = getMemInt("findTime");
+		digCounter=getMemInt("digCounter");
 		owedTicks = getMemInt("owedTicks");
 		debris = getMemDebris();
 		zeppelin = getMemBoolean("zeppelin");
@@ -1350,7 +1356,8 @@ public class Town {
 	    	   ", au1 = " +
 	    	  au.get(0).getSize() + ", au2 = " +  au.get(1).getSize() + ", au3 = " +  au.get(2).getSize() + ", au4 = " +  au.get(3).getSize() +
 	    	  ", au5 = " + au.get(4).getSize() + ", au6 =" +  au.get(5).getSize() +", owedTicks = " + owedTicks+", zeppelin = " + zeppelin + ",  fuelcells = " + fuelCells + 
-	    	  ", ticksTillMove = " + ticksTillMove + ", destX = " + destX +", destY = " + destY + ", debm = " + getDebris()[0] + ", debt = " + getDebris()[1] + ", debmm = " + getDebris()[2] + ", debf = " + getDebris()[3] +" where tid = " + townID + ";";
+	    	  ", ticksTillMove = " + ticksTillMove + ", destX = " + destX +", destY = " + destY + ", probTimer =  " + probTimer + ", findTime = " + findTime + ", digCounter = " + digCounter 
+	    	  +", debm = " + getDebris()[0] + ", debt = " + getDebris()[1] + ", debmm = " + getDebris()[2] + ", debf = " + getDebris()[3] +" where tid = " + townID + ";";
 	    	  stmt.executeUpdate(update);
 	    	  
 	    	  stmt.close();
@@ -3448,6 +3455,30 @@ public class Town {
 
 	public long[] getDebris() {
 		return debris;
+	}
+
+	public void setProbTimer(int probTimer) {
+		this.probTimer = probTimer;
+	}
+
+	public int getProbTimer() {
+		return probTimer;
+	}
+
+	public void setFindTime(int findTime) {
+		this.findTime = findTime;
+	}
+
+	public int getFindTime() {
+		return findTime;
+	}
+
+	public void setDigCounter(int digCounter) {
+		this.digCounter = digCounter;
+	}
+
+	public int getDigCounter() {
+		return digCounter;
 	}
 }
 

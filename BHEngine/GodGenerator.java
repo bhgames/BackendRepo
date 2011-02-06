@@ -202,17 +202,16 @@ all the same things happen except the probability timer goes to zero. So, to sum
  3. Center of 20% Daily resources and 50 KP (Relative Mag: 1)
  4. Center of 30% Daily Resources, 65 KP (Relative Mag: 1)
  5. Center of 50% Daily Resources, 80 KP (Relative Mag: 1)
- 6. Center of random API, of hidden soldier blueprint, random tech points (Relative Mag: .5)
- 7. Center of hidden tank blueprint, and of the four resource increaser technologies (Relative Mag: .3)
- 8. Center of hidden Juggernaught blueprint (Relative Mag: .1)
- 9. Center of hidden Missile Silo(Relative Mag: .05)
- 10. Center of hidden Zeppelin(Relative Mag: .01)
+ 6. Center of random API, of hidden soldier blueprint(Rock), random tech points(Civvie in Grass, Military in Desert) (Relative Mag: .5)
+ 7. Center of hidden tank blueprint(Grass), and of the four resource increaser technologies(3 in Grass, 1 in Rock/Desert) (Relative Mag: .3)
+ 8. Center of hidden Juggernaught blueprint(Desert) (Relative Mag: .1)
+ 9. Center of hidden Missile Silo or Zeppelin(Silo in Rock, Zeppelin in Desert)(Relative Mag: .05)
  
  PEOPLE CANNOT SEND DUPLICATE DIGS TO SITE ALREADY DIGGED BY THEM!
  
  So... to do:
  
- 1. Add the three variables to the town table, load them in and save them.
+ 1. Add the three variables to the town table, load them in and save them.---CHECK---
  2. Make a function that returns a takes the probability ticker and returns a prize name.
  3. Add it to "attack" as a possible thing to do, but make it not available unless you have the Dig API.
  4. Make an exception in support logic block that detects if it's a dig, and if it does, it sets the digTimer to 0,
@@ -4423,6 +4422,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	int res1[] = new int[8]; // There is metal and number of bland military units for this alpha software.
 	// Metal is 0, timber is 1. Stealthtech is 2. Population is 3.
 	// 28.3 for .01, 2.83 for .1, 
+	
 	public static double gameClockFactor=10; // At 1, 1 tick = 1s.
 	public static double sessionLagTime = 2*3600000; // How much time in Date speech till a session logs out.
 	// so with timers, you'll want to divide by the gameClockFactor, diminishing it...
@@ -4430,6 +4430,89 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	// now at 1 tick = 10s, the timer will be 1 tick means 10s to do. Same dealie.
 	// Really this just gives the computer time to make changes, and we can
 	// expand it as the game grows.
+	
+	/*  1. Center of Nothing( Relative Mag: .5)
+	 2. Center of 10% daily resources (Relative Mag: 1)
+	 3. Center of 20% Daily resources and 50 KP (Relative Mag: 1)
+	 4. Center of 30% Daily Resources, 65 KP (Relative Mag: 1)
+	 5. Center of 50% Daily Resources, 80 KP (Relative Mag: 1)
+	 6. Center of random API, of hidden soldier blueprint(Rock), random tech points(Civvie in Grass, Military in Desert) (Relative Mag: .5)
+	 7. Center of hidden tank blueprint(Grass), and of the four resource increaser technologies(3 in Grass, 1 in Rock/Desert) (Relative Mag: .3)
+	 8. Center of hidden Juggernaught blueprint(Desert) (Relative Mag: .1)
+	 9. Center of hidden Missile Silo or Zeppelin(Silo in Rock, Zeppelin in Desert)(Relative Mag: .05)*/
+	
+	/*
+
+	 * Prize codes:
+	 * nothing
+	 * daily10
+	 * daily20
+	 * daily30
+	 * daily50
+	 * lowkp
+	 * medkp
+	 * highkp
+	 * api
+	 * soldier
+	 * civvietech
+	 * militech
+	 * tank
+	 * resInc
+	 * juggernaught
+	 * silo
+	 * zeppelin
+	 */
+	//	public double[] generateGaussianDist(int numOfPoints, double height, double center, double width) {
+
+	public static double nothingCtr = 1;
+	public static double nothingWidth = 2; // 2 days homes.
+	public static double nothingHeight = 1;
+	public static double daily10Ctr = 2;
+	public static double daily10Width = 2; // 2 days homes.
+	public static double daily10Height = 1;
+	public static double daily20Ctr = 3;
+	public static double daily20Width = 2; // 2 days homes.
+	public static double daily20Height = 1;
+	public static double daily30Ctr = 4;
+	public static double daily30Width = 2; // 2 days homes.
+	public static double daily30Height = 1;
+	public static double daily50Ctr = 5;
+	public static double daily50Width = 2; // 2 days homes.
+	public static double daily50Height = 1;
+	public static double lowKPCtr = 3;
+	public static double lowKPWidth = 2; // 2 days homes.
+	public static double lowKPHeight = 1;
+	public static double medKPCtr = 4;
+	public static double medKPWidth = 2; // 2 days homes.
+	public static double medKPHeight = 1;
+	public static double highKPCtr = 5;
+	public static double highKPWidth = 2; // 2 days homes.
+	public static double highKPHeight = 1;
+	public static double apiCtr = 6;
+	public static double apiWidth = 2; // 2 days homes.
+	public static double apiHeight = .5;
+	public static double soldierCtr = 6;
+	public static double soldierWidth = 2; // 2 days homes.
+	public static double soldierHeight = .5;
+	public static double techCtr = 6;
+	public static double techWidth = 2; // 2 days homes.
+	public static double techHeight = .5;
+	public static double tankCtr = 7;
+	public static double tankWidth = 2; // 2 days homes.
+	public static double tankHeight = .3;
+	public static double resIncCtr = 7;
+	public static double resIncWidth = 2; // 2 days homes.
+	public static double resIncHeight = .3;
+	public static double juggernaughtCtr = 8;
+	public static double juggernaughtWidth = 2; // 2 days homes.
+	public static double juggernaughtHeight = .1;
+	public static double siloCtr = 9;
+	public static double siloWidth = 2; // 2 days homes.
+	public static double siloHeight = .05;
+	public static double zeppelinCtr = 9;
+	public static double zeppelinWidth = 2; // 2 days homes.
+	public static double zeppelinHeight = .05;
+	
 	public static int buildingSlotTechPrice=10; // how much it costs to buy this research.
 	public static int buildingLotTechPrice=20;
 	public static int buildingStabilityTechPrice=5;
@@ -11347,7 +11430,11 @@ public boolean checkForGenocides(Town t) {
 		} catch(SQLException exc) { exc.printStackTrace(); }
 		return pid; // Id!*/
 	}
-	public double[] generateGaussianDist(int numOfPoints, double height, double center, double width) {
+	
+	public static double getProbabilityInDist(double height, double center, double width, int x) {
+		return height*Math.exp(-Math.pow(x-center,2)/(2*Math.pow(width,2))); // this'll return the probability at that x.
+	}
+	public static double[] generateGaussianDist(int numOfPoints, double height, double center, double width) {
 		double toRet[] = new double[numOfPoints];
 		
 		// f = height*exp(-(x-center)^2/(2width^2))
@@ -12609,6 +12696,241 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	} 
+	}
+	
+	public String returnPrizeName(int probTick, int x, int y, boolean test, PrintWriter out) {
+		
+		/*  1. Center of Nothing( Relative Mag: .5)
+		 2. Center of 10% daily resources (Relative Mag: 1)
+		 3. Center of 20% Daily resources and 50 KP (Relative Mag: 1)
+		 4. Center of 30% Daily Resources, 65 KP (Relative Mag: 1)
+		 5. Center of 50% Daily Resources, 80 KP (Relative Mag: 1)
+		 6. Center of random API, of hidden soldier blueprint(Rock), random tech points(Civvie in Grass, Military in Desert) (Relative Mag: .5)
+		 7. Center of hidden tank blueprint(Grass), and of the four resource increaser technologies(3 in Grass, 1 in Rock/Desert) (Relative Mag: .3)
+		 8. Center of hidden Juggernaught blueprint(Desert) (Relative Mag: .1)
+		 9. Center of hidden Missile Silo or Zeppelin(Silo in Rock, Zeppelin in Desert)(Relative Mag: .05)*/
+		
+		/*
+
+		 * Prize codes:
+		 * nothing
+		 * daily10
+		 * daily20
+		 * daily30
+		 * daily50
+		 * lowkp
+		 * medkp
+		 * highkp
+		 * api
+		 * soldier
+		 * civvietech
+		 * militech
+		 * tank
+		 * resInc
+		 * juggernaught
+		 * silo
+		 * zeppelin
+		 */
+		int i = 0;Hashtable r; String type = "none";
+		while(i<mapTileHashes.size()) {
+			r = mapTileHashes.get(i);
+			int mapX =(Integer) r.get("centerx");
+			int mapY = (Integer) r.get("centery");
+			double dist = Math.sqrt(Math.pow(x-mapX,2) + Math.pow(y-mapY,2));
+			if(dist<(((double) mapTileWidthX)/2.0)) {
+				type = (String) r.get("mapName");
+				break;
+			}
+			i++;
+		}
+		if(type.equals("none")) return "nothing";
+		System.out.println("Found a map type of " + type);
+		// So now that we know the types we can have, we just need to add up the probabilities
+		// and normalize them.
+		//	public static double getProbabilityInDist(double height, double center, double width, int x) {
+
+		int hoursIn = (int) Math.round(probTick*GodGenerator.gameClockFactor/(3600));
+		double nothingProb = getProbabilityInDist(nothingHeight,nothingCtr,nothingWidth,hoursIn);
+		if(test) out.println("nothingProb is " + nothingProb);
+		
+		double daily10Prob = getProbabilityInDist(daily10Height,daily10Ctr,daily10Width,hoursIn);
+		if(test) out.println("daily10Prob is " + daily10Prob);
+		
+		double daily20Prob = getProbabilityInDist(daily20Height,daily20Ctr,daily20Width,hoursIn);
+		if(test) out.println("daily20Prob is " + daily20Prob);
+		
+		double daily30Prob = getProbabilityInDist(daily30Height,daily30Ctr,daily30Width,hoursIn);
+		if(test) out.println("daily30Prob is " + daily30Prob);
+		
+		double daily50Prob = getProbabilityInDist(daily50Height,daily50Ctr,daily50Width,hoursIn);
+		if(test) out.println("daily50Prob is " + daily50Prob);
+		
+		double lowKPProb = getProbabilityInDist(lowKPHeight,lowKPCtr,lowKPWidth,hoursIn);
+		if(test) out.println("lowKPProb is " + lowKPProb);
+		
+		double medKPProb = getProbabilityInDist(medKPHeight,medKPCtr,medKPWidth,hoursIn);
+		if(test) out.println("medKPProb is " + medKPProb);
+		
+		double highKPProb = getProbabilityInDist(highKPHeight,highKPCtr,highKPWidth,hoursIn);
+		if(test) out.println("highKPProb is " + highKPProb);
+		
+		double apiProb = getProbabilityInDist(apiHeight,apiCtr,apiWidth,hoursIn);
+		if(test) out.println("apiProb is " + apiProb);
+		
+		double soldierProb = getProbabilityInDist(soldierHeight,soldierCtr,soldierWidth,hoursIn);
+		if(!type.equals("rock")) soldierProb=0;
+		if(test) out.println("soldierProb is " + soldierProb);
+		
+		double techProb = getProbabilityInDist(techHeight,techCtr,techWidth,hoursIn);
+		if(type.equals("rock")) techProb=0;
+		if(test) out.println("techProb is " + techProb);
+		
+		double tankProb = getProbabilityInDist(tankHeight,tankCtr,tankWidth,hoursIn);
+		if(!type.equals("grass")) tankProb=0;
+		if(test) out.println("tankProb is " + tankProb);
+		
+		double resIncProb = getProbabilityInDist(resIncHeight,resIncCtr,resIncWidth,hoursIn);
+		if(test) out.println("resIncProb is " + resIncProb);
+		
+		double juggernaughtProb = getProbabilityInDist(juggernaughtHeight,juggernaughtHeight,juggernaughtHeight,hoursIn);
+		if(!type.equals("sand")) juggernaughtProb=0;
+		if(test) out.println("juggernaughtProb is " + juggernaughtProb);
+		
+		double siloProb = getProbabilityInDist(siloHeight,siloCtr,siloWidth,hoursIn);
+		if(!type.equals("rock")) siloProb=0;
+		if(test) out.println("siloProb is " + siloProb);
+		
+		double zeppelinProb = getProbabilityInDist(zeppelinHeight,zeppelinCtr,zeppelinWidth,hoursIn);
+		if(!type.equals("sand")) zeppelinProb=0;
+		if(test) out.println("zeppelinProb is " + zeppelinProb);
+		
+		// now, to give every one a point between 0 and 100, to give them relative probabilities, we first must normalize
+		// the distribution. We can do this by adding them all together, and saying 100 = (sum)*N, where N is the normalization factor,
+		// and do 100/(sum) = N. Then we set up a series of points. We say for instance
+		// nothingProbPoint = 0+nothingProb;
+		// daily10ProbPoint=nothingProbPoint+daily10Prob 
+		// Then we have to do if statements...a series of them, to detect which one, which is kinda shitty. But so be it.
+		// To add new probabilities: 
+		// 1. GOTTA GET NEW PROB FACTOR UP THERE.
+		// 2. THEN ADD IT TO THE NORMALIZATION FACTOR CALCULATION
+		// 3. SET UP IT'S PROB POINT
+		// 4. SET UP IT'S IF STATEMENT
+		
+		double N = 100/(nothingProb+daily10Prob+daily20Prob+daily30Prob+daily50Prob+lowKPProb+medKPProb+highKPProb+apiProb+soldierProb
+				+techProb+tankProb+resIncProb+juggernaughtProb+siloProb+zeppelinProb);
+		
+		double nothingProbPt = 0+nothingProb*N;
+		if(test) out.println("nothingProbPt is " + nothingProbPt);
+		
+		double daily10ProbPt = nothingProbPt+daily10Prob*N;
+		if(test) out.println("daily10ProbPt is " + daily10ProbPt);
+		
+		double daily20ProbPt = daily10ProbPt+daily20Prob*N;
+		if(test) out.println("daily20ProbPt is " + daily20ProbPt);
+		
+		double daily30ProbPt = daily20ProbPt+daily30Prob*N;
+		if(test) out.println("daily30ProbPt is " + daily30ProbPt);
+		
+		double daily50ProbPt = daily30ProbPt+daily50Prob*N;
+		if(test) out.println("daily50ProbPt is " + daily50ProbPt);
+		
+		double lowKPProbPt = daily50ProbPt+lowKPProb*N;
+		if(test) out.println("lowKPProbPt is " + lowKPProbPt);
+		
+		double medKPProbPt = lowKPProbPt+medKPProb*N;
+		if(test) out.println("medKPProbPt is " + medKPProbPt);
+		
+		double highKPProbPt = medKPProbPt+highKPProb*N;
+		if(test) out.println("highKPProbPt is " + highKPProbPt);
+		
+		double apiProbPt = highKPProbPt+apiProb*N;
+		if(test) out.println("apiProbPt is " + apiProbPt);
+		
+		double soldierProbPt = apiProbPt+soldierProb*N;
+		if(test) out.println("soldierProbPt is " + soldierProbPt);
+
+		double techProbPt = soldierProbPt+techProb*N;
+		if(test) out.println("techProbPt is " + techProbPt);
+
+		double tankProbPt = techProbPt+tankProb*N;
+		if(test) out.println("tankProbPt is " + tankProbPt);
+
+		double resIncProbPt = tankProbPt+resIncProb*N;
+		if(test) out.println("resIncProbPt is " + resIncProbPt);
+
+		double juggernaughtProbPt = resIncProbPt+juggernaughtProb*N;
+		if(test) out.println("resIncProbPt is " + resIncProbPt);
+		
+		double siloProbPt = juggernaughtProbPt+siloProb*N;
+		if(test) out.println("siloProbPt is " + siloProbPt);
+		
+		double zeppelinProbPt = siloProbPt+zeppelinProb*N;
+		System.out.println("zeppelinProbPt is " + zeppelinProbPt);
+		
+		
+		double rand = Math.random()*100; // rand generated.
+		
+		if(rand<=nothingProbPt) {
+			if(test) out.println("nothing");
+			return "nothing";
+		} else if(rand>nothingProbPt&&rand<=daily10ProbPt) {
+			if(test) out.println("daily10");
+			return "daily10";
+		}else if(rand>daily10ProbPt&&rand<=daily20ProbPt) {
+			if(test) out.println("daily20");
+			return "daily20";
+		}else if(rand>daily20ProbPt&&rand<=daily30ProbPt) {
+			if(test) out.println("daily30");
+			return "daily30";
+		}else if(rand>daily30ProbPt&&rand<=daily50ProbPt) {
+			if(test) out.println("daily50");
+			return "daily50";
+		}else if(rand>daily50ProbPt&&rand<=lowKPProbPt) {
+			if(test) out.println("lowKP");
+			return "lowKP";
+		}else if(rand>lowKPProbPt&&rand<=medKPProbPt) {
+			if(test) out.println("medKP");
+			return "medKP";
+		}else if(rand>medKPProbPt&&rand<=highKPProbPt) {
+			if(test) out.println("highKP");
+			return "highKP";
+		}else if(rand>highKPProbPt&&rand<=apiProbPt) {
+			if(test) out.println("api");
+			return "api";
+		}else if(rand>apiProbPt&&rand<=soldierProbPt) {
+			if(test) out.println("soldier");
+			return "soldier";
+		}else if(rand>soldierProbPt&&rand<=techProbPt) {
+			if(type.equals("grass")) {
+				if(test) out.println("civvietech");
+				return "civvietech";
+			} else if(type.equals("sand")){
+				if(test) out.println("militech");
+				return "militech";
+			} else {
+				if(test) out.println("nothing - though this is in error, you shouldn't get techs in non-grass non-sand environments..");
+				return "nothing";
+			}
+				
+		}else if(rand>techProbPt&&rand<=tankProbPt) {
+			if(test) out.println("tank");
+			return "tank";
+		}else if(rand>tankProbPt&&rand<=resIncProbPt) {
+			if(test) out.println("resInc");
+			return "resInc";
+		}else if(rand>resIncProbPt&&rand<=juggernaughtProbPt) {
+			if(test) out.println("juggernaught");
+			return "juggernaught";
+		}else if(rand>juggernaughtProbPt&&rand<=siloProbPt) {
+			if(test) out.println("silo");
+			return "silo";
+		}else if(rand>siloProbPt&&rand<=zeppelinProbPt) {
+			if(test) out.println("zeppelin");
+			return "zeppelin";
+		}
+		
+		if(test) out.println("found nothing by error.");
+		return "nothing";
 	}
 	public  void convertPlayers() {
 		// converts players from the old system to the new one.
