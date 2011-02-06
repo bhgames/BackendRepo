@@ -2249,7 +2249,7 @@ public class BattlehardFunctions {
 					while(j<bldg.length) {
 						currBldg = bldg[j];
 						
-							bunkerSize+=Math.round(.05*p.getAfTech()*GodGenerator.getPeople(currBldg.getLvl(),totalPoppedUnits,4,GodGenerator.totalUnitPrice));
+							bunkerSize+=Math.round(.05*p.getAfTech()*GodGenerator.getPeople(currBldg.getLvl(),totalPoppedUnits,4,GodGenerator.totalUnitPrice/p.towns().size()));
 						
 						j++;
 					}
@@ -2320,7 +2320,7 @@ public class BattlehardFunctions {
 				if(bldg.get(i).getLotNum()==lotNum) {lvl = bldg.get(i).getLvl(); break; }
 				i++;
 			}
-			double bunkerSize=Math.round(.05*p.getAfTech()*GodGenerator.getPeople(lvl,totalPoppedUnits,4,GodGenerator.totalUnitPrice));
+			double bunkerSize=Math.round(.05*p.getAfTech()*GodGenerator.getPeople(lvl,totalPoppedUnits,4,GodGenerator.totalUnitPrice/p.towns().size()));
 
 		
 				 i = 0;
@@ -2390,7 +2390,7 @@ public class BattlehardFunctions {
 			//	if(currBldg.getLotNum()==lotNum) bunkerMode = currBldg.getBunkerMode();
 			
 			
-					bunkerSize+=Math.round(.33*.05*p.getBunkerTech()*GodGenerator.getPeople(currBldg.getLvl(),totalPoppedUnits,4,GodGenerator.totalUnitPrice));
+					bunkerSize+=Math.round(.33*.05*p.getBunkerTech()*GodGenerator.getPeople(currBldg.getLvl(),totalPoppedUnits,4,GodGenerator.totalUnitPrice/p.towns().size()));
 					civvyBunkerSize+=Math.round(.33*.05*p.getBunkerTech()*GodGenerator.getPeople(currBldg.getLvl(),3,4,GodGenerator.totalUnitPrice));
 					resSize+=(long) Math.round(.33*.05*((double) p.getBunkerTech()) *((double) Building.resourceAmt)*Math.pow(currBldg.getLvl()+2,2));
 

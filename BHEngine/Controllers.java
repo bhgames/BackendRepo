@@ -1508,7 +1508,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 	public boolean login(HttpServletRequest req, PrintWriter out) {
 		try {
 		HttpSession session = req.getSession(true);
-		String username = req.getParameter("UN").toLowerCase();
+		String username = req.getParameter("UN");
 		String password;
 		Player p;
 		if(username==null) {
@@ -1518,8 +1518,9 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 				retry(out); return false;
 			}
 			p = g.getPlayerByFuid(fuid);
-			username  = p.getUsername(); password = p.getPassword();
+			username  = p.getUsername().toLowerCase(); password = p.getPassword();
 		} else{
+			username = username.toLowerCase();
 			 p = g.getPlayer((Integer) g.getPlayerId((username).toLowerCase()));
 			
 			 password = org.apache.commons.codec.digest.DigestUtils.md5Hex(req.getParameter("Pass"));
