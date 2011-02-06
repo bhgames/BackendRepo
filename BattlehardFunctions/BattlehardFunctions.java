@@ -4557,8 +4557,8 @@ public long[] returnPrice(int lotNum, int tid) {
 			 
 				aggregate+=2;
 			 double distance = Math.sqrt((x-t1x)*(x-t1x) + (y-t1y)*(y-t1y));
-			 if(distance>aggregate*3) {
-				 setError(" You can only invade " + (aggregate*3) + " spaces out. Level up your comms center.");
+			 if(distance>aggregate*3*(1+.05*(p.getCommsCenterTech()-1))) {
+				 setError(" You can only invade " + ((aggregate*3)*(1+.05*(p.getCommsCenterTech()-1))) + " spaces out. Level up your comms center.");
 
 				 return false;
 			 }
@@ -4871,8 +4871,8 @@ public long[] returnPrice(int lotNum, int tid) {
 				aggregate+=2;
 				
 			 double distance = Math.sqrt((x-t1x)*(x-t1x) + (y-t1y)*(y-t1y));
-			 if(distance>aggregate*3) {
-				 setError(" You can only invade " + (aggregate*3) + " spaces out. Level up your comms center.");
+			 if(distance>aggregate*3*(1+.05*(p.getCommsCenterTech()-1))) {
+				 setError(" You can only invade " + ((aggregate*3)*(1+.05*(p.getCommsCenterTech()-1))) + " spaces out. Level up your comms center.");
 
 				 return false;
 			 }
