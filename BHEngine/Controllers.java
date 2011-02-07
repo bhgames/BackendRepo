@@ -1636,8 +1636,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			String email = req.getParameter("email");
 			Player p=null;
 			if(username!=null)
-			 p = g.getPlayer(g.getPlayerId(username));		
-
+			 p = g.getPlayer(g.getPlayerId(username.toLowerCase()));		
+			
 			if(p==null&&email!=null) {
 				
 				int i = 0;
