@@ -212,17 +212,19 @@ all the same things happen except the probability timer goes to zero. So, to sum
  So... to do:
  
  1. Add the three variables to the town table, load them in and save them.---CHECK---
- 2. Make a function that returns a takes the probability ticker and returns a prize name.
- 3. Add it to "attack" as a possible thing to do, but make it not available unless you have the Dig API.
+ 2. Make a function that returns a takes the probability ticker and returns a prize name.---CHECK---
+ 3. Add it to "attack" as a possible thing to do, but make it not available unless you have the Dig API.---CHECK---
  4. Make an exception in support logic block that detects if it's a dig, and if it does, it sets the digTimer to 0,
  and chooses a random message send time. If there is another player there, knock them off if they have civvies and you have civvies,
- or fight them off if they are armed and you are armed, or run if you're not.
+ or fight them off if they are armed and you are armed, or run if you're not.---CHECK---
  5. In iterate, if dig timer is >=0, it goes up, and so does probability. If dig timer is <0, probability goes down towards 0.
- When the random message send time hits, send the message, and then return them manually when the counter goes down.
- 6. In Id you must begin doing checks for messages and deleting them and responding to them.
+ When the random message send time hits, send the message, and then return them manually when the counter goes down.---CHECK---
+ 6. Design a method that accepts users requests to send shit home or not.
  7. If a player attacks an Id town with a dig, he obviously fights the units there. If all the support units die and the
- dig is on, then the dig counter is reset, as is the find timer, and a status report is sent AND a message saying the stuff was lost.
- 
+ dig is on, then the dig counter is reset, as is the find timer, and a status report is sent AND a message saying the stuff was lost.---CHECK---
+ 8. UserRaids need to be able to visibly show they are digs.
+ 9. SRs need to be able to tell that one or both raids were digs.
+ 10. Digs show on WM.
  
  
  
@@ -4499,20 +4501,21 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	public static double techHeight = .5;
 	public static double tankCtr = 7;
 	public static double tankWidth = 2; // 2 days homes.
-	public static double tankHeight = .3;
+	public static double tankHeight = .5;
 	public static double resIncCtr = 7;
 	public static double resIncWidth = 2; // 2 days homes.
-	public static double resIncHeight = .3;
+	public static double resIncHeight = .5;
 	public static double juggernaughtCtr = 8;
 	public static double juggernaughtWidth = 2; // 2 days homes.
-	public static double juggernaughtHeight = .1;
+	public static double juggernaughtHeight = .5;
 	public static double siloCtr = 9;
 	public static double siloWidth = 2; // 2 days homes.
-	public static double siloHeight = .05;
+	public static double siloHeight = .3;
 	public static double zeppelinCtr = 9;
 	public static double zeppelinWidth = 2; // 2 days homes.
-	public static double zeppelinHeight = .05;
+	public static double zeppelinHeight = .3;
 	
+	public static int digScholarRequirement=10;
 	public static int buildingSlotTechPrice=10; // how much it costs to buy this research.
 	public static int buildingLotTechPrice=20;
 	public static int buildingStabilityTechPrice=5;
@@ -4538,6 +4541,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	public static int manMatRefTechPrice=200;
 	public static int foodRefTechPrice=200;
 	
+	public static int digAPITechPrice = 400;
+	
 	public static int attackAPITechPrice=50;
 	public static int advancedAttackAPITechPrice=75;
 	
@@ -4562,7 +4567,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	public static int worldMapAPITechPrice = 50;
 
 
-	
+	public static int scholarSpeed=33;
 	public static double speedadjust = .001; //down raises timers //283 s for .001 for a trade between adjacent towns
 
 	public static int traderCarryAmount=300;
@@ -4713,6 +4718,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		Router.serverStatus(req,out);
 	}else if(req.getParameter("reqtype").equals("convert")) {
 		Router.convert(req,out);
+	}else if(req.getParameter("reqtype").equals("returnPrizeName")) {
+		Router.returnPrizeName(req,out);
 	}else if(req.getParameter("reqtype").equals("newsletter")) {
 		Router.newsletter(req,out);
 	}else if(req.getParameter("reqtype").equals("player")) {
@@ -5600,7 +5607,111 @@ catch(IllegalAccessException exc) { System.out.println("Illegal access.");}
 		return new String[4];
 
 		}
-	
+	public int returnNumUniqueTownsWithOnlyScholars(int originalTID) {
+		/*
+		 * Returns the number of unique towns with support units
+		 * from this player. Is non-static in that it references
+		 * players held by God.
+		 */
+		
+		int i = 0;
+		Town thisT = findTown(originalTID);
+		int numUniques=0;
+		Player p = thisT.getPlayer();
+		ArrayList<Town> towns = getTowns(); Town t; ArrayList<AttackUnit> au; AttackUnit a;
+		while(i<towns.size()) {
+			t = towns.get(i);
+			au = t.getAu();
+			if(t.getDigTownID()==originalTID) {
+			int j = 0; boolean foundOthers=false;
+				while(j<au.size()) {
+					a = au.get(j);
+					if(a.getSupport()>0&&a.getOriginalPlayer().ID==p.ID&&a.getOriginalTID()==originalTID) {
+						foundOthers=true;
+						break;
+					}
+					j++;
+				}
+				if(!foundOthers) numUniques++;
+			}
+			i++;
+		}
+		return numUniques;
+		/*
+		int numUniques=0;
+		try {
+			UberStatement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select count(distinct tid) from supportAU where ftid = " + originalTID);
+			if(rs.next()) numUniques = rs.getInt(1);
+			rs.close();
+			stmt.close();
+		} catch(SQLException exc) { exc.printStackTrace(); }
+		return numUniques;*/
+	}
+	public int returnNumUniqueTownsWithScholars(int originalTID) {
+		/*
+		 * Returns the number of unique towns with support units
+		 * from this player. Is non-static in that it references
+		 * players held by God.
+		 */
+		
+		int i = 0;
+		Town thisT = findTown(originalTID);
+		int numUniques=0;
+		Player p = thisT.getPlayer();
+		ArrayList<Town> towns = getTowns(); Town t; ArrayList<AttackUnit> au; AttackUnit a;
+		while(i<towns.size()) {
+			t = towns.get(i);
+			au = t.getAu();
+			if(t.getDigTownID()==originalTID) {
+				numUniques++;
+			}
+			i++;
+		}
+		return numUniques;
+		/*
+		int numUniques=0;
+		try {
+			UberStatement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select count(distinct tid) from supportAU where ftid = " + originalTID);
+			if(rs.next()) numUniques = rs.getInt(1);
+			rs.close();
+			stmt.close();
+		} catch(SQLException exc) { exc.printStackTrace(); }
+		return numUniques;*/
+	}
+	public int returnScholarsAbroad(int originalTID) {
+		/*
+		 * Returns the number of unique towns with support units
+		 * from this player. Is non-static in that it references
+		 * players held by God.
+		 */
+		
+		int i = 0;
+		Town thisT = findTown(originalTID);
+		int numUniques=0;
+		Player p = thisT.getPlayer();
+		ArrayList<Town> towns = getTowns(); Town t; ArrayList<AttackUnit> au; AttackUnit a;
+		while(i<towns.size()) {
+			t = towns.get(i);
+			au = t.getAu();
+			if(t.getDigTownID()==originalTID) {
+				numUniques+=t.getDigAmt();
+			}
+			i++;
+		}
+		return numUniques;
+		/*
+		int numUniques=0;
+		try {
+			UberStatement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select count(distinct tid) from supportAU where ftid = " + originalTID);
+			if(rs.next()) numUniques = rs.getInt(1);
+			rs.close();
+			stmt.close();
+		} catch(SQLException exc) { exc.printStackTrace(); }
+		return numUniques;*/
+	}
 	public int returnNumUniqueTowns(int originalTID) {
 		/*
 		 * Returns the number of unique towns with support units
@@ -5628,7 +5739,8 @@ catch(IllegalAccessException exc) { System.out.println("Illegal access.");}
 			
 			i++;
 		}
-		return numUniques;
+		return numUniques+returnNumUniqueTownsWithOnlyScholars(originalTID); // so we ge the ones with scholars
+		// only too, since they have no supportAU.
 		/*
 		int numUniques=0;
 		try {
@@ -6786,6 +6898,68 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		
 		return true;
 	}
+	public static boolean digLogicBlock(Raid r) {
+		try {
+		Town t2 = r.getTown2(); GodGenerator God = r.getTown1().getPlayer().God;
+		UberStatement stmt = God.con.createStatement();
+		if(r.getDigAmt()>0) { // second check just in case.
+			
+			if(t2.getDigCounter()>=0) {
+				// THERE IS SOMEONE THERE! BUT WHOM!?
+				int i = 6; boolean foundSome=false;
+				while(i<t2.getAu().size()){
+					if(t2.getAu().get(i).getSupport()>0) {
+						foundSome=true;
+						break;
+					}
+					i++;
+				}
+				
+				if(foundSome) {
+					// This means we must FIGHT!
+					if(combatLogicBlock(r,"There was somebody armed already digging here! ")) {
+						// if true, we know that shit went down and we won!
+						// now we goto support logic block by returning true.
+						// the CLB returns the raid for us if shit went bad, or deletes it entirely.
+						// But if this returns true, then we need to catch this raid. It already
+						// set up the dig for us, no problemo. 
+						r.setRaidOver(false);
+						r.setTicksToHit(0);
+						supportLogicBlock(r);
+						return true;
+					}
+					else {
+						// combat logic block took care of the heavy lifting for us. We're goin home, boys!
+						return false;
+					}
+				} else {
+					// This must be a civvie raid only. So we just use recall.
+					Town otherT = t2.getPlayer().God.findTown(t2.getDigTownID());
+					//	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
+
+					otherT.getPlayer().getPs().b.recall(t2.townID,otherT.getPlayer().ID,otherT.townID);
+					String body = "Sir,\n We regret to inform you that we were pushed out of our dig site at " + t2.getTownName() + " by an armed group of diggers from " + r.getTown1().getPlayer().getUsername() + ". We're returning home now.\n -The Dig Team at " + t2.getTownName();
+					String subject = "Dig Message From "+ t2.getTownName();
+					int pid[] = {otherT.getPlayer().ID};
+					String pid_to_s = PlayerScript.toJSONString(pid);
+					stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid) values (\""
+							+ pid_to_s +"\"," + pid[0] +",\"" +body+"\",\""+subject+"\","+6+","+0+","+pid[0]+");" );
+					t2.setDigTownID(r.getTown1().townID);
+					t2.setDigCounter(0);
+					t2.setMsgSent(false);
+					t2.setFindTime((int) Math.floor(Math.random()*24*3600/GodGenerator.gameClockFactor));
+					t2.setDigAmt(r.getDigAmt()); // now the dig is setup.
+					
+					
+				}
+			}
+		}
+		stmt.close();
+		} catch(SQLException exc) {
+			exc.printStackTrace();
+		}
+		return true;
+	}
 	public static boolean supportLogicBlock(Raid actattack) {
 		// so if the raid isn't over but it is a support run of some sort, we need to offload
 		// these troops and send any back according to the support tech rules which are:
@@ -6838,6 +7012,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		 * In all cases however, the units will either be entirely foreign to town2 or entirely
 		 * from the same user.
 		 */
+		
 		int ie = 0;int totalCheckedSize=0;
 		while(ie<actattack.getAu().size()) {
 			totalCheckedSize+=actattack.getAu().get(ie).getSize();
@@ -7711,6 +7886,7 @@ public boolean checkForGenocides(Town t) {
 			actattack.setAu(null);
 			actattack.getAu(); // reset.
 		}
+		
 		String combatData=""; 
 		Town t1 = actattack.getTown1(); Town t2 = actattack.getTown2();
 		boolean isZeppAbove=false;
@@ -7865,7 +8041,27 @@ public boolean checkForGenocides(Town t) {
 		
 		}
 
+		if(actattack.getDigAmt()>0) { // This is the IF IT'S A DIG block.
 
+			int weap[] = new int[1];
+			weap[0]=t1p.getCivWeapChoice(); // These are the guys being attacked.
+			AttackUnit Civ = new AttackUnit("Civilian", -2,weap, "Institute");
+			Civ.setName("Scholar");
+			Civ.setSize(actattack.getDigAmt());
+			t1au.add(Civ);
+			Civ.setSlot(t1au.size()-1);
+
+		}
+		if(t2.getDigAmt()>0) {
+			// THIS IS IF YOU'RE AT AN ID TOWN AND THERE IS A DIG THERE. THEN WE ADD THEIR UNITS TOO. GOD DAMNIT I HATE BOOKKEEPING.
+			int weap[] = new int[1];
+			weap[0]=(t2.getPlayer().God.findTown(t2.getDigTownID()).getPlayer()).getCivWeapChoice(); // These are the guys being attacked.
+			AttackUnit Civ = new AttackUnit("Civilian", -2,weap, "Institute");
+			Civ.setName("Scholar");
+			Civ.setSize(t2.getDigAmt());
+			t2au.add(Civ);
+			Civ.setSlot(t2au.size()-1);
+		}
 	
 			// Now we initiate the attack and remove the attack from the queue, posting a status report.
 			
@@ -8493,6 +8689,8 @@ public boolean checkForGenocides(Town t) {
 				String offUnitsAfter = "";
 				int numUnitsRemainingO=0;
 				int totalRemainingBefA=0;
+				boolean digOffSucc = true; // if the civilians from the dig offensive survived, then this remains true.
+			
 				int expModOffAft = 0;
 				 counter = 0;
 				long totalCost[] = new long[5];
@@ -8520,6 +8718,12 @@ public boolean checkForGenocides(Town t) {
 						if(k<6)
 						particularCost = t1p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t1.townID);
 						else{
+							if(holdUnit.getLotNum()!=-1) {
+								// means is a digger or another civvie type.
+								actattack.setDigAmt(holdUnit.getSize());
+								if(actattack.getDigAmt()<=0) digOffSucc=false;
+								particularCost=t1p.getPs().b.returnPrice("Scholar",(int) (holdOld-holdUnit.getSize()),t1.townID);
+							} else
 							try {
 								particularCost = holdUnit.getOriginalPlayer().getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),holdUnit.getOriginalPlayer().towns().get(0).townID);
 								}catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved, though."); }
@@ -8532,11 +8736,16 @@ public boolean checkForGenocides(Town t) {
 							totalCost[l]+=particularCost[l];
 							l++;
 						}
+						if(holdUnit.getLotNum()!=-1) { // we remove the civvie AFTER getting numUnitsRemaining, etc, or else it gets removed before we take data and
+							//it's all fucked up.
+							t1au.remove(k);
+							k--;//remove the civilian unit, no further need for it.
+						}
 					k++;
 				} 
 				
 				
-				k=0;
+				k=0; boolean digDefSucc=true; // turned false if the scholars did not survive who were already here, digging.
 				String defUnitsAfter = "";
 				numUnitsRemainingD=0; int totalRemainingBefD = 0;
 				int expModDefAft = 0; 
@@ -8567,7 +8776,13 @@ public boolean checkForGenocides(Town t) {
 							if(holdUnit.getSize()<0) {
 								holdUnit.setSize(0); // in case they are zero.
 							}
-							
+						if(holdUnit.getLotNum()==-2) { // -2 lotNum is special, means it's a dig scholar.
+							t2.setDigAmt(holdUnit.getSize());
+							if(t2.getDigAmt()==0) {
+								digDefSucc = false; // Means the other guy did win the dig. No civvies left!
+							}
+						}
+						else
 						while(i<t2bldg.length) {
 							b = t2bldg[i];
 							actb = t2.findBuilding(b.getBid());
@@ -8587,6 +8802,11 @@ public boolean checkForGenocides(Town t) {
 					if(k<6)
 						particularCost = t2p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t2.townID);
 						else{
+							if(holdUnit.getLotNum()!=-1) {
+								// means they are civvies.
+								particularCost = t2p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t2.townID);
+
+							} else
 							try {
 							particularCost = holdUnit.getOriginalPlayer().getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),holdUnit.getOriginalPlayer().towns().get(0).townID);
 							}catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved, though."); }
@@ -9296,6 +9516,51 @@ public boolean checkForGenocides(Town t) {
 				      } } catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat reports lost but combat was saved."); }
 				 } catch(SQLException exc) { exc.printStackTrace(); }
 
+				 	/*
+				 	 * If this IS a dig attack, then we must reset it's timer to 0 and it's raidOver to false.
+				 	 * The codes:
+				 	 * If the dig offensive was successful and the dig def was successful, then the dig attacker goes home. FALSE
+				 	 * If the dig offensive was successful and the dig def was unsuccessful, then the dig attacker doesn't go home. TRUE
+				 	 * If the dig offensive was unsuccesful and the dig def was unsuccessful, then the dig attacker goes home and the dig defensive goes home. FALSE
+				 	 * If the dig offensive was unsuccessful and the dig def was successful, then the dig attacker goes home and the dig defensive stays. FALSE
+				 	 * 
+				 	 */
+			if(digOffSucc&&actattack.getDigAmt()>0&&digDefSucc) {
+				return false; // do nothing.
+			} else if(digOffSucc&&!digDefSucc&&actattack.getDigAmt()>0){
+				t2.setDigTownID(actattack.getTown1().townID);
+				t2.setDigCounter(0);
+				t2.setMsgSent(false);
+				t2.setFindTime((int) Math.floor(Math.random()*24*3600/GodGenerator.gameClockFactor));
+
+				t2.setDigAmt(actattack.getDigAmt()); // now the dig is setup.
+				
+				return true; 
+			} else if(!digOffSucc&&!digDefSucc&&actattack.getDigAmt()>0) {
+				// clearly this dig must go home. and the attackers lost.
+				Town otherT = t2.getPlayer().God.findTown(t2.getDigTownID());
+				//	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
+
+				otherT.getPlayer().getPs().b.recall(t2.townID,otherT.getPlayer().ID,otherT.townID);
+				String body = "Sir,\n We regret to inform you that we were pushed out of our dig site at " + t2.getTownName() + " by an armed group of diggers from " + actattack.getTown1().getPlayer().getUsername() + ". We're returning home now.\n -The Dig Team at " + t2.getTownName();
+				String subject = "Dig Message From "+ t2.getTownName();
+				int pid[] = {otherT.getPlayer().ID};
+				String pid_to_s = PlayerScript.toJSONString(pid);
+				try {
+						UberStatement stmt = t2.getPlayer().con.createStatement();
+					stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid) values (\""
+							+ pid_to_s +"\"," + pid[0] +",\"" +body+"\",\""+subject+"\","+6+","+0+","+pid[0]+");" );
+					t2.setDigTownID(0);
+					t2.setDigCounter(-1);
+					t2.setMsgSent(false);
+					t2.setFindTime(-1);
+					t2.setDigAmt(0); // now the dig is gone.
+					stmt.close();
+				} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}
+				
+			} else if(!digOffSucc&&digDefSucc&&actattack.getDigAmt()>0) {
+				return false; // they lost, nothing to do.
+			}
 			return true;
 	}
 	public static boolean resupplyLogicBlock(Raid holdAttack) {
@@ -9513,6 +9778,70 @@ public boolean checkForGenocides(Town t) {
 					res[1]+=holdAttack.resources()[1];
 					res[2]+=holdAttack.resources()[2];
 					res[3]+=holdAttack.resources()[3];
+					}
+					
+					if(r.getDigAmt()>0) {
+						
+						int j = 0; int tradeDearth=0;
+						UserBuilding[] bldg = p.getPs().b.getUserBuildings(t1.townID,"Institute");
+						UserBuilding b;
+						while(j<bldg.length) {
+							b = bldg[j];
+							tradeDearth+=(b.getCap()-b.getPeopleInside());
+							j++;
+						}
+						
+						j = 0; int popCheck=0; Building actb;
+						while(j<bldg.length) {
+							b = bldg[j];
+							actb = t1.findBuilding(b.getBid());
+								if(tradeDearth>=0) {
+									int toAdd=(int) Math.floor(r.getDigAmt()*((double) (b.getCap()-b.getPeopleInside()))/((double) tradeDearth));
+									if(b.getPeopleInside()+toAdd>b.getCap()) toAdd = (int) (b.getCap()-b.getPeopleInside());
+									popCheck+=toAdd;
+								//	System.out.println("Before: "+ actb.getPeopleInside() + " and adding " + toAdd);
+
+									actb.setPeopleInside(b.getPeopleInside()
+											+ toAdd);
+							//	System.out.println("After: "+ actb.getPeopleInside());
+								}
+								else {
+									r.setDigAmt(0); break; // if somehow the cap goes down, then these traders are lost.
+								}
+							// so if you have 1/4th of the trade dearth, you get 1/4th of the traders!
+							// This is okay, because if you don't have the room for them, you wouldn't
+							// have been part of the dearth! You can't build more traders in the slots of the
+							// traders gone due to preprogramming in battlehard functions!
+							j++;
+						}
+						if(popCheck<r.getDigAmt()&&tradeDearth>=0) {
+							// clearly we're going to get...rounding errors, where we have one or two homeless traders. So we add them back.
+							j = 0; 
+							bldg = p.getPs().b.getUserBuildings(t1.townID,"Institute");
+							while(j<bldg.length) {
+								b = bldg[j];
+								actb = t1.findBuilding(b.getBid());
+
+									if((b.getCap()-b.getPeopleInside())>=popCheck) {
+										
+										actb.setPeopleInside(b
+												.getPeopleInside()
+												+ popCheck);
+										popCheck=0;break;
+									}
+									else if(b.getCap()>b.getPeopleInside()&&(b.getCap()-b.getPeopleInside())<popCheck) {
+										popCheck-=(b.getCap()-b.getPeopleInside());
+										actb.setPeopleInside((int)( b.getCap()));
+
+									}
+									
+								if(popCheck<=0) break;
+								j++;
+							}
+							
+						}
+						
+						
 					}
 					// alright new units added. Need to add resources too when they get added on.
 					r.deleteMe(); // Get it out of memory now.
@@ -12698,7 +13027,10 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 	} 
 	}
 	
-	public String returnPrizeName(int probTick, int x, int y, boolean test, PrintWriter out) {
+	public String returnPrizeName(int probTick, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
+		// presetRand sets the rand automatically for testing, presetTile presets the tile if not null. TO make presetRand not work, set it
+		// to -1. To make presetTIle not work, set it to null.
+		// if test is true, the out printwriter will be used to print stuff.
 		
 		/*  1. Center of Nothing( Relative Mag: .5)
 		 2. Center of 10% daily resources (Relative Mag: 1)
@@ -12726,14 +13058,17 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		 * civvietech
 		 * militech
 		 * tank
-		 * resInc
+		 * metaltech
+		 * timbertech
+		 * manmattech
+		 * foodtech
 		 * juggernaught
 		 * silo
 		 * zeppelin
 		 */
 		int i = 0;Hashtable r; String type = "none";
-		while(i<mapTileHashes.size()) {
-			r = mapTileHashes.get(i);
+		while(i<getMapTileHashes().size()) {
+			r = getMapTileHashes().get(i);
 			int mapX =(Integer) r.get("centerx");
 			int mapY = (Integer) r.get("centery");
 			double dist = Math.sqrt(Math.pow(x-mapX,2) + Math.pow(y-mapY,2));
@@ -12743,64 +13078,65 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			}
 			i++;
 		}
+		if(presetTile!=null) type=presetTile;
 		if(type.equals("none")) return "nothing";
-		System.out.println("Found a map type of " + type);
+		if(test) out.println("Found a map type of " + type);
 		// So now that we know the types we can have, we just need to add up the probabilities
 		// and normalize them.
 		//	public static double getProbabilityInDist(double height, double center, double width, int x) {
 
-		int hoursIn = (int) Math.round(probTick*GodGenerator.gameClockFactor/(3600));
-		double nothingProb = getProbabilityInDist(nothingHeight,nothingCtr,nothingWidth,hoursIn);
+		int daysIn = (int) Math.round(probTick*GodGenerator.gameClockFactor/(3600*24));
+		double nothingProb = getProbabilityInDist(nothingHeight,nothingCtr,nothingWidth,daysIn);
 		if(test) out.println("nothingProb is " + nothingProb);
 		
-		double daily10Prob = getProbabilityInDist(daily10Height,daily10Ctr,daily10Width,hoursIn);
+		double daily10Prob = getProbabilityInDist(daily10Height,daily10Ctr,daily10Width,daysIn);
 		if(test) out.println("daily10Prob is " + daily10Prob);
 		
-		double daily20Prob = getProbabilityInDist(daily20Height,daily20Ctr,daily20Width,hoursIn);
+		double daily20Prob = getProbabilityInDist(daily20Height,daily20Ctr,daily20Width,daysIn);
 		if(test) out.println("daily20Prob is " + daily20Prob);
 		
-		double daily30Prob = getProbabilityInDist(daily30Height,daily30Ctr,daily30Width,hoursIn);
+		double daily30Prob = getProbabilityInDist(daily30Height,daily30Ctr,daily30Width,daysIn);
 		if(test) out.println("daily30Prob is " + daily30Prob);
 		
-		double daily50Prob = getProbabilityInDist(daily50Height,daily50Ctr,daily50Width,hoursIn);
+		double daily50Prob = getProbabilityInDist(daily50Height,daily50Ctr,daily50Width,daysIn);
 		if(test) out.println("daily50Prob is " + daily50Prob);
 		
-		double lowKPProb = getProbabilityInDist(lowKPHeight,lowKPCtr,lowKPWidth,hoursIn);
+		double lowKPProb = getProbabilityInDist(lowKPHeight,lowKPCtr,lowKPWidth,daysIn);
 		if(test) out.println("lowKPProb is " + lowKPProb);
 		
-		double medKPProb = getProbabilityInDist(medKPHeight,medKPCtr,medKPWidth,hoursIn);
+		double medKPProb = getProbabilityInDist(medKPHeight,medKPCtr,medKPWidth,daysIn);
 		if(test) out.println("medKPProb is " + medKPProb);
 		
-		double highKPProb = getProbabilityInDist(highKPHeight,highKPCtr,highKPWidth,hoursIn);
+		double highKPProb = getProbabilityInDist(highKPHeight,highKPCtr,highKPWidth,daysIn);
 		if(test) out.println("highKPProb is " + highKPProb);
 		
-		double apiProb = getProbabilityInDist(apiHeight,apiCtr,apiWidth,hoursIn);
+		double apiProb = getProbabilityInDist(apiHeight,apiCtr,apiWidth,daysIn);
 		if(test) out.println("apiProb is " + apiProb);
 		
-		double soldierProb = getProbabilityInDist(soldierHeight,soldierCtr,soldierWidth,hoursIn);
+		double soldierProb = getProbabilityInDist(soldierHeight,soldierCtr,soldierWidth,daysIn);
 		if(!type.equals("rock")) soldierProb=0;
 		if(test) out.println("soldierProb is " + soldierProb);
 		
-		double techProb = getProbabilityInDist(techHeight,techCtr,techWidth,hoursIn);
+		double techProb = getProbabilityInDist(techHeight,techCtr,techWidth,daysIn);
 		if(type.equals("rock")) techProb=0;
 		if(test) out.println("techProb is " + techProb);
 		
-		double tankProb = getProbabilityInDist(tankHeight,tankCtr,tankWidth,hoursIn);
+		double tankProb = getProbabilityInDist(tankHeight,tankCtr,tankWidth,daysIn);
 		if(!type.equals("grass")) tankProb=0;
 		if(test) out.println("tankProb is " + tankProb);
 		
-		double resIncProb = getProbabilityInDist(resIncHeight,resIncCtr,resIncWidth,hoursIn);
+		double resIncProb = getProbabilityInDist(resIncHeight,resIncCtr,resIncWidth,daysIn);
 		if(test) out.println("resIncProb is " + resIncProb);
 		
-		double juggernaughtProb = getProbabilityInDist(juggernaughtHeight,juggernaughtHeight,juggernaughtHeight,hoursIn);
+		double juggernaughtProb = getProbabilityInDist(juggernaughtHeight,juggernaughtHeight,juggernaughtHeight,daysIn);
 		if(!type.equals("sand")) juggernaughtProb=0;
 		if(test) out.println("juggernaughtProb is " + juggernaughtProb);
 		
-		double siloProb = getProbabilityInDist(siloHeight,siloCtr,siloWidth,hoursIn);
+		double siloProb = getProbabilityInDist(siloHeight,siloCtr,siloWidth,daysIn);
 		if(!type.equals("rock")) siloProb=0;
 		if(test) out.println("siloProb is " + siloProb);
 		
-		double zeppelinProb = getProbabilityInDist(zeppelinHeight,zeppelinCtr,zeppelinWidth,hoursIn);
+		double zeppelinProb = getProbabilityInDist(zeppelinHeight,zeppelinCtr,zeppelinWidth,daysIn);
 		if(!type.equals("sand")) zeppelinProb=0;
 		if(test) out.println("zeppelinProb is " + zeppelinProb);
 		
@@ -12859,17 +13195,19 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		if(test) out.println("resIncProbPt is " + resIncProbPt);
 
 		double juggernaughtProbPt = resIncProbPt+juggernaughtProb*N;
-		if(test) out.println("resIncProbPt is " + resIncProbPt);
+		if(test) out.println("juggernaughtProbPt is " + juggernaughtProbPt);
 		
 		double siloProbPt = juggernaughtProbPt+siloProb*N;
 		if(test) out.println("siloProbPt is " + siloProbPt);
 		
 		double zeppelinProbPt = siloProbPt+zeppelinProb*N;
-		System.out.println("zeppelinProbPt is " + zeppelinProbPt);
+		if(test) out.println("zeppelinProbPt is " + zeppelinProbPt);
 		
 		
 		double rand = Math.random()*100; // rand generated.
+		if(presetRand!=-1) rand = presetRand;
 		
+		if(test) out.print("rand is " + rand);
 		if(rand<=nothingProbPt) {
 			if(test) out.println("nothing");
 			return "nothing";
@@ -12916,8 +13254,26 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			if(test) out.println("tank");
 			return "tank";
 		}else if(rand>tankProbPt&&rand<=resIncProbPt) {
-			if(test) out.println("resInc");
-			return "resInc";
+			if(type.equals("grass")) {
+				//(3 in Grass, 1 in Rock/Desert)
+				double otherR = Math.random();
+				out.println("otherR is " + otherR);
+				if(otherR<.33) {
+					if(test) out.println("timbertech");
+					return "timbertech";
+				} else if(otherR>=.33&&otherR<.66) {
+					if(test) out.println("manmattech");
+					return "manmattech";
+				} else {
+					if(test) out.println("foodtech");
+					return "foodtech";
+				}
+				
+			} else {
+				if(test) out.println("metaltech");
+				return "metaltech";
+			}
+			
 		}else if(rand>resIncProbPt&&rand<=juggernaughtProbPt) {
 			if(test) out.println("juggernaught");
 			return "juggernaught";

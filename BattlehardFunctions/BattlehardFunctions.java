@@ -1,4 +1,5 @@
 package BattlehardFunctions;
+import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -3563,18 +3564,76 @@ public long[] returnPrice(int lotNum, int tid) {
 			 
 		} else if(unit.equals("Scholar")) {
 			// retrieving costs...
-				 i = 0; 
-					if(!b.getType().equals("Institute")) return false;
-					// if this is the building and it's not a cy, get out.
-					if(b.getType().equals("Institute")&&(b.getPeopleInside()+b.getNumLeftToBuild()+number)>b.getCap()) return false;
-					// if this is a building and we're above cap, get out.		
+			ArrayList<Trade> tres;
+			
+			if(!b.getType().equals("Institute")) {
+				setError("This is not an Institute!");
+				return false;
+			}
+			// if this is the building and it's not a cy, get out.
+			if(b.getType().equals("Institute")) {
+				int ie = 0; int currentlyOut=0;
+				/*
+				try {
+					UberStatement stmt = g.con.createStatement();
+					ResultSet rs = stmt.executeQuery("select sum(traders) from trade where tid1 = "+ holdT.townID + " and (tradeOver = false or ticksToHit >= 0)");
+					
+					if(rs.next()) currentlyOut = rs.getInt(1);
+					
+					
+					rs.close();
+					stmt.close();
+					
+						
+					} catch(SQLException exc)  { exc.printStackTrace(); }*/
 				
 			
+				currentlyOut+=g.returnScholarsAbroad(holdT.townID);
+					
+				// System.out.println("Found " + currentlyOut + " traders out.");
+				 // we need the tradeDearth.
+				 int totalDearth=0; 
+				 int k = 0; 
+				 UserBuilding bldgs[] = getUserBuildings(holdT.townID,"Institute");
+				 UserBuilding holdB;
+					while(k<bldgs.length) {
+						 holdB = bldgs[k];
+
+							if(holdB.getType().equals("Institute")){
+								totalDearth+=(holdB.getCap()-holdB.getPeopleInside()-holdB.getNumLeftToBuild());
+								
+							}
+							
+								
+
+						k++;
+					}
+					//System.out.println("Total dearth is " + totalDearth);
+				
+				if((totalDearth-currentlyOut)<number) { 
+				 // now we know if we get past this,
+					 // we have the room in other TCs for traders, so we can build here if there
+					 // is room with numLeftToBuild.
+					 setError("Not enough room in Institute.");
+					 return false;
+				 }
+			//	System.out.println("pplinside is " + b.peopleInside + " and num left to build is  " + b.numLeftToBuild);
+				if ((b.getPeopleInside()+b.getNumLeftToBuild()+number)>b.getCap()) {
+					 setError("Not enough room in Institute.");
+
+					return false;
+				}
+			}
+			
 			cost = returnPrice(holdT.getTownName(),"Scholar",number);
+
 			 int j = 0; 
 			 long res[] = holdT.getRes();
 			 do {
-				 if(res[j]<cost[j]) return false;
+				 if(res[j]<cost[j]) {
+					 setError("You do not have the resources!");
+					 return false;
+				 }
 				 j++;
 			 } while(j<4);
 		} else {
@@ -3955,6 +4014,8 @@ public long[] returnPrice(int lotNum, int tid) {
 	 		t = towns.get(i);
 	 		au = t.getAu();
 	 		int j = 0;
+	 		if(t.getDigTownID()==tid) townIDs.add(t.townID);
+	 		else
 	 		while(j<au.size()) {
 	 			if(au.get(j).getSupport()>0&&au.get(j).getOriginalPlayer().ID==p.ID&&au.get(j).getOriginalTID()==tid) {
 	 				townIDs.add(t.townID);
@@ -3989,6 +4050,17 @@ public long[] returnPrice(int lotNum, int tid) {
 					
 				}
 				k++;
+			}
+			if(t.getDigTownID()==tid) { // if it's a dig, we add civilains.
+				int weap[] = new int[1];
+				weap[0]=t.getPlayer().getCivWeapChoice(); // These are the guys being attacked.
+				 a = new AttackUnit("Civilian", 0,weap,"Institute");
+				 a.setName("Scholar");
+				 a.setSize(t.getDigAmt());
+				sau.add(new UserAttackUnit(a.getAccuracy(),a.getAmmo(),a.getArmor(),a.getCargo(),a.getCivType(),
+						a.getConcealment(),a.getExpmod(),a.getFirepower(),a.getGraphicNum(),a.getHp(),a.getLotNum(),
+						a.getName(),p.ID,7,tid,a.getPopSize(),a.getSize(),
+						7,a.getSpeed(),a.getSupport(),weap,p.getUsername()));
 			}
 			
 			
@@ -4475,12 +4547,12 @@ public long[] returnPrice(int lotNum, int tid) {
 			
 			k++;
 		}
-		if(totalsize==0) {
+		if(totalsize==0&&!attackType.equals("dig")) {
 			setError("Can't send zero troops!");
 			return false;
 		}
 		holdLowSpeed/=totalsize;
-		if(zeroes) {
+		if(zeroes&&!attackType.equals("dig")) {
 			setError("Can't send an empty raid.");
 			return false; // not sending a raid of nada.
 		}
@@ -4489,7 +4561,7 @@ public long[] returnPrice(int lotNum, int tid) {
 			return false;
 		}
 		boolean Genocide = false; boolean Bomb = false; int support = 0; int scout = 0;
-		boolean invade = false;  boolean debris = false;
+		boolean invade = false;  boolean debris = false; boolean dig = false;
 		if(attackType.equals("invasion")&&t1.isZeppelin()) {
 			setError("You cannot invade with an Airship!");
 			return false;
@@ -4535,6 +4607,19 @@ public long[] returnPrice(int lotNum, int tid) {
 			
 		}
 		else if(attackType.equals("support")) {support = 1;}
+		else if(attackType.equals("dig")) {support = 1; dig = true;
+			int z=0;
+			UserBuilding b[] = getUserBuildings(t1.townID, "Institute");
+			int totalScholars=0;
+			while(z<b.length) {
+				totalScholars+=b[z].getPeopleInside();
+				z++;
+			}
+			if(totalScholars<GodGenerator.digScholarRequirement) {
+				setError("You do not have enough Scholars!");
+				return false;
+			}
+		}
 		else if(attackType.equals("offsupport")) { support=2;}
 		else if(attackType.equals("scout")) { scout = 1; }
 		else if(attackType.equals("invasion")&&(p.getTownTech()-p.towns().size())>0) {
@@ -4577,6 +4662,11 @@ public long[] returnPrice(int lotNum, int tid) {
 			setError("Town doesn't exist!");
 			return false;
 		}
+		if(dig&&Town2.getPlayer().ID!=5){
+			setError("You must dig in an Id town!");
+			return false;
+		}
+		
 		if(Town2.getX()==t1.getX()&&Town2.getY()==t1.getY()&&attackType.contains("support")) {
 			// This means zeppelin is directly overhead. 
 			Town possZepp = g.findZeppelin(x,y);
@@ -4789,12 +4879,12 @@ public long[] returnPrice(int lotNum, int tid) {
 			
 			k++;
 		}
-		if(totalsize==0) {
+		if(totalsize==0&&!attackType.equals("dig")) {
 			setError("Can't send zero troops!");
 			return false;
 		}
 		holdLowSpeed/=totalsize;
-		if(zeroes) {
+		if(zeroes&&!attackType.equals("dig")) {
 			setError("Can't send an empty raid.");
 			return false; // not sending a raid of nada.
 		}
@@ -4803,7 +4893,7 @@ public long[] returnPrice(int lotNum, int tid) {
 			return false;
 		}
 		boolean Genocide = false; boolean Bomb = false; int support = 0; int scout = 0;
-		boolean invade = false;  boolean debris = false;
+		boolean invade = false;  boolean debris = false; boolean dig=false; int digAmt=0;
 		if(attackType.equals("invasion")&&t1.isZeppelin()) {
 			setError("You cannot invade with an Airship!");
 			return false;
@@ -4849,6 +4939,41 @@ public long[] returnPrice(int lotNum, int tid) {
 			
 		}
 		else if(attackType.equals("support")) {support = 1;}
+		else if(attackType.equals("dig")) {
+			if(prog&&!p.isdigAPI()) {
+				setError("You need the Dig API in order to use this!");
+				return false;
+			}
+			support = 1; dig=true;
+			int z=0;
+			UserBuilding b[] = getUserBuildings(t1.townID, "Institute");
+			int totalScholars=0;
+			while(z<b.length) {
+				totalScholars+=b[z].getPeopleInside();
+				z++;
+			}
+			if(totalScholars<GodGenerator.digScholarRequirement) {
+				setError("You do not have enough Scholars!");
+				return false;
+			}
+			z=0; Building actb; UserBuilding bl;
+			
+			while(z<b.length) {
+				bl = b[z];
+				 actb = t1.findBuilding(bl.getBid());
+				
+				int totake = (int) Math.ceil(((double) bl.getPeopleInside())*((double) GodGenerator.digScholarRequirement)/((double) totalScholars)); // find what to take
+				int taken = bl.getPeopleInside()-totake; 
+				if(taken<0) totake+=taken; // if it's neg, subtract that from totake, we're not taking more than we can.
+				if(taken<0) { digAmt+=bl.getPeopleInside(); actb.setPeopleInside(0); }
+				else { 			digAmt+=totake;
+				actb.setPeopleInside(bl.getPeopleInside()-totake); }// if < 0, it's 0, if not, subtract it.
+					 
+				 
+				z++;
+			}
+			
+		}
 		else if(attackType.equals("offsupport")) { support=2;}
 		else if(attackType.equals("scout")) { scout = 1; }
 		else if(attackType.equals("invasion")&&(p.getTownTech()-p.towns().size())>0) {
@@ -4895,6 +5020,10 @@ public long[] returnPrice(int lotNum, int tid) {
 		Town Town2 = g.findTown(x,y); // findTown auto detects the town at the x,y, not the Zeppelin, if there is one.
 		if(Town2.townID==0) {
 			setError("Town doesn't exist!");
+			return false;
+		}
+		if(dig&&Town2.getPlayer().ID!=5) {
+			setError("You must dig in an Id town!");
 			return false;
 		}
 		if(Town2.getX()==t1.getX()&&Town2.getY()==t1.getY()&&attackType.contains("support")) {
@@ -4999,7 +5128,8 @@ public long[] returnPrice(int lotNum, int tid) {
 		}
 
 		k=0;
-		Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, Town2, Genocide, Bomb,support,invade,name,debris,au);
+		Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, Town2, Genocide, Bomb,support,invade,name,debris,au,digAmt); // digAmt may not be the requirement,
+		// but it'll always be zero if dig isn't on!
 		if(Bomb) holdAttack.setBombTarget(target);
 		if(scout==1) holdAttack.makeScoutRun(); // never going to be a bomb+scout run.
 		while(k<au.size()) {
@@ -5167,6 +5297,8 @@ public long[] returnPrice(int lotNum, int tid) {
 			 totalsize+=(holdNumbers[k]*hau.getExpmod());
 			k++;
 		}
+		if(totalsize==0) totalsize=1;
+		if(holdLowSpeed==0) holdLowSpeed=GodGenerator.scholarSpeed;
 		holdLowSpeed/=totalsize;
 		int x = t.getX(); int y = t.getY();
 		int ticksToHit = (int) Math.round(((double) Math.sqrt((x-enemyx)*(x-enemyx) + (y-enemyy)*(y-enemyy))*10/(holdLowSpeed*g.speedadjust))/GodGenerator.gameClockFactor);
@@ -5385,7 +5517,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		}
 
 		k=0;
-		Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, g.findTown(x,y), Genocide, Bomb,support,invade,"noname",false,au);
+		Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, g.findTown(x,y), Genocide, Bomb,support,invade,"noname",false,au,0);
 	
 		holdAttack.setResupplyID(raidID);
 		
@@ -5666,7 +5798,12 @@ public long[] returnPrice(int lotNum, int tid) {
 			setError("You do not have the Attack API!");
 			return false;
 		}
-
+		p.update(); // because if recall is begin called and there
+		// is stuff to update, we better update it now,
+		//as recalled can be called through sendHome via other players
+		// and by digLogicBlock..we'd hate to have that
+		// screw over a perfectly good town!
+		
 		// needs player and town name to make certain.
 		// If players make towns with the same name this could yield problems.
 		/*
@@ -5810,6 +5947,10 @@ public long[] returnPrice(int lotNum, int tid) {
 						  totalsize+=hau.getSize()*hau.getExpmod();
 						  g++; 
 					 }
+					 if(totalsize==0&&t.getDigCounter()>0) { // so digs with zero guys will send back at scholar speed.
+						 holdLowSpeed=GodGenerator.scholarSpeed;
+						 totalsize=1; 
+					 }
 					 holdLowSpeed/=totalsize;
 				
 					 if(holdLowSpeed>0) { 
@@ -5821,9 +5962,14 @@ public long[] returnPrice(int lotNum, int tid) {
 					 
 					 int ticksToHit = (int) Math.round(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2))*10/(holdLowSpeed*this.g.speedadjust)/GodGenerator.gameClockFactor);
 					 if(ticksToHit==0) ticksToHit=(int) Math.round(((double) 10/(holdLowSpeed*this.g.speedadjust))/GodGenerator.gameClockFactor);
-					 
+					 	int digAmt=0;
+					 if(pidOfRecallTown==5&&t.getDigCounter()>0&&auAmts.length==1) {
+						 digAmt=t.getDigAmt();
+						 t.setDigCounter(-1); // making it go away.
+						 t.setDigTownID(0); // making it, too, go away.
+					 }
 					
-						 holdAttack = new Raid(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2)), ticksToHit, myTown,t, false, false,0,false,"noname",false,au);
+						 holdAttack = new Raid(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2)), ticksToHit, myTown,t, false, false,0,false,"noname",false,au,digAmt);
 						// myTown needs to be town1 because this is going to be the ghost destinator town - where the raid
 						// will "believe" this return raid came from.
 						g=0;
@@ -8409,6 +8555,17 @@ public long[] returnPrice(int lotNum, int tid) {
 			setError("You do not have enough KP for this research.");
 			return false;
 		} else hypoTotal-=GodGenerator.advancedAttackAPITechPrice;
+		}else if(array[i].equals("digAPI")) {
+			
+			if(p.isdigAPI())  {
+				setError("You already have this technology!");
+				return false;
+			}
+		
+		if(!free&&hypoTotal<GodGenerator.digAPITechPrice) {
+			setError("You do not have enough KP for this research.");
+			return false;
+		} else hypoTotal-=GodGenerator.digAPITechPrice;
 		}else if(array[i].equals("tradingAPI")) {
 			
 			if(p.isTradingAPI())  {
@@ -8949,6 +9106,9 @@ public long[] returnPrice(int lotNum, int tid) {
 			}else if(array[i].equals("attackAPI")) { 
 				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.attackAPITechPrice);
 				p.setAttackAPI(true);
+			}else if(array[i].equals("digAPI")) { 
+				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.digAPITechPrice);
+				p.setdigAPI(true);
 			}else if(array[i].equals("advancedAttackAPI")) { 
 				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedAttackAPITechPrice);
 				p.setAdvancedAttackAPI(true);
@@ -12230,6 +12390,249 @@ public long[] returnPrice(int lotNum, int tid) {
 		} else return false;
 		
 		
+	}
+	
+	public boolean respondToDigMessage(boolean yes, int townID) {
+		
+		if(prog&&!p.isdigAPI()) {
+			setError("You do not have the Dig API!");
+			return false;
+		}
+		
+		Town idTown = g.findTown(townID);
+		if(idTown.townID==0){
+			setError("This town doesn't exist!");
+			return false;
+		}
+		
+		Town yourTown = g.findTown(idTown.getDigTownID());
+		if(yourTown.townID==0) {
+			setError("This Id town doesn't have a dig!");
+			return false;
+		}
+		
+		if(yourTown.getPlayer().ID!=p.ID) {
+			setError("This is not your town!");
+			return false;
+		}
+		
+		if(idTown.getMsgSent()) {
+			// so this is a reply.
+			
+			if(yes) {
+				//	public String returnPrizeName(int probTick, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
+
+				String reward = g.returnPrizeName(idTown.getProbTimer(),idTown.getX(),idTown.getY(),true,null,-1,null);
+				/*
+
+				 * Prize codes:
+				 * nothing
+				 * daily10
+				 * daily20
+				 * daily30
+				 * daily50
+				 * lowkp
+				 * medkp
+				 * highkp
+				 * api
+				 * soldier
+				 * civvietech
+				 * militech
+				 * tank
+				 * metaltech
+				 * timbertech
+				 * manmattech
+				 * foodtech
+				 * juggernaught
+				 * silo
+				 * zeppelin
+				 */
+				
+				if(reward.equals("nothing")) {
+					sendYourself(idTown.getDigSmackTalk(),"Dig Find From "+ idTown.getTownName());
+				} else if(reward.equals("daily10")) {
+					sendYourself("Sir,\n We found a small resource cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					yourTown.doMyResources((int) Math.round(.1*24*3600/GodGenerator.gameClockFactor));
+					
+				}else if(reward.equals("daily20")) {
+					sendYourself("Sir,\n We found a medium resource cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					yourTown.doMyResources((int) Math.round(.2*24*3600/GodGenerator.gameClockFactor));
+					
+				}else if(reward.equals("daily30")) {
+					sendYourself("Sir,\n We found a large resource cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					yourTown.doMyResources((int) Math.round(.3*24*3600/GodGenerator.gameClockFactor));
+					
+				}else if(reward.equals("daily50")) {
+					sendYourself("Sir,\n We found a very large resource cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					yourTown.doMyResources((int) Math.round(.5*24*3600/GodGenerator.gameClockFactor));
+					
+				}else if(reward.equals("lowKP")) {
+					sendYourself("Sir,\n We found a small knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					p.setKnowledge(p.getKnowledge()+50);
+					
+				}else if(reward.equals("medKP")) {
+					sendYourself("Sir,\n We found a medium knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					p.setKnowledge(p.getKnowledge()+65);
+					
+				}else if(reward.equals("highKP")) {
+					sendYourself("Sir,\n We found a large knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					p.setKnowledge(p.getKnowledge()+80);
+					
+				}else if(reward.equals("api")) {
+					String api = getRandomAPI();
+					sendYourself("Sir,\n We found the " + api + " API! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					String toSend[] = {api};
+					completeResearches(toSend,true);
+					
+				}else if(reward.equals("soldier")) {
+					sendYourself("Sir,\n We found a blueprint for an ancient soldier unit! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					generateRandomAUTemplate(1,false,null);
+					
+				}else if(reward.equals("tank")) {
+					sendYourself("Sir,\n We found a blueprint for an ancient tank unit! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					generateRandomAUTemplate(2,false,null);
+					
+				}else if(reward.equals("juggernaught")) {
+					sendYourself("Sir,\n We found a blueprint for an ancient juggernaught unit! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					generateRandomAUTemplate(3,false,null);
+					
+				}
+			} else {
+				
+				recall(yourTown.townID,idTown.getPlayer().ID,idTown.townID);
+				idTown.setDigTownID(0);
+				idTown.setDigCounter(-1);
+				idTown.setMsgSent(false);
+				idTown.setFindTime(-1);
+				idTown.setDigAmt(0); // now the dig is setup.
+			}
+		}
+		
+		return true;
+	}
+	private String getRandomAPI() {
+		String random[] ={
+				"digAPI",
+				"attackAPI",
+				"advancedAttackAPI",
+				"tradingAPI",
+				"advancedTradingAPI",
+				"smAPI",
+				"researchAPI",
+				"buildingAPI",
+				"advancedBuildingAPI",
+				"messagingAPI",
+				"zeppelinAPI",
+				"completeAnalyticAPI",
+				"nukeAPI",
+				"worldMapAPI"
+				
+		};
+		int counter=0;
+		String toSend[] = {"null"};
+		while(counter<10&&canCompleteResearches(toSend,true)) {
+			int rand = (int) Math.round(Math.random()*(random.length-1));
+			if(rand<0) rand = 0;
+			toSend[0]=random[rand];
+			counter++;
+			
+		}
+		return toSend[0];
+	}
+	
+	private boolean generateRandomAUTemplate(int type, boolean test, PrintWriter out) {
+		
+		//public boolean createUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum, boolean id) {
+		// for tanks, is *2, for juggernaughts, *3
+		// how would I go about doing this? 
+		// Think....
+		/*
+		 * Random unit creation is fairly simple. Just uh...remember you need to spend 200*tierNumber points on the four different types, and you need to split it up.
+		 *You need to generate four random numbers that add up to 200. You could do a while loop where you wait for a random summation to reach 200. But that just
+		 *seems kind of gay. 
+		 *
+		 *Randomly generate the four numbers, and then, add them up and find a normalization factor to get them to 200. Make sure none of them is less than 30, or
+		 *repeat. 
+		 *
+		 *Then for the weapons, just choose between 0 and 5 for soldier, 6 and 12 for tank, 13 and 18 for juggernaught. Choose random graphicNum between 0 and 10.
+		 *
+		 */
+		double conc = 0; double armor = 0; double cargo = 0; double speed = 0; int i = 0;
+		while(conc<30*type&&armor<30*type&&speed<30*type&&i<1000) {
+			
+			conc = Math.random()*100;
+			armor=Math.random()*100;
+			cargo = Math.random()*100;
+			speed=Math.random()*100;
+			double sum = conc+cargo+armor+speed;
+			double N = 200*type/sum;//N*Sum = 200, becomes our scaling factor.
+			conc=(int) Math.round(((double) conc*N));
+			armor=(int) Math.round(((double) armor*N));
+			cargo=(int) Math.round(((double) cargo*N));
+			speed=(int) Math.round(((double) speed*N));
+			i++;
+			
+			
+		}
+		if(conc+armor+cargo+speed<200*type-1||conc+armor+cargo+speed>200*type+1) {
+			return false; // Clearly screwed up.
+		} else {
+			if(conc+armor+cargo+speed==200*type-1) speed++;
+			else if(conc+armor+speed+cargo==200*type+1) speed--;
+		}
+		
+		int weap1 = (int) Math.round(6*Math.random())-1;
+		weap1*=type;
+		if(weap1<0) weap1=0;
+		int weap2 =  (int) Math.round(6*Math.random())-1;
+		if(weap2<0) weap2=0;
+		weap2*=type;
+		int weap[] = {weap1,weap2};
+		int graphicNum =  (int) Math.round(9*Math.random());
+		
+		String unitPrefixCombos[] = {
+				"Dirty",
+				"Fallen",
+				"Nah-",
+				"Suck",
+				"Big",
+				"Small",
+				"Brat",
+				"Risen",
+				"Angry",
+				"Tired",
+				"Dumb",
+				"Supa",
+				"Mr",
+				"Sir",
+				"Butt"
+				
+		};
+		String unitPostfixCombos[] = {
+				"Panda",
+				"Felix",
+				"Hole",
+				"Advil",
+				"Meerkat",
+				"Challenger",
+				"Ram",
+				"Testosterone",
+				"Estrogen",
+				"Killer",
+				"Booter",
+				"Pirate"
+				
+		};
+		//public boolean createUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum, boolean id) {
+
+		int prefix = (int) Math.round(Math.random()*unitPrefixCombos.length-1);
+		if(prefix<0) prefix=0;
+		int postfix = (int) Math.round(Math.random()*unitPostfixCombos.length-1);
+		if(postfix<0) postfix=0;
+		String unitName = unitPrefixCombos[prefix]+" " + unitPostfixCombos[postfix];
+		createUnitTemplate(unitName,type,(int) conc,(int) armor,(int) cargo,(int) speed,weap,graphicNum,false);
+		if(test) out.print("conc: " + conc + " armor: " + armor + " speed: " + speed + " cargo: " + cargo + " weap1: " + weap1  + " weap2: " + weap2 + " type: " + type + " graphicNum: " + graphicNum + " unitName: " + unitName);
+		return true;
 	}
 	/**
 	 * UI Implemented.
