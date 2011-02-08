@@ -12497,15 +12497,16 @@ public long[] returnPrice(int lotNum, int tid) {
 					generateRandomAUTemplate(3,false,null);
 					
 				}
-			} else {
 				
-				recall(yourTown.townID,idTown.getPlayer().ID,idTown.townID);
-				idTown.setDigTownID(0);
-				idTown.setDigCounter(-1);
-				idTown.setMsgSent(false);
-				idTown.setFindTime(-1);
-				idTown.setDigAmt(0); // now the dig is setup.
+				
 			}
+			
+			recall(yourTown.townID,idTown.getPlayer().ID,idTown.townID);
+			idTown.setDigTownID(0);
+			idTown.setDigCounter(-1);
+			idTown.setMsgSent(false);
+			idTown.setFindTime(-1);
+			idTown.setDigAmt(0); // now the dig is setup.
 		}
 		
 		return true;
