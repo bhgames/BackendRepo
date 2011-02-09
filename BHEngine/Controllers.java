@@ -1509,16 +1509,16 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		try {
 		HttpSession session = req.getSession(true);
 		String username = req.getParameter("UN");
-		String password;
+		String password="";
 		Player p;
 		if(username==null) {
 			long fuid = Long.parseLong(req.getParameter("fuid"));
-
 			if(fuid==0) {
 				retry(out); return false;
 			}
 			p = g.getPlayerByFuid(fuid);
-			username  = p.getUsername().toLowerCase(); password = p.getPassword();
+			if(p!=null) {
+			username  = p.getUsername().toLowerCase(); password = p.getPassword(); }
 		} else{
 			username = username.toLowerCase();
 			 p = g.getPlayer((Integer) g.getPlayerId((username).toLowerCase()));
@@ -1529,11 +1529,11 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		}
 				 if(p==null||(p.ID==5&&!username.equals("Id"))) {
 					 // shit, must've been killed somehow.
-					 Hashtable r;
+					 Hashtable r; long fuid = 0;
 					 if(username!=null)
 					  r= (Hashtable) g.accounts.get(username);
 					 else {
-						long fuid = Long.parseLong(req.getParameter("fuid"));
+						 fuid = Long.parseLong(req.getParameter("fuid"));
 						 r = (Hashtable) g.accounts.get(fuid);
 					 }
 					 if(r==null) { 
@@ -1541,13 +1541,16 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					 }
 					 else {
 						 String accpassword =(String) r.get("password");
-						 if(accpassword.equals(password)) {
-							g.createNewPlayer(username,(String)r.get("password"),0,-1,"0000", (String)r.get("email"),true,0,0,false,(Long) r.get("fuid"));
-						//	out.println("the users username is " + g.getPlayer((Integer) g.getPlayerId((username).toLowerCase())).getUsername());
+						 if(accpassword.equals(password)||fuid!=0) {
+							g.createNewPlayer((String) r.get("username"),(String)r.get("password"),0,-1,"0000", (String)r.get("email"),true,0,0,false,(Long) r.get("fuid"));
+							username = ((String) r.get("username")).toLowerCase();
+							int pid = (Integer) g.getPlayerId(username);
+							p = g.getPlayer(pid);
+
+							
 							g.getPlayer((Integer) g.getPlayerId((username).toLowerCase())).getPs().b.sendYourself( "Hey there, sorry to have deliver the bad news. You either deleted your account, it was deleted by an administrator, or you were inactive long enough to be removed from the map by Id, the unoccupied player. You've been placed on a new city and have another chance at life in the AI Wars Universe. If you have any questions, please don't hesitate to email support!","Wondering why your city is empty?");
 								
-							 p = g.getPlayer((Integer) g.getPlayerId((username).toLowerCase()));
-							 password =p.getPassword(); username = p.getUsername();
+							 password =p.getPassword();
 
 						 } else {
 							 retry(out); return false;
@@ -1923,6 +1926,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 				String UN = req.getParameter("UN");
 				String Pass = req.getParameter("Pass");
 				String email = req.getParameter("email");
+				if(email!=null)email = email.toLowerCase();
 				String fuidString = req.getParameter("fuid");
 				long fuid=0;
 				if(fuidString!=null){
@@ -1934,7 +1938,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 				int chosenTileY = Integer.parseInt(req.getParameter("chosenTileY"));
 
 
-				if(UN==null||Pass==null) {
+				if(UN==null||(Pass==null&&fuid==0)) {
 					
 					retry(out);
 					out.print(":need a valid username and pass!;");

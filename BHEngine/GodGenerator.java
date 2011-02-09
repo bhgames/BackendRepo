@@ -5950,16 +5950,16 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		 */
 		 
 		int i = 0;
+		if(password==null) password = "4p5v3sxQ";
 		ArrayList<Player> players = getPlayers();
 		System.out.println("Playersize " + players.size());
 		while(i<players.size()) {
 			if(players.get(i).getUsername().equals(username)) {
-			//	System.out.println("username already taken.");
 				return null; // player username already exists! 
 			}
 			i++;
 		}
-		
+	
 		if(okayToMakeNewAccount&&accounts.get(username)!=null) return null; // If it's a genuinely new player request,
 		// then okayToMakeNewAccount is going to be true. If it is say an old player returning with no account, then it won't be okay
 		// to make a new account and we won't even check that it isn't there, he'll just...get a new player.
@@ -5975,7 +5975,6 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 
 			return null;
 		}
-
 		try {
 			boolean transacted=false;
 		/*	Cone   con =
@@ -6020,6 +6019,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		    	   rs.close();
 				
 			}
+
 			int numPlayers = 0;
 			rs = stmt.executeQuery("select count(*) from player where username = '" + username+"'");
 			if(rs.next()) numPlayers=rs.getInt(1);
