@@ -361,6 +361,8 @@ public class BattlehardFunctions {
 					r.put("townName",towns.get(i).getTownName());
 					r.put("owner",towns.get(i).getPlayer().getUsername());
 					r.put("pid",towns.get(i).getPlayer().ID);
+					if(towns.get(i).getDigCounter()>=0) r.put("dig",true);
+					else r.put("dig",false);
 					  int k = 0; boolean add=true;
 						 while(k<townHash.size()) {
 							 if(((String) townHash.get(k).get("owner")).equals((String) r.get("owner"))
@@ -9570,13 +9572,13 @@ public long[] returnPrice(int lotNum, int tid) {
 		    		currSR.add(new UserSR(currSID,rs.getString(4),rs.getString(5),rs.getString(6),rs.getString(7),rs.getString(8),
 		    				rs.getString(9),rs.getString(38),rs.getString(39),rs.getBoolean(10),rs.getBoolean(11),bombResultBldg,rs.getString(14),bname,defender,rs.getInt(18),rs.getInt(19),
 		    				rs.getInt(20),rs.getInt(21),rs.getInt(22),rs.getBoolean(23),rs.getBoolean(24),rs.getInt(25),rs.getBoolean(26),rs.getString(28),rs.getString(29),rs.getString(30),rs.getInt(31),rs.getBoolean(32),rs.getBoolean(33),rs.getInt(34),rs.getInt(35),rs.getInt(36),rs.getInt(37),rs.getString(40),
-		    				rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47)));
+		    				rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49)));
 		    		else { 
 		    			bname = new String[1]; bname[0]= "null";
 		    			UserSR SR = new UserSR(currSID,rs.getString(4),rs.getString(5),"","",rs.getString(8),"",rs.getString(38),rs.getString(39),
 			    				false,rs.getBoolean(11),"null","null",bname,defender,rs.getInt(18),rs.getInt(19),
 			    				rs.getInt(20),rs.getInt(21),rs.getInt(22),rs.getBoolean(23),rs.getBoolean(24),rs.getInt(25),rs.getBoolean(26),rs.getString(28),rs.getString(29),rs.getString(30),rs.getInt(31),rs.getBoolean(32),rs.getBoolean(33),rs.getInt(34),rs.getInt(35),rs.getInt(36),rs.getInt(37),rs.getString(40)
-			    				,rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47));
+			    				,rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49));
 		    			currSR.add(SR);
 		    			SR.support=true;
 		    			
@@ -9812,10 +9814,7 @@ public long[] returnPrice(int lotNum, int tid) {
 			setError("You do not have the Advanced Building API!");
 			return null;
 		}
-		if(prog&&!p.isAdvancedBuildingAPI()) {
-			setError("You do not have the Advanced Building API!");
-			return null;
-		}
+	
 		int i = 0; Town t = g.findTown(tid);
 	//	System.out.println("The townID belongs to " + t.getPlayer().ID);
 
@@ -10171,7 +10170,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
 					return new UserRaid(r.raidID,r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris());
+							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt());
 				}
 				j++;
 			}
@@ -10337,7 +10336,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
 					temp.add(new UserRaid(r.raidID,r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris()));
+							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt()));
 					} catch(Exception exc) { exc.printStackTrace(); System.out.println("getUserRaids saved. The raid in question: " + r.raidID); }
 				
 				j++;
@@ -10457,7 +10456,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
 					temp.add(new UserRaid(r.raidID,r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris()));
+							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt()));
 					}
 			} catch(Exception exc) { exc.printStackTrace(); System.out.println("Raids saved from " + r.raidID);}
 				
@@ -12497,6 +12496,59 @@ public long[] returnPrice(int lotNum, int tid) {
 					generateRandomAUTemplate(3,false,null);
 					
 				}
+				else if(reward.equals("civvietech")) {
+					String tech[] ={ getRandomCivvieTech()};
+					completeResearches(tech,true);
+					sendYourself("Sir,\n We found a piece of ancient [" + tech[0] + "]! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					
+				}else if(reward.equals("militech")) {
+					String tech[] ={ getRandomCivvieTech()};
+					completeResearches(tech,true);
+					sendYourself("Sir,\n We found a piece of ancient [" + tech[0] + "]! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					
+				}else if(reward.equals("metaltech")) {
+					String tech[] ={ "metalRefTech"};
+					completeResearches(tech,true);
+					sendYourself("Sir,\n We found the diagrams for a [" + tech[0] + "]! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					
+				}else if(reward.equals("timbertech")) {
+					String tech[] ={ "timberRefTech"};
+					completeResearches(tech,true);
+					sendYourself("Sir,\n We found the diagrams for a [" + tech[0] + "]! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					
+				}else if(reward.equals("manmattech")) {
+					String tech[] ={ "manMatRefTech"};
+					completeResearches(tech,true);
+					sendYourself("Sir,\n We found the diagrams for a [" + tech[0] + "]! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					
+				}else if(reward.equals("foodtech")) {
+					String tech[] ={ "foodRefTech"};
+					completeResearches(tech,true);
+					sendYourself("Sir,\n We found the diagrams for a [" + tech[0] + "]! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					
+				} else if(reward.equals("silo")) {
+					String tech[] ={ "townTech"};
+					if(canCompleteResearches(tech,true)) {
+						completeResearches(tech,true);
+						int j = 0;
+						
+						//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
+
+					} else {
+						tech[0]="missileSiloTech";
+						completeResearches(tech,true);
+						sendYourself("Sir,\n We found a tactical nuke hidden in the sands of time... Unfortunately, we were unable to find a place for it in your Empire. However, we WERE able to uncover the diagrams to make one. We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+
+					}
+					
+				}
+				else if(reward.equals("zeppelin")) {
+					String tech[] ={ "zeppTech","townTech"};
+					completeResearches(tech,true);
+					sendYourself("Sir,\n We found an ancient Airship from long ago. We weren't able to salvage it, but we were able to salvage an extra town slot and the plans to build an Airship Platform. From an Airship Platform, you could build your own Airship! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+
+					
+				}
 				
 				
 			}
@@ -12510,6 +12562,51 @@ public long[] returnPrice(int lotNum, int tid) {
 		}
 		
 		return true;
+	}
+	
+	private String getRandomCivvieTech() {
+		String random[] ={
+				"buildingSlotTech",
+				"lotTech",
+				"buildingStabilityTech",
+				"townTech",
+				"engineerTech",
+				"traderTech",
+				"scholarTech"
+				
+		};
+		int counter=0;
+		String toSend[] = {"null"};
+		while(counter<10&&canCompleteResearches(toSend,true)) {
+			int rand = (int) Math.round(Math.random()*(random.length-1));
+			if(rand<0) rand = 0;
+			toSend[0]=random[rand];
+			counter++;
+			
+		}
+		return toSend[0];
+	}
+	private String getRandomMiliTech() {
+		String random[] ={
+				"afTech",
+				"bunkerTech",
+				"unitLotTech",
+				"commsCenterTech",
+				"stealthTech",
+				"scoutTech",
+				"supportTech"
+				
+		};
+		int counter=0;
+		String toSend[] = {"null"};
+		while(counter<10&&canCompleteResearches(toSend,true)) {
+			int rand = (int) Math.round(Math.random()*(random.length-1));
+			if(rand<0) rand = 0;
+			toSend[0]=random[rand];
+			counter++;
+			
+		}
+		return toSend[0];
 	}
 	private String getRandomAPI() {
 		String random[] ={

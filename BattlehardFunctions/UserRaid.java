@@ -12,14 +12,16 @@ public class UserRaid {
 	private String targName;
 	private boolean debris;
 	private int genoRounds=0;
+	private int digAmt = 0;
 	private String name;
 	private boolean bomb;
 	private boolean allClear = false;
 	private int totalTicks=0;
 	public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
-			int tid1,int tid2,String name, int genoRounds, boolean bomb, boolean debris) {
+			int tid1,int tid2,String name, int genoRounds, boolean bomb, boolean debris, int digAmt) {
 		this.town1=town1;this.town2=town2; this.x1=x1;this.y1=y1;
 		this.genoRounds=genoRounds;
+		this.digAmt=digAmt;
 		this.bomb=bomb;
 		this.x2=x2;this.y2=y2;this.auAmts=auAmts;this.auNames=auNames;
 		this.raidType=raidType;
@@ -185,8 +187,16 @@ public class UserRaid {
 		if(raidType.equals("debris")) {
 			return "This is a " + " debris collection run " + " from " + town1 + " on " +town2 + " that will " + returnattack+ " in " + ticksToHit;
 
-		} else
+		} else if(getDigAmt()>0) { 
+			return "This is a dig team from " + town1 + " to " + town2 + " that will " + returnattack + " in " +ticksToHit;
+		}else
 		return "This is a " + raidType + " from " + town1 + " on " +town2 + " that will " + returnattack+ " in " + 
 		ticksToHit;
+	}
+	public void setDigAmt(int digAmt) {
+		this.digAmt = digAmt;
+	}
+	public int getDigAmt() {
+		return digAmt;
 	}
 }

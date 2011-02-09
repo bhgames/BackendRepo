@@ -104,6 +104,8 @@ public class Controllers {
 		        .value((Boolean) r.get("aiActive"))
 		        .key("capital")
 		        .value((Boolean) r.get("capital"))
+		        .key("dig")
+		        .value((Boolean) r.get("dig"))
 		        .endObject();
 					x++;
 			}

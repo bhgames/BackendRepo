@@ -1650,7 +1650,17 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     	 } else if(holdCmd.equals("bf.getServerTicks")) {
     		 toRet+=b.getServerTicks();
     	 }
-    	 
+    	 else if(holdCmd.equals("bf.respondToDigMessage")) { 
+    		 //boolean, number
+    		 holdPartUse = new String(holdPart);
+    		 Boolean bool1 =Boolean.parseBoolean(holdPartUse.substring(0,holdPartUse.indexOf(",")));
+   		 	holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
+   		 	 int int1  =Integer.parseInt(holdPartUse);
+    		
+       		
+       		 toRet+=b.respondToDigMessage(bool1,int1);
+     		 
+    	 }
     	 else if(holdCmd.equals("bf.getUserRaids")) {
     		 // no args
     		 str = new JSONStringer();
@@ -1678,6 +1688,8 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 .value(raid.raidOver())
     			 .key("eta")
     			 .value(raid.eta())
+    			 .key("digAmt")
+    			 .value(raid.getDigAmt())
     			 .key("distance")
     			 .value(raid.distance())
     			 .key("totalTicks")
