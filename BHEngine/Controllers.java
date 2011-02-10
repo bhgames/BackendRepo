@@ -1371,6 +1371,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			        	.value(b.getLvl())
 			        	.key("lotNum")
 			        	.value(b.getLotNum())
+			        	.key("bid")
+			        	.value(b.getBid())
 			        	.key("refuelTicks")
 			        	.value(b.getRefuelTicks())
 			        	.key("ticksToFinish")
