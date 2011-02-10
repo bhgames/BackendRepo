@@ -399,8 +399,19 @@ public class Id extends Player {
 		try {
 		UberStatement stmt = con.createStatement();
 		stmt.execute("update God set gameClock = " + God.gameClock);
-		
+		stmt.close();
 		} catch(SQLException exc) { exc.printStackTrace(); }
+		
+		int i = 0;
+		while(i<towns().size()) {
+		//	if(towns().get(i).getTownName().equals("Town-11--1"))
+			//	System.out.println("My owedticks is " + towns().get(i).owedTicks);
+			if(towns().get(i).owedTicks==0) {
+				
+				towns().get(i).save();
+			}
+			i++;
+		}
 		super.save();
 	}
 	public void deleteOldPlayers() {

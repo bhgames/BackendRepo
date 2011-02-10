@@ -1307,6 +1307,17 @@ public class Town {
 		 if(theI<0) theI=0;
 		 return messages[theI];
 	 }
+	 public void resetDig(int newTownID, int digAmt, boolean findTime) {
+		 setDigCounter(-1); // making it go away.
+		 setDigTownID(newTownID); // making it, too, go away.
+		 setMsgSent(false);
+		 if(!findTime)
+		 setFindTime(-1);
+		 else
+			 setFindTime((int) Math.floor(Math.random()*24*3600/GodGenerator.gameClockFactor));
+		 setDigAmt(digAmt);
+		 save(); // the second dig counter is false, this thing won't save anymore!
+	 }
 	 public void iterate(int num) {
 		 if(getDigCounter()>=0) {
 			
@@ -1319,7 +1330,22 @@ public class Town {
 			 if(getDigCounter()>=getFindTime()) {
 				 
 				 if(getDigCounter()>=getFindTime()+24*3600/GodGenerator.gameClockFactor) {
-					 // Needs to go home now.
+					 //	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
+
+					String subject = "Dig Message From "+ getTownName();
+					int pid[] = {God.findTown(getDigTownID()).getPlayer().ID};
+					String body = "Sir,\n You did not respond in time to our message, and we ran out of supplies, so we headed home!\n -The Dig Team at " + getTownName();
+					String pid_to_s = PlayerScript.toJSONString(pid);
+
+				 try {
+						UberStatement stmt = getPlayer().con.createStatement();
+					stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid) values (\""
+							+ pid_to_s +"\"," + pid[0] +",\"" +body+"\",\""+subject+"\","+6+","+0+","+pid[0]+");" );
+					
+					stmt.close();
+				} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	
+				God.findTown(getDigTownID()).getPlayer().getPs().b.recall(townID,getPlayer().ID,getDigTownID());
+
 				 }
 				 
 				 if(!getMsgSent()) {

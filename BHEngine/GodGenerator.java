@@ -228,11 +228,11 @@ all the same things happen except the probability timer goes to zero. So, to sum
  
  
  Tests:
- 1. Send a simple dig, no units, just scholars.
- 2. Test that it actually counts up dig timer and probability timer and sets findTime correctly.
+ 1. Send a simple dig, no units, just scholars.---CHECK---
+ 2. Test that it actually counts up dig timer and probability timer and sets findTime correctly.---CHECK---
  3. make a hardwire probticks and findtimer function and test it at various things to make sure it works.
- The findtime, thing. 
- 4. Make sure it can return home and adds back correctly.
+ The findtime, thing. ---CHECK---
+ 4. Make sure it can return home and adds back correctly.---CHECK---
  5. Make a hardwire reward version of dig that allows you to select the reward and select each one, make sure it works.
  				 * nothing
 				 * daily10
@@ -6981,20 +6981,17 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 					String pid_to_s = PlayerScript.toJSONString(pid);
 					stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid) values (\""
 							+ pid_to_s +"\"," + pid[0] +",\"" +body+"\",\""+subject+"\","+6+","+0+","+pid[0]+");" );
-					t2.setDigTownID(r.getTown1().townID);
-					t2.setDigCounter(0);
-					t2.setMsgSent(false);
-					t2.setFindTime((int) Math.floor(Math.random()*24*3600/GodGenerator.gameClockFactor));
-					t2.setDigAmt(r.getDigAmt()); // now the dig is setup.
+					t2.resetDig(r.getTown1().townID,r.getDigAmt(),true);
+
 					
 					
 				}
 			} else {
-				t2.setDigTownID(r.getTown1().townID);
-				t2.setDigCounter(0);
-				t2.setMsgSent(false);
-				t2.setFindTime((int) Math.floor(Math.random()*24*3600/GodGenerator.gameClockFactor));
-				t2.setDigAmt(r.getDigAmt()); // now the dig is setup.
+				System.out.println("I got received!");
+				t2.resetDig(r.getTown1().townID,r.getDigAmt(),true);
+				System.out.println("dig town id is " + t2.getDigTownID() + 
+				" and dig counter is " + t2.getDigCounter() + " and findTime is " + t2.getFindTime() + 
+				" and digAmt is " +t2.getDigAmt() + " and I am " + t2.townID + " and townName of  " +t2.getTownName());
 				supportLogicBlock(r);
 
 			}
@@ -9578,12 +9575,9 @@ public boolean checkForGenocides(Town t) {
 			if(digOffSucc&&actattack.getDigAmt()>0&&digDefSucc) {
 				return false; // do nothing.
 			} else if(digOffSucc&&!digDefSucc&&actattack.getDigAmt()>0){
-				t2.setDigTownID(actattack.getTown1().townID);
-				t2.setDigCounter(0);
-				t2.setMsgSent(false);
-				t2.setFindTime((int) Math.floor(Math.random()*24*3600/GodGenerator.gameClockFactor));
+				t2.resetDig(actattack.getTown1().townID,actattack.getDigAmt(),true);
 
-				t2.setDigAmt(actattack.getDigAmt()); // now the dig is setup.
+			
 				actattack.setRaidOver(false);
 				actattack.setTicksToHit(0);
 				supportLogicBlock(actattack);
@@ -9605,11 +9599,7 @@ public boolean checkForGenocides(Town t) {
 					stmt.close();
 
 				} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}
-				t2.setDigTownID(0);
-				t2.setDigCounter(-1);
-				t2.setMsgSent(false);
-				t2.setFindTime(-1);
-				t2.setDigAmt(0); // now the dig is gone.
+				t2.resetDig(0,0,false);
 				actattack.setRaidOver(false);
 				actattack.setTicksToHit(0);
 				supportLogicBlock(actattack);
@@ -9782,7 +9772,7 @@ public boolean checkForGenocides(Town t) {
 					}
 			//	System.out.println("raidOver is currently " + holdAttack.raidOver);
 					// this else UberStatement is for the actual attack server to use, the above is the facsimile treatment.
-				if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&!holdAttack.raidType().equals("support")&&!holdAttack.raidType().equals("offsupport")&&!holdAttack.raidType().equals("scout")&&!holdAttack.raidType().equals("resupply")&&!holdAttack.raidType().equals("debris")) { 
+				if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&!holdAttack.raidType().equals("support")&&!holdAttack.raidType().equals("offsupport")&&!holdAttack.raidType().equals("scout")&&!holdAttack.raidType().equals("resupply")&&!holdAttack.raidType().equals("debris")&&!holdAttack.raidType().equals("dig")) { 
 					// support = 0 means not supporting run, and scout=0 means it's  not
 					// a scouting run.
 					combatLogicBlock(r,"");
@@ -9797,6 +9787,11 @@ public boolean checkForGenocides(Town t) {
 					// this means it's a supporting run. Scout will always be 0 for this.
 					
 					supportLogicBlock(r);
+					
+				}else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("dig"))) {
+					// this means it's a supporting run. Scout will always be 0 for this.
+				System.out.println("I detected it was a dig.");
+					digLogicBlock(r);
 					
 				}else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("debris"))) {
 					// this means it's a supporting run. Scout will always be 0 for this.
@@ -9836,67 +9831,28 @@ public boolean checkForGenocides(Town t) {
 					}
 					
 					if(r.getDigAmt()>0) {
-						
+					
 						int j = 0; int tradeDearth=0;
-						UserBuilding[] bldg = p.getPs().b.getUserBuildings(t1.townID,"Institute");
+						UserBuilding[] bldg = t1.getPlayer().getPs().b.getUserBuildings(t1.townID,"Institute");
+						Building actb;
 						UserBuilding b;
 						while(j<bldg.length) {
 							b = bldg[j];
-							tradeDearth+=(b.getCap()-b.getPeopleInside());
-							j++;
-						}
-						
-						j = 0; int popCheck=0; Building actb;
-						while(j<bldg.length) {
-							b = bldg[j];
 							actb = t1.findBuilding(b.getBid());
-								if(tradeDearth>=0) {
-									int toAdd=(int) Math.floor(r.getDigAmt()*((double) (b.getCap()-b.getPeopleInside()))/((double) tradeDearth));
-									if(b.getPeopleInside()+toAdd>b.getCap()) toAdd = (int) (b.getCap()-b.getPeopleInside());
-									popCheck+=toAdd;
-								//	System.out.println("Before: "+ actb.getPeopleInside() + " and adding " + toAdd);
 
-									actb.setPeopleInside(b.getPeopleInside()
-											+ toAdd);
-							//	System.out.println("After: "+ actb.getPeopleInside());
-								}
-								else {
-									r.setDigAmt(0); break; // if somehow the cap goes down, then these traders are lost.
-								}
-							// so if you have 1/4th of the trade dearth, you get 1/4th of the traders!
-							// This is okay, because if you don't have the room for them, you wouldn't
-							// have been part of the dearth! You can't build more traders in the slots of the
-							// traders gone due to preprogramming in battlehard functions!
+							//tradeDearth+=(b.getCap()-b.getPeopleInside());
+							if((b.getCap()-b.getPeopleInside()) >r.getDigAmt()-tradeDearth) {
+								actb.setPeopleInside(actb.getPeopleInside()+(r.getDigAmt()-tradeDearth));
+								tradeDearth=r.getDigAmt();
+								break;
+							} else {
+								tradeDearth+=(b.getCap()-b.getPeopleInside());
+								actb.setPeopleInside((int)b.getCap());
+								
+							}
+							if(tradeDearth>=r.getDigAmt()) break;
 							j++;
 						}
-						if(popCheck<r.getDigAmt()&&tradeDearth>=0) {
-							// clearly we're going to get...rounding errors, where we have one or two homeless traders. So we add them back.
-							j = 0; 
-							bldg = p.getPs().b.getUserBuildings(t1.townID,"Institute");
-							while(j<bldg.length) {
-								b = bldg[j];
-								actb = t1.findBuilding(b.getBid());
-
-									if((b.getCap()-b.getPeopleInside())>=popCheck) {
-										
-										actb.setPeopleInside(b
-												.getPeopleInside()
-												+ popCheck);
-										popCheck=0;break;
-									}
-									else if(b.getCap()>b.getPeopleInside()&&(b.getCap()-b.getPeopleInside())<popCheck) {
-										popCheck-=(b.getCap()-b.getPeopleInside());
-										actb.setPeopleInside((int)( b.getCap()));
-
-									}
-									
-								if(popCheck<=0) break;
-								j++;
-							}
-							
-						}
-						
-						
 					}
 					// alright new units added. Need to add resources too when they get added on.
 					r.deleteMe(); // Get it out of memory now.
@@ -10161,10 +10117,22 @@ public boolean checkForGenocides(Town t) {
 				bldg = p.getPs().b.getUserBuildings(t1.townID,"Trade Center");
 				while(j<bldg.length) {
 					b = bldg[j];
-					tradeDearth+=(b.getCap()-b.getPeopleInside());
+					actb = t1.findBuilding(b.getBid());
+
+					//tradeDearth+=(b.getCap()-b.getPeopleInside());
+					if((b.getCap()-b.getPeopleInside()) >t.getTraders()-tradeDearth) {
+						actb.setPeopleInside(actb.getPeopleInside()+(t.getTraders()-tradeDearth));
+						tradeDearth=t.getTraders();
+						break;
+					} else {
+						tradeDearth+=(b.getCap()-b.getPeopleInside());
+						actb.setPeopleInside((int)b.getCap());
+						
+					}
+					if(tradeDearth>=t.getTraders()) break;
 					j++;
 				}
-				
+				/*
 				j = 0; int popCheck=0;
 				while(j<bldg.length) {
 					b = bldg[j];
@@ -10213,7 +10181,7 @@ public boolean checkForGenocides(Town t) {
 						j++;
 					}
 					
-				}
+				}*/
 				
 				//actts = actt.getTs();
 				//if(ts.getTimesDone()>=ts.getTimesToDo()&&ts.getTimesToDo()!=-1) actts.deleteMe();
@@ -10437,14 +10405,24 @@ public boolean checkForGenocides(Town t) {
 			while(i<bldg.length) {
 				 b = bldg[i];
 				 actb = t1.findBuilding(b.getBid());
-				
+				 
+					if(actb.getPeopleInside()>t1Required-totalT1TravTraders) {
+						actb.setPeopleInside(actb.getPeopleInside()-(t1Required-totalT1TravTraders));
+						totalT1TravTraders+=(t1Required-totalT1TravTraders);
+					} else {
+						totalT1TravTraders+=actb.getPeopleInside();
+
+						actb.setPeopleInside(0);
+					}
+					 if(totalT1TravTraders>=t1Required) break;
+			/*
 				int totake = (int) Math.ceil(((double) b.getPeopleInside())*((double) t1Required)/((double) t1Traders)); // find what to take
 				int taken = b.getPeopleInside()-totake; 
 				if(taken<0) totake+=taken; // if it's neg, subtract that from totake, we're not taking more than we can.
 				if(taken<0) { totalT1TravTraders+=b.getPeopleInside(); actb.setPeopleInside(0); }
 				else { 			totalT1TravTraders+=totake;
 				actb.setPeopleInside(b.getPeopleInside()-totake); }// if < 0, it's 0, if not, subtract it.
-					 
+					 */
 				 
 			i++;
 			}
@@ -10469,13 +10447,23 @@ public boolean checkForGenocides(Town t) {
 			while(i<bldg.length) {
 				 b = bldg[i];
 				 actb = t2.findBuilding(b.getBid());
-					
+				 
+					if(actb.getPeopleInside()>t2Required-totalT2TravTraders) {
+						actb.setPeopleInside(actb.getPeopleInside()-(t2Required-totalT2TravTraders));
+						totalT2TravTraders+=(t2Required-totalT2TravTraders);
+					} else {
+						totalT2TravTraders+=actb.getPeopleInside();
+
+						actb.setPeopleInside(0);
+					}
+					 if(totalT2TravTraders>=t2Required) break;
+		/*			
 			int totake = (int) Math.ceil(((double) b.getPeopleInside())*((double) t2Required)/((double) t2Traders)); // find what to take
 			int taken = b.getPeopleInside()-totake; 
 			if(taken<0) totake+=taken; // if it's neg, subtract that from totake, we're not taking more than we can.
 			if(taken<0) { totalT2TravTraders+=b.getPeopleInside(); actb.setPeopleInside(0); }
 			else { 			totalT2TravTraders+=totake;
-				actb.setPeopleInside(b.getPeopleInside()-totake); }
+				actb.setPeopleInside(b.getPeopleInside()-totake); }*/
 					 
 				 
 			

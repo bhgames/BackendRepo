@@ -4963,15 +4963,15 @@ public long[] returnPrice(int lotNum, int tid) {
 			while(z<b.length) {
 				bl = b[z];
 				 actb = t1.findBuilding(bl.getBid());
-				
-				int totake = (int) Math.ceil(((double) bl.getPeopleInside())*((double) GodGenerator.digScholarRequirement)/((double) totalScholars)); // find what to take
-				int taken = bl.getPeopleInside()-totake; 
-				if(taken<0) totake+=taken; // if it's neg, subtract that from totake, we're not taking more than we can.
-				if(taken<0) { digAmt+=bl.getPeopleInside(); actb.setPeopleInside(0); }
-				else { 			digAmt+=totake;
-				actb.setPeopleInside(bl.getPeopleInside()-totake); }// if < 0, it's 0, if not, subtract it.
-					 
-				 
+				if(actb.getPeopleInside()>GodGenerator.digScholarRequirement-digAmt) {
+					actb.setPeopleInside(actb.getPeopleInside()-(GodGenerator.digScholarRequirement-digAmt));
+					digAmt+=(GodGenerator.digScholarRequirement-digAmt);
+				} else {
+					digAmt+=actb.getPeopleInside();
+
+					actb.setPeopleInside(0);
+				}
+				 if(digAmt>=GodGenerator.digScholarRequirement) break;
 				z++;
 			}
 			
@@ -5967,8 +5967,9 @@ public long[] returnPrice(int lotNum, int tid) {
 					 	int digAmt=0;
 					 if(pidOfRecallTown==5&&t.getDigCounter()>0&&auAmts.length==1) {
 						 digAmt=t.getDigAmt();
-						 t.setDigCounter(-1); // making it go away.
-						 t.setDigTownID(0); // making it, too, go away.
+						 t.resetDig(0,0,false);// because the second you set dig counter
+						 // to -1, the town becomes inactive!
+						 System.out.println("t's owed ticks are " + t.owedTicks + " and t is " +t.getTownName());
 					 }
 					
 						 holdAttack = new Raid(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2)), ticksToHit, myTown,t, false, false,0,false,"noname",false,au,digAmt);
@@ -10141,6 +10142,8 @@ public long[] returnPrice(int lotNum, int tid) {
 					if(invade) raidType="invasion";
 					if(resupplyID>-1) raidType="resupply";
 					if(r.isDebris()) raidType="debris";
+					if(r.getDigAmt()>0) raidType = "dig";
+
 
 					
 					int ie = 0;int totalCheckedSize=0;
@@ -10311,6 +10314,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					if(invade) raidType="invasion";
 					if(resupplyID>-1) raidType="resupply";
 					if(r.isDebris()) raidType="debris";
+					if(r.getDigAmt()>0) raidType = "dig";
 					int ie = 0;int totalCheckedSize=0;
 					while(ie<r.getAu().size()) { // This is to check to see if the raids accidentally loaded AU
 						// before the DB got it.
