@@ -234,15 +234,15 @@ all the same things happen except the probability timer goes to zero. So, to sum
  The findtime, thing. ---CHECK---
  4. Make sure it can return home and adds back correctly.---CHECK---
  5. Make a hardwire reward version of dig that allows you to select the reward and select each one, make sure it works.
- 				 * nothing
-				 * daily10
-				 * daily20
-				 * daily30
-				 * daily50
-				 * lowkp
-				 * medkp
-				 * highkp
-				 * api
+ 				 * nothing---CHECK---
+				 * daily10---CHECK---
+				 * daily20---CHECK---
+				 * daily30---CHECK---
+				 * daily50---CHECK---
+				 * lowkp---CHECK---
+				 * medkp---CHECK---
+				 * highkp---CHECK---
+				 * api---CHECK---
 				 * soldier
 				 * civvietech
 				 * militech
@@ -254,6 +254,7 @@ all the same things happen except the probability timer goes to zero. So, to sum
 				 * juggernaught
 				 * silo
 				 * zeppelin
+				 * Actually based on ticks
  6. Recall a simple dig before it can finish, what happens? Is everything reset properly?
  7. View a town's probability ticks after leaving. Are they going down?
  8. Attack simple dig. Does it go home?
@@ -4273,8 +4274,27 @@ be rich.
 
 /* Journal:
 
+You're using weirddump5.dump, and
 
-TEST SERVER SIZING ON TEST!
+http://184.106.231.186/AIWars/GodGenerator?reqtype=command&command=bf.respondToDigMessage(true,5647);
+
+to cause the rewards to happen. Currently you're testing soldier, which generates great stats,
+but never creates for no real reason. So you're putting print statements in createCombatUnitTemplate to figure out where
+it goes wrong.
+
+also, it seems your recall raid has issues with calling raids...this may be related to it just being server start up,
+but it's a second bug.:
+java.sql.SQLException: After end of result set
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:1072)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:986)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:981)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:926)
+	at com.mysql.jdbc.ResultSetImpl.checkRowPos(ResultSetImpl.java:841)
+	at com.mysql.jdbc.ResultSetImpl.getInt(ResultSetImpl.java:2672)
+	at BHEngine.Raid.<init>(Raid.java:305)
+	at BattlehardFunctions.BattlehardFunctions.recall(BattlehardFunctions.java:5980)
+	at BattlehardFunctions.BattlehardFunctions.recall(BattlehardFunctions.java:5789)
+	at BattlehardFunctions.BattlehardFunctions.respondToDigMessage(BattlehardFunctions.java:12566)
 
 http://www.javabeginner.com/
 
@@ -4289,21 +4309,7 @@ Attack Integration
 Trade Automation
 Build Automation(check buildcombatunit)
 
-
-
-
-
-The Schedule:
-
-
-Fixes to master branch:
-1. Make it so you set the height of the images explicitly to fix the scrollbar problem.
-2. Make it so genocide is 50% take again
-
-
-
-
-
+ 
 
 Zong callback URI:
 www.aiwars.org/AIWars/GodGenerator?reqtype=upgrade

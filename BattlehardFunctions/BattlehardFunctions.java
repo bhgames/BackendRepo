@@ -1472,7 +1472,9 @@ public class BattlehardFunctions {
 		// Right, so, making this shit work.
 
 		// okay now make the unit template!
-		if(!canCreateUnitTemplate(unitName,tierNumber,concealment,armor,cargo,speed,weaponsArray,graphicNum));
+		System.out.println("Here?");
+		if(!canCreateUnitTemplate(unitName,tierNumber,concealment,armor,cargo,speed,weaponsArray,graphicNum)) {
+			System.out.println("Here2?");
 		ArrayList<AttackUnit> au=p.getAUTemplates();
 		boolean found=false;
 		AttackUnit a=null;
@@ -1481,7 +1483,8 @@ public class BattlehardFunctions {
 			a = au.get(i);
 			if(a.getName().equals(unitName)) { found=true;break;}
 			i++;
-		}
+		}	
+
 		
 		// Same DB entry gets used either way...so player sees on display screen the same stuff,
 		// only backend moves entry to the end of the queue by creating a new, slightly different copy
@@ -1534,6 +1537,8 @@ public class BattlehardFunctions {
 				p.setAUTemplates(p.getMemAUTemplates());
 				}	
 		}
+		
+		}
 				
 		notifyViewer();
 			return true;
@@ -1560,6 +1565,7 @@ public class BattlehardFunctions {
 			}
 			i++;
 		}*/
+
 		if(unitName.length()==0) {
 			setError("Must give this template a name!");
 			return false;
@@ -1669,18 +1675,17 @@ public class BattlehardFunctions {
 		}
 		
 		
-		
 		if(concealment+armor+cargo+speed+weaponsContribution!=totalPoints) {
 			setError("Invalid point distribution. Must be exactly " + totalPoints + ".");
 			return false;
-		}
+		}		
 		// right so we know the weapons exist as they need to. We know the total points add up. We know the slot has no units, and unit type is researched.
 		if(maxSlots<0){
 			setError("Too many points spent on weapons for this unit type.");
 			return false; // means they overused the maximum number of slots even though they had the points.
 		}
 		// Well, hell, let's just change'er up then, and at the same time check to make sure it has the right slot tech.
-		
+	
 		return true;
 		
 	}
@@ -9175,7 +9180,6 @@ public long[] returnPrice(int lotNum, int tid) {
 				 * So we need to find the ticks required to sort of hotwire in the
 				 * slot.
 				 */
-				System.out.println("FUCK TROOP PUSH");
 				int j = 0;  // for the six sizes...
 			int x = 0; int divider=0;
 			ArrayList<AttackUnit> pau = p.getAu();
@@ -12396,7 +12400,6 @@ public long[] returnPrice(int lotNum, int tid) {
 	}
 	
 	public boolean respondToDigMessage(boolean yes, int townID) {
-		
 		if(prog&&!p.isdigAPI()) {
 			setError("You do not have the Dig API!");
 			return false;
@@ -12413,7 +12416,6 @@ public long[] returnPrice(int lotNum, int tid) {
 			setError("This Id town doesn't have a dig!");
 			return false;
 		}
-		
 		if(yourTown.getPlayer().ID!=p.ID) {
 			setError("This is not your town!");
 			return false;
@@ -12425,7 +12427,9 @@ public long[] returnPrice(int lotNum, int tid) {
 			if(yes) {
 				//	public String returnPrizeName(int probTick, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
 
-				String reward = g.returnPrizeName(idTown.getProbTimer(),idTown.getX(),idTown.getY(),true,null,-1,null);
+				
+				String reward = g.returnPrizeName(idTown.getProbTimer(),idTown.getX(),idTown.getY(),false,null,-1,null);
+				reward = "soldier";
 				/*
 
 				 * Prize codes:
@@ -12489,7 +12493,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					
 				}else if(reward.equals("soldier")) {
 					sendYourself("Sir,\n We found a blueprint for an ancient soldier unit! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
-					generateRandomAUTemplate(1,false,null);
+					generateRandomAUTemplate(1,true,null);
 					
 				}else if(reward.equals("tank")) {
 					sendYourself("Sir,\n We found a blueprint for an ancient tank unit! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
@@ -12555,14 +12559,12 @@ public long[] returnPrice(int lotNum, int tid) {
 				}
 				
 				
-			}
+			}//	 public void resetDig(int newTownID, int digAmt, boolean findTime) {
+
+			//	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
+
+			recall(idTown.townID,idTown.getPlayer().ID,yourTown.townID);
 			
-			recall(yourTown.townID,idTown.getPlayer().ID,idTown.townID);
-			idTown.setDigTownID(0);
-			idTown.setDigCounter(-1);
-			idTown.setMsgSent(false);
-			idTown.setFindTime(-1);
-			idTown.setDigAmt(0); // now the dig is setup.
 		}
 		
 		return true;
@@ -12581,13 +12583,13 @@ public long[] returnPrice(int lotNum, int tid) {
 		};
 		int counter=0;
 		String toSend[] = {"null"};
-		while(counter<10&&canCompleteResearches(toSend,true)) {
+		do {
 			int rand = (int) Math.round(Math.random()*(random.length-1));
 			if(rand<0) rand = 0;
 			toSend[0]=random[rand];
 			counter++;
 			
-		}
+		}while(counter<10&&canCompleteResearches(toSend,true));
 		return toSend[0];
 	}
 	private String getRandomMiliTech() {
@@ -12603,13 +12605,13 @@ public long[] returnPrice(int lotNum, int tid) {
 		};
 		int counter=0;
 		String toSend[] = {"null"};
-		while(counter<10&&canCompleteResearches(toSend,true)) {
+		do{
 			int rand = (int) Math.round(Math.random()*(random.length-1));
 			if(rand<0) rand = 0;
 			toSend[0]=random[rand];
 			counter++;
 			
-		}
+		}while(counter<10&&canCompleteResearches(toSend,true)) ;
 		return toSend[0];
 	}
 	private String getRandomAPI() {
@@ -12632,13 +12634,14 @@ public long[] returnPrice(int lotNum, int tid) {
 		};
 		int counter=0;
 		String toSend[] = {"null"};
-		while(counter<10&&canCompleteResearches(toSend,true)) {
+	do 	 {
 			int rand = (int) Math.round(Math.random()*(random.length-1));
 			if(rand<0) rand = 0;
 			toSend[0]=random[rand];
+			System.out.println("random is " +toSend[0]);
 			counter++;
 			
-		}
+		} while(counter<10&&canCompleteResearches(toSend,true));
 		return toSend[0];
 	}
 	
@@ -12660,7 +12663,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		 *
 		 */
 		double conc = 0; double armor = 0; double cargo = 0; double speed = 0; int i = 0;
-		while(conc<30*type&&armor<30*type&&speed<30*type&&i<1000) {
+		while(conc>0&&armor>0&&speed>0&&cargo>0&&conc<30*type&&armor<30*type&&speed<30*type&&i<1000) {
 			
 			conc = Math.random()*100;
 			armor=Math.random()*100;
@@ -12676,13 +12679,13 @@ public long[] returnPrice(int lotNum, int tid) {
 			
 			
 		}
+		
 		if(conc+armor+cargo+speed<200*type-1||conc+armor+cargo+speed>200*type+1) {
 			return false; // Clearly screwed up.
 		} else {
 			if(conc+armor+cargo+speed==200*type-1) speed++;
 			else if(conc+armor+speed+cargo==200*type+1) speed--;
 		}
-		
 		int weap1 = (int) Math.round(6*Math.random())-1;
 		weap1*=type;
 		if(weap1<0) weap1=0;
@@ -12695,7 +12698,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		String unitPrefixCombos[] = {
 				"Dirty",
 				"Fallen",
-				"Nah-",
+				"Nah",
 				"Suck",
 				"Big",
 				"Small",
@@ -12707,7 +12710,10 @@ public long[] returnPrice(int lotNum, int tid) {
 				"Supa",
 				"Mr",
 				"Sir",
-				"Butt"
+				"Butt",
+				"Ilikea",
+				"Father",
+				"Mother"
 				
 		};
 		String unitPostfixCombos[] = {
@@ -12722,7 +12728,10 @@ public long[] returnPrice(int lotNum, int tid) {
 				"Estrogen",
 				"Killer",
 				"Booter",
-				"Pirate"
+				"Pirate",
+				"Killpeople",
+				"Messiah",
+				"Bootscooter"
 				
 		};
 		//public boolean createUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum, boolean id) {
@@ -12732,8 +12741,14 @@ public long[] returnPrice(int lotNum, int tid) {
 		int postfix = (int) Math.round(Math.random()*unitPostfixCombos.length-1);
 		if(postfix<0) postfix=0;
 		String unitName = unitPrefixCombos[prefix]+" " + unitPostfixCombos[postfix];
-		createUnitTemplate(unitName,type,(int) conc,(int) armor,(int) cargo,(int) speed,weap,graphicNum,false);
-		if(test) out.print("conc: " + conc + " armor: " + armor + " speed: " + speed + " cargo: " + cargo + " weap1: " + weap1  + " weap2: " + weap2 + " type: " + type + " graphicNum: " + graphicNum + " unitName: " + unitName);
+		//					createUnitTemplate("Shock Trooper",1,75,25,50,50,weap,0);
+
+		boolean can = createUnitTemplate(unitName,type,(int) conc,(int) armor,(int) cargo,(int) speed,weap,graphicNum,false);
+		String error = "none";
+		if(!can) error = getError();
+		if(test&&out!=null) out.print("conc: " + conc + " armor: " + armor + " speed: " + speed + " cargo: " + cargo + " weap1: " + weap1  + " weap2: " + weap2 + " type: " + type + " graphicNum: " + graphicNum + " unitName: " + unitName + " can: " +can + " error: " + getError());
+		if(test&&out==null) System.out.print("conc: " + conc + " armor: " + armor + " speed: " + speed + " cargo: " + cargo + " weap1: " + weap1  + " weap2: " + weap2 + " type: " + type + " graphicNum: " + graphicNum + " unitName: " + unitName + " can: " + can + " error: " + getError());
+
 		return true;
 	}
 	/**
