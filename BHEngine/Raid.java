@@ -303,9 +303,10 @@ public class Raid {
 		      }
 		      
 		      	raidID=(ridstuff.getInt(1));
+		     
 				//town1.attackServer.add(this); // <---- THIS NEEDS TO BE RETURNED TO NORMAL IF YOU GO BACK TO MEMORYLOADING!
 		//	      System.out.println("I put on " +raidID);
-			      	town1.attackServer().add(this);
+			      	town1.attackServer().add(this); // even if this error happens, raid still works...
 
 		      ridstuff.close();
 		      

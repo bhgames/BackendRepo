@@ -1472,9 +1472,7 @@ public class BattlehardFunctions {
 		// Right, so, making this shit work.
 
 		// okay now make the unit template!
-		System.out.println("Here?");
-		if(!canCreateUnitTemplate(unitName,tierNumber,concealment,armor,cargo,speed,weaponsArray,graphicNum)) {
-			System.out.println("Here2?");
+		if(canCreateUnitTemplate(unitName,tierNumber,concealment,armor,cargo,speed,weaponsArray,graphicNum)) {
 		ArrayList<AttackUnit> au=p.getAUTemplates();
 		boolean found=false;
 		AttackUnit a=null;
@@ -5974,11 +5972,13 @@ public long[] returnPrice(int lotNum, int tid) {
 						 digAmt=t.getDigAmt();
 						 t.resetDig(0,0,false);// because the second you set dig counter
 						 // to -1, the town becomes inactive!
-						 System.out.println("t's owed ticks are " + t.owedTicks + " and t is " +t.getTownName());
+					//	 System.out.println("t's owed ticks are " + t.owedTicks + " and t is " +t.getTownName());
 					 }
-					
+					 holdAttack=null;
+					try {
 						 holdAttack = new Raid(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2)), ticksToHit, myTown,t, false, false,0,false,"noname",false,au,digAmt);
-						// myTown needs to be town1 because this is going to be the ghost destinator town - where the raid
+					} catch(Exception exc) { exc.printStackTrace(); System.out.println("Error happened with recall but we caught it."); }
+						 // myTown needs to be town1 because this is going to be the ghost destinator town - where the raid
 						// will "believe" this return raid came from.
 						g=0;
 						while(g<au.size()) {
@@ -9577,13 +9577,13 @@ public long[] returnPrice(int lotNum, int tid) {
 		    		currSR.add(new UserSR(currSID,rs.getString(4),rs.getString(5),rs.getString(6),rs.getString(7),rs.getString(8),
 		    				rs.getString(9),rs.getString(38),rs.getString(39),rs.getBoolean(10),rs.getBoolean(11),bombResultBldg,rs.getString(14),bname,defender,rs.getInt(18),rs.getInt(19),
 		    				rs.getInt(20),rs.getInt(21),rs.getInt(22),rs.getBoolean(23),rs.getBoolean(24),rs.getInt(25),rs.getBoolean(26),rs.getString(28),rs.getString(29),rs.getString(30),rs.getInt(31),rs.getBoolean(32),rs.getBoolean(33),rs.getInt(34),rs.getInt(35),rs.getInt(36),rs.getInt(37),rs.getString(40),
-		    				rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49)));
+		    				rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49),rs.getString(50)));
 		    		else { 
 		    			bname = new String[1]; bname[0]= "null";
 		    			UserSR SR = new UserSR(currSID,rs.getString(4),rs.getString(5),"","",rs.getString(8),"",rs.getString(38),rs.getString(39),
 			    				false,rs.getBoolean(11),"null","null",bname,defender,rs.getInt(18),rs.getInt(19),
 			    				rs.getInt(20),rs.getInt(21),rs.getInt(22),rs.getBoolean(23),rs.getBoolean(24),rs.getInt(25),rs.getBoolean(26),rs.getString(28),rs.getString(29),rs.getString(30),rs.getInt(31),rs.getBoolean(32),rs.getBoolean(33),rs.getInt(34),rs.getInt(35),rs.getInt(36),rs.getInt(37),rs.getString(40)
-			    				,rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49));
+			    				,rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49),rs.getString(50));
 		    			currSR.add(SR);
 		    			SR.support=true;
 		    			
@@ -12429,7 +12429,7 @@ public long[] returnPrice(int lotNum, int tid) {
 
 				
 				String reward = g.returnPrizeName(idTown.getProbTimer(),idTown.getX(),idTown.getY(),false,null,-1,null);
-				reward = "soldier";
+				//reward = "zeppelin";
 				/*
 
 				 * Prize codes:
@@ -12497,11 +12497,11 @@ public long[] returnPrice(int lotNum, int tid) {
 					
 				}else if(reward.equals("tank")) {
 					sendYourself("Sir,\n We found a blueprint for an ancient tank unit! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
-					generateRandomAUTemplate(2,false,null);
+					generateRandomAUTemplate(2,true,null);
 					
 				}else if(reward.equals("juggernaught")) {
 					sendYourself("Sir,\n We found a blueprint for an ancient juggernaught unit! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
-					generateRandomAUTemplate(3,false,null);
+					generateRandomAUTemplate(3,true,null);
 					
 				}
 				else if(reward.equals("civvietech")) {
@@ -12510,7 +12510,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					sendYourself("Sir,\n We found a piece of ancient [" + tech[0] + "]! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					
 				}else if(reward.equals("militech")) {
-					String tech[] ={ getRandomCivvieTech()};
+					String tech[] ={ getRandomMiliTech()};
 					completeResearches(tech,true);
 					sendYourself("Sir,\n We found a piece of ancient [" + tech[0] + "]! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					
@@ -12535,19 +12535,46 @@ public long[] returnPrice(int lotNum, int tid) {
 					sendYourself("Sir,\n We found the diagrams for a [" + tech[0] + "]! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					
 				} else if(reward.equals("silo")) {
-					String tech[] ={ "townTech"};
-					if(canCompleteResearches(tech,true)) {
-						completeResearches(tech,true);
-						int j = 0;
+					String[] tech = {"lotTech"};
+					if(canCompleteResearches(tech,true)) completeResearches(tech,true);
+						int i=0; boolean foundBuildSite=false; Town t=null; int j = 0;
+						while(i<p.towns().size()) {
+							t = p.towns().get(i);
+							 j =0;
+							while(j<GodGenerator.lotTechLimit) {
+								//	public boolean canBuild(String type, int lotNum, int tid) {
+
+								int k = 0; boolean lotTaken=false;
+								while(k<t.bldg().size()) {
+									if(t.bldg().get(k).getLotNum()==j) {
+										lotTaken=true;break;
+										
+									}
+									k++;
+								}
+								if(!lotTaken) {
+									foundBuildSite=true;
+									break;
+								}
+								j++;
+							}
+							if(foundBuildSite) break;
+							i++;
+						}
 						
-						//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
+						if(foundBuildSite) {
+							//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
 
-					} else {
-						tech[0]="missileSiloTech";
-						completeResearches(tech,true);
-						sendYourself("Sir,\n We found a tactical nuke hidden in the sands of time... Unfortunately, we were unable to find a place for it in your Empire. However, we WERE able to uncover the diagrams to make one. We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+							t.addBuilding("Missile Silo",j,1,0);
+							sendYourself("Sir,\n We found a tactical nuke hidden in the sands of time. We were able to salvage it and bring it back to " + t.getTownName() + "! We hope you use it wisely. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 
-					}
+						} else {
+				
+							tech[0]="missileSiloTech";
+							completeResearches(tech,true);
+							sendYourself("Sir,\n We found a tactical nuke hidden in the sands of time... Unfortunately, we were unable to find a place for it in your Empire. However, we WERE able to uncover the diagrams to make one. We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+
+						}
 					
 				}
 				else if(reward.equals("zeppelin")) {
@@ -12662,36 +12689,46 @@ public long[] returnPrice(int lotNum, int tid) {
 		 *Then for the weapons, just choose between 0 and 5 for soldier, 6 and 12 for tank, 13 and 18 for juggernaught. Choose random graphicNum between 0 and 10.
 		 *
 		 */
+		int mult=1;
+		switch(type) {
+		case 2:
+			mult=2;
+			break;
+		case 3:
+			mult = 4;
+			break;
+		}
 		double conc = 0; double armor = 0; double cargo = 0; double speed = 0; int i = 0;
-		while(conc>0&&armor>0&&speed>0&&cargo>0&&conc<30*type&&armor<30*type&&speed<30*type&&i<1000) {
+		while((conc>0||armor>0||speed>0||cargo>0||conc<30*mult||armor<30*mult||speed<30*mult)&&i<1000) {
 			
 			conc = Math.random()*100;
 			armor=Math.random()*100;
 			cargo = Math.random()*100;
 			speed=Math.random()*100;
 			double sum = conc+cargo+armor+speed;
-			double N = 200*type/sum;//N*Sum = 200, becomes our scaling factor.
+			double N = 200*mult/sum;//N*Sum = 200, becomes our scaling factor.
 			conc=(int) Math.round(((double) conc*N));
 			armor=(int) Math.round(((double) armor*N));
 			cargo=(int) Math.round(((double) cargo*N));
 			speed=(int) Math.round(((double) speed*N));
 			i++;
 			
-			
+		//	 System.out.print("conc: " + conc + " armor: " + armor + " speed: " + speed + " cargo: " + cargo + " sum: "+ (conc+armor+cargo+speed) );
 		}
 		
-		if(conc+armor+cargo+speed<200*type-1||conc+armor+cargo+speed>200*type+1) {
+		if(conc+armor+cargo+speed<200*mult-1||conc+armor+cargo+speed>200*mult+1) {
+
 			return false; // Clearly screwed up.
 		} else {
-			if(conc+armor+cargo+speed==200*type-1) speed++;
-			else if(conc+armor+speed+cargo==200*type+1) speed--;
+
+			if(conc+armor+cargo+speed==200*mult-1) speed++;
+			else if(conc+armor+speed+cargo==200*mult+1) speed--;
 		}
-		int weap1 = (int) Math.round(6*Math.random())-1;
-		weap1*=type;
-		if(weap1<0) weap1=0;
-		int weap2 =  (int) Math.round(6*Math.random())-1;
-		if(weap2<0) weap2=0;
-		weap2*=type;
+
+		int weap1 = (int) Math.round(6*Math.random())-1+(type-1)*6;
+		if(weap1<(type-1)*6) weap1=(type-1)*6;
+		int weap2 =  (int) Math.round(6*Math.random())-1+(type-1)*6;
+		if(weap2<(type-1)*6) weap2=(type-1)*6;
 		int weap[] = {weap1,weap2};
 		int graphicNum =  (int) Math.round(9*Math.random());
 		
@@ -12742,8 +12779,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		if(postfix<0) postfix=0;
 		String unitName = unitPrefixCombos[prefix]+" " + unitPostfixCombos[postfix];
 		//					createUnitTemplate("Shock Trooper",1,75,25,50,50,weap,0);
-
-		boolean can = createUnitTemplate(unitName,type,(int) conc,(int) armor,(int) cargo,(int) speed,weap,graphicNum,false);
+		boolean can = createUnitTemplate(unitName,type,(int) conc,(int) armor,(int) cargo,(int) speed,weap,graphicNum);
 		String error = "none";
 		if(!can) error = getError();
 		if(test&&out!=null) out.print("conc: " + conc + " armor: " + armor + " speed: " + speed + " cargo: " + cargo + " weap1: " + weap1  + " weap2: " + weap2 + " type: " + type + " graphicNum: " + graphicNum + " unitName: " + unitName + " can: " +can + " error: " + getError());

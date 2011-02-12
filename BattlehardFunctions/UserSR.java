@@ -22,14 +22,14 @@ public class UserSR {
 	private String zeppText;
 	private boolean nukeSucc;
 	private boolean nuke;
-	private boolean debris,offdig,defdig;
+	private boolean debris,offdig,defdig; private String digMessage;
 	String defNames, offNames, offst, offfi, defst, deffi, townOff,townDef,bombResultBldg[],bombResultPpl[]; public int sid; public boolean genocide=false; public boolean archived=false;
 public int lotNum[];public int oldlvl[]; public String btype[]; public boolean defender = false;public int scout;public int resupplyID=-1;
 public int bp; public boolean premium;
 	public int ppllost=0; public boolean support = false;public int m,t,mm,f; public boolean invade=false;public boolean invsucc=false;
 	public UserSR(int sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, String bombResultBldgText, String bombResultPplText, String btype[], boolean defender,int m,int t,int mm, int f, int scout, boolean invade, boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
-			,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig) {
-		this.defNames = defNames; this.offNames=offNames; this.offst=offst; this.offfi = offfi;this.read=read;
+			,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage) {
+		this.defNames = defNames; this.offNames=offNames; this.offst=offst; this.offfi = offfi;this.read=read;this.digMessage=digMessage;
 		this.defst = defst; this.deffi = deffi; this.townOff = townOff; this.townDef = townDef;
 		this.setOffdig(offdig); this.setDefdig(defdig);
 		this.nuke=nuke;
@@ -1262,6 +1262,12 @@ public int bp; public boolean premium;
 	}
 	public boolean isDefdig() {
 		return defdig;
+	}
+	public void setDigMessage(String digMessage) {
+		this.digMessage = digMessage;
+	}
+	public String getDigMessage() {
+		return digMessage;
 	}
 
 }

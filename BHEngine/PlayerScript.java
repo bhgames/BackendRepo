@@ -1375,6 +1375,12 @@ public class PlayerScript implements Runnable {
     			 .value(s.getDx())
     			 .key("dy")
     			 .value(s.getDy())
+    			 .key("offdig")
+    			 .value(s.isOffdig())
+    			 .key("defdig")
+    			 .value(s.isDefdig())
+    			 .key("digMessage")
+    			 .value(s.getDigMessage())
     			 .key("Report");
     			 if(s.scout>0)
     			 str.value(s.getRaidString());
