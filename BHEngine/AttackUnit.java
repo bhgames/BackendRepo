@@ -266,7 +266,12 @@ public void resetUnit(String name, double conc, double armor, double cargo, doub
 	setUpWeapons();
 }
 	public AttackUnit(String name,  int lotNum, int weap[], String civType) {
-		setConcealment(setArmor(setSpeed(33))); setCargo(0); // setting up civvy values.
+		if(name.equals("Archaeologist"))
+		setConcealment(setArmor(setSpeed(66)));
+		else
+		setConcealment(setArmor(setSpeed(33))); 
+		
+		setCargo(0); // setting up civvy values.
 		setPopSize(civilianPop);
 		setExpmod(civilianExpMod);//expmod needs to be the same as soldiers.
 		// if it's zero, no damage doled out.

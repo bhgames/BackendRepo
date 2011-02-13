@@ -23,6 +23,8 @@ public class Town {
 	 private GodGenerator God; private UberConnection con;
 	 private ArrayList<AttackUnit> au;
 	 private ArrayList<Building> bldg;
+	 private int probTimer,findTime,digCounter;
+	 private int digAmt;
 	 private long res[], debris[];
 	 private double resEffects[],resBuff[];
 	 private Player p;
@@ -36,6 +38,8 @@ public class Town {
 	 private int destX,destY;
 	 private int fuelCells;
 	 private int ticksTillMove;
+	 private boolean msgSent;
+	 private int digTownID;
 	 public static int zeppelinTicksPerMove= (int) Math.round(((double) Math.sqrt(1)*10/(500*GodGenerator.speedadjust))/GodGenerator.gameClockFactor);
 	 public static int ticksPerFuelPointBase =(int) Math.round((3600.0*24.0/((double) GodGenerator.gameClockFactor*10)));
 	 public static int daysOfStoragePerAirshipPlatform = 4;
@@ -177,11 +181,15 @@ public class Town {
 				getAu();
 				bldg();
 		}
-
+		probTimer = getMemInt("probTimer");
+		findTime = getMemInt("findTime");
+		digCounter=getMemInt("digCounter");
 		zeppelin = getMemBoolean("zeppelin");
 		debris = getMemDebris();
+		msgSent = getMemBoolean("msgSent");
+		digTownID = getMemInt("digTownID");
 		owedTicks = getMemInt("owedTicks");
-
+		digAmt = getMemInt("digAmt");
 		if(isZeppelin()) {
 		destX = getMemInt("destX");
 		destY = getMemInt("destY");
@@ -213,6 +221,14 @@ public class Town {
 		getAu();bldg();
 		x = getMemX();
 		y = getMemY();
+		digTownID = getMemInt("digTownID");
+		digAmt = getMemInt("digAmt");
+		msgSent = getMemBoolean("msgSent");
+
+
+		probTimer = getMemInt("probTimer");
+		findTime = getMemInt("findTime");
+		digCounter=getMemInt("digCounter");
 		owedTicks = getMemInt("owedTicks");
 		debris = getMemDebris();
 		zeppelin = getMemBoolean("zeppelin");
@@ -1243,13 +1259,150 @@ public class Town {
 			 if(isZeppelin()&&(getX()!=getDestX()||getY()!=getDestY())) return true;
 			 // if this zeppelin is moving, then stuff is "out".
 			if(getPlayer().getPs().b.isAlive()) return true; // program running means the player keeps cycling.
-
+			if(getDigCounter()>=0) return true; 
 			return false;
 		}
+	 
+	 public String getDigMessage() {
+		 
+		 double r =  Math.random();
+		 String messages[] = {
+				 "Sir,\n We've found something. It's some sort of chamber we picked up with our ground radar. It appears to be square in shape, and we think we can reach it. However, doing so will destroy our ability to dig any further on this site. We'd have to start over again. It's up to you. If you want us to leave it alone, we'll return from our dig.",
+				 "Sir,\n We found a door in a passageway we had excavated. We can't open it by hand, we'll need to use explosives. However, if we do, while we'll know what is behind the door, we'll destroy the dig site and we'd have to start over again to discover anything else. Let us know what you wish us to do. If you wish us to leave it be, we'll head on back now.",
+				 "Sir,\n While we were exploring an underground cavern, one of our men tapped a stalagtite and found that it was hollow, a fake. It's some kind of switch. We've deduced that if we pull it, it will open up a hidden passage way on the far side, but will cause an explosion that collapses most of the cavern after about five minutes. If you don't want us to risk it, we'll leave for now." + 
+				 " We think we can get in there and grab whatever there is to grab, but we'd have to start digging again to go further at this site. It's your decision. If you don't want us to try it, we'll head home."
+				 
+		 };
+		 
+		 int i = 0;
+		 while(i<messages.length) {
+			 messages[i]+= "\n-The Dig Team at " + getTownName();
+			 i++;
+		 }
+		 int theI = (int) Math.round(Math.random()*messages.length-1);
+		 if(theI<0) theI=0;
+		 return messages[theI];
+	 }
+	 public String getDigSmackTalk() {
+		 
+		 double r =  Math.random();
+		 String messages[] = {
+				 "Sir,\n We did as you commanded and found a note. It seems it was from Id. It said: 'Stop digging with forks. It's more stupid than you are.-Id'", 
+				 "Sir,\n We did as you commanded and found a note. It seems it was from Id. It said: 'Get your hands off my junk!-Id'", 
+				 "Sir,\n We did as you commanded and found a note. It seems it was from Id. It said: 'I just passed gas in this room.-Id'", 
+				 "Sir,\n We did as you commanded and found a note. It seems it was from Id. It said: 'We used to store radioactive waste in here. Enjoy the Rads!-Id'", 
+				 "Sir,\n We did as you commanded and found a note. It seems it was from Id. It said: 'Now that we've gotten to know each other, how about dinner?-Id'", 
+
+
+
+				 
+		 };
+		 
+		 int i = 0;
+		 while(i<messages.length) {
+			 messages[i]+= "\nWe'll be returning home now. \n-The Dig Team at " + getTownName();
+			 i++;
+		 }
+		 int theI = (int) Math.round(Math.random()*messages.length-1);
+		 if(theI<0) theI=0;
+		 return messages[theI];
+	 }
+	 public void resetDig(int newTownID, int digAmt, boolean findTime) {
+		 update();
+		 System.out.println("Resetting town ID to " + newTownID);
+		 if(newTownID==0)
+		 setDigCounter(-1); // making it go away.
+		 else setDigCounter(0);
+		 setDigTownID(newTownID); // making it, too, go away.
+		 setMsgSent(false);
+		 if(!findTime)
+		 setFindTime(-1);
+		 else
+			 setFindTime((int) Math.floor(Math.random()*24*3600/GodGenerator.gameClockFactor));
+		 setDigAmt(digAmt);
+		 save(); // the second dig counter is false, this thing won't save anymore!
+	 }
 	 public void iterate(int num) {
-	
+		 if(getDigCounter()>=0) {
+			
+			 setDigCounter(getDigCounter()+num);
+			
+			 //5. In iterate, if dig timer is >=0, it goes up, and so does probability. If dig timer is <0, probability goes down towards 0.
+		//	 When the random message send time hits, send the message, and then return them manually when the counter goes down.
+			 // 
+
+			 if(getDigCounter()>=getFindTime()) {
+				 
+				 if(getDigCounter()>=getFindTime()+24*3600/GodGenerator.gameClockFactor) {
+					 //	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
+
+					String subject = "Dig Message From "+ getTownName();
+					int pid[] = {God.findTown(getDigTownID()).getPlayer().ID};
+					String body = "Sir,\n You did not respond in time to our message, and we ran out of supplies, so we headed home!\n -The Dig Team at " + getTownName();
+					String pid_to_s = PlayerScript.toJSONString(pid);
+
+				 try {
+						UberStatement stmt = getPlayer().con.createStatement();
+					stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid) values (\""
+							+ pid_to_s +"\"," + pid[0] +",\"" +body+"\",\""+subject+"\","+6+","+0+","+pid[0]+");" );
+					
+					stmt.close();
+				} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	
+				God.findTown(getDigTownID()).getPlayer().getPs().b.recall(townID,getPlayer().ID,getDigTownID());
+
+				 }
+				 
+				 if(!getMsgSent()) {
+					 // send the message.
+					 String body = getDigMessage();
+						String subject = "Dig Message From "+ getTownName();
+						int pid[] = {God.findTown(getDigTownID()).getPlayer().ID};
+						String pid_to_s = PlayerScript.toJSONString(pid);
+
+					 try {
+							UberStatement stmt = getPlayer().con.createStatement();
+						stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid) values (\""
+								+ pid_to_s +"\"," + pid[0] +",\"" +body+"\",\""+subject+"\","+6+","+0+","+pid[0]+");" );
+						
+						stmt.close();
+					} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	
+					setMsgSent(true);
+				 } 
+				 
+				 
+			 } else {
+				 setProbTimer(getProbTimer()+num); // probtimer only goes up when digcounter is less than find time,
+				 // otherwise the archaeologists are waiting at their hole for your call.
+			 }
+		 } else {
+			 // so if the dig counter is not on, then it goes down. 
+			 setProbTimer(getProbTimer()-num);
+			 if(getProbTimer()<0) setProbTimer(0);
+		 }
+		 
 	//	 if(townID==2958)
 			//System.out.println("Town's player is now " + getPlayer());
+		 doMyResources(num);
+		
+		auCheck();
+		checkForBadRaids();
+		GodGenerator.attackServerCheck(this,p); // NONE of these things would be iterating ANYTHING if this player had
+		// a num of iterations>1. Because that'd imply an update. And a player is never FROZEN if:
+		// 1. It's AI is on
+		// 2. It's got Raid, Trade, or Building building.
+		GodGenerator.tradeServerCheck(this,p); // Not this thing.
+		GodGenerator.buildingServerCheck(this); // Not this thing
+		nukeCheck(); // Not this thing, either.
+		try {
+		makeZeppelinFuel(num);
+		giveFuelToZeppelin(num);
+		checkZeppelinMovement(); // Not this thing...
+		} catch(Exception exc) { exc.printStackTrace(); System.out.println("Zeppelins saved."); }
+		
+		setInternalClock(getInternalClock() + num); // we only iterate after FINISHING THE SAVE!
+		if(getInternalClock()>God.gameClock) setInternalClock(God.gameClock); // means owedTicks stretches past the last server restart,
+	 }
+	 public void doMyResources(int num) {
 		 double[] resInc=getResInc();
 		 double[] resEffects=getResEffects();
 		 long[] resCaps=getResCaps();
@@ -1294,26 +1447,7 @@ public class Town {
 			j++;
 		}
 		}
-		
-		auCheck();
-		checkForBadRaids();
-		GodGenerator.attackServerCheck(this,p); // NONE of these things would be iterating ANYTHING if this player had
-		// a num of iterations>1. Because that'd imply an update. And a player is never FROZEN if:
-		// 1. It's AI is on
-		// 2. It's got Raid, Trade, or Building building.
-		GodGenerator.tradeServerCheck(this,p); // Not this thing.
-		GodGenerator.buildingServerCheck(this); // Not this thing
-		nukeCheck(); // Not this thing, either.
-		try {
-		makeZeppelinFuel(num);
-		giveFuelToZeppelin(num);
-		checkZeppelinMovement(); // Not this thing...
-		} catch(Exception exc) { exc.printStackTrace(); System.out.println("Zeppelins saved."); }
-		
-		setInternalClock(getInternalClock() + num); // we only iterate after FINISHING THE SAVE!
-		if(getInternalClock()>God.gameClock) setInternalClock(God.gameClock); // means owedTicks stretches past the last server restart,
 	 }
-	 
 	 synchronized public void save() {
 		 // for towns we save AU and then it's stats, then we call the save method of attached objects.
 		 // raidSupportAU are deleted when a raid returns.
@@ -1344,13 +1478,13 @@ public class Town {
 	    	  
     	  }
     	  ArrayList<AttackUnit> au = getAu();
-    	   
     	  String update = "update town set townName = '" + townName + "', x = " + x + ", y = " + y + 
 	    	  ", m = " + getRes()[0] + ", t = " + getRes()[1] + ", mm = " + getRes()[2] + ", f = " + getRes()[3] + ", pop = " + getRes()[4] +
 	    	   ", au1 = " +
 	    	  au.get(0).getSize() + ", au2 = " +  au.get(1).getSize() + ", au3 = " +  au.get(2).getSize() + ", au4 = " +  au.get(3).getSize() +
 	    	  ", au5 = " + au.get(4).getSize() + ", au6 =" +  au.get(5).getSize() +", owedTicks = " + owedTicks+", zeppelin = " + zeppelin + ",  fuelcells = " + fuelCells + 
-	    	  ", ticksTillMove = " + ticksTillMove + ", destX = " + destX +", destY = " + destY + ", debm = " + getDebris()[0] + ", debt = " + getDebris()[1] + ", debmm = " + getDebris()[2] + ", debf = " + getDebris()[3] +" where tid = " + townID + ";";
+	    	  ", ticksTillMove = " + ticksTillMove +", digTownID = " + digTownID +", msgSent = " +msgSent + ", digAmt = " + digAmt+  ", destX = " + destX +", destY = " + destY + ", probTimer =  " + probTimer + ", findTime = " + findTime + ", digCounter = " + digCounter 
+	    	  +", debm = " + getDebris()[0] + ", debt = " + getDebris()[1] + ", debmm = " + getDebris()[2] + ", debf = " + getDebris()[3] +" where tid = " + townID + ";";
 	    	  stmt.executeUpdate(update);
 	    	  
 	    	  stmt.close();
@@ -2105,7 +2239,7 @@ public class Town {
 
 					lowSpeed/=totalsize;
 					int testhold = (int) Math.round(Math.sqrt(Math.pow((x-closestTown.getX()),2)+Math.pow((y-closestTown.getY()),2))*10/(lowSpeed*GodGenerator.speedadjust));
-					retAURaid = new Raid(distance,testhold,closestTown,this,false,false,0,false,"Run Away!",false,retAU);
+					retAURaid = new Raid(distance,testhold,closestTown,this,false,false,0,false,"Run Away!",false,retAU,0);
 					retAURaid.setRaidOver(true); // so now it's a "return raid" on the server with full
 					i = 0;
 					while(i<6) {
@@ -3448,6 +3582,53 @@ public class Town {
 
 	public long[] getDebris() {
 		return debris;
+	}
+
+	public void setProbTimer(int probTimer) {
+		this.probTimer = probTimer;
+	}
+
+	public int getProbTimer() {
+		return probTimer;
+	}
+
+	public void setFindTime(int findTime) {
+		this.findTime = findTime;
+	}
+
+	public int getFindTime() {
+		return findTime;
+	}
+
+	public void setDigCounter(int digCounter) {
+		this.digCounter = digCounter;
+	}
+
+	public int getDigCounter() {
+		return digCounter;
+	}
+
+	public void setDigTownID(int digTownID) {
+		this.digTownID = digTownID;
+	}
+
+	public int getDigTownID() {
+		return digTownID;
+	}
+
+	public void setDigAmt(int digAmt) {
+		this.digAmt = digAmt;
+	}
+
+	public int getDigAmt() {
+		return digAmt;
+	}
+	public void setMsgSent(boolean msgSent) {
+		this.msgSent = msgSent;
+	}
+
+	public boolean getMsgSent() {
+		return msgSent;
 	}
 }
 

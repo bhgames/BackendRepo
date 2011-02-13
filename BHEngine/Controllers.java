@@ -104,6 +104,8 @@ public class Controllers {
 		        .value((Boolean) r.get("aiActive"))
 		        .key("capital")
 		        .value((Boolean) r.get("capital"))
+		        .key("dig")
+		        .value((Boolean) r.get("dig"))
 		        .endObject();
 					x++;
 			}
@@ -1633,7 +1635,25 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			retry(out);
 			return false;
 	}
-	 
+	public boolean returnPrizeName(HttpServletRequest req, PrintWriter out) {
+		if(!session(req,out,true)) return false;
+		Player p;
+
+		// must be a player request.
+	
+			 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+
+			if(p.getSupportstaff()) {
+				//	public String returnPrizeName(int probTick, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
+				g.returnPrizeName(Integer.parseInt(req.getParameter("probTick")),Integer.parseInt(req.getParameter("x")),(Integer.parseInt(req.getParameter("y"))),true,out,(Double.parseDouble(req.getParameter("presetRand"))),(String) req.getParameter("presetTile"));
+				return true;
+				
+			}
+			
+		
+		retry(out); return false;
+	
+	}
 	public boolean forgotPass(HttpServletRequest req, PrintWriter out) {
 		try {
 			HttpSession session = req.getSession(true);
@@ -1959,6 +1979,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 				
 				if(g.accounts.get(UN)!=null) out.print(":username exists!;");
 				
+				if(UN.contains(" ")||UN.contains(";")) out.print(":username cannot have spaces or semicolons!");
 				// now we create the player.
 				//g.destroyCode(code);
 				if(email==null) email = "nolinkedemail";

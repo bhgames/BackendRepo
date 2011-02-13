@@ -36,7 +36,7 @@ public class Player  {
 	public Timestamp last_login;
 	private long fuid;
 	public String flicker="noflick";
-	private boolean attackAPI, advancedAttackAPI, tradingAPI,advancedTradingAPI,smAPI,researchAPI,buildingAPI,advancedBuildingAPI,messagingAPI,zeppelinAPI,completeAnalyticAPI,nukeAPI,worldMapAPI;
+	private boolean attackAPI, advancedAttackAPI, tradingAPI,advancedTradingAPI,smAPI,researchAPI,buildingAPI,advancedBuildingAPI,messagingAPI,zeppelinAPI,completeAnalyticAPI,nukeAPI,worldMapAPI,digAPI;
 	private int premiumTimer=0;
 	private int revTimer=0;
 	private int tPushes=0;
@@ -95,6 +95,7 @@ public class Player  {
 	       owedTicks = rs.getInt(82);
 	       version = rs.getString(81);
 	       fuid = rs.getLong(57);
+	       digAPI = rs.getBoolean(86);
 	       knowledge = rs.getInt(4);
 	       flicker = rs.getString(58);
 	       last_login=rs.getTimestamp(41);
@@ -667,6 +668,8 @@ public class Player  {
 	       last_auto_blast = rs.getInt(59);
 	       fuid = rs.getLong(57);
 	       flicker = rs.getString(58);
+	       digAPI = rs.getBoolean(86);
+
 	       tPushes = rs.getInt(60);
 	       version = rs.getString(81);
 	       owedTicks = rs.getInt(82);
@@ -1085,7 +1088,7 @@ public class Player  {
 	    		   +", revTimer = " + revTimer +", totalBPEarned = " + totalBPEarned +", flicker = '" + flicker + "', fuid = " + fuid + ", totalTimePlayed = " + totalTimePlayed + ", numLogins = " + numLogins + ", last_login = '" + (last_login).toString() + "', last_session = '" + (last_session).toString() 
 	    		   	+"', last_auto_blast =" + last_auto_blast + ",tPushes = "+tPushes+", zeppTech = " + zeppTech + ", recycTech = " + recyclingTech + ", nukeTech = " + missileSiloTech + ", metalRefTech = " + metalRefTech
 	    		   	+ ", timberRefTech = " + timberRefTech + ", manMatRefTech = " + manMatRefTech + ", foodRefTech = " + foodRefTech +", attackAPI = " + attackAPI +
-	    		   	", advancedAttackAPI = " + advancedAttackAPI + ", tradingAPI = " + tradingAPI + ", advancedTradingAPI = " + advancedTradingAPI + ", smAPI = " + smAPI + ", researchAPI = " + researchAPI + 
+	    		   	", advancedAttackAPI = " + advancedAttackAPI+", digAPI = " + digAPI + ", tradingAPI = " + tradingAPI + ", advancedTradingAPI = " + advancedTradingAPI + ", smAPI = " + smAPI + ", researchAPI = " + researchAPI + 
 	    		   	", buildingAPI = " + buildingAPI + ", advancedBuildingAPI = " + advancedBuildingAPI + ", messagingAPI = " + messagingAPI + ", zeppelinAPI = " + zeppelinAPI + 
 	    		   	", completeAnalyticAPI = " + completeAnalyticAPI +", version = '" + version + "', nukeAPI = " + nukeAPI +", worldMapAPI = " + worldMapAPI +", owedTicks = " + owedTicks+ ", email ='"+ email +"', pushLog = \"" + pushLog + "\", password = '" + password +  "' where pid = " + ID + ";";
 	      stmt.executeUpdate(updatePlayer);
@@ -2684,6 +2687,16 @@ public class Player  {
 
 	public boolean isBeingDeleted() {
 		return beingDeleted;
+	}
+
+
+	public void setdigAPI(boolean digAPI) {
+		this.digAPI = digAPI;
+	}
+
+
+	public boolean isdigAPI() {
+		return digAPI;
 	}
 }
 

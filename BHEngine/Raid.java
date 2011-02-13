@@ -20,7 +20,7 @@ public class Raid {
 	private ArrayList<AttackUnit> au;
 	private double distance; private int resupplyID=-1; // for resupply runs.
 	private int ticksToHit; private Town town2; private Town town1; private boolean raidOver;
-	private boolean debris;
+	private boolean debris; private int digAmt;
 	UberConnection con; public int raidID;
 	public void makeScoutRun() {
 		setScout(1);
@@ -79,23 +79,24 @@ public class Raid {
 	}
 	
 	public void setRaidValues(int raidID, double distance, int ticksToHit, Town town1, Town town2, boolean Genocide,boolean allClear,
-			int metal, int timber, int manmat, int food,boolean raidOver, boolean Bomb, boolean invade, int totalTicks,String name,int genoRounds, boolean debris) {
+			int metal, int timber, int manmat, int food,boolean raidOver, boolean Bomb, boolean invade, int totalTicks,String name,int genoRounds, boolean debris, int digAmt) {
 
 					this.distance=distance; this.ticksToHit=ticksToHit; this.town1=town1;
 					this.town2=town2; this.Genocide=Genocide; this.allClear=allClear;
 					this.metal=metal;this.timber=timber;this.manmat=manmat;this.food=food;
 					this.setDebris(debris);
 					this.raidOver=raidOver;this.Bomb=Bomb;this.invade=invade;
-					this.totalTicks=totalTicks;this.name=name;this.genoRounds=genoRounds;
+					this.totalTicks=totalTicks;this.name=name;this.genoRounds=genoRounds; this.digAmt=digAmt;
 		}
 	public Raid(int raidID, double distance, int ticksToHit, Town town1, Town town2, boolean Genocide,boolean allClear,
-			int metal, int timber, int manmat, int food,boolean raidOver,ArrayList<AttackUnit> au, boolean Bomb, boolean invade, int totalTicks,String name,int genoRounds,boolean debris) {
+			int metal, int timber, int manmat, int food,boolean raidOver,ArrayList<AttackUnit> au, boolean Bomb, boolean invade, int totalTicks,String name,int genoRounds,boolean debris, int digAmt) {
 		// This constructor does not use the support integer because it is rarely used compared to other things
 		// and so to save space that is exported as an extra usable method. It is only necessary
 		// when creating raids.
 		// this constructor is for when a raid is being loaded into memory.
 	
 		if(distance==0) distance=1;
+		this.digAmt=digAmt;
 		this.setDebris(debris);
 		this.distance=distance; this.ticksToHit=ticksToHit; this.town1=town1;
 		this.town2=town2; this.Genocide=Genocide; this.allClear=allClear;
@@ -122,9 +123,9 @@ public class Raid {
 		   
 		      
 		      
-		      stmt.executeUpdate("insert into raid (tid1, tid2, distance, ticksToHit, genocide, raidOver,allClear,m,t,mm,f,totalTicks,Bomb,invade,name,genoRounds) values (" +
+		      stmt.executeUpdate("insert into raid (tid1, tid2, distance, ticksToHit, genocide, raidOver,allClear,m,t,mm,f,totalTicks,Bomb,invade,name,genoRounds,digAmt) values (" +
 		    		  town1.townID + "," + town2.townID + "," + distance + "," + ticksToHit + "," + Genocide + "," + false + "," + 
-		    		  false + "," + 0+ "," +0 + "," + 0 + "," +0 + "," + ticksToHit+"," + Bomb + "," + invade + ",\"" + name +  "\"," + genoRounds + ");");
+		    		  false + "," + 0+ "," +0 + "," + 0 + "," +0 + "," + ticksToHit+"," + Bomb + "," + invade + ",\"" + name +  "\"," + genoRounds +","+digAmt+ ");");
 		      stmt.execute("commit;");
 		      
 			     Thread.currentThread().sleep(10);
@@ -209,7 +210,7 @@ public class Raid {
 			int y = 0;
 		
 			 setRaidValues(rrs.getInt(3),rrs.getDouble(4),rrs.getInt(5),town1,town2Obj,rrs.getBoolean(6),
-					rrs.getBoolean(8), rrs.getInt(9),rrs.getInt(10),rrs.getInt(11),rrs.getInt(12),rrs.getBoolean(7), rrs.getBoolean(19),rrs.getBoolean(23),rrs.getInt(25),rrs.getString(26),rrs.getInt(27),rrs.getBoolean(28)); // this one has no sql addition!
+					rrs.getBoolean(8), rrs.getInt(9),rrs.getInt(10),rrs.getInt(11),rrs.getInt(12),rrs.getBoolean(7), rrs.getBoolean(19),rrs.getBoolean(23),rrs.getInt(25),rrs.getString(26),rrs.getInt(27),rrs.getBoolean(28),rrs.getInt(29)); // this one has no sql addition!
 			getAu();
 					
 			if(rrs.getBoolean(19)) bombTarget=rrs.getInt(20);
@@ -231,12 +232,13 @@ public class Raid {
 		this.totalTicks=getMemTotalTicks();this.name=getMemName();this.genoRounds=getMemGenoRounds();*/
 		// we set nothing else!
 	}
-	public Raid(double distance, int ticksToHit, Town town1, Town town2, boolean Genocide, boolean Bomb, int support,boolean invade, String name, boolean debris,ArrayList<AttackUnit> au) {
+	public Raid(double distance, int ticksToHit, Town town1, Town town2, boolean Genocide, boolean Bomb, int support,boolean invade, String name, boolean debris,ArrayList<AttackUnit> au,int digAmt) {
 		// Can't do an infinite number of arguments here so need to add manually.
 		// holds distance and ticksToHit in this object.
 		this.setInvade(invade);
 		this.setSupport(support);
 		this.setDebris(debris);
+		this.digAmt=digAmt;
 		this.setName(name);
 		this.au = au;
 		this.setDistance(distance); this.setTicksToHit(ticksToHit);
@@ -269,9 +271,9 @@ public class Raid {
 		      
 		      // let's add this raid and therefore get the rid out of it.
 		      
-		      stmt.executeUpdate("insert into raid (tid1, tid2, distance, ticksToHit, genocide, raidOver,allClear,m,t,mm,f,totalTicks,Bomb,support,invade,name,debris) values (" +
+		      stmt.executeUpdate("insert into raid (tid1, tid2, distance, ticksToHit, genocide, raidOver,allClear,m,t,mm,f,totalTicks,Bomb,support,invade,name,debris,digAmt) values (" +
 		    		  town1.townID + "," + town2.townID + "," + distance + "," + ticksToHit + "," + Genocide + "," + false + "," + 
-		    		  false + "," + 0+ "," +0 + "," + 0 + "," +0 + "," + ticksToHit+"," + Bomb + "," + support + "," + invade + ",\"" + name +  "\","+debris+");");
+		    		  false + "," + 0+ "," +0 + "," + 0 + "," +0 + "," + ticksToHit+"," + Bomb + "," + support + "," + invade + ",\"" + name +  "\","+debris+","+digAmt+");");
 		      stmt.execute("commit;");
 		      
 			     Thread.currentThread().sleep(10);
@@ -301,9 +303,10 @@ public class Raid {
 		      }
 		      
 		      	raidID=(ridstuff.getInt(1));
+		     
 				//town1.attackServer.add(this); // <---- THIS NEEDS TO BE RETURNED TO NORMAL IF YOU GO BACK TO MEMORYLOADING!
 		//	      System.out.println("I put on " +raidID);
-			      	town1.attackServer().add(this);
+			      	town1.attackServer().add(this); // even if this error happens, raid still works...
 
 		      ridstuff.close();
 		      
@@ -900,6 +903,12 @@ public class Raid {
 	}
 	public boolean isDebris() {
 		return debris;
+	}
+	public void setDigAmt(int digAmt) {
+		this.digAmt = digAmt;
+	}
+	public int getDigAmt() {
+		return digAmt;
 	}
 	
 	
