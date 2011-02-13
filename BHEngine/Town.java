@@ -1308,7 +1308,11 @@ public class Town {
 		 return messages[theI];
 	 }
 	 public void resetDig(int newTownID, int digAmt, boolean findTime) {
+		 update();
+		 System.out.println("Resetting town ID to " + newTownID);
+		 if(newTownID==0)
 		 setDigCounter(-1); // making it go away.
+		 else setDigCounter(0);
 		 setDigTownID(newTownID); // making it, too, go away.
 		 setMsgSent(false);
 		 if(!findTime)
@@ -1474,7 +1478,6 @@ public class Town {
 	    	  
     	  }
     	  ArrayList<AttackUnit> au = getAu();
-    	   
     	  String update = "update town set townName = '" + townName + "', x = " + x + ", y = " + y + 
 	    	  ", m = " + getRes()[0] + ", t = " + getRes()[1] + ", mm = " + getRes()[2] + ", f = " + getRes()[3] + ", pop = " + getRes()[4] +
 	    	   ", au1 = " +

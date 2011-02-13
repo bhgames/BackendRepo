@@ -314,7 +314,7 @@ public class BattlehardFunctions {
 			bldg = t1.bldg();
 			int y = 0; int aggregate=0;
 			while(y<bldg.size()) {
-				if(bldg.get(y).equals("Communications Center"))aggregate+=bldg.get(y).getLvl();
+				if(bldg.get(y).getType().equals("Communications Center"))aggregate+=bldg.get(y).getLvl();
 				y++;
 			}
 		/*	 rs = stmt.executeQuery("select sum(lvl) from bldg where tid = " + t1.townID + " and name = 'Communications Center';");
@@ -5970,6 +5970,8 @@ public long[] returnPrice(int lotNum, int tid) {
 					 	int digAmt=0;
 					 if(pidOfRecallTown==5&&t.getDigCounter()>0&&auAmts.length==1) {
 						 digAmt=t.getDigAmt();
+						 System.out.println("I am setting everything in " + t.getTownName());
+
 						 t.resetDig(0,0,false);// because the second you set dig counter
 						 // to -1, the town becomes inactive!
 					//	 System.out.println("t's owed ticks are " + t.owedTicks + " and t is " +t.getTownName());

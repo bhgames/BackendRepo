@@ -263,15 +263,15 @@ all the same things happen except the probability timer goes to zero. So, to sum
  11. Test that the timers work.---CHECK---
  12. Test that the findTime thing works with it.---CHECK---
  13. Test that at least one reward works with soldiers.---CHECK---
- 14. Try recalling it and seein ghow it goes.
- 15. Have it get attacked and survive - make sure SR looks fine, messages work out, etc.
- 16. Have it get attacked and not survive - from an attack. Do they all die?
- 17. Have it get attacked by a dig and not survive - does the other dig take it's place?
+ 14. Try recalling it and seein ghow it goes.---CHECK---
+ 15. Have it get attacked and survive - make sure SR looks fine, messages work out, etc.---CHECK---
+ 16. Have it get attacked and not survive - from an attack. Do they all die?---CHECK---
+ 17. Have it get attacked by a dig and not survive - does the other dig take it's place?---CHECK---
+ 18. Have it get attacked by a dig and survive.---CHECK---
  
  
  Fixing the scaling issue:
  
- 		// so if the player is older than 4 days, we don't take the risk of letting them lose all that progress
 		// if there is an accidental restart, they had logged in and done stuff in the fifteen minute time period since the last save,
 		// and not been saved. That'd SUCK! Though if they then refreshed, they'd be back to being updated. No difference.
 		// What if there is an unexpected server shutdown? the player loses a heck of a lot more...having not logged on.
@@ -4285,6 +4285,8 @@ recall the tanks.
 So your train of thought is:
 1. Find out what the insert intosupportAU statment looks like on supportLogicBlock, 
 2. and then figure out what exactly is getting passed by Markus on recall.
+3. POSSIBLY BEFORE ANY FURTHER TESTING, SEND THE RAID BY HAND INSTEAD OF USING YOUR MODDED VERSION.
+YOUR MODDED VERSION MAY HAVE CHANGED IMPORTANT VARIABLES!
 
 http://www.javabeginner.com/
 
@@ -6579,7 +6581,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		double Sd = (1+.05*t2p.getStealth())*avgAcc+1;
 		double CSL = t2p.getPs().b.getCSL(t2.townID);
 		double SSL = CSL/t2p.towns().size();
-		CSL*=(((double) t2p.getStealthTech()+1.0)/20.0);
+		CSL*=(1-((double) t2p.getStealthTech()+1.0)/20.0);
 		if(CSL<=0) CSL=1;
 		SSL*=(1-((double) t1p.getScoutTech()+1.0)/20.0);
 		if(SSL<=0) SSL=1;
@@ -6949,45 +6951,48 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				}
 				
 				if(foundSome) {
-					// This means we must FIGHT!
-					if(combatLogicBlock(r,"There was somebody armed already digging here!")) {
-						// if true, we know that shit went down and we won!
-						// now we goto support logic block by returning true.
-						// the CLB returns the raid for us if shit went bad, or deletes it entirely.
-						// But if this returns true, then we need to catch this raid. It already
-						// set up the dig for us, no problemo. 
-						r.setRaidOver(false);
-						r.setTicksToHit(0);
-						supportLogicBlock(r);
-						return true;
-					}
-					else {
-						// combat logic block took care of the heavy lifting for us. We're goin home, boys!
-						return false;
-					}
+					combatLogicBlock(r,"There was somebody armed already digging here!");
+					
 				} else {
 					// This must be a civvie raid only. So we just use recall.
 					Town otherT = t2.getPlayer().God.findTown(t2.getDigTownID());
 					//	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
 
 					otherT.getPlayer().getPs().b.recall(t2.townID,t2.getPlayer().ID,otherT.townID);
-					String body = "Sir,\n We regret to inform you that we were pushed out of our dig site at " + t2.getTownName() + " by an armed group of diggers from " + r.getTown1().getPlayer().getUsername() + ". We're returning home now.\n -The Dig Team at " + t2.getTownName();
-					String subject = "Dig Message From "+ t2.getTownName();
-					int pid[] = {otherT.getPlayer().ID};
-					String pid_to_s = PlayerScript.toJSONString(pid);
-					stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid) values (\""
-							+ pid_to_s +"\"," + pid[0] +",\"" +body+"\",\""+subject+"\","+6+","+0+","+pid[0]+");" );
-					t2.resetDig(r.getTown1().townID,r.getDigAmt(),true);
-					supportLogicBlock(r);
 					
+						String unitStart=""; String unitNames="";String unitEnd="";
+						int k = 0;
+						Player t1p = r.getTown1().getPlayer();
+						Town t1 = r.getTown1();
+						while(k<r.getAu().size()) {
+							unitStart+=","+r.getAu().get(k).getSize();
+							unitNames+=","+r.getAu().get(k).getName();
+							unitEnd+=",0";
+
+							k++;
+						}
+						unitStart+=","+r.getDigAmt();
+						unitNames+=",Scholar";
+						unitEnd+=",0";
+
+						System.out.println("inserting.");
+						 stmt.execute("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,offdig,defdig) values" +
+						      		"(" +otherT.getPlayer().ID + ","+ t1.townID + "," + t2.townID + ",\"" + unitStart + "\",\"" + unitEnd + "\",\"" 
+						      		+ unitNames + "\","+r.getMetal() +"," + r.getTimber() + ","+r.getManmat() + "," + r.getFood() + ",'"+t1.getTownName()+"','"+t2.getTownName()+"','The defensive dig site was forcibly overtaken by an enemy dig party.',true,true);");
+						   
+						
+					
+					t2.resetDig(r.getTown1().townID,r.getDigAmt(),true);
+					supportLogicBlock(r,true);
 					
 				}
+				
 			} else {
 				t2.resetDig(r.getTown1().townID,r.getDigAmt(),true);
 				System.out.println("dig town id is " + t2.getDigTownID() + 
 				" and dig counter is " + t2.getDigCounter() + " and findTime is " + t2.getFindTime() + 
 				" and digAmt is " +t2.getDigAmt() + " and I am " + t2.townID + " and townName of  " +t2.getTownName());
-				supportLogicBlock(r);
+				supportLogicBlock(r,false);
 
 			}
 		}
@@ -6997,7 +7002,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		}
 		return true;
 	}
-	public static boolean supportLogicBlock(Raid actattack) {
+	public static boolean supportLogicBlock(Raid actattack, boolean suppressSR) {
 		// so if the raid isn't over but it is a support run of some sort, we need to offload
 		// these troops and send any back according to the support tech rules which are:
 		// level x means x slots and x*10 percent of total population of city per slot.
@@ -7377,13 +7382,15 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 					rs.close();
 					*/
 
-					stmt.execute("insert into supportAU (tid,ftid,fslotnum,slotnum,size,stype) values (" + 
-							t2.townID + "," + t1.townID + "," + newGuy.getOriginalSlot() + "," + (maxSlot+1)+ "," +
-							newGuy.getSize() + "," +  newGuy.getSupport()+ ");");
+					
 					newGuy.setSlot(maxSlot+1);
 					t2au.add(newGuy);
 				//	System.out.println("t1au " + y + " size is " + t1au.get(y).getSize());
 					maxMeter+=moveForeignSupportAUs(maxSize,actattack,t1au.get(y),newGuy,indexCount,originalTotalSize);
+					stmt.execute("insert into supportAU (tid,ftid,fslotnum,slotnum,size,stype) values (" + 
+							t2.townID + "," + t1.townID + "," + newGuy.getOriginalSlot() + "," + (maxSlot+1)+ "," +
+							newGuy.getSize() + "," +  newGuy.getSupport()+ ");"); // this used to be above setSlot there.
+					// changed it so it doesn't save to 0, even if the city it was added to doesn't!
 					supportUnitsGained+=","+(maxMeter-oldMaxMeter);
 					supportUnitsReturned+=","+(t1au.get(y).getSize());
 
@@ -7413,15 +7420,16 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		
 	
 
-		      
+		      // if it's an old town!
 		      // First things first. We update the player table.
 		      boolean offdig = false;
 		      if(actattack.getDigAmt()>0) offdig=true;
 		//      System.out.println("I am making a support report.");
+		      if(!suppressSR)
 		      stmt.execute("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,offTownName,defTownName,support,offdig) values" +
 		      		"(" +t1p.ID + ","+ t1.townID + "," + t2.townID + ",\"" + supportUnitsGained + "\",\"" + supportUnitsReturned + "\",\"" 
 		      		+ supportUnitNames + "\",'"+t1.getTownName()+"','"+t2.getTownName()+"',true,"+offdig+");");
-		      if(t2p.ID!=t1p.ID)
+		      if(t2p.ID!=t1p.ID&&!suppressSR)
 		      stmt.execute("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,offTownName,defTownName,support,offdig) values" +
 			      		"(" +t2p.ID+","+ t1.townID + "," + t2.townID + ",\"" + supportUnitsGained + "\",\"" + supportUnitsReturned + "\",\"" 
 			      		+ supportUnitNames + "\",'"+ t1.getTownName() + "','" + t2.getTownName() + "',true,"+ offdig+");");
@@ -8090,7 +8098,7 @@ public boolean checkForGenocides(Town t) {
 
 			int weap[] = new int[1];
 			weap[0]=t1p.getCivWeapChoice(); // These are the guys being attacked.
-			AttackUnit Civ = new AttackUnit("Civilian", -2,weap, "Institute");
+			AttackUnit Civ = new AttackUnit("Archaeologist", -2,weap, "Institute");
 			Civ.setName("Scholar");
 			Civ.setSize(actattack.getDigAmt());
 			t1au.add(Civ);
@@ -8101,7 +8109,7 @@ public boolean checkForGenocides(Town t) {
 			// THIS IS IF YOU'RE AT AN ID TOWN AND THERE IS A DIG THERE. THEN WE ADD THEIR UNITS TOO. GOD DAMNIT I HATE BOOKKEEPING.
 			int weap[] = new int[1];
 			weap[0]=(t2.getPlayer().God.findTown(t2.getDigTownID()).getPlayer()).getCivWeapChoice(); // These are the guys being attacked.
-			AttackUnit Civ = new AttackUnit("Civilian", -2,weap, "Institute");
+			AttackUnit Civ = new AttackUnit("Archaeologist", -2,weap, "Institute");
 			Civ.setName("Scholar");
 			Civ.setSize(t2.getDigAmt());
 			t2au.add(Civ);
@@ -8823,6 +8831,7 @@ public boolean checkForGenocides(Town t) {
 							}
 						if(holdUnit.getLotNum()==-2) { // -2 lotNum is special, means it's a dig scholar.
 							t2.setDigAmt(holdUnit.getSize());
+							
 							if(t2.getDigAmt()==0) {
 								digDefSucc = false; // Means the other guy did win the dig. No civvies left!
 							}
@@ -9445,11 +9454,12 @@ public boolean checkForGenocides(Town t) {
 				} 
 				
 					boolean toRet=true; String digMessage="none";
-					if(digOffSucc&&actattack.getDigAmt()>0&&digDefSucc) {
-						digMessage = "The offensive party took over the dig site!";
-
-						toRet=true; // do nothing.
-					} else if(digOffSucc&&!digDefSucc&&actattack.getDigAmt()>0){
+					System.out.println(digOffSucc+ "," + digDefSucc + "," + t2.getDigAmt());
+					if(digOffSucc&&t2.getDigAmt()>0&&digDefSucc) { // only needs to be a dig there for this message. digOffSucc is true for non-attacks as well, 
+						// we don't NOT check for it because then digDefSucc may set this if statement off and not one of the others.
+						digMessage = "The defensive party repelled the attackers!";
+						System.out.println("Fuck you all.");
+					} else if(digOffSucc&&!digDefSucc&&actattack.getDigAmt()>0){ // raid needs to be a dig for this to happen. This is the annihilation if - if defenders all dead, failed to defend and offenders arent.
 						t2.resetDig(actattack.getTown1().townID,actattack.getDigAmt(),true);
 
 					
@@ -9457,23 +9467,29 @@ public boolean checkForGenocides(Town t) {
 						actattack.setTicksToHit(0);
 						digMessage = "The offensive party took over the dig site!";
 
-						supportLogicBlock(actattack);
-						toRet=true; // do nothing.
-					} else if(!digOffSucc&&!digDefSucc&&actattack.getDigAmt()>0) {
+						supportLogicBlock(actattack,true);
+					} else if(!digOffSucc&&!digDefSucc) { // raid needs to be a dig for this to happen(digOffSucc can only be false if it is that way, same with digDefSucc). if both offenders and defenders got killed, then defenders return and so do offenders.
 						// clearly this dig must go home. and the attackers lost.
 						Town otherT = t2.getPlayer().God.findTown(t2.getDigTownID());
 						//	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
 
 						otherT.getPlayer().getPs().b.recall(t2.townID,t2.getPlayer().ID,otherT.townID);
-						digMessage = "The offensive party took over the dig site!";
+						digMessage = "The offensive party failed to take over the dig site, but managed to kill all of the defender's Scholars!";
 						
 						t2.resetDig(0,0,false);
-						actattack.setRaidOver(false);
-						actattack.setTicksToHit(0);
-						supportLogicBlock(actattack);
-					} else if(!digOffSucc&&digDefSucc&&actattack.getDigAmt()>0) {
-						digMessage = "The defensive party repelled the invaders!";
-						return false; // they lost, nothing to do.
+						
+					} else if(!digOffSucc&&digDefSucc&&t2.getDigAmt()>0) { // if the raid was a dig raid, and failed to ge through, and there was a dig here, which I guess would only happen if there
+						// had been one here to defend in the first place...so we don't need to check for it. But we do! What if we killed the dig incoming civvies!
+						digMessage = "The defensive party repelled the attackers!";
+					} else if(!digDefSucc&&t2.getDigAmt()==0) { //means there WAS a dig there and it was just squashed. But no other dig to replace it, this was an attack. digDefSucc will only be false if there was a dig, and if it's now 0, the dig Amt, we should do something.
+						Town otherT = t2.getPlayer().God.findTown(t2.getDigTownID());
+						//	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
+
+						otherT.getPlayer().getPs().b.recall(t2.townID,t2.getPlayer().ID,otherT.townID);
+						
+						t2.resetDig(0,0,false);
+						digMessage = "The offensive army destroyed the dig site.";
+
 					}
 	//	j++;
 	//} while(j<holdAttack.getAu().size());
@@ -9770,23 +9786,39 @@ public boolean checkForGenocides(Town t) {
 				if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&!holdAttack.raidType().equals("support")&&!holdAttack.raidType().equals("offsupport")&&!holdAttack.raidType().equals("scout")&&!holdAttack.raidType().equals("resupply")&&!holdAttack.raidType().equals("debris")&&!holdAttack.raidType().equals("dig")) { 
 					// support = 0 means not supporting run, and scout=0 means it's  not
 					// a scouting run.
+					if(r.getTown2().getDigCounter()>0) {
 					Town otherT = r.getTown2().getPlayer().God.findTown(r.getTown2().getDigTownID());
 					//	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
-
-					System.out.println("Recall: " + otherT.getPlayer().getPs().b.recall(r.getTown2().townID,r.getTown2().getPlayer().ID,otherT.townID));
-					String body = "Sir,\n We regret to inform you that we were pushed out of our dig site at " + r.getTown2().getTownName() + " by an army from " + r.getTown1().getPlayer().getUsername() + ". We're returning home now.\n -The Dig Team at " + r.getTown2().getTownName();
-					String subject = "Dig Message From "+ r.getTown2().getTownName();
-					int pid[] = {otherT.getPlayer().ID};
-					String pid_to_s = PlayerScript.toJSONString(pid);
-					try {
-					UberStatement stmt = r.getTown1().getPlayer().con.createStatement();
-					stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid) values (\""
-							+ pid_to_s +"\"," + pid[0] +",\"" +body+"\",\""+subject+"\","+6+","+0+","+pid[0]+");" );
+					int k = 6; int total=0;
+					while(k<r.getTown2().getAu().size()) {
+						total+=r.getTown2().getAu().get(k).getSize();
+						k++;
+					}
+					if(total==0) { 
+						otherT.getPlayer().getPs().b.recall(r.getTown2().townID,r.getTown2().getPlayer().ID,otherT.townID);
 					
+					try {
+						String unitStart=""; String unitNames="";String unitEnd="";
+						 k = 0;
+						Player t1p = r.getTown1().getPlayer();
+						UberStatement stmt = t1.getPlayer().con.createStatement();
+						Town t2 = r.getTown2();
+						while(k<r.getAu().size()) {
+							unitStart+=","+r.getAu().get(k).getSize();
+							unitNames+=","+r.getAu().get(k).getName();
+							unitEnd+=",0";
+
+							k++;
+						}
+						
+						 stmt.execute("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,offdig,defdig) values" +
+						      		"(" +otherT.getPlayer().ID + ","+ t1.townID + "," + t2.townID + ",\"" + unitStart + "\",\"" + unitEnd + "\",\"" 
+						      		+ unitNames + "\","+r.getMetal() +"," + r.getTimber() + ","+r.getManmat() + "," + r.getFood() + ",'"+t1.getTownName()+"','"+t2.getTownName()+"','The defensive dig site was forced out of their dig by an enemy attack.',false,true);");
+						   
 					stmt.close();
 					} catch(SQLException exc) {  exc.printStackTrace(); } 
-					r.getTown2().resetDig(r.getTown1().townID,r.getDigAmt(),true);
-					
+					r.getTown2().resetDig(r.getTown1().townID,r.getDigAmt(),true);}
+					}
 					combatLogicBlock(r,"");
 	
 				} else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&holdAttack.raidType().equals("resupply")) {
@@ -9798,7 +9830,7 @@ public boolean checkForGenocides(Town t) {
 				else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("support")||holdAttack.raidType().equals("offsupport"))) {
 					// this means it's a supporting run. Scout will always be 0 for this.
 					
-					supportLogicBlock(r);
+					supportLogicBlock(r,false);
 					
 				}else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("dig"))) {
 					// this means it's a supporting run. Scout will always be 0 for this.

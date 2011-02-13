@@ -406,7 +406,7 @@ public class Id extends Player {
 		while(i<towns().size()) {
 		//	if(towns().get(i).getTownName().equals("Town-11--1"))
 			//	System.out.println("My owedticks is " + towns().get(i).owedTicks);
-			if(towns().get(i).owedTicks==0) {
+			if(towns().get(i).owedTicks==0||(owedTicks>0&&(God.gameClock-towns().get(i).owedTicks)<God.saveWhenTicks)) {
 				
 				towns().get(i).save();
 			}
