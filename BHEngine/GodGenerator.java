@@ -4273,7 +4273,13 @@ be rich.
  */
 
 /* Journal:
-
+Version differences:
+original  - on the original questpath
+new - no select questpath
+-No 100Kp given at start
+-No soldier assignment.
+military
+civilian 
 What you were doing:
 
 Dump2 has a dig with support incoming to Town -11,-1. The problem is that support works in the same server sesh,
@@ -7106,6 +7112,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		y = 0;
 
 		AttackUnit a;
+		if(actattack.getSupport()==2)
 		while(y<t2au.size()) {
 			 a = t2au.get(y);
 			//System.out.println(a.name +"'s support is " + a.support);
@@ -7113,6 +7120,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				maxSize+=a.getSize()*a.getExpmod(); // so ten soldiers = 1 tank and 1 tank takes as much maxSize as 10 men.
 			y++;	
 		}
+		else maxSize=actattack.getTown2().getPlayer().getPs().b.getCSL(actattack.getTown2().townID);
 		y = 0;
 		Raid r; // we also check raids for AU! Thank You Markus -.-.
 		
@@ -7128,6 +7136,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		
 		ArrayList<Raid> raids = t2.attackServer();
 		ArrayList<AttackUnit> auset;
+		if(actattack.getSupport()==2)
 		while(y<raids.size()) {
 			r = raids.get(y);
 			auset = r.getAu();

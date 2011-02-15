@@ -824,6 +824,10 @@ public class BattlehardFunctions {
 				if(pid_to[j]==pid_to[k]&&k!=j) {
 					setError("No duplicate messages.");
 						return false;
+				} 
+				if(pid_to[j]==5) {
+					setError("No invites to Id.");
+					return false;
 				}
 				k++;
 			}
