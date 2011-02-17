@@ -26,7 +26,7 @@ public class AQ6 extends QuestListener {
 	@Override
 	public String getQuestDescription(int pid) {
 		// TODO Auto-generated method stub
-		return "This is the Scouts Honor achievement quest.";
+		return "AQ6";
 	}
 
 	@Override

@@ -26,7 +26,7 @@ public class AQ10 extends QuestListener {
 	@Override
 	public String getQuestDescription(int pid) {
 		// TODO Auto-generated method stub
-		return "This is the Pwnblazer achievement quest.";
+		return "AQ10";
 	}
 
 	@Override

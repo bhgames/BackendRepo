@@ -6321,6 +6321,11 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			
 			i = 0;
 			//Town t = new Town(0,this);
+			double rand = Math.random();
+			if(rand>.1) {
+				p.setVersion("new");
+				
+			}
 			int weapons[] = new int[0];
 			//	t.addUnitType(new AttackUnit("empty",0,0,0,0,i,0,weapons,0));
 				p.setAu(new AttackUnit("empty",0,0,0,0,i,0,weapons,0)); 
@@ -6378,6 +6383,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			
 	    	p.setRevTimer((int) Math.round(( (double) 52*7*24*3600)/((double) GodGenerator.gameClockFactor)));
 	    	p.setBp(p.getBp()+100);
+	    	if(p.getVersion().equals("original"))
 	    	p.setKnowledge(p.getKnowledge()+100);
 			// now that we've loaded'er up, we can
 			// wait to activate the player until after the giveNewCity
@@ -6415,13 +6421,17 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				}
 				if(fuid==0)
 				p.getPs().b.joinQuest("ConnectWithFacebook");
+				
+		    	if(p.getVersion().equals("original")) {
 				p.getPs().b.joinQuest("BQ1"); // must be after capitalcity and after cwf
 				int weapArrayNew[] = new int[2]; weapArrayNew[0]=0; weapArrayNew[1]=0;
 
 				p.setKnowledge(p.getKnowledge()+soldierTechPrice);
 				String toRes[] = {"ShockTrooper"};
 				ps.b.completeResearches(toRes); // give them a default template.
-				ps.b.createCombatUnit(0,"Shock Trooper");
+				ps.b.createCombatUnit(0,"Shock Trooper"); } else if(p.getVersion().equals("new")) {
+					p.getPs().b.joinQuest("NQ1");
+				}
 
 			}
 
@@ -9789,7 +9799,7 @@ public boolean checkForGenocides(Town t) {
 				 holdAttack = attackServer[i];
 				 if(holdAttack.getTID1()==t1.townID) { // because we grab incomings also with userraids.
 					r = t1.findRaid(holdAttack.raidID());
-					if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&r.getTown2().owedTicks>0) {
+					if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&r.getTown2().owedTicks>0&&r.getTown2().getPlayer().ID!=r.getTown1().getPlayer().ID) {
 						r.getTown2().update();
 
 					}
@@ -10311,7 +10321,7 @@ public boolean checkForGenocides(Town t) {
 		 * unless they are threadSafe, instead, their mate's reset their timers.
 		 */
 		Town t1 = actts.getTown1(); Town t2 = actts.getTown2();
-		t2.update(); // obviously need to update before sending trade!
+		if(t2.getPlayer().ID!=t1.getPlayer().ID)t2.update(); // obviously need to update before sending trade!
 		UserBuilding[] bldg;
 		UserTradeSchedule ts = actts.getTown1().getPlayer().getPs().b.getUserTradeSchedule(actts.tradeScheduleID);
 		if(ts.isTwoway()&&!ts.isAgreed()) return false;

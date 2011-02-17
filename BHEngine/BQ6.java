@@ -112,9 +112,8 @@ public class BQ6 extends QuestListener {
 		p.setKnowledge(p.getKnowledge()+20);
 	}
 	public String getQuestDescription(int pid) {
-		Player p =God.getPlayer(pid);
-		if(completedQuest(p,"BQ5")) return "Grow your city in preparation of mounting an offensive!";
-		else return "Locked.";
+		return "BQ6";
+
 }
 
 }

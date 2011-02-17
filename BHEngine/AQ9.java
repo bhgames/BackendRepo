@@ -26,7 +26,7 @@ public class AQ9 extends QuestListener {
 	@Override
 	public String getQuestDescription(int pid) {
 		// TODO Auto-generated method stub
-		return "This is the Noble Savage achievement quest.";
+		return "AQ9";
 	}
 
 	@Override

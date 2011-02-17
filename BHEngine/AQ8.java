@@ -26,7 +26,7 @@ public class AQ8 extends QuestListener {
 	@Override
 	public String getQuestDescription(int pid) {
 		// TODO Auto-generated method stub
-		return "This is the Asimovian achievement quest.";
+		return "AQ8";
 	}
 
 	@Override

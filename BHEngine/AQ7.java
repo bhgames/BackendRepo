@@ -26,7 +26,7 @@ public class AQ7 extends QuestListener {
 	@Override
 	public String getQuestDescription(int pid) {
 		// TODO Auto-generated method stub
-		return "This is the Veni, Vidi, Vici achievement quest.";
+		return "AQ7";
 	}
 
 	@Override

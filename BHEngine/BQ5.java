@@ -74,8 +74,7 @@ public class BQ5 extends QuestListener {
 	}
 
 	public String getQuestDescription(int pid) {
-		Player p =God.getPlayer(pid);
-		if(completedQuest(p,"BQ4")) return "Build warehouses to store more resources.";
-		else return "Locked.";
+		return "BQ5";
+
 }
 }

@@ -108,9 +108,8 @@ public class BQ8 extends QuestListener {
 
 	@Override
 	public String getQuestDescription(int pid) {
-		Player p =God.getPlayer(pid);
-		if(completedQuest(p,"BQ7")) return "Send your army into the heart of the enemy's capital when they least expect it!";
-		else return "Locked.";
+		return "BQ8";
+
 	}
 
 	@Override

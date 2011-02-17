@@ -1829,8 +1829,83 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					rs.close();
 				
 					out.print("Users registered since today/yesterday/this week/last week/this month/last month/this year/last year: "+ thisday+" / "+lastday+" / "+thisweek+" / "+lastweek+" / "+thismonth+" / "+lastmonth+" / " + thisyear+" / " + lastyear + "<br /><br />");
-				
 					
+					rs = stmt.executeQuery("select count(*) from qpc where qid = " + g.getPlayerId("BQ1") + " and complete = 1;");
+					rs.next();
+					double numTotalBQ1 = rs.getInt(1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from qpc where qid = " + g.getPlayerId("BQ2") + " and complete = 1;");
+					rs.next();
+					double numTotalBQ2 = Math.round(100*rs.getInt(1)/numTotalBQ1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from qpc where qid = " + g.getPlayerId("BQ3") + " and complete = 1;");
+					rs.next();
+					double numTotalBQ3 = Math.round(100*rs.getInt(1)/numTotalBQ1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from qpc where qid = " + g.getPlayerId("BQ4") + " and complete = 1;");
+					rs.next();
+					double numTotalBQ4 = Math.round(100*rs.getInt(1)/numTotalBQ1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from qpc where qid = " + g.getPlayerId("BQ5") + " and complete = 1;");
+					rs.next();
+					double numTotalBQ5 = Math.round(100*rs.getInt(1)/numTotalBQ1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from qpc where qid = " + g.getPlayerId("BQ6") + " and complete = 1;");
+					rs.next();
+					double numTotalBQ6 = Math.round(100*rs.getInt(1)/numTotalBQ1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from qpc where qid = " + g.getPlayerId("BQ7") + " and complete = 1;");
+					rs.next();
+					double numTotalBQ7 = Math.round(100*rs.getInt(1)/numTotalBQ1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from qpc where qid = " + g.getPlayerId("BQ8") + " and complete = 1;");
+					rs.next();
+					double numTotalBQ8 = Math.round(100*rs.getInt(1)/numTotalBQ1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from qpc where qid = " + g.getPlayerId("NQ1") + " and complete = 1;");
+					rs.next();
+					double numTotalNQ1 = rs.getInt(1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from qpc where qid = " + g.getPlayerId("NQ2") + " and complete = 1;");
+					rs.next();
+					double numTotalNQ2 = Math.round(100*rs.getInt(1)/numTotalNQ1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from qpc where qid = " + g.getPlayerId("NQ3") + " and complete = 1;");
+					rs.next();
+					double numTotalNQ3 = Math.round(100*rs.getInt(1)/numTotalNQ1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from qpc where qid = " + g.getPlayerId("NQ4") + " and complete = 1;");
+					rs.next();
+					double numTotalNQ4 = Math.round(100*rs.getInt(1)/numTotalNQ1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from qpc where qid = " + g.getPlayerId("NQ5") + " and complete = 1;");
+					rs.next();
+					double numTotalNQ5 = Math.round(100*rs.getInt(1)/numTotalNQ1);
+					rs.close();
+					rs = stmt.executeQuery("select count(*) from qpc where qid = " + g.getPlayerId("NQ6") + " and complete = 1;");
+					rs.next();
+					double numTotalNQ6 = Math.round(100*rs.getInt(1)/numTotalNQ1);
+					rs.close();
+					
+					
+					out.print("Bottleneck Info:<br /><br /> Bottlenecks are calculated by taking the number of people who have completed a quest, and displaying it along with the percentage of players this represents who are currently inside the quest tree. A player is inside " +
+							"the Quest Tree when he has, at the very least, beaten the first quest in the tree." +
+							"This number does not count players who have been deleted, only players in existence and players who signed up in the last 48 hours.<br /><br />");
+					out.print("Original Quest Branch:<br /><br />" + "BQ1: 100% (Reminder: Starting count here, not including players who didn't beat BQ1)<br />" +
+							"BQ2: "+ numTotalBQ2 + "%<br />"+
+							"BQ3: "+ numTotalBQ3 + "%<br />"+
+							"BQ4: "+ numTotalBQ4 + "%<br />"+
+							"BQ5: "+ numTotalBQ5 + "%<br />"+
+							"BQ6: "+ numTotalBQ6 + "%<br />"+
+							"BQ7: "+ numTotalBQ7 + "%<br />"+
+							"BQ8: "+ numTotalBQ8 + "%<br /><br />" +
+								"New Quest Branch:<br /><br />" +
+								"NQ1: 100%"+
+								"NQ2: "+ numTotalNQ2 + "%<br />"+
+								"NQ3: "+ numTotalNQ3 + "%<br />"+
+								"NQ4: "+ numTotalNQ4 + "%<br />"+
+								"NQ5: "+ numTotalNQ5 + "%<br />"+
+								"NQ6: "+ numTotalNQ6 + "%<br />");
 					out.print("Uptime Data:");
 					try {
 					Process  proc = 	Runtime.getRuntime().exec("uptime");

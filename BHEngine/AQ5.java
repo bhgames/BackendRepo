@@ -26,13 +26,13 @@ public class AQ5 extends QuestListener {
 	@Override
 	public String getQuestDescription(int pid) {
 		// TODO Auto-generated method stub
-		return "This is the Grizzled Veteran achievement quest.";
+		return "AQ5";
 	}
 
 	@Override
 	public void iterateQuest(int times, int pid) {
 		Player p = findPlayer(pid);
-		if(p.completedQuest("BQ8")) {
+		if(p.completedQuest("BQ8")||p.completedQuest("NQ6")) {
 					reward(pid);
 					addAchievement("Grizzled Veteran",pid);
 					p.flicker=getUsername();

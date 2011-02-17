@@ -138,7 +138,6 @@ public class BQ4 extends QuestListener {
 	}
 	public String getQuestDescription(int pid) {
 		Player p =God.getPlayer(pid);
-		if(completedQuest(p,"BQ3")) return "Fight back: Hit an Id city.";
-		else return "Locked.";
+		return "BQ4";
 }
 }

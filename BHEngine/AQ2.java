@@ -26,7 +26,7 @@ public class AQ2 extends QuestListener {
 	@Override
 	public String getQuestDescription(int pid) {
 		// TODO Auto-generated method stub
-		return "This is the Destroyer Of Worlds achievement quest.";
+		return "AQ2";
 	}
 
 	@Override

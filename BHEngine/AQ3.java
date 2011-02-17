@@ -26,7 +26,7 @@ public class AQ3 extends QuestListener {
 	@Override
 	public String getQuestDescription(int pid) {
 		// TODO Auto-generated method stub
-		return "This is the High Flying achievement quest.";
+		return "AQ3";
 	}
 
 	@Override

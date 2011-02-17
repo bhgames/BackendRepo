@@ -116,7 +116,7 @@ public class BQ1 extends QuestListener {
 	}
 	
 	public String getQuestDescription(int pid) {
-		return "Prepare for an Iddite invasion by stocking your Arms Factory with a Shock Trooper blueprint.";
+		return "BQ1";
 	}
 	
 }

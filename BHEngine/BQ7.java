@@ -105,9 +105,8 @@ public class BQ7 extends QuestListener {
 		p.setKnowledge(p.getKnowledge()+50);
 	}
 	public String getQuestDescription(int pid) {
-		Player p =God.getPlayer(pid);
-		if(completedQuest(p,"BQ6")) return "Build your army's diversity and size in preparation for the offensive!";
-		else return "Locked.";
+		return "BQ7";
+
 }
 
 }

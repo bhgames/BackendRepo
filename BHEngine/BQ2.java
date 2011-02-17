@@ -92,8 +92,7 @@ public class BQ2 extends QuestListener {
 	}
 	public String getQuestDescription(int pid) {
 			Player p =God.getPlayer(pid);
-			if(completedQuest(p,"BQ1")) return "Initiate a troop push of shock troopers to use for the defense of your city.";
-			else return "Locked.";
+			return "BQ2";
 	}
 	
 

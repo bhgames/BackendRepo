@@ -26,7 +26,7 @@ public class AQ4 extends QuestListener {
 	@Override
 	public String getQuestDescription(int pid) {
 		// TODO Auto-generated method stub
-		return "This is the Call Me Conqueror achievement quest.";
+		return "AQ4";
 	}
 
 	@Override

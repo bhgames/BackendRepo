@@ -424,9 +424,11 @@ public class Id extends Player {
 			p = players.get(i);
 			if(p.ID!=5&&!p.isQuest())// NOTICE LEAGUES CAN'T BE DELETED THOUGH...
 			try {
-			if(!p.completedQuest("BQ1")&&p.getPs().b.getCSL(p.getCapitaltid())<100&&p.last_login.getTime()<(today.getTime()-2*24*3600000)&&p.getPlayedTicks()<(7*24*3600/GodGenerator.gameClockFactor)) {
+			if( (   (p.getVersion().equals("original")  &&  !p.completedQuest("BQ1"))   ||
+					(    (p.getVersion().equals("new")||p.getVersion().equals("military")||p.getVersion().equals("civilian"))  &&  !p.completedQuest("NQ1"))  )
+					&&p.getPs().b.getCSL(p.getCapitaltid())<100&&p.last_login.getTime()<(today.getTime()-2*24*3600000)&&p.getPlayedTicks()<(7*24*3600/GodGenerator.gameClockFactor)) {
 				// kill the bastard.
-				System.out.println(p.getUsername() + " is eligible for early player deletion as their difference is " + (p.last_login.getTime()-(today.getTime()-48*3600000))+"s and last_login is " + p.last_login + " and they have not completed BQ1.");
+				System.out.println(p.getUsername() + " is eligible for early player deletion as their difference is " + (p.last_login.getTime()-(today.getTime()-48*3600000))+"s and last_login is " + p.last_login + " and version is " + p.getVersion()+ " and they have not completed BQ1.");
 				
 				//check surrounding players.
 				int j = 0;
@@ -460,7 +462,9 @@ public class Id extends Player {
 				}
 				
 				i--; // the player was removed from the list.
-			} else if(!p.completedQuest("BQ1")&&p.getPs().b.getCSL(p.getCapitaltid())<100&&p.last_login.getTime()<(today.getTime()-24*3600000)&&p.getPlayedTicks()<(7*24*3600/GodGenerator.gameClockFactor))
+			} else if(   (   (p.getVersion().equals("original")  &&  !p.completedQuest("BQ1"))   ||
+					(    (p.getVersion().equals("military")||p.getVersion().equals("civilian"))  &&  !p.completedQuest("NQ1")))
+					&&p.getPs().b.getCSL(p.getCapitaltid())<100&&p.last_login.getTime()<(today.getTime()-24*3600000)&&p.getPlayedTicks()<(7*24*3600/GodGenerator.gameClockFactor))
 			{// send warning email if less than week and > 24 hrs
 				if(p.last_login.getTime()>=today.getTime()-25*3600000&&!p.getEmail().equals("nolinkedemail")&&!p.getEmail().equals(null))
 				God.sendMail(p.getEmail(),p.getUsername(),"Account Deletion Notice","Account Deletion Notice","");

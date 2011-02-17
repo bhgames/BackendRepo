@@ -9,6 +9,7 @@ import BHEngine.AttackUnit;
 import BHEngine.Building;
 import BHEngine.GodGenerator;
 import BHEngine.League;
+import BHEngine.NQ5;
 import BHEngine.Player;
 import BHEngine.PlayerScript;
 import BHEngine.QuestListener;
@@ -4624,7 +4625,7 @@ public long[] returnPrice(int lotNum, int tid) {
 				totalScholars+=b[z].getPeopleInside();
 				z++;
 			}
-			if(totalScholars<GodGenerator.digScholarRequirement) {
+			if(totalScholars<GodGenerator.digScholarRequirement&&!(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian"))) {
 				setError("You do not have enough Scholars!");
 				return false;
 			}
@@ -4961,24 +4962,27 @@ public long[] returnPrice(int lotNum, int tid) {
 				totalScholars+=b[z].getPeopleInside();
 				z++;
 			}
-			if(totalScholars<GodGenerator.digScholarRequirement) {
+			if(totalScholars<GodGenerator.digScholarRequirement&&!(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian"))) {
 				setError("You do not have enough Scholars!");
 				return false;
 			}
 			z=0; Building actb; UserBuilding bl;
-			
+			int digToTake = GodGenerator.digScholarRequirement;
+			if(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian")) {
+				digToTake=1;
+			}
 			while(z<b.length) {
 				bl = b[z];
 				 actb = t1.findBuilding(bl.getBid());
-				if(actb.getPeopleInside()>GodGenerator.digScholarRequirement-digAmt) {
-					actb.setPeopleInside(actb.getPeopleInside()-(GodGenerator.digScholarRequirement-digAmt));
-					digAmt+=(GodGenerator.digScholarRequirement-digAmt);
+				if(actb.getPeopleInside()>digToTake-digAmt) {
+					actb.setPeopleInside(actb.getPeopleInside()-(digToTake-digAmt));
+					digAmt+=(digToTake-digAmt);
 				} else {
 					digAmt+=actb.getPeopleInside();
 
 					actb.setPeopleInside(0);
 				}
-				 if(digAmt>=GodGenerator.digScholarRequirement) break;
+				 if(digAmt>=digToTake) break;
 				z++;
 			}
 			
@@ -8922,7 +8926,15 @@ public long[] returnPrice(int lotNum, int tid) {
 	 */
 	private boolean completeResearches(String array[], boolean free) {
 		int i = 0;
-		
+		if(QuestListener.partOfQuest(p,"NQ5")) {
+			try {
+			((NQ5) g.getPlayer(g.getPlayerId("NQ5"))).callMeIfResearched(p.ID);
+			} catch(Exception exc) { 
+				exc.printStackTrace();
+				System.out.println("System saved. Couldn't find NQ5 player for research.");
+				
+			}
+		}
 		//23456...so at 11 we get 1.1 which we floor to 1 and then add 2 to get 3.
 		
 		// 2.2 floored to 2 + 2 = 4.

@@ -34,8 +34,8 @@ public class NQ3 extends QuestListener {
 			paragraph = "The Engineers trained by your Construction Yard reduce the build times of pretty much everything.  Go ahead and build 4 more now..";
 		}
 
-		String toRet[] = {getRewardBlock(3,pid,additional)+"<br /><br />Goals:  <ul>"+goal+"</ul><br /><br />"+
-				"Congratulations!  You now know the basics of city building.  All buildings, except the Headquarters can be built multiple times.<br /><br />"+paragraph+"<br /><br />After, head into your new Institute.  Research (covered later) is handled by this building.  Go ahead and build 5 Scholars.  If you haven't noticed, the unit cap for level 1 buildings is 5."
+		String toRet[] = {getRewardBlock(3,pid,additional)+"<br /><br />Goals:  <ul><li>Name your Capital.</li><li>"+goal+"</li></ul><br /><br />"+
+				"Congratulations!  You now know the basics of city building.  Now you should take the time to name your city! You can do this by hitting Menu and then Accounts. The textbox at the bottom left allows you to change your town name. Hit save when you've changed your town name. Note that you may need to refresh your browser after doing this. <br /><br />All buildings, except the Headquarters can be built multiple times.<br /><br />"+paragraph+"<br /><br />After, head into your new Institute.  Research (covered later) is handled by this building.  Go ahead and build 5 Scholars.  If you haven't noticed, the unit cap for level 1 buildings is 5."
 				
 			
 ,"No Hint"};
@@ -60,7 +60,7 @@ public class NQ3 extends QuestListener {
 		Town t = God.getTown(p.getCapitaltid());
 		if(t!=null) {
 			if(p.getVersion().equals("military")) {
-				if(t.getAu().get(0).getSize()>=5&&t.getTotalScholars()>=5) {
+				if(t.getAu().get(0).getSize()>=5&&t.getTotalScholars()>=5&&!t.getTownName().equals("Town"+t.getX()+"-"+t.getY())) {
 					reward(pid);
 					destroy(p);
 					ps.b.joinQuest(God.getPlayerId("NQ4"));
@@ -68,7 +68,7 @@ public class NQ3 extends QuestListener {
 				}
 			}
 			else if(p.getVersion().equals("civilian")) {
-				if(t.getTotalScholars()>=5&&t.getTotalEngineers()>=5) {
+				if(t.getTotalScholars()>=5&&t.getTotalEngineers()>=5&&!t.getTownName().equals("Town"+t.getX()+"-"+t.getY())) {
 					reward(pid);
 					destroy(p);
 					ps.b.joinQuest(God.getPlayerId("NQ4"));

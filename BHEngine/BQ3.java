@@ -194,9 +194,7 @@ public class BQ3 extends QuestListener {
 
 	}
 	public String getQuestDescription(int pid) {
-		Player p =God.getPlayer(pid);
-		if(completedQuest(p,"BQ2")) return "Defend the city at all costs!";
-		else return "Locked.";
+		return "BQ3";
 }
 
 }

@@ -26,7 +26,7 @@ public class AQ1 extends QuestListener {
 	@Override
 	public String getQuestDescription(int pid) {
 		// TODO Auto-generated method stub
-		return "This is the I Am Become Death achievement quest.";
+		return "AQ1";
 	}
 
 	@Override
