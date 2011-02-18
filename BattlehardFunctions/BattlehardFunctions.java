@@ -8501,7 +8501,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					return false;
 				} else hypoTotal-=GodGenerator.juggerTechPrice;
 
-			}else if(array[i].equals("Hades")||array[i].equals("Helios")||array[i].equals("Horizon")) {
+			}else if(array[i].equals("Hades")) {
 				int k = 0;
 				if(p.towns().size()<4) {
 					setError("You need at least 4 towns to research bombers!");
@@ -8817,10 +8817,15 @@ public long[] returnPrice(int lotNum, int tid) {
 				} 
 
 			}else if(array[i].equals("townTech")) {
-				if(!free&&hypoTotal<GodGenerator.townTechPrice*(p.getTownTech()+1)) {
+	
+				// we know that we want xn+1 = 2*xn = 2*(2xn-1) = 2*2*2xn-2 = 2^n*x0.
+				// can we calculate 2*xn? well...we know x0 is 200. 
+				// so we can get what we need.
+				// towntechprice = 200*2^n, n is towns-1,which gives me 200, then 2 gives me 400, 3 gives me 800. 
+				if(!free&&hypoTotal<GodGenerator.townTechPrice*Math.pow(2,(p.getTownTech()-1))) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.townTechPrice*(p.getTownTech()+1);
+				} else hypoTotal-=GodGenerator.townTechPrice*Math.pow(2,(p.getTownTech()-1));
 			}else if(array[i].equals("engineerTech")) {
 				if(!free&&hypoTotal<GodGenerator.civEfficiencyPrice*(p.getEngTech()+1)) {
 					setError("You do not have enough KP for this research.");
@@ -9025,25 +9030,32 @@ public long[] returnPrice(int lotNum, int tid) {
 			}*/
 			else if(array[i].equals("ShockTrooper")) {
 				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-				int weap[] = {3,4};
-				if(canCreateUnitTemplate("Shock Trooper",1,75,25,50,50,weap,0)) {
-					createUnitTemplate("Shock Trooper",1,75,25,50,50,weap,0);
+				int weap[] = {0,1};
+				// 1. Shock Trooper(25,50,75,50,'0,1,')  with Destroyer Class Upgrade  Weak Concealment, Strong against Armor
+
+				if(canCreateUnitTemplate("Shock Trooper",1,25,50,75,50,weap,0)) {
+					createUnitTemplate("Shock Trooper",1,25,50,75,50,weap,0);
 					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.soldierTechPrice);
 
 				}
 			}else if(array[i].equals("Pillager")) {
 				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-				int weap[] = {0};
-				if(canCreateUnitTemplate("Pillager",1,25,50,200,25,weap,4)) {
-					createUnitTemplate("Pillager",1,25,50,200,25,weap,4);
+			// 2. Pillager (50,25,75,50,'3,4,') with Mayhem Upgrade  Upgrade Weak Armor, Strong against Speed
+
+				int weap[] = {3,4};
+				
+				if(canCreateUnitTemplate("Pillager",1,50,25,75,50,weap,4)) {
+					createUnitTemplate("Pillager",1,50,25,75,50,weap,4);
 					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.soldierTechPrice);
 
 				}
 			}else if(array[i].equals("Vanguard")) {
 				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
+				// 3. Vanguard (50,50,75,25,'2,5,') with Defender Weak Speed, Strong against Concealment
+
 				int weap[] = {2,5};
-				if(canCreateUnitTemplate("Vanguard",1,119,40,1,40,weap,2)) {
-					createUnitTemplate("Vanguard",1,119,40,1,40,weap,2);
+				if(canCreateUnitTemplate("Vanguard",1,50,50,75,25,weap,2)) {
+					createUnitTemplate("Vanguard",1,50,50,75,25,weap,2);
 					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.soldierTechPrice);
 
 				}
@@ -9051,53 +9063,65 @@ public long[] returnPrice(int lotNum, int tid) {
 			}else if(array[i].equals("Wolverine")) {
 
 				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
+			// 1. Wolverine (50,100,150,100,'6,7,')  with Devastator Upgrade Weak Concealment, Strong Against Armor
+
 				int weap[] = {6,7};
-				if(canCreateUnitTemplate("Wolverine",2,50,125,100,125,weap,3)) {
-					createUnitTemplate("Wolverine",2,50,125,100,125,weap,3);
+				if(canCreateUnitTemplate("Wolverine",2,50,100,150,100,weap,3)) {
+					createUnitTemplate("Wolverine",2,50,100,150,100,weap,3);
 					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.tankTechPrice);
 
 				}	
 			}else if(array[i].equals("Seeker")) {
 				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-				int weap[] = {8,11};
-				if(canCreateUnitTemplate("Seeker",2,150,50,100,100,weap,5)) {
-					createUnitTemplate("Seeker",2,150,50,100,100,weap,5);
+				// 2. Seeker (100,50,150,100,'9,10,')with Battlehard Upgrade Weak Armor, Strong against Speed
+
+				int weap[] = {9,10};
+				if(canCreateUnitTemplate("Seeker",2,100,50,150,100,weap,5)) {
+					createUnitTemplate("Seeker",2,100,50,150,100,weap,5);
 					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.tankTechPrice);
 
 				}	
 			}else if(array[i].equals("Damascus")) {
 				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-				int weap[] = {9};
-				if(canCreateUnitTemplate("Damascus",2,200,200,1,199,weap,6)) {
-					createUnitTemplate("Damascus",2,200,200,1,199,weap,6);
+				// 3. Damascus (100,100,150,50,'8,11,')  with Stonewall Upgrade  Weak Speed, Strong against Concealment
+
+				int weap[] = {8,11};
+				if(canCreateUnitTemplate("Damascus",2,100,100,150,50,weap,6)) {
+					createUnitTemplate("Damascus",2,100,100,150,50,weap,6);
 					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.tankTechPrice);
 
 				}	
 			}else if(array[i].equals("Punisher")) {
 				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
+			// 1. Punisher (100,200,300,200,'12,13,')  with Impervious Upgrade Weak Concealment, Strong Against Armor
+
 				int weap[] = {12,13};
-				if(canCreateUnitTemplate("Punisher",3,233,234,233,100,weap,8)) {
-					createUnitTemplate("Punisher",3,233,234,233,100,weap,8);
+				if(canCreateUnitTemplate("Punisher",3,100,200,300,200,weap,8)) {
+					createUnitTemplate("Punisher",3,100,200,300,200,weap,8);
 					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.juggerTechPrice);
 
 				}	
 			}else if(array[i].equals("Dreadnaught")) {
 				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
+			// 2. Dreadnaught (200,100,300,200,'15,16,')  with Conqueror Upgrade Weak ArmorStrong Against Speed
+
 				int weap[] = {15,16};
-				if(canCreateUnitTemplate("Dreadnaught",3,100,250,200,250,weap,9)) {
-					createUnitTemplate("Dreadnaught",3,100,250,200,250,weap,9);
+				if(canCreateUnitTemplate("Dreadnaught",3,200,100,300,200,weap,9)) {
+					createUnitTemplate("Dreadnaught",3,200,100,300,200,weap,9);
 					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.juggerTechPrice);
 
 				}	
 			}else if(array[i].equals("Collossus")) {
 				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
+				// 3. Collossus (200,200,300,100, '14,17,') with Ironside Upgrade Weak Speed, Strong against Concealment
+
 				int weap[] = {14,17};
-				if(canCreateUnitTemplate("Collossus",3,200,250,250,100,weap,7)) {
-					createUnitTemplate("Collossus",3,200,250,250,100,weap,7);
+				if(canCreateUnitTemplate("Collossus",3,200,200,300,100,weap,7)) {
+					createUnitTemplate("Collossus",3,200,200,300,100,weap,7);
 					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.juggerTechPrice);
 
 				}	
-			}else if(array[i].equals("Helios")) {
+			}/*else if(array[i].equals("Helios")) {
 				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
 				int weap[] = {20};
 				if(canCreateUnitTemplate("Helios",4,29,29,30,12,weap,1)) {
@@ -9113,11 +9137,13 @@ public long[] returnPrice(int lotNum, int tid) {
 					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.bomberTechPrice);
 
 				}	
-			}else if(array[i].equals("Hades")) {
+			}*/else if(array[i].equals("Hades")) {
 				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
+				//  1. Hades (30,30,11,29,'18,') (holding The H.I.V.E.) with Conqueror Upgrade
+
 				int weap[] = {18};
-				if(canCreateUnitTemplate("Hades",4,30,12,29,29,weap,9)) {
-					createUnitTemplate("Hades",4,30,12,29,29,weap,9);
+				if(canCreateUnitTemplate("Hades",4,30,30,11,29,weap,9)) {
+					createUnitTemplate("Hades",4,30,30,11,29,weap,9);
 					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.bomberTechPrice);
 
 				}	
@@ -9322,7 +9348,7 @@ public long[] returnPrice(int lotNum, int tid) {
 
 				 p.setSupportTech(p.getSupportTech() + 1);
 			}else if(array[i].equals("townTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.townTechPrice*(p.getTownTech()+1));
+				if(!free) p.setKnowledge(p.getKnowledge()-(int) Math.round(GodGenerator.townTechPrice*Math.pow(2,(p.getTownTech()-1))));
 
 				p.setTownTech(p.getTownTech() + 1);
 			}else if(array[i].equals("engineerTech")) {
@@ -12282,12 +12308,16 @@ public long[] returnPrice(int lotNum, int tid) {
 		}
 		if(!checkMP(townID)) return false;
 		double resEffects[] = {0,0,0,0,0};
+		boolean keep = false;
+		if(prog) keep = true;
+		prog = false;
 		if(p.towns().size()<p.getTownTech()&&haveBldg("Airship Platform",townID)) {
 			addZeppelin(t.getX(),t.getY(),resEffects,airshipName);
 		} else {
 			setError("You are either missing a town tech or need an Airship Platform!");
 		}
 		
+		if(keep) prog = true;
 		
 		return true;
 	}

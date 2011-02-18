@@ -48,6 +48,7 @@ import java.security.SecureRandom;
  Encyclopedia of questions:
  
  
+ 
  PROCEDURE FOR SUCCESSFUL ACCOUNT SPLIT
  1. MAKE A SYSTEMS BACKUP
  2. update player set password = md5(password);
@@ -624,24 +625,22 @@ the codes are attackAPI, tradingAPI, smAPI, researchAPI, buildingAPI, messagingA
   (conc,armor,cargo,speed)
   (For completeResearch calls, remove all Spaces, keep cap formatting)
  Soldier Class:
- 1. Shock Trooper(75,25,50,50,'3,4,') (holding Plasma Rifle and Arc Thrower) with Destroyer Class Upgrade STRONG AGAINST SPEED, WEAK TO FP, 
- 2. Pillager (25,50,200,25,'0,') (holding Pump Action EMP ) with Mayhem Upgrade MEDIUM AGAINST ARMOR, WEAK TO AMM,ACC, 
- 3. Vanguard (119,40,1,40,'2,5,') (holding Laser Rifle and Rail Gun) with Defender Upgrade STRONG AGAINST CONCEALMENT, WEAK TO FP,AMM, Counter with: Seeker
+ 1. Shock Trooper(25,50,75,50,'0,1,')  with Destroyer Class Upgrade  Weak Concealment, Strong against Armor
+ 2. Pillager (50,25,75,50,'3,4,') with Mayhem Upgrade  Upgrade Weak Armor, Strong against Speed
+ 3. Vanguard (50,50,75,25,'2,5,') with Defender Weak Speed, Strong against Concealment
 
  Tank Class:
- 1. Wolverine (50,125,100,125,'6,7,') (holding WTF Class Rocket Launcher and Automatic EMP Burster) with Devastator Upgrade STRONG AGAINST ARMOR, WEAK TO ACC, 
- 2. Seeker (150,50,100,100,'8,11,') (holding EMP Grenade Launcher and Fully Automated Laser Drone ) with Battlehard Upgrade STRONG AGAINST CONCEALMENT, WEAK TO FP
- 3. Damascus (200,200,1,199,'9,') (holding Plasma Minigun) with Stonewall Upgrade MEDIUM AGAINST SPEED, WEAK TO NOTHING, Counter with: Nothing is particularly good against Damascus.
+ 1. Wolverine (50,100,150,100,'6,7,')  with Devastator Upgrade Weak Concealment, Strong Against Armor
+ 2. Seeker (100,50,150,100,'9,10,')with Battlehard Upgrade Weak Armor, Strong against Speed
+ 3. Damascus (100,100,150,50,'8,11,')  with Stonewall Upgrade  Weak Speed, Strong against Concealment
 
  Juggernaught Class:
- 1. Punisher (233,234,233,100,'12,13,') (holding BRTHLE and Singularity Whip) with Impervious Upgrade STRONG AGAINST ARMOR, WEAK TO AMM,
- 2. Dreadnaught (100,250,200,250,'15,16,') (holding Quantum Anomaly Enabler and Gauss Minigun with Antigrav) with Conqueror Upgrade STRONG AGAINST SPEED, WEAK TO ACC
- 3. Collossus (200,250,250,100, '14,17,') (holding Superstring Accelerator Cannon and EMP Wasp) with Ironside Upgrade STRONG AGAINST CONCEALMENT, WEAK TO AMM
+ 1. Punisher (100,200,300,200,'12,13,')  with Impervious Upgrade Weak Concealment, Strong Against Armor
+ 2. Dreadnaught (200,100,300,200,'15,16,')  with Conqueror Upgrade Weak ArmorStrong Against Speed
+ 3. Collossus (200,200,300,100, '14,17,') with Ironside Upgrade Weak Speed, Strong against Concealment
 
  Bomber Class:
- 1. Helios (29,29,30,12,'20,') (holding The Focused Nova Bomb) with Havoc Upgrade STRONG AGAINST NOTHING, WEAK TO AMM
- 2. Horizon (12,29,29,30,'19,') (holding The Horizon Machine) with Devastator Upgrade STRONG AGAINST NOTHING, WEAK TO ACC
- 3. Hades (30,12,29,29,'18,') (holding The H.I.V.E.) with Conqueror Upgrade STRONG AGAINST NOTHING, WEAK TO FP
+  1. Hades (30,30,11,29,'18,') (holding The H.I.V.E.) with Conqueror Upgrade
 
  
  Congealing all the Researches:
@@ -4273,26 +4272,14 @@ be rich.
  */
 
 /* Journal:
-Version differences:
-original  - on the original questpath
-new - no select questpath
--No 100Kp given at start
--No soldier assignment.
-military
-civilian 
-What you were doing:
+ * FIRST: AIRSHIP FIX...
+[8:14:25 PM] Jordan: 1. I want to change units to be rock-paper-scissors, and remove the other two bomber classes.
+2. I want to change the town tech prices to the way you want it, now.
+3. I want to change Cargo to be each soldier gets his cargo according to his base price, not his total aggregate price, as right now it's easy to do a full take, and I built it that way assuming you'd only use the soldier once, instead of multiple times.
 
-Dump2 has a dig with support incoming to Town -11,-1. The problem is that support works in the same server sesh,
-the 28 tanks get added and work just fine. However, the DB version saves as 0, even on server save. No idea why.
+<<< [8:35:28 PM] Jordan: 4. Change unit tech prices to match the town prices. So if town 2 is 200 KP, and town 3 is 400 KP, then tank is 200KP and jugger is 400KP, and manufacturing tech has a base price at like 100 KP
 
-What's more, once you get these things on there, you can't recall the entire dig from the HQ menu. You can ONLY
-recall the tanks.
-
-So your train of thought is:
-1. Find out what the insert intosupportAU statment looks like on supportLogicBlock, 
-2. and then figure out what exactly is getting passed by Markus on recall.
-3. POSSIBLY BEFORE ANY FURTHER TESTING, SEND THE RAID BY HAND INSTEAD OF USING YOUR MODDED VERSION.
-YOUR MODDED VERSION MAY HAVE CHANGED IMPORTANT VARIABLES!
+<<<
 
 http://www.javabeginner.com/
 
@@ -4306,6 +4293,7 @@ Attack Automation
 Attack Integration
 Trade Automation
 Build Automation(check buildcombatunit)
+Zeppelin API
 
  
 
@@ -4561,7 +4549,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	public static int buildingLotTechPrice=20;
 	public static int buildingStabilityTechPrice=5;
 	public static int commsCenterTechPrice=5;
-	public static int townTechPrice=50;
+	public static int townTechPrice=200;
 	public static int civEfficiencyPrice=5;
 	public static int afTechPrice=5;
 	public static int bunkerTechPrice=5;
@@ -6431,6 +6419,9 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				ps.b.completeResearches(toRes); // give them a default template.
 				ps.b.createCombatUnit(0,"Shock Trooper"); } else if(p.getVersion().equals("new")) {
 					p.getPs().b.joinQuest("NQ1");
+					p.setKnowledge(p.getKnowledge()+soldierTechPrice);
+					String toRes[] = {"ShockTrooper"};
+					ps.b.completeResearches(toRes); // give them a default template.
 				}
 
 			}
@@ -6594,8 +6585,8 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		}
 		//((1+.05*scout)*avgConc)/((1+.05*stealth)*averageAcc)*cos^2(2pi*((yours)/(cover)))sin^2(2pi*(theirs/cover)). 
 		Player t1p = t1.getPlayer(); Player t2p = t2.getPlayer();
-		double Sa = (1+.05*t1p.getScoutTech())*avgConc+1;
-		double Sd = (1+.05*t2p.getStealth())*avgAcc+1;
+		double Sa = (1+.25*t1p.getScoutTech())*avgConc+1;
+		double Sd = (1+.25*t2p.getStealth())*avgAcc+1;
 		double CSL = t2p.getPs().b.getCSL(t2.townID);
 		double SSL = CSL/t2p.towns().size();
 		CSL*=(1-((double) t2p.getStealthTech()+1.0)/20.0);
@@ -10765,8 +10756,11 @@ public boolean checkForGenocides(Town t) {
 		long totalCargo = 0; int totalSize=0;
 		while(i<r.getAu().size()) {
 			int n = r.getAu().get(i).getSize();
-			totalSize+=Math.round(((double) n*(n+1)*r.getAu().get(i).getPopSize()*r.getAu().get(i).getCargo())/2);
-		
+		//	totalSize+=Math.round(((double) n*(n+1)*r.getAu().get(i).getPopSize()*r.getAu().get(i).getCargo())/2); OLD CARGO
+			totalSize+=Math.round(((double) n*r.getAu().get(i).getPopSize()*r.getAu().get(i).getCargo())); // NEW CARGO :)
+			// popsizes are 5 and 10 for juggers and tanks, so you get 5x as many cargo for a tank that's worth 10 men, but it's
+			// 2x as fast, so there's your tradeoff!
+			
 			i++;
 		}
 		

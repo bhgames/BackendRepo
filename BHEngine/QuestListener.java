@@ -304,9 +304,11 @@ public abstract class QuestListener extends Player {
 		int i =0;
 		ArrayList<QuestPlayerComplete> qpc = ((QuestListener) God.getPlayer(God.getPlayerId(questname))).qpc();
 		while(i<qpc.size()) {
+
 			if(qpc.get(i).getPlayer().ID==p.ID) {
-				System.out.println("Found "+ qpc.get(i).getPlayer().getUsername() + " with " + qpc.get(i).getCompleted());
-				if(qpc.get(i).getCompleted()==1) return true;
+				if(qpc.get(i).getCompleted()==1) {
+					return true;
+				}
 				else break;
 			}
 			i++;
@@ -557,7 +559,9 @@ public abstract class QuestListener extends Player {
 	 * @param p
 	 */
 	public boolean addPlayer(Player p) {
-		if(!checkPlayer(p)) return false;
+		if(!checkPlayer(p)) {
+			return false;
+		}
 		
 	try {
 			boolean transacted=false;
@@ -933,7 +937,7 @@ public void addAchievement(String achievementName, int pid) {
 
 public String getRewardBlock(int hourlyAmt, int pid, String additional[]) {
 	long reward[] = getRewardOneHour(pid);
-	String res = "<div style='font-family:BankGothic;'>Reward:&nbsp" +
+	String res = "<div style='font-family:BankGothic;'>Reward:&nbsp<br />" +
 			"<div style='display:inline-block;width:80px;'><img src='AIFrames/icons/MetalIcon.png' alt='' />"+ hourlyAmt*reward[0]+ "</div>"+
 		"<div style='display:inline-block;width:90px;'><img src='AIFrames/icons/TimberIcon.png' alt='' />"+ hourlyAmt*reward[1]+ "</div>"+
 		"<div style='display:inline-block;width:85px;'><img src='AIFrames/icons/PlasticIcon.png' alt='' />"+ hourlyAmt*reward[2]+ "</div>"+

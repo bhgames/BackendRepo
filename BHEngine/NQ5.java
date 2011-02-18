@@ -28,7 +28,7 @@ public class NQ5 extends QuestListener {
 		String toRet[] = {getRewardBlock(7,pid,additional)+"<br /><br />Goals:  <ul><li>Purchase a Research.</li></ul><br /><br />"+
 				"Great! <br /><br /> You'll be using those interfaces often while playing.  So, it's best that you take some time to familiarize yourself with them.<br /><br />"+
 				"Now it's time to learn about Research, so head over to the Institute you built earlier.  You should have a few points to spend.  Take a moment and look over the various techs. You'll want to start planning your development early.  So, if you have any questions, now's the time to ask.  Good places to ask would be the chat (Menu > Chat), our <a href='battlehardalpha.xtreemhost.com' target='_forum'>forum</a>, or via the feedback or support menus.<br /><br />" +
-				"Once you've found a research you like, and have the points for, click “Purchase”."
+				"Once you've found a research you like, and have the points for, click “Purchase”.<br /><br />"
 				
 			
 ,"No Hint"};
@@ -55,7 +55,7 @@ public class NQ5 extends QuestListener {
 		reward(pid);
 		Player p = God.getPlayer(pid);
 		destroy(p);
-		ps.b.joinQuest(God.getPlayerId("NQ6"));
+		p.getPs().b.joinQuest(God.getPlayerId("NQ6"));
 		
 	}
 	@Override

@@ -1886,8 +1886,46 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					rs.next();
 					double numTotalNQ6 = Math.round(100*rs.getInt(1)/numTotalNQ1);
 					rs.close();
+					rs = stmt.executeQuery("select avg(playedTicks) from player where version = 'original';");
+					rs.next();
+					double numOriginal = rs.getInt(1);
+					rs.close();
+					rs = stmt.executeQuery("select avg(playedTicks) from player where version = 'military' or version = 'civilian' or version = 'new';");
+					rs.next();
+					double numNew = rs.getInt(1);
+					rs.close();
 					
+					int k = 0; double qualityFactorBQ=0; double numBQs=0, numNQs=0; double qualityFactorNQ=0;
+					Player pl;
+					while(k<g.getPlayers().size()) {
+						pl = g.getPlayers().get(k);
+						if(!pl.isQuest()&&pl.ID!=5) {
+							if(pl.getVersion().equals("original")) {
+								int j = 0;
+								while(j<pl.towns().size()) {
+									qualityFactorBQ+=pl.getPs().b.getCSL(pl.towns().get(j).townID);
+									
+									j++;
+								}
+								numBQs++;
+							} else if(pl.getVersion().equals("military")||pl.getVersion().equals("civilian")||pl.getVersion().equals("new")) {
+								int j = 0;
+								while(j<pl.towns().size()) {
+									qualityFactorNQ+=pl.getPs().b.getCSL(pl.towns().get(j).townID);
+									
+									j++;
+								}
+								numNQs++;
+							}
+						}
+						k++;
+					}
 					
+					qualityFactorBQ/=numBQs+1;
+					qualityFactorNQ/=numNQs+1;
+					qualityFactorBQ/=numOriginal+1;
+					qualityFactorNQ/= numNew+1;
+					out.print("Quality Factor is calculated by taking the average total CSL of players in a particular Quest group and dividing it by the average number of playedTicks.<br /><br />BQ Quality Factor: "+ Math.round(100*qualityFactorBQ)/100 + " <br /> NQ Quality Factor: " + Math.round(100*qualityFactorNQ)/100);
 					out.print("Bottleneck Info:<br /><br /> Bottlenecks are calculated by taking the number of people who have completed a quest, and displaying it along with the percentage of players this represents who are currently inside the quest tree. A player is inside " +
 							"the Quest Tree when he has, at the very least, beaten the first quest in the tree." +
 							"This number does not count players who have been deleted, only players in existence and players who signed up in the last 48 hours.<br /><br />");
@@ -1905,7 +1943,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 								"NQ3: "+ numTotalNQ3 + "%<br />"+
 								"NQ4: "+ numTotalNQ4 + "%<br />"+
 								"NQ5: "+ numTotalNQ5 + "%<br />"+
-								"NQ6: "+ numTotalNQ6 + "%<br />");
+								"NQ6: "+ numTotalNQ6 + "%<br /><br />");
 					out.print("Uptime Data:");
 					try {
 					Process  proc = 	Runtime.getRuntime().exec("uptime");

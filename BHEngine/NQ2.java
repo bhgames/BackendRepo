@@ -29,7 +29,7 @@ public class NQ2 extends QuestListener {
 		if(p.getVersion().equals("military")) {
 			goal = "Put a Shock Trooper into your Arms Factory Build Queue";
 			paragraph = "Enter your Arms Factory's interface by clicking on it.  Inside, you'll find all the necessary tools to train your soldiers and construct your war machines.  First, we'll have to assign your soldier to a slot.  If it's not already selected, select the first empty slot now..  Then, after selecting “Shock Trooper” from the dropdown to the right, click “Assign.”"+
-			"<br /><br />Now, it's time to build you first soldier. In the lower part of the screen, you'll see the training interface.  Type 1 into the input box on the left.  After a moment, the values will update showing the cost, build time, and slots needed for the number of units you're trying to build.  If everything is in order, go ahead and queue yourself a shock trooper. While you wait, build an Institute and a Headquarters!";
+			"<br /><br />Now, it's time to build your first soldier. In the lower part of the screen, you'll see the training interface.  Type 1 into the input box on the left.  After a moment, the values will update showing the cost, build time, and slots needed for the number of units you're trying to build.  If everything is in order, go ahead and queue yourself a shock trooper. While you wait, build an Institute and a Headquarters!";
 		}
 		else if(p.getVersion().equals("civilian")){
 			goal = "Put an Engineer into your Construction Yard Build Queue";
@@ -37,7 +37,7 @@ public class NQ2 extends QuestListener {
 		}
 
 		String toRet[] = {getRewardBlock(1,pid,additional)+"<br /><br />Goals:  <ul><li>"+goal+"</li><li>Build an Institute and a Headquarters.</li></ul><br /><br />"+
-				"Very good!  You picked that up very quickly.<br /><br />"+paragraph+"<br /><br />The Headquarters can only be built on the topmost lot."
+				"Very good!  You picked that up very quickly.<br /><br />"+paragraph+"<br /><br />The Headquarters can only be built on the topmost lot.<br /><br />"
 				
 			
 ,"No Hint"};

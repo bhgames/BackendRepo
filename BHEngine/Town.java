@@ -1124,7 +1124,7 @@ public class Town {
 		ArrayList<Building> bldg = bldg();
 		int i = 0; int totalEngineers=0;
 		while(i<bldg.size()) {
-			if(bldg.get(i).getType().equals("Insitute"))
+			if(bldg.get(i).getType().equals("Institute"))
 			totalEngineers+=bldg.get(i).getPeopleInside();
 			i++;
 		}
@@ -1343,8 +1343,8 @@ public class Town {
 
 				 try {
 						UberStatement stmt = getPlayer().con.createStatement();
-					stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid) values (\""
-							+ pid_to_s +"\"," + pid[0] +",\"" +body+"\",\""+subject+"\","+6+","+0+","+pid[0]+");" );
+					stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid) values (\""
+							+ pid_to_s +"\"," + pid[0] +",\"" +body+"\",\""+subject+"\","+6+","+0+","+pid[0]+","+townID+");" );
 					
 					stmt.close();
 				} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	
@@ -1361,8 +1361,8 @@ public class Town {
 
 					 try {
 							UberStatement stmt = getPlayer().con.createStatement();
-						stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid) values (\""
-								+ pid_to_s +"\"," + pid[0] +",\"" +body+"\",\""+subject+"\","+6+","+0+","+pid[0]+");" );
+						stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid) values (\""
+								+ pid_to_s +"\"," + pid[0] +",\"" +body+"\",\""+subject+"\","+6+","+0+","+pid[0]+","+townID+");" );
 						
 						stmt.close();
 					} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	

@@ -21,10 +21,10 @@ public class NQ1 extends QuestListener {
 		// TODO Auto-generated method stub
 				String additional[]  = { "5 Knowledge Points" };
 
-		String toRet[] = {getRewardBlock(1,pid,additional)+"<br /><br />Goals:  <ul><li>Construct a building.<br /><ul><li>If you're here for a fight, build an Arms Factory.</li><li>If you're here to build the next Roman Empire, build a Construction Yard.</li></ul></li></ul><br /><br />"+
+		String toRet[] = {getRewardBlock(1,pid,additional)+"<br /><br />Goals:  <ul><li>Construct a building.</li><ul><li>If you're here for a fight, build an Arms Factory.</li><li>If you're here to build the next Empire, build a Construction Yard.</li></ul></ul><br /><br />"+
 				"Welcome to AI Wars.  I am helper AI designation 63-N-3515 'Genesis'.  In order to assist your acclimation to your command role, the following curriculum has been devised.  Note that your choices affect the goals of later quests.  Let's begin with construction."+ 
 
-"<br /><br />Click on an empty lot to open the building list.  Take a moment to browse the list. Clicking the “Build” button will open up an info prompt for that building with more information and allow you to build that building.  For now, however, choose between the Construction Yard and Arms Factory."
+"<br /><br />Click on an empty lot to open the building list.  Take a moment to browse the list. Clicking the “Build” button will open up an info prompt for that building with more information and allow you to build that building.  For now, however, choose between the Construction Yard and Arms Factory.<br /><br />"
 ,"No Hint"};
 		
 		

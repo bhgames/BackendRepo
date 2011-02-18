@@ -27,7 +27,7 @@ public class BQBranchToRQ extends QuestListener {
 			/*	"Prompt: <br />" +
 				"'So I need to send a scouting mission to this city?'<br /><br />" + 
 				"'Yes,' Genesis responds. 'Then we'll know what we're dealing with. But don't send more than 10, you'll need the rest to fend off the Iddite attack.' <br /><br />"+*/
-				"Scout out the distress call. You can do this by sending a scouting mission to " + username + "-DistressCall, which is right next to your city from the World Map. If you do not have a Headquarters yet, you will need to build one to send a scouting mission.<br /><br />Goal: Scout the city next to yours labeled by your radar as " + username+"-DistressCall.<br /><br />" + getRewardBlock(1,pid,additional),"No hint."
+				"Scout out a distress call. You can do this by sending a scouting mission to " + username + "-DistressCall, which is right next to your city from the World Map. If you do not have a Headquarters yet, you will need to build one to send a scouting mission.<br /><br />Goal: Scout the city next to yours labeled by your radar as " + username+"-DistressCall.<br /><br />" + getRewardBlock(1,pid,additional),"No hint."
 				
 		};
 		return toRet;
@@ -35,8 +35,7 @@ public class BQBranchToRQ extends QuestListener {
 
 	@Override
 	public String getQuestDescription(int pid) {
-		// TODO Auto-generated method stub
-		return null;
+		return "Begin your AI Programming";
 	}
 
 	@Override
