@@ -18,6 +18,7 @@ public class UserPlayer {
 	private int mineTimer=0;
 	private int timberTimer=0;
 	private int manMatTimer=0;
+	private int scoutTech;
 	private int totalBPEarned=0;
 	private int knowledge;	
 	private boolean zeppTech,missileSiloTech,recyclingTech,metalRefTech,timberRefTech,manMatRefTech,foodRefTech;
@@ -75,8 +76,9 @@ public class UserPlayer {
 			boolean zeppTech, boolean missileSiloTech, boolean recyclingTech, boolean metalRefTech, boolean timberRefTech, boolean manMatRefTech,
 			boolean foodRefTech, boolean attackAPI, boolean advancedAttackAPI, boolean tradingAPI, boolean advancedTradingAPI,
 			boolean smAPI, boolean researchAPI, boolean buildingAPI, boolean advancedBuildingAPI, boolean messagingAPI, 
-			boolean zeppelinAPI, boolean completeAnalyticAPI, boolean nukeAPI, boolean worldMapAPI) {
+			boolean zeppelinAPI, boolean completeAnalyticAPI, boolean nukeAPI, boolean worldMapAPI, int scoutTech) {
 		this.bp=bp;
+		this.scoutTech=scoutTech;
 		this.commsCenterTech=commsCenterTech;
 		this.timberTimer=timberTimer; this.manMatTimer=manMatTimer; this.foodTimer=foodTimer;
 		this.playedTicks=playedTicks;
@@ -356,5 +358,11 @@ public class UserPlayer {
 	}
 	public UserTown[] getTowns() {
 		return towns;
+	}
+	public void setScoutTech(int scoutTech) {
+		this.scoutTech = scoutTech;
+	}
+	public int getScoutTech() {
+		return scoutTech;
 	}
 }

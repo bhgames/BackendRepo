@@ -13,7 +13,8 @@ public class BQ1 extends QuestListener {
 	@Override
 	public boolean checkPlayer(Player p) {
 		// No checker, this is the beginner quest!
-		if(p.getCapitaltid()==-1) return false;
+		if(p.getCapitaltid()==-1||!p.getVersion().equals("original")) return false;
+		if(p.getVersion().equals("new")||p.getVersion().equals("military")||p.getVersion().equals("civilian")) return false;
 		return true;
 	}
 

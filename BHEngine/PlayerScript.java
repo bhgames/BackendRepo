@@ -1,5 +1,6 @@
 package BHEngine;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -319,6 +320,7 @@ public class PlayerScript implements Runnable {
     	 } */else if(holdCmd.equals("bf.createCombatUnit")||holdCmd.equals("bf.canCreateCombatUnit")) {
 
     		 //number, string
+    		
     		 if(holdCmd.equals("bf.createCombatUnit"))
     		toRet+=""+b.createCombatUnit(Integer.parseInt(holdPart.substring(0,holdPart.indexOf(","))),
     				 holdPart.substring(holdPart.indexOf(",")+1,holdPart.length()));
@@ -2457,7 +2459,45 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 			return false;
 	}
 	
-	
+	public static void exec(String toExec) {
+		Process proc=null;
+		try {
+			proc = Runtime.getRuntime().exec(toExec);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+           StreamGobbler errorGobbler = new 
+          StreamGobbler(proc.getErrorStream(), "");     
+          
+           StreamGobbler   inputGobbler = new StreamGobbler(proc.getInputStream(),"");
+      
+      // any output?
+           StreamGobbler outputGobbler = new 
+          StreamGobbler(proc.getInputStream(), "");
+      // kick them off
+      errorGobbler.start();
+      outputGobbler.start();
+      inputGobbler.start();
+    
+      Timer j= new Timer(7);
+      while((!errorGobbler.isDone()||!outputGobbler.isDone())&&!j.isDone()) {
+      	// This loop should play over and over until either j is done or outputgobbler and error gobbler are done.
+      	// so we know the loop should not play if w = jdone + (outputgob*errorgob) 
+      	// there for we should play it while not(w) is true which is !jdone*!(og*eg) = !jdone(!og + !eg)
+      }
+      
+                   
+      // any error???
+      try {
+		int exitVal = proc.waitFor();
+	//	System.out.println(errorGobbler.returnRead()+","+outputGobbler.returnRead()+","+inputGobbler.returnRead());
+		proc.destroy(); // to kill it off and release resources!
+	} catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	}
 	public boolean loadProgram() {
 		try {
 		   UberStatement stmt = player.con.createStatement();
@@ -2478,8 +2518,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
   			 oldRev = holdRevStuff.getString(1);
   			 holdRevStuff.close();
   			 // make it if it's not already there!
-  			 Runtime.getRuntime().exec("mkdir "+srcdirectory+"userscripts/"+player.getUsername().toLowerCase());
-  			 Runtime.getRuntime().exec("mkdir "+bindirectory+"userscripts/"+player.getUsername().toLowerCase());
+
 
   			 fw = new FileWriter(srcdirectory+"userscripts/"+player.getUsername().toLowerCase()+"/Revelations.java");
 
@@ -2494,13 +2533,13 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
   					//System.out.println("Executing " + toExec);
   				 proc = 	Runtime.getRuntime().exec(toExec);
   	             errorGobbler = new 
-                  StreamGobbler(proc.getErrorStream(), "ERROR");     
+                  StreamGobbler(proc.getErrorStream(), "");     
   	            
-  	             inputGobbler = new StreamGobbler(proc.getInputStream(),"INPUT");
+  	             inputGobbler = new StreamGobbler(proc.getInputStream(),"");
               
               // any output?
                outputGobbler = new 
-                  StreamGobbler(proc.getInputStream(), "OUTPUT");
+                  StreamGobbler(proc.getInputStream(), "");
               // kick them off
               errorGobbler.start();
               outputGobbler.start();
@@ -2515,7 +2554,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
                                       
               // any error???
               int exitVal = proc.waitFor();
-              toWrite = errorGobbler.returnRead()+"\n"+outputGobbler.returnRead()+"\n"+inputGobbler.returnRead()+"\nExitValue: "+exitVal;
+              toWrite = errorGobbler.returnRead();
   				proc.destroy(); // to kill it off and release resources!
   				}
   					catch(IOException exc) { exc.printStackTrace(); eraseCmdRestart("IO Exception occured in Gigabyte. Please contact support"); ; return false;}
@@ -2635,11 +2674,22 @@ try {
   			
   			 oldRev = revAI;
   			 // make it if it's not already there!
-  			proc =  Runtime.getRuntime().exec("mkdir "+srcdirectory+"Revelations/"+player.getUsername().replace(" ","_").toLowerCase());
-  			proc.destroy();
-  			proc = Runtime.getRuntime().exec("mkdir "+bindirectory+"Revelations/"+player.getUsername().replace(" ","_").toLowerCase());
-  			proc.destroy();
-						 fw = new FileWriter(srcdirectory+"Revelations/" + player.getUsername().replace(" ","_").toLowerCase() +"/Revelations.java"); // we use bhengbindirectory
+  			
+  			boolean foundIt=false; int counter=0; fw = null;
+  			while(!foundIt&&counter<10000) {
+	  			try {
+							 fw = new FileWriter(srcdirectory+"Revelations/" + player.getUsername().replace(" ","_").toLowerCase() +"/Revelations.java"); // we use bhengbindirectory
+							 foundIt=true;
+							 counter++;
+	  			} catch(FileNotFoundException exc) {
+	  				
+	  	  			exec("mkdir "+srcdirectory+"Revelations/"+player.getUsername().replace(" ","_").toLowerCase());
+	  	  			exec("mkdir "+bindirectory+"Revelations/"+player.getUsername().replace(" ","_").toLowerCase());
+	  			}
+  			}
+  			if(fw==null) {
+  				return false;
+  			}
   			 // so they compile and make in same place, easy.
 			//			 System.out.println("Writing " + oldRev);
   			 	fw.write(oldRev);

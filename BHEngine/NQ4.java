@@ -35,7 +35,8 @@ public class NQ4 extends QuestListener {
 		}
 		else if(p.getVersion().equals("civilian")){
 			goal = "<li>Send a dig to a nearby town.</li>";
-			paragraph = "The Engineers trained by your Construction Yard reduce the build times of pretty much everything.  Go ahead and build 4 more now..";
+	//		paragraph = "The Engineers trained by your Construction Yard reduce the build times of pretty much everything.  Go ahead and build 4 more now..";
+			paragraph="Click on a nearby Id town.<br /><br />";
 			paragraph2="Select “Arch. Dig” from the Mission list.  Since you selected an Id town, you should see that the type of mission is an “Archaeological Dig”.  On Digs, you can discover treasures left behind in Id towns.  Everything from resources to full tech upgrades can be found.  Normally, you need 10 scholars to perform a dig, but, for this quest only, we'll allow you to send with less. If everything is in order, click “Send”.<br /><br />";
 
 		}

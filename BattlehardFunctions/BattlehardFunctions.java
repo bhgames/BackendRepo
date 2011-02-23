@@ -1817,7 +1817,7 @@ public class BattlehardFunctions {
 		// Right, so, making this shit work.
 		// Now you must have the template to make the attack unit.
 		String unitName=unitTemplateName;
-		if(!unitTemplateName.equals("empty")&&!canCreateCombatUnit(slotNumber,unitTemplateName)) {
+		if(!canCreateCombatUnit(slotNumber,unitTemplateName)) {
 			
 			return false;
 		}
@@ -1830,50 +1830,15 @@ public class BattlehardFunctions {
 		}
 		ArrayList<Town> towns = p.towns();
 
-		if(unitTemplateName.equals("empty"))
-		{
-			// if it's an empty, it never got checked to see if there are queues on the town.
-			i = 0;Town t; Building b; QueueItem q;
-			ArrayList<Building> bldg;
-			ArrayList<QueueItem> queue;
-			while(i<towns.size()) {
-				int j =0;
-				t = towns.get(i);
-				bldg = t.bldg();
-				while(j<bldg.size()) {
-					b = bldg.get(j);
-					int k = 0;
-					queue = b.Queue();  // returns nothing if isn't an AF!
-					while(k<queue.size()) {
-						q = queue.get(k);
-						if(q.getAUtoBuild()==slotNumber) {
-							setError("You cannot clear a unit that has queues building!");
-							return false;
-						}
-						k++;
-					}
-					j++;
-				}
-					i++;
-			}
-			//	public AttackUnit(String name, double conc, double armor, double cargo, double speed, int slot, int popSize, int weap[], int graphicNum) {
+		
+		
+		if(!found&&!unitTemplateName.equals("empty")) return false; 
+		
+		if(unitTemplateName.equals("empty")) {
 			int weap[] = new int[0];
 			
 			a = new AttackUnit("empty",0,0,0,0,slotNumber,0,weap,0);
-			 i = 0;
-			while(i<p.getAu().size()) {
-				if(p.getAu().get(i).getSlot()==slotNumber) {
-					int size = g.getTotalSize(p.getAu().get(i),p);
-					if(size>0) {
-					setError("Cannot empty a slot that still has men existing!");
-					return false;
-					}
-				}
-				i++;
-			}
-		} else { 
-		
-		if(!found) return false; }
+		}
 		// no null a's will get past point above.
 		
 		int graphicNum=a.getGraphicNum();
@@ -2009,11 +1974,10 @@ public class BattlehardFunctions {
 			}
 			
 			
-			if(!found) {
+			if(!found&&!unitTemplateName.equals("empty")) {
 				setError("No template by that name.");
 				return false;
 			}
-
 			ArrayList<Town> towns = p.towns();
 			i = 0;Town t; Building b; QueueItem q;
 			ArrayList<Building> bldg;
@@ -2038,6 +2002,22 @@ public class BattlehardFunctions {
 				}
 					i++;
 			}
+			if(unitTemplateName.equals("empty")) {
+				 i = 0;
+					while(i<p.getAu().size()) {
+						if(p.getAu().get(i).getSlot()==slotNumber) {
+							int size = g.getTotalSize(p.getAu().get(i),p);
+							if(size>0) {
+							setError("Cannot empty a slot that still has men existing!");
+							// we replicate logic from down there up here since we don't want to do that other shit.
+							return false;
+							}
+						}
+						i++;
+					}
+					
+					return true; // We stop processing here because the empty unit does not exist!
+			}
 			int concealment=(int)a.getConcealment();
 			int armor=(int)a.getArmor();
 			int speed=(int)a.getSpeed();
@@ -2061,7 +2041,6 @@ public class BattlehardFunctions {
 				tierNumber=4;
 				break;
 			}
-			
 			if(tierNumber==1&&p.getUnitTech(1)==false) {
 				setError("You do not possess this unit tech!");
 				return false;
@@ -2102,6 +2081,7 @@ public class BattlehardFunctions {
 				}
 				i++;
 			}
+
 			// no naming after civvies.
 			if(slotNumber>5) return false; // six units is the limit anybody can mold, more than that,
 			// you're bridging into support aus and the like!
@@ -2118,7 +2098,7 @@ public class BattlehardFunctions {
 			switch(tierNumber) {
 			case 1:
 				graphicTech=p.getSoldierPicTech();
-				if(graphicNum>9&&graphicNum<0) {
+				if(graphicNum>9||graphicNum<0) {
 					setError("Illegal graphic number");
 					return false;
 				}
@@ -2127,7 +2107,7 @@ public class BattlehardFunctions {
 				break;
 			case 2:
 				graphicTech=p.getTankPicTech();
-				if(graphicNum>9&&graphicNum<0){
+				if(graphicNum>9||graphicNum<0){
 					setError("Illegal graphic number");
 
 					return false;
@@ -2137,7 +2117,7 @@ public class BattlehardFunctions {
 				break;
 			case 3:
 				graphicTech=p.getJuggerPicTech();
-				if(graphicNum>9&&graphicNum<0){
+				if(graphicNum>9||graphicNum<0){
 					setError("Illegal graphic number");
 					return false;
 				}
@@ -2146,7 +2126,7 @@ public class BattlehardFunctions {
 				break;
 			case 4:
 				graphicTech=p.getBomberPicTech();
-				if(graphicNum>4&&graphicNum<0) {
+				if(graphicNum>4||graphicNum<0) {
 					setError("Illegal graphic number");
 
 					return false;
@@ -2156,7 +2136,6 @@ public class BattlehardFunctions {
 				break;
 				
 			}
-			
 			if(!graphicTech[graphicNum]){
 				setError("You do not possess this graphic technology.");
 				return false; // can't use a bad graphic!
@@ -2164,7 +2143,9 @@ public class BattlehardFunctions {
 			int weaponsContribution = 0;
 			
 			i = 0;
+
 			boolean[] weap = p.getWeapTech();
+
 			// if it gets here now we need to check that the weapons choices are existing.
 			while(i<weaponsArray.length) {
 				if(weaponsArray[i] < 6 || (weaponsArray[i] >=18 &&weaponsArray[i]<=20)) { weaponsContribution+=100; maxSlots--; }
@@ -2185,7 +2166,7 @@ public class BattlehardFunctions {
 				i++;
 			}
 			
-			
+
 			
 			if(concealment+armor+cargo+speed+weaponsContribution!=totalPoints) {
 				setError("All of your attributes need to add up to " + totalPoints);
@@ -2758,6 +2739,9 @@ public long[] returnPrice(int lotNum, int tid) {
 				 ArrayList<AttackUnit> au = holdT.getAu();
 				 ArrayList<Town> towns = p.towns();
 				 int townSize = towns.size();
+				 // so town 2 gets you 75% of it, then town 3 gets you 75% of THAT.
+				 // so it's 1*.75*.75...
+				 double modifier = Math.pow(.75,townSize);
 				 while(i<au.size()) {
 					 if(au.get(i).getName().equals(unitType)) {
 						  AU = au.get(i);
@@ -2768,11 +2752,11 @@ public long[] returnPrice(int lotNum, int tid) {
 						 double multiplier=0;
 						 switch(AU.getPop()) {
 						 case 1:
-							 multiplier=1/((double) townSize);
+							 multiplier=1*modifier;
 							// System.out.println("multiplier is: " + multiplier + " and p.towns().size is " + p.towns().size());
 							 break;
 						 case 5:
-							 multiplier=10/((double) townSize); // so we want the price to
+							 multiplier=10*modifier; // so we want the price to
 							 // be that of six soldiers as a baseline, but the
 							 // six soldiers themselves have price increases for each
 							 // new soldier, so we factor that into the multiplier.
@@ -2787,7 +2771,7 @@ public long[] returnPrice(int lotNum, int tid) {
 							 // 
 							 break;
 						 case 10:
-							 multiplier=40/((double) townSize);
+							 multiplier=40*modifier;
 							 break;
 						 case 20:
 							 multiplier=20;
@@ -2995,6 +2979,7 @@ public long[] returnPrice(int lotNum, int tid) {
 				// maybe an au?
 				int k = 0;
 				 AttackUnit AU;
+				 
 				 ArrayList<AttackUnit> au = holdT.getAu();
 				 while(k<au.size()) {
 					 if(au.get(k).getSlot()==q.returnAUtoBuild()) {
@@ -3006,13 +2991,14 @@ public long[] returnPrice(int lotNum, int tid) {
 						//	 System.out.println("totalpop is " + totalPop + " originalAUAmt is" + q.getOriginalAUAmt() + " tN is " + q.getTotalNumber() +
 							//		 " numleft is " + q.returnNumLeft());
 						 double multiplier=0;
+						 double modifier=Math.pow(.75,q.getTownsAtTime());
 						 switch(AU.getPop()) {
 						 case 1:
-							 multiplier=1/((double) q.getTownsAtTime());
+							 multiplier=1*modifier;
 							// System.out.println("multiplier is: " + multiplier + " and p.towns().size is " + p.towns().size());
 							 break;
 						 case 5:
-							 multiplier=10/((double) q.getTownsAtTime()); // so we want the price to
+							 multiplier=10*modifier; // so we want the price to
 							 // be that of six soldiers as a baseline, but the
 							 // six soldiers themselves have price increases for each
 							 // new soldier, so we factor that into the multiplier.
@@ -3027,7 +3013,7 @@ public long[] returnPrice(int lotNum, int tid) {
 							 // 
 							 break;
 						 case 10:
-							 multiplier=40/((double) q.getTownsAtTime());
+							 multiplier=40*modifier;
 							 break;
 						 case 20:
 							 multiplier=20;
@@ -3207,7 +3193,7 @@ public long[] returnPrice(int lotNum, int tid) {
 			return -1;
 		}
 		
-		return (int) Math.round(4*Math.sqrt(6)*(avg+1)*popped*townSize);
+		return (int) Math.round(4*Math.sqrt(6)*(avg+1)*popped/* *townSize*/);
 		
 	}
 	public int getPoppedUnits() {
@@ -3599,11 +3585,16 @@ public long[] returnPrice(int lotNum, int tid) {
 				
 			
 				currentlyOut+=g.returnScholarsAbroad(holdT.townID);
+				int k = 0;
 					
+				while(k<holdT.attackServer().size()) {
+					if(holdT.attackServer().get(k).getDigAmt()>0) currentlyOut+=holdT.attackServer().get(k).getDigAmt();
+					k++;
+				}
 				// System.out.println("Found " + currentlyOut + " traders out.");
 				 // we need the tradeDearth.
 				 int totalDearth=0; 
-				 int k = 0; 
+				  k = 0; 
 				 UserBuilding bldgs[] = getUserBuildings(holdT.townID,"Institute");
 				 UserBuilding holdB;
 					while(k<bldgs.length) {
@@ -3895,12 +3886,13 @@ public long[] returnPrice(int lotNum, int tid) {
 			
 				 
 				 double multiplier=0;
+				 double modifier = Math.pow(.75,p.towns().size());
 				 switch(a.getPop()) {
 				 case 1:
-					 multiplier=1/((double) p.towns().size());
+					 multiplier=1*modifier;
 					 break;
 				 case 5:
-					 multiplier=10/((double) p.towns().size()); // so we want the price to
+					 multiplier=10*modifier; // so we want the price to
 					 // be that of six soldiers as a baseline, but the
 					 // six soldiers themselves have price increases for each
 					 // new soldier, so we factor that into the multiplier.
@@ -3912,7 +3904,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					 // to other brothers of itself it may have in existence.
 					 break;
 				 case 10:
-					 multiplier=40/((double) p.towns().size());
+					 multiplier=40*modifier;
 					 break;
 				 case 20:
 					 multiplier=20;
@@ -4264,12 +4256,13 @@ public long[] returnPrice(int lotNum, int tid) {
 			
 				 
 				 double multiplier=0;
+				 double modifier = Math.pow(.75,p.towns().size());
 				 switch(AU.getPop()) {
 				 case 1:
-					 multiplier=1/((double) p.towns().size());
+					 multiplier=1*modifier;
 					 break;
 				 case 5:
-					 multiplier=10/((double) p.towns().size()); // so we want the price to
+					 multiplier=10*modifier; // so we want the price to
 					 // be that of six soldiers as a baseline, but the
 					 // six soldiers themselves have price increases for each
 					 // new soldier, so we factor that into the multiplier.
@@ -4281,7 +4274,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					 // to other brothers of itself it may have in existence.
 					 break;
 				 case 10:
-					 multiplier=40/((double) p.towns().size());
+					 multiplier=40*modifier;
 					 break;
 				 case 20:
 					 multiplier=20;
@@ -4303,6 +4296,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					  bldg = t.bldg();
 				 while(i<bldg.size()) {
 					 if(bldg.get(i).getType().equals("Arms Factory")) {
+						 
 						 int k = 0;
 						  b = bldg.get(i);
 						  queue=b.Queue();
@@ -4356,6 +4350,31 @@ public long[] returnPrice(int lotNum, int tid) {
 					
 					
 					if(canBuild) {
+						if(prog) keep=true;
+						prog=false;
+						ArrayList<AttackUnit> theAU = p.getAu();
+
+						UserQueueItem[] que = getUserQueueItems(b.bid);
+						if(keep) prog = true;
+						  k = 0; int totalQueued=0;	
+						 while(k<que.length) {
+							 totalQueued+=theAU.get(que[k].returnAUtoBuild()).getExpmod()*que[k].returnNumLeft();
+							 k++;
+						 }
+						 
+						 k=0;int popped=0;AttackUnit a; int saved = 0;
+						 while(k<theAU.size()) {
+							 a = theAU.get(k);
+							 if(a.getName().equals(type)) saved = k;
+							 if(!a.getName().equals("locked")&&!a.getName().equals("empty")) popped++;
+							 
+							 k++;
+						 }
+						 a = theAU.get(saved);
+						 if(totalQueued+number*a.getExpmod()> b.getCap()*popped) {
+							 setError("Too many units queued already!");
+							 return false;
+						 }
 						 k = 0;
 						do {
 							res[k]-=cost[k];
@@ -5979,7 +5998,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					 	int digAmt=0;
 					 if(pidOfRecallTown==5&&t.getDigCounter()>0&&auAmts.length==1) {
 						 digAmt=t.getDigAmt();
-						 System.out.println("I am setting everything in " + t.getTownName());
+//						 System.out.println("I am setting everything in " + t.getTownName());
 
 						 t.resetDig(0,0,false);// because the second you set dig counter
 						 // to -1, the town becomes inactive!
@@ -6307,6 +6326,10 @@ public long[] returnPrice(int lotNum, int tid) {
 			Town holdT =g.findTown(town,p); // exception town does not exist.
 		// Now does the building there exist?
 			int i = 0;
+			if(holdT.isZeppelin()&&lotNum<=3) {
+				setError("You don't have mines on an Airship!");
+				return false;
+			}
 			if(!checkMP(holdT.townID)) return false;
 
 			int slotsSpent = 0;
@@ -6419,6 +6442,10 @@ public long[] returnPrice(int lotNum, int tid) {
 		// format is levelUp(lotNum,town);
 		Town holdT = g.findTown(town,p); // exception town does not exist.
 	// Now does the building there exist?
+		if(holdT.isZeppelin()&&lotNum<=3) {
+			setError("You don't have mines on an Airship!");
+			return false;
+		}
 		if(!checkMP(holdT.townID)) return false;
 		
 		int i = 0;
@@ -9142,8 +9169,8 @@ public long[] returnPrice(int lotNum, int tid) {
 				//  1. Hades (30,30,11,29,'18,') (holding The H.I.V.E.) with Conqueror Upgrade
 
 				int weap[] = {18};
-				if(canCreateUnitTemplate("Hades",4,30,30,11,29,weap,9)) {
-					createUnitTemplate("Hades",4,30,30,11,29,weap,9);
+				if(canCreateUnitTemplate("Hades",4,30,30,11,29,weap,0)) {
+					createUnitTemplate("Hades",4,30,30,11,29,weap,0);
 					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.bomberTechPrice);
 
 				}	
@@ -11119,9 +11146,11 @@ public long[] returnPrice(int lotNum, int tid) {
 						weap[k]=b.getWeap()[k]; // protect the values!
 						k++;
 					}
+					Player original = b.getOriginalPlayer();
+					if(original==null) original=p;
 					toRet[j] = new UserAttackUnit(b.getAccuracy(),b.getAmmo(),b.getArmor(),b.getCargo(),b.getCivType(),
 							b.getConcealment(),b.getExpmod(),b.getFirepower(),b.getGraphicNum(),b.getHp(),b.getLotNum(),
-							b.getName(),b.getOriginalPlayer().ID,b.getOriginalSlot(),b.getOriginalTID(),b.getPopSize(),b.getSize(),
+							b.getName(),original.ID,b.getOriginalSlot(),b.getOriginalTID(),b.getPopSize(),b.getSize(),
 							b.getSlot(),b.getSpeed(),b.getSupport(),weap,p.getUsername());
 					j++;
 				}
@@ -11154,9 +11183,11 @@ public long[] returnPrice(int lotNum, int tid) {
 				weap[k]=b.getWeap()[k]; // protect the values!
 				k++;
 			}
+			Player original = b.getOriginalPlayer();
+			if(original==null) original=p;
 			toRet[j] = new UserAttackUnit(b.getAccuracy(),b.getAmmo(),b.getArmor(),b.getCargo(),b.getCivType(),
 					b.getConcealment(),b.getExpmod(),b.getFirepower(),b.getGraphicNum(),b.getHp(),b.getLotNum(),
-					b.getName(),b.getOriginalPlayer().ID,b.getOriginalSlot(),b.getOriginalTID(),b.getPopSize(),b.getSize(),
+					b.getName(),original.ID,b.getOriginalSlot(),b.getOriginalTID(),b.getPopSize(),b.getSize(),
 					b.getSlot(),b.getSpeed(),b.getSupport(),weap,p.getUsername());
 			j++;
 		}
@@ -11366,7 +11397,7 @@ public long[] returnPrice(int lotNum, int tid) {
 				p.isMissileSiloTech(),p.isRecyclingTech(),p.isMetalRefTech(),p.isTimberRefTech(),p.isManMatRefTech(),p.isFoodRefTech(),
 				p.isAttackAPI(),p.isAdvancedAttackAPI(),p.isTradingAPI(),p.isAdvancedTradingAPI(),p.isSmAPI(),p.isResearchAPI(),
 				p.isBuildingAPI(),p.isAdvancedBuildingAPI(),p.isMessagingAPI(),p.isZeppelinAPI(),p.isCompleteAnalyticAPI(),
-				p.isNukeAPI(),p.isWorldMapAPI());
+				p.isNukeAPI(),p.isWorldMapAPI(),p.getScoutTech());
 		
 	}
 	
@@ -11448,6 +11479,7 @@ public long[] returnPrice(int lotNum, int tid) {
 	
 	public String[] getQuests() {
 		ArrayList<QuestListener> activeQuests = g.getAllActiveQuests();
+		int k = 0;
 		String toRet[] = new String[activeQuests.size()];
 		int i = 0;
 		ArrayList<QuestListener> pactiveQuests = p.getActiveQuests();

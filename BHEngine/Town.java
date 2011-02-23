@@ -1349,7 +1349,6 @@ public class Town {
 					stmt.close();
 				} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	
 				God.findTown(getDigTownID()).getPlayer().getPs().b.recall(townID,getPlayer().ID,getDigTownID());
-
 				 }
 				 
 				 if(!getMsgSent()) {

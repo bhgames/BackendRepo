@@ -424,12 +424,11 @@ public class Id extends Player {
 			p = players.get(i);
 			if(p.ID!=5&&!p.isQuest())// NOTICE LEAGUES CAN'T BE DELETED THOUGH...
 			try {
-			if( (   (p.getVersion().equals("original")  &&  !p.completedQuest("BQ1"))   ||
+				if( (   (p.getVersion().equals("original")  &&  !p.completedQuest("BQ1"))   ||
 					(    (p.getVersion().equals("new")||p.getVersion().equals("military")||p.getVersion().equals("civilian"))  &&  !p.completedQuest("NQ1"))  )
 					&&p.getPs().b.getCSL(p.getCapitaltid())<100&&p.last_login.getTime()<(today.getTime()-2*24*3600000)&&p.getPlayedTicks()<(7*24*3600/GodGenerator.gameClockFactor)) {
 				// kill the bastard.
 				System.out.println(p.getUsername() + " is eligible for early player deletion as their difference is " + (p.last_login.getTime()-(today.getTime()-48*3600000))+"s and last_login is " + p.last_login + " and version is " + p.getVersion()+ " and they have not completed BQ1.");
-				
 				//check surrounding players.
 				int j = 0;
 				theCapital = God.getTown(p.getCapitaltid());
@@ -466,18 +465,18 @@ public class Id extends Player {
 					(    (p.getVersion().equals("military")||p.getVersion().equals("civilian"))  &&  !p.completedQuest("NQ1")))
 					&&p.getPs().b.getCSL(p.getCapitaltid())<100&&p.last_login.getTime()<(today.getTime()-24*3600000)&&p.getPlayedTicks()<(7*24*3600/GodGenerator.gameClockFactor))
 			{// send warning email if less than week and > 24 hrs
-				if(p.last_login.getTime()>=today.getTime()-25*3600000&&!p.getEmail().equals("nolinkedemail")&&!p.getEmail().equals(null))
+				if(p.last_login.getTime()>=today.getTime()-25*3600000&&!p.getEmail().equals(null)&&!p.getEmail().equals("nolinkedemail"))
 				God.sendMail(p.getEmail(),p.getUsername(),"Account Deletion Notice","Account Deletion Notice","");
-			} else if(p.last_login.getTime()<(today.getTime()-13*24*3600000)&&p.getPlayedTicks()>=(7*24*3600/GodGenerator.gameClockFactor))
-			{ // send email if > week and > 13 days
-				if(p.last_login.getTime()>=(today.getTime()-(13*24+1)*3600000)&&!p.getEmail().equals("nolinkedemail")&&!p.getEmail().equals(null))
-				God.sendMail(p.getEmail(),p.getUsername(),"Account Deletion Notice","Account Deletion Notice", "");
-			}else if(p.last_login.getTime()<(today.getTime()-14*24*3600000)&&p.getPlayedTicks()>=(7*24*3600/GodGenerator.gameClockFactor)) {
+			} else if(p.last_login.getTime()<(today.getTime()-14*24*3600000)) {
 				System.out.println(p.getUsername() + " is eligible for late deletion.");
 				God.deletePlayer(p,false);
 				i--;
-			} else {
-				System.out.println(p.getUsername() + " is NOT eligible for early player deletion as their difference is " + (p.last_login.getTime()-(today.getTime()-48*3600000))+"s and last_login is " + p.last_login);
+			} else if(p.last_login.getTime()<(today.getTime()-13*24*3600000)) // this goes after the 14, so 14 catches it if it goes beyond. same with early player.
+			{ // send email if > week and > 13 days
+				if(p.last_login.getTime()>=(today.getTime()-(13*24+1)*3600000)&&!p.getEmail().equals(null)&&!p.getEmail().equals("nolinkedemail"))
+				God.sendMail(p.getEmail(),p.getUsername(),"Account Deletion Notice","Account Deletion Notice", "");
+			}else {
+				System.out.println("Late player qualified: " +(p.last_login.getTime()<(today.getTime()-14*24*3600000)) +" " + p.getUsername() + " is NOT eligible for early player deletion as their difference is " + (p.last_login.getTime()-(today.getTime()-48*3600000))+"s and last_login is " + p.last_login);
 
 			}
 			} catch(Exception exc) { exc.printStackTrace(); getPs().b.sendYourself("I tried to delete " + p.ID + " but failed.","Error report."); System.out.println("Id was saved."); }

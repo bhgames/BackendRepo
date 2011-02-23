@@ -198,7 +198,7 @@ public static int days = 5;
 		double avgLevel=0;
 		 int k = 0;
 		 int highLvl=0;
-		while(k<towns.size()) {
+	/*	while(k<towns.size()) {
 			avgLevel+=(int) Math.round(((double) p.God.getAverageLevel(towns.get(k)) )/ ((double) towns.size()));
 			int x = 0;
 			while(x<towns.get(k).bldg().size()) {
@@ -206,7 +206,13 @@ public static int days = 5;
 				x++;
 			}
 			k++;
-		}
+		}*/
+			avgLevel+=(int) Math.round(((double) p.God.getAverageLevel(t) ));
+			int x = 0;
+			while(x<t.bldg().size()) {
+				if(t.bldg().get(x).getLvl()>highLvl) highLvl=t.bldg().get(x).getLvl();
+				x++;
+			}
 		double percdifflvl = ((double) (highLvl-avgLevel))/100;
 		
 		double engAvgLevel = (int) Math.round(((double) (1.0-percdifflvl)*((double) avgLevel) + percdifflvl*((double) highLvl)));
@@ -258,7 +264,7 @@ public static int days = 5;
 		double avgLevel=0;
 		 int k = 0;
 		 int highLvl=0;
-		while(k<towns.size()) {
+	/*	while(k<towns.size()) {
 			avgLevel+=(int) Math.round(((double) p.God.getAverageLevel(towns.get(k)) )/ ((double) towns.size()));
 			int x = 0;
 			while(x<towns.get(k).bldg().size()) {
@@ -266,7 +272,13 @@ public static int days = 5;
 				x++;
 			}
 			k++;
-		}
+		}*/
+			avgLevel+=(int) Math.round(((double) p.God.getAverageLevel(t) ));
+			int x = 0;
+			while(x<t.bldg().size()) {
+				if(t.bldg().get(x).getLvl()>highLvl) highLvl=t.bldg().get(x).getLvl();
+				x++;
+			}
 		double percdifflvl = ((double) (highLvl-avgLevel))/100;
 		
 		double engAvgLevel = (int) Math.round(((double) (1.0-percdifflvl)*((double) avgLevel) + percdifflvl*((double) highLvl)));
@@ -343,7 +355,7 @@ public static int days = 5;
 		double avgLevel=0;
 		 int k = 0;
 		 int highLvl=0;
-		while(k<towns.size()) {
+	/*	while(k<towns.size()) {
 			avgLevel+=(int) Math.round(((double) p.God.getAverageLevel(towns.get(k)) )/ ((double) towns.size()));
 			int x = 0;
 			while(x<towns.get(k).bldg().size()) {
@@ -351,7 +363,13 @@ public static int days = 5;
 				x++;
 			}
 			k++;
-		}
+		}*/
+			avgLevel+=(int) Math.round(((double) p.God.getAverageLevel(t) ));
+			int x = 0;
+			while(x<t.bldg().size()) {
+				if(t.bldg().get(x).getLvl()>highLvl) highLvl=t.bldg().get(x).getLvl();
+				x++;
+			}
 		double percdifflvl = ((double) (highLvl-avgLevel))/100;
 		
 		double engAvgLevel = (int) Math.round(((double) (1.0-percdifflvl)*((double) avgLevel) + percdifflvl*((double) highLvl)));

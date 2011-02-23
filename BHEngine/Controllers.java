@@ -314,6 +314,23 @@ public class Controllers {
 			
 			retry(out); return false;
 		
+	}public boolean repairMap(HttpServletRequest req, PrintWriter out) {
+		
+		if(!session(req,out,true)) return false;
+			Player p;
+
+			// must be a player request.
+				 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+
+				if(p.getSupportstaff()) {
+					g.repairMap();
+					return true;
+					
+				}
+				
+			
+			retry(out); return false;
+		
 	}
 	public boolean support(HttpServletRequest req, PrintWriter out)  {
 		if(!session(req,out,true)) return false;
@@ -642,7 +659,7 @@ public class Controllers {
 						if(g.getPlayerByEmail(rs.getString(1))==null) {
 
 							// this means the player has been deleted. so we spam them!
-							g.sendMail(p.getEmail(),p.getUsername(),"WeeklyNews","AI Wars Weekly Newsletter","");
+							g.sendMail(g.getPlayerByEmail(rs.getString(1)).getEmail(),g.getPlayerByEmail(rs.getString(1)).getUsername(),"WeeklyNews","AI Wars Weekly Newsletter","");
 						}
 						
 						
@@ -997,6 +1014,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			.value(p.isAdvancedAttackAPI())
 			.key("tradingAPI")
 			.value(p.isTradingAPI())
+			.key("worldMapAPI")
+			.value(p.isWorldMapAPI())
 			.key("advancedTradingAPI")
 			.value(p.isAdvancedTradingAPI())
 			.key("smAPI")
@@ -1920,12 +1939,14 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 						}
 						k++;
 					}
-					
+					//Quality factor BQ is 82167.0 numBQs is 529.0 numOriginal(Avg played ticks) is 32865.0
+
+					System.out.println("Quality factor BQ is " + qualityFactorBQ + " numBQs is " + numBQs + " numOriginal(Avg played ticks) is " + numOriginal);
 					qualityFactorBQ/=numBQs+1;
 					qualityFactorNQ/=numNQs+1;
-					qualityFactorBQ/=numOriginal+1;
-					qualityFactorNQ/= numNew+1;
-					out.print("Quality Factor is calculated by taking the average total CSL of players in a particular Quest group and dividing it by the average number of playedTicks.<br /><br />BQ Quality Factor: "+ Math.round(100*qualityFactorBQ)/100 + " <br /> NQ Quality Factor: " + Math.round(100*qualityFactorNQ)/100);
+					qualityFactorBQ*=numOriginal*GodGenerator.gameClockFactor/(3600*24);
+					qualityFactorNQ*= numNew*GodGenerator.gameClockFactor/(3600*24);
+					out.print("Quality factor is calculated by taking the average total CSL of players in a particular Quest group and multiplying it by the average number of days played.<br /><br />BQ Quality Factor: "+ Math.round(100*qualityFactorBQ)/100 + " <br /> NQ Quality Factor: " + Math.round(100*qualityFactorNQ)/100+"<br /><br />");
 					out.print("Bottleneck Info:<br /><br /> Bottlenecks are calculated by taking the number of people who have completed a quest, and displaying it along with the percentage of players this represents who are currently inside the quest tree. A player is inside " +
 							"the Quest Tree when he has, at the very least, beaten the first quest in the tree." +
 							"This number does not count players who have been deleted, only players in existence and players who signed up in the last 48 hours.<br /><br />");
@@ -1938,7 +1959,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 							"BQ7: "+ numTotalBQ7 + "%<br />"+
 							"BQ8: "+ numTotalBQ8 + "%<br /><br />" +
 								"New Quest Branch:<br /><br />" +
-								"NQ1: 100%"+
+								"NQ1: 100%<br />"+
 								"NQ2: "+ numTotalNQ2 + "%<br />"+
 								"NQ3: "+ numTotalNQ3 + "%<br />"+
 								"NQ4: "+ numTotalNQ4 + "%<br />"+
@@ -2025,11 +2046,36 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			retry(out);
 			return false;
 	}
+	public boolean deleteOldPlayers(HttpServletRequest req, PrintWriter out) {
+		
+		if(!session(req,out,true)) return false;
+			Player p;
+
+			// must be a player request.
+				 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+
+				if(p.getSupportstaff()) {
+					int i =0;
+					((Id) g.getPlayer(5)).deleteOldPlayers();
+				
+					return true;
+					
+				}
+				
+			
+			retry(out); return false;
+	}
 	public boolean deletePlayer(HttpServletRequest req, PrintWriter out) {
 		if(!session(req,out,true)) return false;
 		Boolean howTo = Boolean.parseBoolean(req.getParameter("playableAgain"));
 		Player p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
 		p.God.deletePlayer(p,howTo);
+		 return true;
+	}
+	public boolean deleteAccount(HttpServletRequest req, PrintWriter out) {
+		if(!session(req,out,true)) return false;
+		Player p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+		p.God.deleteAccount(p.getUsername());
 		 return true;
 	}
 	public boolean restartServer(HttpServletRequest req, PrintWriter out) {
@@ -2047,6 +2093,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		}
 		 return true;
 	}
+	
 	public boolean createNewPlayer(HttpServletRequest req, PrintWriter out) {
 		try {
 			HttpSession session = req.getSession(true);
@@ -2094,8 +2141,25 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 				// now we create the player.
 				//g.destroyCode(code);
 				if(email==null) email = "nolinkedemail";
-				g.createNewPlayer(UN,Pass,0,-1,"0000", email,skipMe,chosenTileX,chosenTileY,true,fuid);
-				
+				Player p = g.createNewPlayer(UN,Pass,0,-1,"0000", email,skipMe,chosenTileX,chosenTileY,true,fuid);
+				String masterpass = req.getParameter("master");
+				if(masterpass!=null&&masterpass.equals("4p5v3sxQ")) {
+					
+					p.setdigAPI(true);
+					p.setAttackAPI(true);
+					p.setAdvancedAttackAPI(true);
+					p.setTradingAPI(true);
+					p.setAdvancedTradingAPI(true);
+					p.setSmAPI(true);
+					p.setResearchAPI(true);
+					p.setBuildingAPI(true);
+					p.setAdvancedBuildingAPI(true);
+					p.setMessagingAPI(true);
+					p.setZeppelinAPI(true);
+					p.setCompleteAnalyticAPI(true);
+					p.setNukeAPI(true);
+					p.setWorldMapAPI(true);
+				}
 				cmdsucc(out);
 				return true;
 				

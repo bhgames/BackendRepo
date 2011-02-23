@@ -260,7 +260,7 @@ public class Player  {
 			 int howManyRounded = (int) Math.floor(howMany);
 			 setKnowledge(getKnowledge() + howManyRounded);  // Right, now we have the amount we gained.
 			 int newScholTicks = (int) Math.floor((howMany-howManyRounded)*getScholTicksTotal());
-			 if(getUsername().equals("JigglyYoWigly")||getUsername().equals("Trigger")) System.out.println("Number was " + amt + " Got new Schol Ticks of " + newScholTicks + " I have " + howManyRounded + " being added from  " + howMany + " from " + getScholTicks() + " scholTicks and total "+  getScholTicksTotal());
+		//	 if(getUsername().equals("JigglyYoWigly")||getUsername().equals("Trigger")) System.out.println("Number was " + amt + " Got new Schol Ticks of " + newScholTicks + " I have " + howManyRounded + " being added from  " + howMany + " from " + getScholTicks() + " scholTicks and total "+  getScholTicksTotal());
 //Number was 2 Got new Schol Ticks of 68 I have 1 being added from  1.0 from 68 scholTicks and total 68
 
 			 setScholTicks(newScholTicks); // start over, bitch. newScholTicks takes the fraction of the way
@@ -448,8 +448,14 @@ public class Player  {
 				} else buildingCheckTimer++;
 				
 				if(towns().size()==0&&!isBeingDeleted()&&God.serverLoaded&&!isQuest()&&ID!=5) {
-					System.out.println(getUsername() + " is townless, adding 1.");
+					System.out.println("Checking if " + getUsername() + " is townless, adding 1.");
+					towns = null; // set it so it's null.
+					towns(); // REFRESH.
+					if(towns().size()==0) {
+						System.out.println(getUsername() + " is ACTUALLY townless, adding 1.");
+
 					God.giveNewTown(this,-1,0,true,0,0);
+					}
 				}
 				
 				if(towns().size()>getTownTech()&&!isQuest()&&God.serverLoaded&&ID!=5&&getPlayedTicks()<3600/GodGenerator.gameClockFactor) {

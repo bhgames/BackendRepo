@@ -4683,7 +4683,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	res.setContentType("text/html");
 
 	PrintWriter out = res.getWriter();
-	
+	if(serverLoaded) 
 	if(req.getParameter("reqtype").equals("command")) {
 		Router.command(req,out);
 	} else if(req.getParameter("reqtype").equals("saveProgram")) {
@@ -4692,6 +4692,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		Router.serverStatus(req,out);
 	}else if(req.getParameter("reqtype").equals("createNewPlayer")) {
 		Router.createNewPlayer(req,out);
+	}else if(req.getParameter("reqtype").equals("deleteAccount")) {
+		Router.deleteAccount(req,out);
 	}else if(req.getParameter("reqtype").equals("forgotPass")) {
 		Router.forgotPass(req,out);
 	}else if(req.getParameter("reqtype").equals("upgrade")) {
@@ -4725,7 +4727,9 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	else {
 		out.println(status);
 	}
-	
+	else 
+		out.println(status);
+
 
 	out.close();
 }
@@ -4737,8 +4741,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	res.setContentType("text/html");
 
 	PrintWriter out = res.getWriter();
-
-
+	if(serverLoaded) 
 	if(req.getParameter("reqtype").equals("world_map")) {
 		Router.loadWorldMap(req,out);
 	} else if(req.getParameter("reqtype").equals("forgotPass")) {
@@ -4747,10 +4750,14 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		Router.serverStatus(req,out);
 	}else if(req.getParameter("reqtype").equals("convert")) {
 		Router.convert(req,out);
+	}else if(req.getParameter("reqtype").equals("deleteOldPlayers")) {
+		Router.deleteOldPlayers(req,out);
 	}else if(req.getParameter("reqtype").equals("returnPrizeName")) {
 		Router.returnPrizeName(req,out);
 	}else if(req.getParameter("reqtype").equals("newsletter")) {
 		Router.newsletter(req,out);
+	}else if(req.getParameter("reqtype").equals("repairMap")) {
+		Router.repairMap(req,out);
 	}else if(req.getParameter("reqtype").equals("player")) {
 		Router.loadPlayer(req,out,false);
 	} else if(req.getParameter("reqtype").equals("league")) {
@@ -4767,6 +4774,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		Router.noFlick(req,out);
 	}else if(req.getParameter("reqtype").equals("flickStatus")) {
 		Router.flickStatus(req,out);
+	}else if(req.getParameter("reqtype").equals("deleteAccount")) {
+		Router.deleteAccount(req,out);
 	}else if(req.getParameter("reqtype").equals("getTiles")) {
 		Router.getTiles(req,out);
 	} else if(req.getParameter("reqtype").equals("getZongScreen")) {
@@ -4808,7 +4817,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	else {
 		out.println(status);
 	}
-	
+	else 
+		out.println(status);
 
 	out.close();
 }
@@ -5189,9 +5199,68 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		}
 		
 	}
+	public void repairMap() {
+		try {
+		System.out.println("Repairin map...");
+		UberStatement stmt = con.createStatement();
+		Hashtable r; 
+		// so it's always going to be a square root...
+		int radius = (int) Math.sqrt(getMapTileHashes().size());
+		// so let's start on the right.
+		ArrayList<String> mapTileNames = new ArrayList<String>();
+		ResultSet rs = stmt.executeQuery("select mapName from mapnames;");
+		while(rs.next()) {
+			
+			mapTileNames.add(rs.getString(1));
+		}
+		rs.close();
+		
+		int centerx = -(radius)*mapTileWidthX;
+		String name;
+		while(centerx<=(radius)*mapTileWidthX) {
+			int centery = (radius)*mapTileWidthY;
+			while(centery>=-(radius)*mapTileWidthY) {
+				if(Math.abs(centery)<(radius-1)*mapTileWidthY&&Math.abs(centerx)<(radius-1)*mapTileWidthX) {
+					
+					int j = 0; Hashtable tile; boolean found=false;
+					while(j<getMapTileHashes().size()) {
+						tile = getMapTileHashes().get(j);
+						if((Integer) tile.get("centerx")==centerx&&(Integer) tile.get("centery")==centery) {
+							found=true;
+							break;
+						}
+						j++;
+					}
+					// now we create...
+					if(!found) {
+					double rand = Math.random();
+					int toGrab = (int) Math.round(rand*((double) mapTileNames.size()-1.0));
+					name = mapTileNames.get(toGrab);
+					System.out.println("Totally putting in tiles of name " + name + " at " + centerx + "," + centery + " because it is missing.");
+					System.out.println("insert into maptile (mapName,centerx,centery) values ('" + name +"'," + centerx + "," + centery + ");");
+					stmt.execute("insert into maptile (mapName,centerx,centery) values ('" + name +"'," + centerx + "," + centery + ");");
+								//insert into maptile(mapName,centerx,centery) values ('worldmap.png',0,0);
+					}
+				} 
+				System.out.println(centerx+","+centery);
+
+				centery-=mapTileWidthY;
+			}
+			centerx+=mapTileWidthX;
+		}
+		
+		stmt.close();
+		
+		loadMapTiles();
+	} catch(SQLException exc) {
+		exc.printStackTrace();
+	}
+	
+}
 	public void expandMap() {
 			try {
 			System.out.println("Expanding map...");
+			repairMap();
 			UberStatement stmt = con.createStatement();
 			Hashtable r; 
 			// so it's always going to be a square root...
@@ -6267,8 +6336,9 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 
 			stmt.execute(" insert into revelations (pid,revAI) values (" + pid + ",\"\")");
 			
-			Runtime.getRuntime().exec("mkdir " + PlayerScript.getSrcDirectory()  + "userscripts/" + username);
-			Runtime.getRuntime().exec("mkdir " + PlayerScript.getBinDirectory()  + "userscripts/" + username);
+		//	PlayerScript.exec("mkdir " + PlayerScript.getSrcDirectory()  + "userscripts/" + username);
+		//	PlayerScript.exec("mkdir " + PlayerScript.getBinDirectory()  + "userscripts/" + username);
+
 
 			rs.close();
 			int numAttackUnits = 0;
@@ -6450,9 +6520,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			return p;
 			} catch(MySQLTransactionRollbackException exc) { } 
 			}
-		} catch(SQLException exc) { exc.printStackTrace(); } catch(IOException exc) {
-			exc.printStackTrace();
-		}
+		} catch(SQLException exc) { exc.printStackTrace(); }
 		
 		return null;
 	}
@@ -7933,6 +8001,126 @@ public boolean checkForGenocides(Town t) {
 	
 	if(num>0) return true; else return false;*/
 }
+	public static String[] removeDuplicates(String names, String before, String after) {
+		//example: ,A,B,C
+		
+		String nameEntries[] = new String[PlayerScript.commaCount(names)];
+		String befEntries[] = new String[PlayerScript.commaCount(before)];
+		String aftEntries[] = new String[PlayerScript.commaCount(after)];
+
+		if(nameEntries.length!=befEntries.length||befEntries.length!=aftEntries.length) {
+			
+			System.out.println("Found a bug. Names: " + names + " before: " + before + " after: " + after);
+			String toRet[] = {names,before,after};
+			return toRet; // Kinda screwed doing this combinaton thing with a screwed SR.
+		}
+		
+		int i = 0;
+		String holdThis = new String(names)+",";
+		
+		holdThis = holdThis.substring(holdThis.indexOf(",")+1,holdThis.length());
+		while(i<nameEntries.length) {
+			nameEntries[i] = holdThis.substring(0,holdThis.indexOf(","));
+			holdThis = holdThis.substring(holdThis.indexOf(",")+1,holdThis.length());
+			if(holdThis.equals("")) break;
+			i++;
+		}
+		 i = 0;
+			
+		while(i<nameEntries.length) {
+			
+			if(nameEntries[i]==null) nameEntries[i] = "ParseError";
+			i++;
+		}
+		i=0;
+		 holdThis = new String(before)+",";
+		
+		holdThis = holdThis.substring(holdThis.indexOf(",")+1,holdThis.length());
+		while(i<befEntries.length) {
+			befEntries[i] = holdThis.substring(0,holdThis.indexOf(","));
+			holdThis = holdThis.substring(holdThis.indexOf(",")+1,holdThis.length());
+			if(holdThis.equals("")) break;
+			i++;
+		}
+		 i = 0;
+			
+		while(i<befEntries.length) {
+			
+			if(befEntries[i]==null) befEntries[i] = "0";
+			i++;
+		}
+		i=0;
+		 holdThis = new String(after)+",";
+		
+		holdThis = holdThis.substring(holdThis.indexOf(",")+1,holdThis.length());
+		while(i<aftEntries.length) {
+			aftEntries[i] = holdThis.substring(0,holdThis.indexOf(","));
+			holdThis = holdThis.substring(holdThis.indexOf(",")+1,holdThis.length());
+			if(holdThis.equals("")) break;
+			i++;
+		}
+		 i = 0;
+			
+		while(i<aftEntries.length) {
+			
+			if(aftEntries[i]==null) aftEntries[i] = "0";
+			i++;
+		}
+		ArrayList<String> newNames = new ArrayList<String>();
+		ArrayList<String> newBefore = new ArrayList<String>();
+		ArrayList<String> newAfter = new ArrayList<String>();
+		 i = 0;
+		 
+		while(i<nameEntries.length) {
+		//	System.out.println("scanning entry " + nameEntries[i]);
+			int j = 0; boolean foundOne=false; int foundIndex=-1;
+			while(j<newNames.size()) {
+			//	System.out.println("comparing entry " + newNames.get(j));
+
+				if(newNames.get(j).equals(nameEntries[i])&&!newNames.get(j).equals("locked")&&!newNames.get(j).equals("empty")) {
+					foundOne=true;
+					foundIndex=j;
+				//	System.out.println("This entry has already been added at index  " + j + " so now I will add it's numbers to that one's numbers.");
+
+					break;
+				}
+				j++;
+			}
+			
+			if(foundOne) {
+				// this means it already has an entry, so we have to add this one to that one. We combine entries this way.
+			//	System.out.println("The entry I want to add has numbers of " + befEntries[i] +" and after of " + aftEntries[i] + " to be added to index in newNames of  "+ foundIndex);
+		//		System.out.println("Previous entry, before combination is  " + newNames.get(foundIndex) + " bef of " + newBefore.get(foundIndex) + " aft of  " + newAfter.get(foundIndex));
+				newBefore.set(foundIndex,""+(Integer.parseInt(newBefore.get(foundIndex))+Integer.parseInt(befEntries[i])));
+				newAfter.set(foundIndex,""+(Integer.parseInt(newAfter.get(foundIndex))+Integer.parseInt(aftEntries[i])));
+
+			//	System.out.println("Previous entry, after combination is  " + newNames.get(foundIndex) + " bef of " + newBefore.get(foundIndex) + " aft of  " + newAfter.get(foundIndex));
+
+			} else {
+				newNames.add(nameEntries[i]);
+				newBefore.add(befEntries[i]);
+				newAfter.add(aftEntries[i]);
+			//	System.out.println("Adding entry  " + newNames.get(newNames.size()-1) + " bef of " + newBefore.get(newBefore.size()-1) + " aft of  " + newAfter.get(newAfter.size()-1));
+
+			}
+			i++;
+		}
+
+		i = 0;
+		names = ""; before = ""; after = "";
+		while(i<newNames.size()) {
+			
+			names+=","+newNames.get(i);
+			before+=","+newBefore.get(i);
+			after+=","+newAfter.get(i);
+
+			i++;
+		}
+	//	System.out.println("Returning " + names + " bef " + before + " aft " + after);
+		String toRet[] = {names,before,after};
+		return toRet;
+	
+	}
 	public static boolean combatLogicBlock(Raid actattack, String combatHeader) {
 	//	System.out.println("Raid ID: " + holdAttack.raidID);
 		int ie = 0;int totalCheckedSize=0;
@@ -7982,9 +8170,17 @@ public boolean checkForGenocides(Town t) {
 			}
 		}
 		Player t2p = t2.getPlayer();
-		Player t1p = t1.getPlayer();
-		ArrayList<AttackUnit> t1au = actattack.getAu();
-		ArrayList<AttackUnit> t2au = t2.getAu();
+		Player t1p = t1.getPlayer();ArrayList<AttackUnit> t1au=null,t2au=null;
+		try {
+		t1au = actattack.getAu();
+		t2au = t2.getAu();
+		} catch(Exception exc) {
+			exc.printStackTrace(); 
+			System.out.println("Without AU...we must return!");
+			actattack.setRaidOver(true);
+			actattack.setTicksToHit(actattack.getTotalTicks());
+			return false;
+		}
 		UserRaid holdAttack = t1p.getPs().b.getUserRaid(actattack.raidID);
 		String raidType = holdAttack.raidType();
 		boolean genocide = false; if(actattack.isGenocide()) genocide=true;
@@ -8694,7 +8890,7 @@ public boolean checkForGenocides(Town t) {
 				try {
 				k = 0;
 				AttackUnit a=null;
-				while(k<averageVetOff.length) {
+				while(k<t1au.size()) {
 					if(averageVetOffHits[k]>0)
 						averageVetOff[k]/=averageVetOffHits[k];
 					
@@ -8705,7 +8901,7 @@ public boolean checkForGenocides(Town t) {
 					k++;
 				}
 				k = 0;
-				while(k<averageVetDef.length) {
+				while(k<t2au.size()) {
 					if(averageVetDefHits[k]>0)
 						averageVetDef[k]/=averageVetDefHits[k];
 					
@@ -8866,12 +9062,26 @@ public boolean checkForGenocides(Town t) {
 				//	t2.removeAU(holdUnit.getSlot(),(int) holdOld-holdUnit.getSize()); 
 						 
 					defUnitsAfter += "," + (int) (holdOld-holdUnit.getSize());
-					if(k<6)
+					if(k<6) {
+						try {
 						particularCost = t2p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t2.townID);
-						else{
-							if(holdUnit.getLotNum()!=-1) {
+						} catch(Exception exc) {
+							exc.printStackTrace();
+							System.out.println("Combat was saved.");
+						}
+					}else{
+							if(holdUnit.getLotNum()!=-1) { // if Id is town2, means these
+								// cvvies are probably diggers, and returnPrice would return null.
 								// means they are civvies.
-								particularCost = t2p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t2.townID);
+								try {
+									if(t2.getPlayer().ID==5) { // Id circumstances...
+										Town digT = t2p.God.getTown(t2.getDigTownID());
+										if(digT.townID!=0)
+										particularCost = digT.getPlayer().getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),digT.townID);
+
+									} else // normal circumstances...for civvies
+										particularCost = t2p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t2.townID);
+								}catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved, though."); }
 
 							} else
 							try {
@@ -9509,9 +9719,25 @@ public boolean checkForGenocides(Town t) {
 				// this is where statreps are made.
 				try {
 					
-					 
-					     
-				     
+					  /// here we remove scholar and engineer duplicates...
+					     try {
+					    	 String newOff[] = removeDuplicates(offNames,offUnitsBefore,offUnitsAfter);
+					    	 offNames = newOff[0];
+					    	 offUnitsBefore=newOff[1];
+					    	 offUnitsAfter=newOff[2];
+					     } catch(Exception exc) { 
+					    	 exc.printStackTrace();
+					    	 System.out.println("Unit conglomeration on off failed...but combat was saved.");
+					     }
+					     try {
+					    	 String newDef[] = removeDuplicates(defNames,defUnitsBefore,defUnitsAfter);
+					    	 defNames = newDef[0];
+					    	 defUnitsBefore=newDef[1];
+					    	 defUnitsAfter=newDef[2];
+					     } catch(Exception exc) { 
+					    	 exc.printStackTrace();
+					    	 System.out.println("Unit conglomeration on def failed...but combat was saved.");
+					     }
 				   UberStatement   stmt = t1p.con.createStatement();
 				      boolean transacted=false;
 				      // First things first. We update the player table.
@@ -9586,6 +9812,7 @@ public boolean checkForGenocides(Town t) {
 				    	  o++;
 				      }
 				       o = 6;
+				       
 				       holdForP = new ArrayList<Player>();
 				       if(!invade) // if invasion happens, no need to notify supports, they're gone.
 				      while(o<t2au.size()) {
@@ -10611,50 +10838,53 @@ public boolean checkForGenocides(Town t) {
 						auset = t.attackServer().get(k).getAu();
 						int j = 0;
 						while(j<auset.size()) {
-							if(auset.get(j).getSlot()==au.getSlot()){ size+=auset.get(j).getSize(); break; }
+							if((au.getSupport()==0&&auset.get(j).getSlot()==au.getSlot())
+									||(au.getSupport()>0&&auset.get(j).getSlot()==au.getOriginalSlot())){ 
+								size+=auset.get(j).getSize(); break; }
 							j++;
 						}
 						k++;
 					}
 					
-					k=0;
-					while(k<p.God.getTowns().size()) {
-						auset =p.God.getTowns().get(k).getAu();
-						int j = 0;
-						while(j<auset.size()) {
-							a = auset.get(j);
-							if((au.getSupport()>0&&a.getSupport()>0&&a.getOriginalPlayer().ID==au.getOriginalPlayer().ID&&a.getOriginalSlot()==au.getOriginalSlot())
-								||(au.getSupport()>0&&a.getSupport()==0&&p.God.getTowns().get(k).getPlayer().ID==au.getOriginalPlayer().ID&&au.getOriginalSlot()==a.getSlot())
-								||(au.getSupport()==0&&a.getSupport()>0&&a.getOriginalPlayer().ID==p.ID&&au.getSlot()==a.getOriginalSlot()))
-								size+=a.getSize();
-								
-						
-							j++;
-						}
-						j = 0;
-						attackServer = p.God.getTowns().get(k).attackServer();
-						while(j<attackServer.size()) {
-							auset = attackServer.get(j).getAu();
-							int x = 0;
-							while(x<auset.size()) {
-								a = auset.get(x);
-								if((au.getSupport()>0&&a.getSupport()>0&&a.getOriginalPlayer().ID==au.getOriginalPlayer().ID&&a.getOriginalSlot()==au.getOriginalSlot())
-										||(au.getSupport()>0&&a.getSupport()==0&&p.God.getTowns().get(k).getPlayer().ID==au.getOriginalPlayer().ID&&au.getOriginalSlot()==a.getSlot())
-										||(au.getSupport()==0&&a.getSupport()>0&&a.getOriginalPlayer().ID==p.ID&&au.getSlot()==a.getOriginalSlot())
-										)
-										size+=a.getSize();
-								x++;
-							}
-							j++;
-						}
-						k++;
-					}
-				
+			
 					
 				
 				
 				i++;
 			}
+			int k=0;
+			while(k<p.God.getTowns().size()) {
+				auset =p.God.getTowns().get(k).getAu();
+				int j = 0;
+				while(j<auset.size()) {
+					a = auset.get(j);
+					if((au.getSupport()>0&&a.getSupport()>0&&a.getOriginalPlayer().ID==au.getOriginalPlayer().ID&&a.getOriginalSlot()==au.getOriginalSlot())
+						||(au.getSupport()>0&&a.getSupport()==0&&p.God.getTowns().get(k).getPlayer().ID==au.getOriginalPlayer().ID&&au.getOriginalSlot()==a.getSlot())
+						||(au.getSupport()==0&&a.getSupport()>0&&a.getOriginalPlayer().ID==p.ID&&au.getSlot()==a.getOriginalSlot()))
+						size+=a.getSize();
+						
+				
+					j++;
+				}
+				j = 0;
+				attackServer = p.God.getTowns().get(k).attackServer();
+				while(j<attackServer.size()) {
+					auset = attackServer.get(j).getAu();
+					int x = 0;
+					while(x<auset.size()) {
+						a = auset.get(x);
+						if((au.getSupport()>0&&a.getSupport()>0&&a.getOriginalPlayer().ID==au.getOriginalPlayer().ID&&a.getOriginalSlot()==au.getOriginalSlot())
+								||(au.getSupport()>0&&a.getSupport()==0&&p.God.getTowns().get(k).getPlayer().ID==au.getOriginalPlayer().ID&&au.getOriginalSlot()==a.getSlot())
+								||(au.getSupport()==0&&a.getSupport()>0&&a.getOriginalPlayer().ID==p.ID&&au.getSlot()==a.getOriginalSlot())
+								)
+								size+=a.getSize();
+						x++;
+					}
+					j++;
+				}
+				k++;
+			}
+		
 	/*	try {
 		 stmt = p.God.con.createStatement();
 		 stmt2 = p.God.con.createStatement();
@@ -10756,8 +10986,8 @@ public boolean checkForGenocides(Town t) {
 		long totalCargo = 0; int totalSize=0;
 		while(i<r.getAu().size()) {
 			int n = r.getAu().get(i).getSize();
-		//	totalSize+=Math.round(((double) n*(n+1)*r.getAu().get(i).getPopSize()*r.getAu().get(i).getCargo())/2); OLD CARGO
-			totalSize+=Math.round(((double) n*r.getAu().get(i).getPopSize()*r.getAu().get(i).getCargo())); // NEW CARGO :)
+			totalSize+=Math.round(((double) n*(n+1)*r.getAu().get(i).getPopSize()*r.getAu().get(i).getCargo())/2);// OLD CARGO
+		//	totalSize+=Math.round(((double) n*r.getAu().get(i).getPopSize()*r.getAu().get(i).getCargo())); // NEW CARGO :)
 			// popsizes are 5 and 10 for juggers and tanks, so you get 5x as many cargo for a tank that's worth 10 men, but it's
 			// 2x as fast, so there's your tradeoff!
 			
@@ -11272,7 +11502,7 @@ public boolean checkForGenocides(Town t) {
 			  testDist = Math.sqrt(t.getX()*t.getX()+t.getY()*t.getY());
 			  else 
 				 testDist= Math.sqrt(Math.pow(t.getX()-chosenTileX,2)+Math.pow(t.getY()-chosenTileY,2));
-			 if(testDist<=(distance)) {
+			 if(testDist<=(distance)&&t.getProbTimer()==0&&t.getDigAmt()==0) { // no dig sites.
 				 int k = 0; boolean foundNone=true;
 				 while(k<t.getResEffects().length) { // we only do normal towns, bitches.
 					 if(t.getResEffects()[k]!=0) foundNone=false;
@@ -11722,7 +11952,6 @@ public boolean checkForGenocides(Town t) {
 		      while(rs.next()) {
 		    	  int id = rs.getInt(1);
 		    	  players.add(new Town(id,this));
-		    	  
 		    	  
 		      }
 		      rs.close();
@@ -12470,6 +12699,31 @@ public boolean checkForGenocides(Town t) {
 			e.printStackTrace();
 		}
 	}
+	
+	public void deleteAccount(String username) {
+		
+		Hashtable r = (Hashtable) accounts.get(username);
+		if(r!=null) {
+			Player p = getPlayer(getPlayerId(username));
+			if(p.ID!=5) {
+				
+				deletePlayer(p,true);
+			}
+			
+			try {
+				UberStatement stmt = con.createStatement();
+				stmt.execute("delete from users where username = '"+username+"';");
+				stmt.close();
+			} catch(SQLException exc) {
+				exc.printStackTrace();
+			}
+			long fuid = (Long) r.get("fuid");
+			if(fuid!=0)
+				accounts.remove(fuid);
+			
+			accounts.remove(username);
+		}
+	}
 	public void deletePlayer(Player p, boolean playableAgain) {
 		p.setBeingDeleted(true);
 		/*
@@ -12502,6 +12756,9 @@ public boolean checkForGenocides(Town t) {
 				while(j<towns.size()) {
 					int k = 0;
 					t = towns.get(j);
+					if(t.getDigTownID()==ptown.townID) { // reset all digs.
+						t.resetDig(0,0,false);
+					}
 					tres = t.tradeServer();
 					while(k<tres.size()) {
 						tr = tres.get(k);
@@ -12660,6 +12917,7 @@ public boolean checkForGenocides(Town t) {
 					k++;
 				}
 			}
+			
 			stmt.execute("delete from qpc where pid = " +p.ID);
 			stmt.execute("delete from ap where pid = " +p.ID);
 			stmt.execute("delete from messages where pid_to = " + p.ID);
@@ -12668,7 +12926,7 @@ public boolean checkForGenocides(Town t) {
 			stmt.execute("delete from revelations where pid = " + p.ID);
 			stmt.execute("delete from statreports where pid = " + p.ID);
 			stmt.execute("delete from invadable where pid = " + p.ID);
-			
+
 			stmt.execute("delete from player where pid = " + p.ID);
 
 			stmt.close();

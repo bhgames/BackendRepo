@@ -348,9 +348,9 @@ public class Trade {
 			ArrayList<TradeSchedule> tses = getTown1().tradeSchedules();
 			int tradeScheduleID = getInt("tsid");
 	//		if(tradeID==16197)
-			System.out.println("Found a tsid of " + tradeScheduleID);
+		//System.out.println("Found a tsid of " + tradeScheduleID);
 			while(i<tses.size()) {
-				System.out.println("Checking ts " + tses.get(i).tradeScheduleID);
+				//System.out.println("Checking ts " + tses.get(i).tradeScheduleID);
 				if(tses.get(i).tradeScheduleID==tradeScheduleID) {
 					this.ts=tses.get(i);
 					break;

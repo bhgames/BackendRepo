@@ -14,7 +14,7 @@ public class BQBranchToRQ extends QuestListener {
 
 	@Override
 	public boolean checkPlayer(Player p) {
-		if(completedOrPartOfQuest(p,"BQ3")&&p.getCapitaltid()!=-1) return true;
+		if((completedOrPartOfQuest(p,"BQ3")||completedOrPartOfQuest(p,"NQ3"))&&p.getCapitaltid()!=-1) return true;
 		else return false;	
 		
 	}

@@ -139,6 +139,12 @@ public class League extends Player {
 		// input the mapper output code here.
 		return "blank";
 	}
+	public void checkForLeagueReference(Player p) {
+		
+		// this method exists to check if a player is missing his league reference, and gives it back to him.
+		if(p.getLeague()==null) p.setLeague(this);
+		
+	}
 	public void doTaxes(int num) {
 		/*if(resTimer==null) {
 
@@ -238,6 +244,7 @@ public class League extends Player {
 					// When we try to update players here, we often deadlock them.
 					if(p!=null) {
 						ptowns = p.towns();
+						checkForLeagueReference(p);
 					while(y<ptowns.size()) {
 						
 						t = ptowns.get(y);
