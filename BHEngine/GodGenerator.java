@@ -48,6 +48,34 @@ import java.security.SecureRandom;
  Encyclopedia of questions:
  
  
+ Revelations 2.0:
+ 
+ To really do this, we need to start with some prototype methods:
+ 
+ 1. onAttack(UserRaid r) - Called when an incoming raid is first detected.
+ 2. onTrade(UserTrade r) - Called when a trade is made
+ 3. hourly()
+ 4. daily()
+
+Just go with this and see how they go.
+
+To make this happen:
+0. Create Revelations2.0 as an interface with those methods. Make it have supermethods
+that call the methods the player has to fill out and these have try catch blocks
+connected to the messaging system.---CHECK---
+1. Create a master thread, Gigabyte 2.0. This thread's job is to run these methods.
+Other parts of the game will query it to run for the player. The names of these methods
+will be called indirectly, like we're used to., like call method("onAttack"). What it will do is
+seek out the Revelations AI of the player and if it's a Revelations2 class, it will
+set up a thread that calls the method and then join on that thread...if it doesn't finish
+within 20ms, it is shut down and a message is sent to the player. Also, the program itself is stopped.
+2. A started Revelations will probably now need a boolean that is true if it is on and false if it isn't,
+which will be irrelevant to Revelations users but not to revelations2 users, since the class is no
+longer a thread object.
+3. You'll probably need to make a separate part of runAndLoadProgram() that loads Revelations2
+and doesn't attempt to start it. 
+4. Make it so Gigabyte1.0 does not interfere with 2.0 programs. MemoryLeakDetector is it.
+ 
  
  PROCEDURE FOR SUCCESSFUL ACCOUNT SPLIT
  1. MAKE A SYSTEMS BACKUP
