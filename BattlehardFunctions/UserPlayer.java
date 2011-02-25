@@ -76,7 +76,7 @@ public class UserPlayer {
 			boolean zeppTech, boolean missileSiloTech, boolean recyclingTech, boolean metalRefTech, boolean timberRefTech, boolean manMatRefTech,
 			boolean foodRefTech, boolean attackAPI, boolean advancedAttackAPI, boolean tradingAPI, boolean advancedTradingAPI,
 			boolean smAPI, boolean researchAPI, boolean buildingAPI, boolean advancedBuildingAPI, boolean messagingAPI, 
-			boolean zeppelinAPI, boolean completeAnalyticAPI, boolean nukeAPI, boolean worldMapAPI, int scoutTech) {
+			boolean zeppelinAPI, boolean completeAnalyticAPI, boolean nukeAPI, boolean worldMapAPI, int scoutTech, int alotTech) {
 		this.bp=bp;
 		this.scoutTech=scoutTech;
 		this.commsCenterTech=commsCenterTech;
@@ -100,7 +100,7 @@ public class UserPlayer {
 		this.totalBPEarned=totalBPEarned;
 		this.email=email;
 		ID = id;
-		aLotTech = lotTech;
+		this.aLotTech = aLotTech;
 		this.afTech = afTech;
 		this.au = au;
 		this.bomberPicTech = bomberPicTech;

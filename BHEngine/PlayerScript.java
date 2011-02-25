@@ -2415,6 +2415,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 				while(i<g.programs.size()) {
 					if(((Integer) g.programs.get(i).get("pid")) == player.ID) {
 						currRevInstance = (Object) g.programs.get(i).get("Revelations");
+						if(currRevInstance.getClass().getSuperclass().getName().equals("RevelationsAI"))
 						((Thread) currRevInstance).stop();
 						g.programs.remove(i);
 						return true;
@@ -2771,12 +2772,13 @@ try {
   						i++;
   					}
   					}
-  					if(currRevInstance!=null) ((Thread) currRevInstance).stop(); // to kill the old one off.
+  					if(currRevInstance!=null&&currRevInstance.getClass().getSuperclass().getName().equals("RevelationsAI")) ((Thread) currRevInstance).stop(); // to kill the old one off.
   					currRev=null;
   					currRevInstance=null;
   					revb = null;
   					RevClassLoader rcl = new RevClassLoader(BattlehardFunctions.class.getClassLoader(),player.getUsername());
   					rcl.loadClass("Revelations.RevelationsAI");
+  					rcl.loadClass("Revelations.RevelationsAI2");
   					currRev = rcl.loadClass("Revelations." + player.getUsername().replace(" ","_").toLowerCase() + ".Revelations");
   					if(otherb==null)
  					 revb = new BattlehardFunctions(player.God,player,"4p5v3sxQ",true,this);
@@ -2788,7 +2790,9 @@ try {
   				//	Class param = Class.forName(""+newSCons.getParameterTypes()[0],false,urlload);
 
   					 currRevInstance =  newSCons.newInstance(revb);
+  					 if(currRevInstance.getClass().getSuperclass().getName().equals("RevelationsAI"))
   					((Thread) currRevInstance).start();
+  					 
   					Hashtable r = new Hashtable();
   					r.put("Revelations",currRevInstance);
   					r.put("pid",player.ID);

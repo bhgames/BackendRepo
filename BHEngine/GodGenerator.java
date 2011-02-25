@@ -71,11 +71,11 @@ set up a thread that calls the method and then join on that thread...if it doesn
 within 20ms, it is shut down and a message is sent to the player. Also, the program itself is stopped.
 2. A started Revelations will probably now need a boolean that is true if it is on and false if it isn't,
 which will be irrelevant to Revelations users but not to revelations2 users, since the class is no
-longer a thread object.
+longer a thread object.---CHECK---
 3. You'll probably need to make a separate part of runAndLoadProgram() that loads Revelations2
-and doesn't attempt to start it. 
+and doesn't attempt to start it. ---CHECK---
 4. Make it so Gigabyte1.0 does not interfere with 2.0 programs. MemoryLeakDetector is it.
- 
+5. Need to add the proper calls to the places where necessary after G2.0 is made.
  
  PROCEDURE FOR SUCCESSFUL ACCOUNT SPLIT
  1. MAKE A SYSTEMS BACKUP

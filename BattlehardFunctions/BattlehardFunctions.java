@@ -11397,7 +11397,7 @@ public long[] returnPrice(int lotNum, int tid) {
 				p.isMissileSiloTech(),p.isRecyclingTech(),p.isMetalRefTech(),p.isTimberRefTech(),p.isManMatRefTech(),p.isFoodRefTech(),
 				p.isAttackAPI(),p.isAdvancedAttackAPI(),p.isTradingAPI(),p.isAdvancedTradingAPI(),p.isSmAPI(),p.isResearchAPI(),
 				p.isBuildingAPI(),p.isAdvancedBuildingAPI(),p.isMessagingAPI(),p.isZeppelinAPI(),p.isCompleteAnalyticAPI(),
-				p.isNukeAPI(),p.isWorldMapAPI(),p.getScoutTech());
+				p.isNukeAPI(),p.isWorldMapAPI(),p.getScoutTech(), p.getALotTech());
 		
 	}
 	
@@ -13092,18 +13092,20 @@ public long[] returnPrice(int lotNum, int tid) {
 	 * @return
 	 */
 	public boolean isAlive() {
-		Object currRevInstance= null;
+		Object currRevInstance= null; Hashtable r=null;
 		synchronized(g.programs) {
 			int i = 0;
 				while(i<g.programs.size()) {
 					if(((Integer) g.programs.get(i).get("pid")) == p.ID) {
 						currRevInstance = (Object) g.programs.get(i).get("Revelations");
+						r = g.programs.get(i);
 						break;
 					}
 					i++;
 				}
 				}
-		if(currRevInstance!=null&&((Thread) currRevInstance).isAlive())  return true;
+		if(currRevInstance!=null&&((Thread) currRevInstance).isAlive())
+				  return true;
 		else return false;
 	}
 	/**
