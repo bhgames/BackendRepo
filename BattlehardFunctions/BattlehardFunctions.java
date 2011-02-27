@@ -11397,7 +11397,7 @@ public long[] returnPrice(int lotNum, int tid) {
 				p.isMissileSiloTech(),p.isRecyclingTech(),p.isMetalRefTech(),p.isTimberRefTech(),p.isManMatRefTech(),p.isFoodRefTech(),
 				p.isAttackAPI(),p.isAdvancedAttackAPI(),p.isTradingAPI(),p.isAdvancedTradingAPI(),p.isSmAPI(),p.isResearchAPI(),
 				p.isBuildingAPI(),p.isAdvancedBuildingAPI(),p.isMessagingAPI(),p.isZeppelinAPI(),p.isCompleteAnalyticAPI(),
-				p.isNukeAPI(),p.isWorldMapAPI(),p.getScoutTech());
+				p.isNukeAPI(),p.isWorldMapAPI(),p.getScoutTech(),p.getALotTech());
 		
 	}
 	
@@ -12673,6 +12673,9 @@ public long[] returnPrice(int lotNum, int tid) {
 
 			recall(idTown.townID,idTown.getPlayer().ID,yourTown.townID);
 			
+		} else {
+			setError("This message was never sent!");
+			return false;
 		}
 		
 		return true;

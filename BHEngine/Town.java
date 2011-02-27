@@ -1470,7 +1470,7 @@ public class Town {
     		
     			  }
     			
-    		
+    		if(updateAU[j-6]!=null)
 	    	  stmt.executeUpdate(updateAU[j-(6)]);
     	  
 	    	  j++;

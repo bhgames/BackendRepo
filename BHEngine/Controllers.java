@@ -1022,6 +1022,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			.value(p.isSmAPI())
 			.key("researchAPI")
 			.value(p.isResearchAPI())
+			.key("digAPI")
+			.value(p.isdigAPI())
 			.key("buildingAPI")
 			.value(p.isBuildingAPI())
 			.key("advancedBuildingAPI")
