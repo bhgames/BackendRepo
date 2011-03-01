@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Hashtable;
 
 public class Iterator implements Runnable {
 
@@ -212,6 +213,45 @@ public class Iterator implements Runnable {
 			}
 			
 			}
+			i++;
+		}
+		
+
+		
+		
+	}
+	public void checkPrograms() {
+		// GOTTA UPDATE LEAGUES CONSTANTLY, COULD COME ON AND GET TAXES FROM ALL NEW MINES INSTEAD OF OLDER UNUPGRADED ONES!
+			ArrayList<Hashtable> players = God.programs;
+	//		System.out.println(iterateID + "'s internal clock is off.");
+		// only need to loop once - think about it, with two iterators,
+		// then 0 would be gotten by the first, and the second would hit 1,
+		// and then if second lagged at 1, first would skip 1 and get 2 and 3,
+		// and so on. With five or ten iterators combing, it's possible to get them all
+		// with one iteration.
+		// Then at the end of this iteration, we should check.
+		int i = 0; 
+		Hashtable p;
+		while(i<players.size()) {
+			p = players.get(i);
+	
+			if(((String) p.get("holdingIteratorID")).equals("-1")&&((Integer) p.get("startAt"))<internalClock-3600/GodGenerator.gameClockFactor /*WRONG*/) {
+			
+				// IF THIS IS A REV2.0
+				synchronized(p){if(p.getLeagueHoldingIteratorID().equals("-1")) p.setLeagueHoldingIteratorID(iterateID); }
+				if(p.getLeagueHoldingIteratorID().equals(iterateID)) {
+			//		System.out.println(iterateID + " caught " + p.username + "'s focus and is iterating at " + internalClock);
+			
+				try {
+			//	System.out.println(iterateID + " is iterating " + p.username);
+				p.doTaxes(internalClock-p.getLeagueInternalClock());
+				} catch(Exception exc) { exc.printStackTrace(); } 
+			
+				p.setLeagueHoldingIteratorID("-1");
+				}
+			}
+			
+			
 			i++;
 		}
 		
