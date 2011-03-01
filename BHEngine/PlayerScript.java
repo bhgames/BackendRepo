@@ -2799,7 +2799,7 @@ try {
   					r.put("sleep",false);
   					r.put("pingFails",0);
   					r.put("startAt", player.God.gameClock);
-  					r.put("holdingIteratorID",-1);
+  					r.put("holdingIteratorID","-1");
   					
   					synchronized(player.God.programs) {
   						player.God.programs.add(r);
