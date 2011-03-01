@@ -2162,6 +2162,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					p.setNukeAPI(true);
 					p.setWorldMapAPI(true);
 					p.setKnowledge(10000);
+					
 				}
 				cmdsucc(out);
 				return true;
