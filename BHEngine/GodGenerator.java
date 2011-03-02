@@ -7055,7 +7055,42 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				}
 				
 				if(foundSome) {
+					i = 0; boolean foundOff=false;
+					while(i<r.getAu().size()) {
+						if(r.getAu().get(i).getSize()>0) {
+							foundOff=true;
+							break;
+						}
+						i++;
+					}
+					if(foundOff)
 					combatLogicBlock(r,"There was somebody armed already digging here!");
+					else { // if incoming was undefended!
+
+						String unitStart=""; String unitNames="";String unitEnd="";
+						int k = 0;
+						Town otherT = t2.getPlayer().God.findTown(t2.getDigTownID());
+						Town t1 = r.getTown1();
+						Player t2p = otherT.getPlayer();
+						while(k<t2.getAu().size()) {
+							unitStart+=","+t2.getAu().get(k).getSize();
+							unitNames+=","+t2.getAu().get(k).getName();
+							unitEnd+=",0";
+
+							k++;
+						}
+						unitStart+=","+t2.getDigAmt();
+						unitNames+=",Scholar";
+						unitEnd+=",0";
+
+						 stmt.execute("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,offdig,defdig) values" +
+						      		"(" +t1.getPlayer().ID + ","+ t1.townID + "," + t2.townID + ",\"" + unitStart + "\",\"" + unitEnd + "\",\"" 
+						      		+ unitNames + "\","+r.getMetal() +"," + r.getTimber() + ","+r.getManmat() + "," + r.getFood() + ",'"+t1.getTownName()+"','"+t2.getTownName()+"','The dig site was inhabited by an armed force, so the dig could not begin.',true,true);");
+						   
+						
+						r.setRaidOver(true);
+						r.setTicksToHit(r.getTotalTicks());
+					}
 					
 				} else {
 					// This must be a civvie raid only. So we just use recall.
@@ -7079,7 +7114,6 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 						unitNames+=",Scholar";
 						unitEnd+=",0";
 
-						System.out.println("inserting.");
 						 stmt.execute("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,offdig,defdig) values" +
 						      		"(" +otherT.getPlayer().ID + ","+ t1.townID + "," + t2.townID + ",\"" + unitStart + "\",\"" + unitEnd + "\",\"" 
 						      		+ unitNames + "\","+r.getMetal() +"," + r.getTimber() + ","+r.getManmat() + "," + r.getFood() + ",'"+t1.getTownName()+"','"+t2.getTownName()+"','The defensive dig site was forcibly overtaken by an enemy dig party.',true,true);");
@@ -7093,9 +7127,9 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				
 			} else {
 				t2.resetDig(r.getTown1().townID,r.getDigAmt(),true);
-				System.out.println("dig town id is " + t2.getDigTownID() + 
-				" and dig counter is " + t2.getDigCounter() + " and findTime is " + t2.getFindTime() + 
-				" and digAmt is " +t2.getDigAmt() + " and I am " + t2.townID + " and townName of  " +t2.getTownName());
+			//	System.out.println("dig town id is " + t2.getDigTownID() + 
+			//	" and dig counter is " + t2.getDigCounter() + " and findTime is " + t2.getFindTime() + 
+			//	" and digAmt is " +t2.getDigAmt() + " and I am " + t2.townID + " and townName of  " +t2.getTownName());
 				supportLogicBlock(r,false);
 
 			}
