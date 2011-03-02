@@ -1,5 +1,6 @@
 package BHEngine;
 
+import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -234,21 +235,29 @@ public class Iterator implements Runnable {
 		Hashtable p;
 		while(i<players.size()) {
 			p = players.get(i);
-	
-			if(((String) p.get("holdingIteratorID")).equals("-1")&&((Integer) p.get("startAt"))<internalClock-3600/GodGenerator.gameClockFactor /*WRONG*/) {
+			int time = internalClock-((Integer) p.get("startAt"));
+			double hourlyLeft = (time)/(3600/GodGenerator.gameClockFactor);
+			hourlyLeft-=Math.round(hourlyLeft);
+			double dailyLeft = (time)/(24*3600/GodGenerator.gameClockFactor);
+			dailyLeft-=Math.round(dailyLeft);
+			
+			if(((String) p.get("holdingIteratorID")).equals("-1")&&(dailyLeft==0||hourlyLeft==0)) {
 			
 				// IF THIS IS A REV2.0
-				synchronized(p){if(p.getLeagueHoldingIteratorID().equals("-1")) p.setLeagueHoldingIteratorID(iterateID); }
-				if(p.getLeagueHoldingIteratorID().equals(iterateID)) {
+				synchronized(p){if(((String) p.get("holdingIteratorID")).equals("-1")) p.put("holdingIteratorID",iterateID); }
+				if(((String) p.get("holdingIteratorID")).equals(iterateID)) {
 			//		System.out.println(iterateID + " caught " + p.username + "'s focus and is iterating at " + internalClock);
+				
 			
-				try {
-			//	System.out.println(iterateID + " is iterating " + p.username);
-				p.doTaxes(internalClock-p.getLeagueInternalClock());
-				} catch(Exception exc) { exc.printStackTrace(); } 
-			
-				p.setLeagueHoldingIteratorID("-1");
+				if(hourlyLeft==0)
+					God.getPlayer((Integer) p.get("pid")).getPs().runMethod("hourly",null);
+				if(dailyLeft==0)
+					God.getPlayer((Integer) p.get("pid")).getPs().runMethod("daily",null);
+				
+					p.put("holdingIteratorID","-1"); 
+
 				}
+
 			}
 			
 			

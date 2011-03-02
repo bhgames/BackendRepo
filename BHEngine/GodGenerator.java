@@ -69,7 +69,7 @@ Other parts of the game will query it to run for the player. The names of these 
 will be called indirectly, like we're used to., like call method("onAttack"). What it will do is
 seek out the Revelations AI of the player and if it's a Revelations2 class, it will
 set up a thread that calls the method and then join on that thread...if it doesn't finish
-within 20ms, it is shut down and a message is sent to the player. Also, the program itself is stopped.
+within 20ms, it is shut down and a message is sent to the player. Also, the program itself is stopped.---CHECK---
 
 2. A started Revelations will probably now need a boolean that is true if it is on and false if it isn't,
 which will be irrelevant to Revelations users but not to revelations2 users, since the class is no
@@ -78,7 +78,7 @@ longer a thread object.---CHECK---
 3. You'll probably need to make a separate part of runAndLoadProgram() that loads Revelations2
 and doesn't attempt to start it. ---CHECK---
 
-4. Make it so Gigabyte1.0 does not interfere with 2.0 programs. MemoryLeakDetector is it.
+4. Make it so Gigabyte1.0 does not interfere with 2.0 programs. MemoryLeakDetector is it.---CHECK---
 
 5. Need to add the proper calls to the places where necessary after G2.0 is made.
  
@@ -10107,7 +10107,6 @@ public boolean checkForGenocides(Town t) {
 					
 				}else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("dig"))) {
 					// this means it's a supporting run. Scout will always be 0 for this.
-				System.out.println("I detected it was a dig.");
 					digLogicBlock(r);
 					
 				}else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("debris"))) {

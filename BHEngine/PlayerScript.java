@@ -2405,6 +2405,31 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 		
 		
 	}
+	public boolean runMethod(String methodName, Object... params) {
+		int i = 0; Hashtable r=null; boolean found=false;
+		while(i<player.God.programs.size()) {
+			r = player.God.programs.get(i);
+			int pid = (Integer) r.get("pid");
+			if(pid==player.ID) {
+				found=true;
+				break;
+			}
+			i++;
+		}
+		if(!found) return false;
+		
+		Object currRevInstance = (Object) r.get("Revelations");
+		doMethod t = new doMethod(player.getUsername(),currRevInstance,methodName,params);
+		t.start();
+		try {
+			t.join(20);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		t.stop();
+		return true;
+	}
 	public boolean stopProgram() {
 		// HALT THE PROGRAMMETHONER
 		

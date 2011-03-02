@@ -17,7 +17,7 @@ public class MemoryLeakDetector implements Runnable {
 				for(int i = 0; i<g.programs.size(); i++) { 
 					 r = g.programs.get(i);
 					 int pid = (Integer) g.programs.get(i).get("pid");
-					 if(r!=null) {
+					 if(r!=null&&((Object) r.get("Revelations")).getClass().getSuperclass().getName().equals("RevelationsAI")) {
 						  int pingCounter=0;
 					//	  System.out.println("Pinging " + g.getPlayer(pid).getUsername());
 						  int j = 0;
