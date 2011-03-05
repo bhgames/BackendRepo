@@ -80,7 +80,32 @@ and doesn't attempt to start it. ---CHECK---
 
 4. Make it so Gigabyte1.0 does not interfere with 2.0 programs. MemoryLeakDetector is it.---CHECK---
 
-5. Need to add the proper calls to the places where necessary after G2.0 is made.
+5. Need to add the proper calls to the places where necessary after G2.0 is made.---CHECK---
+
+Tests:
+1. Try running the goddamned thing. Can you get it to work? Memory leaks? What?---CHECK---
+2. Try stopping it. Is it still in memory? make a print statement to find out.---CHECK---
+3. Test out hourly - does it work with an active player?---CHECK---
+4. How about an inactive one?---CHECK---
+5. Daily active---CHECK---
+6. Daily inactive---CHECK---
+7. Incoming raid - on an active, programmer player, does it detect?---CHECK---
+8. Incoming - on an inactive programmer, does it detect?---CHECK---
+9. Test outgoing returning - raid players are always active. Does it detect?---CHECK---
+10. Test out it's error handling - how does it look?---CHECK--
+11. Try to write an infinite loop sending messages and see if it gets caught
+after 20 ms. Make it hourly.---CHECK---
+ 
+ 
+ To add:
+ onBuildingFinish(TID,LotNumber)
+ whenTownInvaded
+ onQueEmpty(TID,lotNum) for arms factories
+onMessageReceived
+onAttackLanding
+ 
+ 
+ 
  
  PROCEDURE FOR SUCCESSFUL ACCOUNT SPLIT
  1. MAKE A SYSTEMS BACKUP
@@ -4305,14 +4330,7 @@ be rich.
  */
 
 /* Journal:
- * FIRST: AIRSHIP FIX...
-[8:14:25 PM] Jordan: 1. I want to change units to be rock-paper-scissors, and remove the other two bomber classes.
-2. I want to change the town tech prices to the way you want it, now.
-3. I want to change Cargo to be each soldier gets his cargo according to his base price, not his total aggregate price, as right now it's easy to do a full take, and I built it that way assuming you'd only use the soldier once, instead of multiple times.
-
-<<< [8:35:28 PM] Jordan: 4. Change unit tech prices to match the town prices. So if town 2 is 200 KP, and town 3 is 400 KP, then tank is 200KP and jugger is 400KP, and manufacturing tech has a base price at like 100 KP
-
-<<<
+http://www.cstutoringcenter.com/problems/
 
 http://www.javabeginner.com/
 
@@ -4333,12 +4351,6 @@ Zeppelin API
 Zong callback URI:
 www.aiwars.org/AIWars/GodGenerator?reqtype=upgrade
 
- To Do:
-1. Create league with troops in town, troops don't leave.
-2. Send support mission, recall, support disappears.
-3. Unable to recall from Id towns?
-11. DebugRevelations class
-12. Fuckin vaca mode.
 
 
 
@@ -6949,6 +6961,9 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			if(testhold==0) testhold=(int) Math.round(((double) 10/(lowSpeed*speedadjust))/GodGenerator.gameClockFactor);
 			holdAttack.setRaidOver(true);
 			holdAttack.setTicksToHit(testhold);
+		
+			holdAttack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",holdAttack.getTown1().getPlayer().getPs().b.getUserRaid(holdAttack.raidID));
+			
 			
 			try {
 				
@@ -7035,7 +7050,8 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			if(testhold==0) testhold=(int) Math.round(((double) 10/(lowSpeed*speedadjust))/GodGenerator.gameClockFactor);
 
 			holdAttack.setTicksToHit(testhold);
-			
+			holdAttack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",holdAttack.getTown1().getPlayer().getPs().b.getUserRaid(holdAttack.raidID));
+
 			// Now raid is being returned!
 			return false;
 		}
@@ -7575,7 +7591,8 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			if(testhold==0) testhold=(int) Math.round(((double) 10/(lowSpeed*speedadjust))/GodGenerator.gameClockFactor);
 
 			actattack.setTicksToHit(testhold);
-			
+			actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+
 			} else {
 				// in this special case where maxSize=0 and size=0(ie the lowSpeed never changes because there are
 				// no units left to contribute to it) then the raid gets deleted.
@@ -7838,6 +7855,8 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 
 			holdAttack.setRaidOver(true);
 			holdAttack.setTicksToHit(testhold); // sending back AUs
+			holdAttack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",holdAttack.getTown1().getPlayer().getPs().b.getUserRaid(holdAttack.raidID));
+
 		}
 	return false;
 	} 
@@ -7883,6 +7902,8 @@ public static boolean debrisLogicBlock(Raid r) {
 		}
 		r.setRaidOver(true);
 		r.setTicksToHit(r.getTotalTicks());
+		r.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",r.getTown1().getPlayer().getPs().b.getUserRaid(r.raidID));
+
 		UberStatement stmt = r.getTown1().getPlayer().God.con.createStatement();
 		 stmt.execute("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,debris) values" +
 		      		"(" +t1p.ID + ","+ t1.townID + "," + t2.townID + ",\"" + unitStart + "\",\"" + unitEnd + "\",\"" 
@@ -8212,6 +8233,8 @@ public boolean checkForGenocides(Town t) {
 			System.out.println("Without AU...we must return!");
 			actattack.setRaidOver(true);
 			actattack.setTicksToHit(actattack.getTotalTicks());
+			actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+
 			return false;
 		}
 		UserRaid holdAttack = t1p.getPs().b.getUserRaid(actattack.raidID);
@@ -9427,7 +9450,8 @@ public boolean checkForGenocides(Town t) {
 					 actattack.setTicksToHit(testhold);
 						actattack.setTotalTicks(testhold);
 						actattack.setRaidOver(true);
-						
+						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+
 						if(resFlag) {
 							// Means can collect resources.
 							
@@ -9444,6 +9468,8 @@ public boolean checkForGenocides(Town t) {
 					actattack.setTotalTicks(testhold);
 
 					actattack.setRaidOver(true);
+					actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+
 				
 				if(resFlag) {
 					// Means can collect resources.
@@ -9457,6 +9483,8 @@ public boolean checkForGenocides(Town t) {
 				} else if(genocide&&numUnitsRemainingD>0&&!holdAttack.allClear()) {
 					actattack.setTicksToHit((int) Math.round(((double) testhold)/4));
 					actattack.setTotalTicks((int) Math.round(((double) testhold)/4));
+					actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+
 				} else if((genocide&&numUnitsRemainingD==0&&!holdAttack.allClear())) {
 					// Oo now it's time to attack the civilians!! Kill them all!! :O O O OO O  : OOOO :O :O!!!
 					
@@ -9498,6 +9526,7 @@ public boolean checkForGenocides(Town t) {
 						actattack.setTotalTicks(testhold);
 
 						moveResources(actattack,t2,percentlossdiff,false);
+						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
 
 					} else if(!foundNonZeroCiv&&returnNum!=0) {
 						// Civilian units were found but none of them came out due to bunkers.
@@ -9508,11 +9537,14 @@ public boolean checkForGenocides(Town t) {
 						actattack.setTotalTicks(testhold);
 
 						moveResources(actattack,t2,percentlossdiff,false);
+						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+
 					}
 					else {
 					
 						actattack.setTicksToHit((int) Math.round(((double) testhold)/4.0));
 						actattack.setTotalTicks((int) Math.round(((double) testhold)/4.0));
+						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
 
 					}
 					
@@ -9525,6 +9557,7 @@ public boolean checkForGenocides(Town t) {
 
 						actattack.setTicksToHit((int) Math.round(((double) testhold)/4));
 						actattack.setTotalTicks((int) Math.round(((double) testhold)/4));
+						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
 
 					} else if(holdAttack.allClear()&&numUnitsRemainingD==0&&(returnNum<0||returnNum==1)) {
 						// so if allClear, no more units remaining, and there are no bombers or bomb isn't set to on,
@@ -9553,6 +9586,8 @@ public boolean checkForGenocides(Town t) {
 
 
 						}
+						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+
 						// knock out capital city!
 						if(t2p.getCapitaltid()==t2.townID) {
 							// EMP burst.
@@ -10054,7 +10089,7 @@ public boolean checkForGenocides(Town t) {
 						r.getTown2().update();
 
 					}
-			//	System.out.println("raidOver is currently " + holdAttack.raidOver);
+					//	System.out.println("raidOver is currently " + holdAttack.raidOver);
 					// this else UberStatement is for the actual attack server to use, the above is the facsimile treatment.
 				if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&!holdAttack.raidType().equals("support")&&!holdAttack.raidType().equals("offsupport")&&!holdAttack.raidType().equals("scout")&&!holdAttack.raidType().equals("resupply")&&!holdAttack.raidType().equals("debris")&&!holdAttack.raidType().equals("dig")) { 
 					// support = 0 means not supporting run, and scout=0 means it's  not
@@ -10179,6 +10214,7 @@ public boolean checkForGenocides(Town t) {
 					
 			//	System.out.println("Counting down " + t1.getTownName() + " tth bef "+ r.getTicksToHit());
 					r.setTicksToHit((int) (holdAttack.eta() - 1));
+					
 			//	System.out.println("Counting down " + t1.getTownName() +" aft: " + r.getTicksToHit());
 				}
 				
@@ -13091,7 +13127,13 @@ public boolean checkForGenocides(Town t) {
 	public boolean programRunning(int ID) {
 		int i = 0;
 		while(i<programs.size()) {
-			if(((Integer) programs.get(i).get("pid"))==ID&&((Thread) programs.get(i).get("Revelations")).isAlive()) {
+			if(((Integer) programs.get(i).get("pid"))==ID&&(
+					
+					( ((Object) programs.get(i).get("Revelations")).getClass().getSuperclass().getName().equals("Revelations.RevelationsAI")&&
+							((Thread) programs.get(i).get("Revelations")).isAlive()) ||
+							
+							((Object) programs.get(i).get("Revelations")).getClass().getSuperclass().getName().equals("Revelations.RevelationsAI2")
+				)){
 				return true;
 			}
 			i++;

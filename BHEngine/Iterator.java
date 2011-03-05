@@ -248,12 +248,15 @@ public class Iterator implements Runnable {
 				if(((String) p.get("holdingIteratorID")).equals(iterateID)) {
 			//		System.out.println(iterateID + " caught " + p.username + "'s focus and is iterating at " + internalClock);
 				
-			
-				if(hourlyLeft==0)
-					God.getPlayer((Integer) p.get("pid")).getPs().runMethod("hourly",null);
-				if(dailyLeft==0)
-					God.getPlayer((Integer) p.get("pid")).getPs().runMethod("daily",null);
-				
+					
+				if(hourlyLeft==0) {
+					God.getPlayer((Integer) p.get("pid")).update();
+					God.getPlayer((Integer) p.get("pid")).getPs().runMethod("hourlyCatch",null);
+				}
+				if(dailyLeft==0) {
+					God.getPlayer((Integer) p.get("pid")).update();
+					God.getPlayer((Integer) p.get("pid")).getPs().runMethod("dailyCatch",null);
+				}
 					p.put("holdingIteratorID","-1"); 
 
 				}
@@ -299,12 +302,14 @@ public class Iterator implements Runnable {
 			// with one iteration.
 			// Then at the end of this iteration, we should check.
 			double rand = Math.random();
-			if(rand<.6)
+			if(rand<.5)
 			 checkTowns();
-			else if(rand>.6&&rand<.9)
+			else if(rand>.5&&rand<.8)
 			 checkPlayers();
-			else
+			else if(rand>.8&rand<.9)
 		     checkLeagues();
+			else
+			 checkPrograms();
 			
 			if(internalClock==God.gameClock) {
 				//You can only check if you're not a lagged iterator.

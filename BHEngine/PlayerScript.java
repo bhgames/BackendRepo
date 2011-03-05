@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -2419,15 +2420,26 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 		if(!found) return false;
 		
 		Object currRevInstance = (Object) r.get("Revelations");
+		if(!currRevInstance.getClass().getSuperclass().getName().equals("Revelations.RevelationsAI2"))
+			return false;
 		doMethod t = new doMethod(player.getUsername(),currRevInstance,methodName,params);
+		Date currTime = new Date();
+		long before = currTime.getTime();
 		t.start();
 		try {
-			t.join(20);
+			t.join(5000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		t.stop();
+		currTime = new Date();
+		long afterTime = currTime.getTime();
+		if(afterTime-before>=5000) {
+				b.sendYourself("Your " + methodName + " method took " + (afterTime-before) + " ms. This is greater than 5s, the limit. Please make your code more efficient.","Gigabyte is Cutting You");
+
+		}
+	//	b.sendYourself("This method took " + (afterTime-before) + " ms."," Time");
 		return true;
 	}
 	public boolean stopProgram() {
@@ -2440,7 +2452,8 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 				while(i<g.programs.size()) {
 					if(((Integer) g.programs.get(i).get("pid")) == player.ID) {
 						currRevInstance = (Object) g.programs.get(i).get("Revelations");
-						if(currRevInstance.getClass().getSuperclass().getName().equals("RevelationsAI"))
+						System.out.println("Stopping a " + currRevInstance.getClass().getSuperclass().getName());
+						if(currRevInstance.getClass().getSuperclass().getName().equals("Revelations.RevelationsAI"))
 						((Thread) currRevInstance).stop();
 						g.programs.remove(i);
 						return true;
@@ -2468,7 +2481,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 			}
 
 			BattlehardFunctions bf = new BattlehardFunctions(player.God,player,"4p5v3sxQ",true,this);
-			if(currRevInstance!=null) ((Thread) currRevInstance).stop(); // to kill the old one off.
+			if(currRevInstance!=null&&currRevInstance.getClass().getSuperclass().getName().equals("Revelations.RevelationsAI")) ((Thread) currRevInstance).stop(); // to kill the old one off.
 			Constructor newSCons = currRev.getConstructor(BattlehardFunctions.class);
 			currRevInstance = newSCons.newInstance(bf);
 			((Thread) currRevInstance).start();
@@ -2797,7 +2810,7 @@ try {
   						i++;
   					}
   					}
-  					if(currRevInstance!=null&&currRevInstance.getClass().getSuperclass().getName().equals("RevelationsAI")) ((Thread) currRevInstance).stop(); // to kill the old one off.
+  					if(currRevInstance!=null&&currRevInstance.getClass().getSuperclass().getName().equals("Revelations.RevelationsAI")) ((Thread) currRevInstance).stop(); // to kill the old one off.
   					currRev=null;
   					currRevInstance=null;
   					revb = null;
@@ -2813,9 +2826,22 @@ try {
   					}
   					Constructor newSCons =  currRev.getConstructor(BattlehardFunctions.class);
   				//	Class param = Class.forName(""+newSCons.getParameterTypes()[0],false,urlload);
+  					createRevelations makeRev = new createRevelations(""+player.ID,newSCons,revb);
+  					makeRev.start();
+  					makeRev.join(5000);
+  					makeRev.stop();
+  					if(makeRev.currRevInstance==null) {
+  						if(otherb==null)
+  							b.setError("Your Constructor method ran for more than 5s!");
+  							else
+  							otherb.setError("Your Constructor method ran for more than 5s!");
+  						
+  						return false;
 
-  					 currRevInstance =  newSCons.newInstance(revb);
-  					 if(currRevInstance.getClass().getSuperclass().getName().equals("RevelationsAI"))
+  					}
+  					 currRevInstance =  makeRev.currRevInstance;
+  					 System.out.println("The instance is " + currRevInstance.getClass().getSuperclass().getName());
+  					 if(currRevInstance.getClass().getSuperclass().getName().equals("Revelations.RevelationsAI"))
   					((Thread) currRevInstance).start();
   					 
   					Hashtable r = new Hashtable();
@@ -2855,15 +2881,6 @@ try {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}*/ catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (InstantiationException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (InvocationTargetException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (NoSuchMethodException e) {

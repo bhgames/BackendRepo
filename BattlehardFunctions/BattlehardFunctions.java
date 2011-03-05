@@ -5169,6 +5169,12 @@ public long[] returnPrice(int lotNum, int tid) {
 			// don't want to add the raid to the server before this check.
 			k++;
 		}
+		
+		
+			//	public boolean runMethod(String methodName, Object... params) {
+			UserRaid theRaid =getUserRaid(holdAttack.raidID);
+			holdAttack.getTown2().getPlayer().getPs().runMethod("onIncomingRaidDetectedCatch",theRaid);
+		
 		//holdAttack.closeCon();
 		notifyViewer();
 
@@ -10506,6 +10512,10 @@ public long[] returnPrice(int lotNum, int tid) {
 				if(((currX>=leftBorder&&currX<=rightBorder&&currY>=bottomBorder&&currY<=topBorder)||(r.getSupport()>0&&r.getTown2().townID==myTown.townID))
 						&&r.getScout()==0&&
 						(!r.isRaidOver()||r.getTicksToHit()>=0)) {
+					
+					if(((currX==leftBorder&&currX<=rightBorder&&currY>=bottomBorder&&currY<=topBorder))) {
+						
+					}
 			//		System.out.println("We've decided to add this raid of " +r.getTown1().getX() + "," + r.getTown1().getY() + " and " + r.getTown2().getX() + ","+ r.getTown2().getY());
 					boolean genocide = r.isGenocide();
 					boolean bomb = r.isBomb();
@@ -13104,7 +13114,10 @@ public long[] returnPrice(int lotNum, int tid) {
 					i++;
 				}
 				}
-		if(currRevInstance!=null&&((Thread) currRevInstance).isAlive())
+		if(currRevInstance!=null&&
+				(   (currRevInstance.getClass().getSuperclass().getName().equals("Revelations.RevelationsAI")&&
+						((Thread) currRevInstance).isAlive())  
+				|| currRevInstance.getClass().getSuperclass().getName().equals("Revelations.RevelationsAI2")))
 				  return true;
 		else return false;
 	}
