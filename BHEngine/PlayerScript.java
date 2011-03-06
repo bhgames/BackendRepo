@@ -2852,10 +2852,22 @@ try {
   					r.put("pingFails",0);
   					r.put("startAt", player.God.gameClock);
   					r.put("holdingIteratorID","-1");
+  					
 
   					
   					synchronized(player.God.programs) {
   						player.God.programs.add(r);
+  						Player truep;
+  						if(otherb!=null) {
+  							 truep = player.getLeague();
+  						} else {
+  							truep=player;
+  						}
+  						ArrayList<QuestListener> onProgramLoadList = (ArrayList<QuestListener>) player.eventListenerLists.get("onProgramLoad");
+  						if(onProgramLoadList!=null);
+  						for(QuestListener q: onProgramLoadList) {
+  							q.onProgramLoadCatch(truep);
+  						}
   					}
   					currRevInstance=null;
   					currRev=null;

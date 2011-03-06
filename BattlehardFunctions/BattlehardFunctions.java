@@ -646,10 +646,12 @@ public class BattlehardFunctions {
 			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id) values (\""
 					+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+0+","+original_subject_id+","+pid_to[i]+"," + msgid + ");" );
 			
+				g.getPlayer(pid_from[i]).getPs().runMethod("onMessageReceivedCatch",);
+
 				}
 			i++;
 			}
-
+			
 			stmt.execute("commit;");
 			stmt.close();
 			transacted=true;

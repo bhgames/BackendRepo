@@ -28,6 +28,8 @@ public class Player  {
 	public int playedTicks=0;
 	public long totalTimePlayed = 0;
 	public int numLogins=0;
+	 public Hashtable eventListenerLists = new Hashtable();
+
 	public Timestamp last_session;
 	public int owedTicks =0;
 	private String version;
@@ -99,6 +101,9 @@ public class Player  {
 	       knowledge = rs.getInt(4);
 	       flicker = rs.getString(58);
 	       last_login=rs.getTimestamp(41);
+	       // EVENT LISTENER STUFF	
+			eventListenerLists.put("onProgramLoad",new ArrayList<QuestListener>());
+
 	       try {
 	       last_session=rs.getTimestamp(83);
 	       } catch(Exception exc) { last_session = new Timestamp((new Date()).getTime());}
@@ -319,7 +324,39 @@ public class Player  {
 	public GodGenerator getGod() {
 		return God;
 	}
-	
+	public boolean addEventListener(QuestListener q, String type) {
+		ArrayList<QuestListener> list =(ArrayList<QuestListener>) eventListenerLists.get(type);
+		if(list!=null)
+		for(QuestListener p: list) {
+			
+			if(p.ID==q.ID) {
+				
+				return false;
+			}
+		}
+		else return false;
+		
+		list.add(q);
+		
+		return true;
+	}
+	public boolean dropEventListener(QuestListener q, String type) {
+		ArrayList<QuestListener> list =(ArrayList<QuestListener>) eventListenerLists.get(type);
+		
+		if(list!=null)
+		for(QuestListener p: list) {
+			
+			if(p.ID==q.ID) {
+				
+				list.remove(p);
+				return true;
+			}
+		}
+		else return false;
+		
+		
+		return false;
+	}
 	
 	
 	public int returnUnitLots() {

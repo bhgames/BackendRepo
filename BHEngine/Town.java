@@ -40,6 +40,7 @@ public class Town {
 	 private int ticksTillMove;
 	 private boolean msgSent;
 	 private int digTownID;
+	 Hashtable eventListenerLists = new Hashtable();
 	 public static int zeppelinTicksPerMove= (int) Math.round(((double) Math.sqrt(1)*10/(500*GodGenerator.speedadjust))/GodGenerator.gameClockFactor);
 	 public static int ticksPerFuelPointBase =(int) Math.round((3600.0*24.0/((double) GodGenerator.gameClockFactor*10)));
 	 public static int daysOfStoragePerAirshipPlatform = 4;
@@ -186,6 +187,10 @@ public class Town {
 		digCounter=getMemInt("digCounter");
 		zeppelin = getMemBoolean("zeppelin");
 		debris = getMemDebris();
+		//EVENT LISTENER ADDS
+		eventListenerLists.put("digFinish",new ArrayList<QuestListener>());
+		eventListenerLists.put("onRaidLanding",new ArrayList<QuestListener>());
+
 		msgSent = getMemBoolean("msgSent");
 		digTownID = getMemInt("digTownID");
 		owedTicks = getMemInt("owedTicks");
@@ -310,6 +315,39 @@ public class Town {
 			}
 			i++;
 		}
+	}
+	public boolean addEventListener(QuestListener q, String type) {
+		ArrayList<QuestListener> list =(ArrayList<QuestListener>) eventListenerLists.get(type);
+		if(list!=null)
+		for(QuestListener p: list) {
+			
+			if(p.ID==q.ID) {
+				
+				return false;
+			}
+		}
+		else return false;
+		
+		list.add(q);
+		
+		return true;
+	}
+	public boolean dropEventListener(QuestListener q, String type) {
+		ArrayList<QuestListener> list =(ArrayList<QuestListener>) eventListenerLists.get(type);
+		
+		if(list!=null)
+		for(QuestListener p: list) {
+			
+			if(p.ID==q.ID) {
+				
+				list.remove(p);
+				return true;
+			}
+		}
+		else return false;
+		
+		
+		return false;
 	}
 	/**
 	 * Adds a building of any level.
@@ -1352,6 +1390,12 @@ public class Town {
 				 }
 				 
 				 if(!getMsgSent()) {
+					 ArrayList<QuestListener> digFinish = (ArrayList<QuestListener>) eventListenerLists.get("digFinish");
+					 if(digFinish!=null) {
+						 for(QuestListener q: digFinish) {
+							 q.digFinishCatch(this);
+						 }
+					 }
 					 // send the message.
 					 String body = getDigMessage();
 						String subject = "Dig Message From "+ getTownName();
