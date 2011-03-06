@@ -5169,6 +5169,12 @@ public long[] returnPrice(int lotNum, int tid) {
 			// don't want to add the raid to the server before this check.
 			k++;
 		}
+		
+		
+			//	public boolean runMethod(String methodName, Object... params) {
+			UserRaid theRaid =getUserRaid(holdAttack.raidID);
+			holdAttack.getTown2().getPlayer().getPs().runMethod("onIncomingRaidDetectedCatch",theRaid);
+		
 		//holdAttack.closeCon();
 		notifyViewer();
 
@@ -10506,6 +10512,10 @@ public long[] returnPrice(int lotNum, int tid) {
 				if(((currX>=leftBorder&&currX<=rightBorder&&currY>=bottomBorder&&currY<=topBorder)||(r.getSupport()>0&&r.getTown2().townID==myTown.townID))
 						&&r.getScout()==0&&
 						(!r.isRaidOver()||r.getTicksToHit()>=0)) {
+					
+					if(((currX==leftBorder&&currX<=rightBorder&&currY>=bottomBorder&&currY<=topBorder))) {
+						
+					}
 			//		System.out.println("We've decided to add this raid of " +r.getTown1().getX() + "," + r.getTown1().getY() + " and " + r.getTown2().getX() + ","+ r.getTown2().getY());
 					boolean genocide = r.isGenocide();
 					boolean bomb = r.isBomb();
@@ -11398,6 +11408,7 @@ public long[] returnPrice(int lotNum, int tid) {
 				p.isAttackAPI(),p.isAdvancedAttackAPI(),p.isTradingAPI(),p.isAdvancedTradingAPI(),p.isSmAPI(),p.isResearchAPI(),
 				p.isBuildingAPI(),p.isAdvancedBuildingAPI(),p.isMessagingAPI(),p.isZeppelinAPI(),p.isCompleteAnalyticAPI(),
 				p.isNukeAPI(),p.isWorldMapAPI(),p.getScoutTech(),p.getALotTech());
+
 		
 	}
 	
@@ -13095,18 +13106,23 @@ public long[] returnPrice(int lotNum, int tid) {
 	 * @return
 	 */
 	public boolean isAlive() {
-		Object currRevInstance= null;
+		Object currRevInstance= null; Hashtable r=null;
 		synchronized(g.programs) {
 			int i = 0;
 				while(i<g.programs.size()) {
 					if(((Integer) g.programs.get(i).get("pid")) == p.ID) {
 						currRevInstance = (Object) g.programs.get(i).get("Revelations");
+						r = g.programs.get(i);
 						break;
 					}
 					i++;
 				}
 				}
-		if(currRevInstance!=null&&((Thread) currRevInstance).isAlive())  return true;
+		if(currRevInstance!=null&&
+				(   (currRevInstance.getClass().getSuperclass().getName().equals("Revelations.RevelationsAI")&&
+						((Thread) currRevInstance).isAlive())  
+				|| currRevInstance.getClass().getSuperclass().getName().equals("Revelations.RevelationsAI2")))
+				  return true;
 		else return false;
 	}
 	/**

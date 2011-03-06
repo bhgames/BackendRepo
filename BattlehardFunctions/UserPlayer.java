@@ -75,8 +75,9 @@ public class UserPlayer {
 			int ubTimer, int mineTimer, int feroTimer, int timberTimer, int manMatTimer, int foodTimer, int revTimer, int totalBPEarned, String email,
 			boolean zeppTech, boolean missileSiloTech, boolean recyclingTech, boolean metalRefTech, boolean timberRefTech, boolean manMatRefTech,
 			boolean foodRefTech, boolean attackAPI, boolean advancedAttackAPI, boolean tradingAPI, boolean advancedTradingAPI,
-			boolean smAPI, boolean researchAPI, boolean buildingAPI, boolean advancedBuildingAPI, boolean messagingAPI, 
+			boolean smAPI, boolean researchAPI, boolean buildingAPI, boolean advancedBuildingAPI, boolean messagingAPI,
 			boolean zeppelinAPI, boolean completeAnalyticAPI, boolean nukeAPI, boolean worldMapAPI, int scoutTech, int aLotTech) {
+
 		this.bp=bp;
 		this.scoutTech=scoutTech;
 		this.commsCenterTech=commsCenterTech;

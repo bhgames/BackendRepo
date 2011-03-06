@@ -183,7 +183,6 @@ public class Controllers {
 	public boolean saveProgram(HttpServletRequest req, PrintWriter out) {
 		if(!session(req,out,true)) return false;
 		boolean league = false;
-		System.out.println("Being called.");
 		if(req.getParameter("league").equals("true")) league = true;
 		Player p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
 		if(league&&p.getLeague()!=null) {
@@ -2164,6 +2163,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					p.setKnowledge(10000);
 					
 				}
+
 				cmdsucc(out);
 				return true;
 				

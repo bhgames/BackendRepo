@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -1527,6 +1528,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			  int j = 0;
     			 while(j<mpack.size()) {
     				 msg = mpack.getMessage(j);
+    				 if(msg.getMsgType()!=5) {
     				 str.object()
     				 .key("messageID")
     				 .value(msg.getMessageID())
@@ -1565,7 +1567,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     				 .key("creationDate")
     				 .value(msg.getCreationDate())
     				 .endObject();
-    				 
+    				 }
     				 j++;
     			 }
     			 
@@ -2405,6 +2407,42 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 		
 		
 	}
+	public boolean runMethod(String methodName, Object... params) {
+		int i = 0; Hashtable r=null; boolean found=false;
+		while(i<player.God.programs.size()) {
+			r = player.God.programs.get(i);
+			int pid = (Integer) r.get("pid");
+			if(pid==player.ID) {
+				found=true;
+				break;
+			}
+			i++;
+		}
+		if(!found) return false;
+		
+		Object currRevInstance = (Object) r.get("Revelations");
+		if(!currRevInstance.getClass().getSuperclass().getName().equals("Revelations.RevelationsAI2"))
+			return false;
+		doMethod t = new doMethod(player.getUsername(),currRevInstance,methodName,params);
+		Date currTime = new Date();
+		long before = currTime.getTime();
+		t.start();
+		try {
+			t.join(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		t.stop();
+		currTime = new Date();
+		long afterTime = currTime.getTime();
+		if(afterTime-before>=5000) {
+				b.sendYourself("Your " + methodName + " method took " + (afterTime-before) + " ms. This is greater than 5s, the limit. Please make your code more efficient.","Gigabyte is Cutting You");
+
+		}
+	//	b.sendYourself("This method took " + (afterTime-before) + " ms."," Time");
+		return true;
+	}
 	public boolean stopProgram() {
 		// HALT THE PROGRAMMETHONER
 		
@@ -2415,6 +2453,8 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 				while(i<g.programs.size()) {
 					if(((Integer) g.programs.get(i).get("pid")) == player.ID) {
 						currRevInstance = (Object) g.programs.get(i).get("Revelations");
+						System.out.println("Stopping a " + currRevInstance.getClass().getSuperclass().getName());
+						if(currRevInstance.getClass().getSuperclass().getName().equals("Revelations.RevelationsAI"))
 						((Thread) currRevInstance).stop();
 						g.programs.remove(i);
 						return true;
@@ -2442,7 +2482,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 			}
 
 			BattlehardFunctions bf = new BattlehardFunctions(player.God,player,"4p5v3sxQ",true,this);
-			if(currRevInstance!=null) ((Thread) currRevInstance).stop(); // to kill the old one off.
+			if(currRevInstance!=null&&currRevInstance.getClass().getSuperclass().getName().equals("Revelations.RevelationsAI")) ((Thread) currRevInstance).stop(); // to kill the old one off.
 			Constructor newSCons = currRev.getConstructor(BattlehardFunctions.class);
 			currRevInstance = newSCons.newInstance(bf);
 			((Thread) currRevInstance).start();
@@ -2771,12 +2811,13 @@ try {
   						i++;
   					}
   					}
-  					if(currRevInstance!=null) ((Thread) currRevInstance).stop(); // to kill the old one off.
+  					if(currRevInstance!=null&&currRevInstance.getClass().getSuperclass().getName().equals("Revelations.RevelationsAI")) ((Thread) currRevInstance).stop(); // to kill the old one off.
   					currRev=null;
   					currRevInstance=null;
   					revb = null;
   					RevClassLoader rcl = new RevClassLoader(BattlehardFunctions.class.getClassLoader(),player.getUsername());
   					rcl.loadClass("Revelations.RevelationsAI");
+  					rcl.loadClass("Revelations.RevelationsAI2");
   					currRev = rcl.loadClass("Revelations." + player.getUsername().replace(" ","_").toLowerCase() + ".Revelations");
   					if(otherb==null)
  					 revb = new BattlehardFunctions(player.God,player,"4p5v3sxQ",true,this);
@@ -2786,14 +2827,33 @@ try {
   					}
   					Constructor newSCons =  currRev.getConstructor(BattlehardFunctions.class);
   				//	Class param = Class.forName(""+newSCons.getParameterTypes()[0],false,urlload);
+  					createRevelations makeRev = new createRevelations(""+player.ID,newSCons,revb);
+  					makeRev.start();
+  					makeRev.join(5000);
+  					makeRev.stop();
+  					if(makeRev.currRevInstance==null) {
+  						if(otherb==null)
+  							b.setError("Your Constructor method ran for more than 5s!");
+  							else
+  							otherb.setError("Your Constructor method ran for more than 5s!");
+  						
+  						return false;
 
-  					 currRevInstance =  newSCons.newInstance(revb);
+  					}
+  					 currRevInstance =  makeRev.currRevInstance;
+  					 System.out.println("The instance is " + currRevInstance.getClass().getSuperclass().getName());
+  					 if(currRevInstance.getClass().getSuperclass().getName().equals("Revelations.RevelationsAI"))
   					((Thread) currRevInstance).start();
+  					 
   					Hashtable r = new Hashtable();
   					r.put("Revelations",currRevInstance);
   					r.put("pid",player.ID);
   					r.put("sleep",false);
   					r.put("pingFails",0);
+  					r.put("startAt", player.God.gameClock);
+  					r.put("holdingIteratorID","-1");
+
+  					
   					synchronized(player.God.programs) {
   						player.God.programs.add(r);
   					}
@@ -2823,15 +2883,6 @@ try {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}*/ catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (InstantiationException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (InvocationTargetException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (NoSuchMethodException e) {

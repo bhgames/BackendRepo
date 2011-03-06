@@ -1,9 +1,11 @@
 package BHEngine;
 
+import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Hashtable;
 
 public class Iterator implements Runnable {
 
@@ -219,6 +221,56 @@ public class Iterator implements Runnable {
 		
 		
 	}
+	public void checkPrograms() {
+		// GOTTA UPDATE LEAGUES CONSTANTLY, COULD COME ON AND GET TAXES FROM ALL NEW MINES INSTEAD OF OLDER UNUPGRADED ONES!
+			ArrayList<Hashtable> players = God.programs;
+	//		System.out.println(iterateID + "'s internal clock is off.");
+		// only need to loop once - think about it, with two iterators,
+		// then 0 would be gotten by the first, and the second would hit 1,
+		// and then if second lagged at 1, first would skip 1 and get 2 and 3,
+		// and so on. With five or ten iterators combing, it's possible to get them all
+		// with one iteration.
+		// Then at the end of this iteration, we should check.
+		int i = 0; 
+		Hashtable p;
+		while(i<players.size()) {
+			p = players.get(i);
+			int time = internalClock-((Integer) p.get("startAt"));
+			double hourlyLeft = (time)/(3600/GodGenerator.gameClockFactor);
+			hourlyLeft-=Math.round(hourlyLeft);
+			double dailyLeft = (time)/(24*3600/GodGenerator.gameClockFactor);
+			dailyLeft-=Math.round(dailyLeft);
+			
+			if(((String) p.get("holdingIteratorID")).equals("-1")&&(dailyLeft==0||hourlyLeft==0)) {
+			
+				// IF THIS IS A REV2.0
+				synchronized(p){if(((String) p.get("holdingIteratorID")).equals("-1")) p.put("holdingIteratorID",iterateID); }
+				if(((String) p.get("holdingIteratorID")).equals(iterateID)) {
+			//		System.out.println(iterateID + " caught " + p.username + "'s focus and is iterating at " + internalClock);
+				
+					
+				if(hourlyLeft==0) {
+					God.getPlayer((Integer) p.get("pid")).update();
+					God.getPlayer((Integer) p.get("pid")).getPs().runMethod("hourlyCatch",null);
+				}
+				if(dailyLeft==0) {
+					God.getPlayer((Integer) p.get("pid")).update();
+					God.getPlayer((Integer) p.get("pid")).getPs().runMethod("dailyCatch",null);
+				}
+					p.put("holdingIteratorID","-1"); 
+
+				}
+
+			}
+			
+			
+			i++;
+		}
+		
+
+		
+		
+	}
 	public void run() {
 
 		for(;;) {
@@ -250,12 +302,14 @@ public class Iterator implements Runnable {
 			// with one iteration.
 			// Then at the end of this iteration, we should check.
 			double rand = Math.random();
-			if(rand<.6)
+			if(rand<.5)
 			 checkTowns();
-			else if(rand>.6&&rand<.9)
+			else if(rand>.5&&rand<.8)
 			 checkPlayers();
-			else
+			else if(rand>.8&rand<.9)
 		     checkLeagues();
+			else
+			 checkPrograms();
 			
 			if(internalClock==God.gameClock) {
 				//You can only check if you're not a lagged iterator.

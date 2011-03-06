@@ -114,7 +114,7 @@ public class Id extends Player {
 			int toSet = (int) Math.round(avgMineLvl-1);
 			if(toSet<3) toSet=3;
 
-			System.out.println("Setting " +myT.getTownName() + " to have mine of " + toSet + " and soldiers of " + ((int) Math.round(avgTroopNumber*.1)));
+			//System.out.println("Setting " +myT.getTownName() + " to have mine of " + toSet + " and soldiers of " + ((int) Math.round(avgTroopNumber*.1)));
 			while(i<myT.bldg().size()) {
 				b = myT.bldg().get(i);
 				if(b.getType().equals("Metal Mine")||
@@ -415,7 +415,7 @@ public class Id extends Player {
 		super.save();
 	}
 	public void deleteOldPlayers() {
-		System.out.println("Checking players.");
+	//	System.out.println("Checking players.");
 		int i = 0;
 		ArrayList<Player> players = God.getPlayers();
 		Player p;
@@ -428,7 +428,7 @@ public class Id extends Player {
 					(    (p.getVersion().equals("new")||p.getVersion().equals("military")||p.getVersion().equals("civilian"))  &&  !p.completedQuest("NQ1"))  )
 					&&p.getPs().b.getCSL(p.getCapitaltid())<100&&p.last_login.getTime()<(today.getTime()-2*24*3600000)&&p.getPlayedTicks()<(7*24*3600/GodGenerator.gameClockFactor)) {
 				// kill the bastard.
-				System.out.println(p.getUsername() + " is eligible for early player deletion as their difference is " + (p.last_login.getTime()-(today.getTime()-48*3600000))+"s and last_login is " + p.last_login + " and version is " + p.getVersion()+ " and they have not completed BQ1.");
+			//	System.out.println(p.getUsername() + " is eligible for early player deletion as their difference is " + (p.last_login.getTime()-(today.getTime()-48*3600000))+"s and last_login is " + p.last_login + " and version is " + p.getVersion()+ " and they have not completed BQ1.");
 				//check surrounding players.
 				int j = 0;
 				theCapital = God.getTown(p.getCapitaltid());
@@ -450,12 +450,12 @@ public class Id extends Player {
 				}
 				avgPlayTicks/=townsHit;
 				if(avgPlayTicks>(14*24*3600/GodGenerator.gameClockFactor)) {
-					System.out.println("Avgplayticks around " + p.getUsername() + " is " + avgPlayTicks + " and so this is not a playable town.");
+				//	System.out.println("Avgplayticks around " + p.getUsername() + " is " + avgPlayTicks + " and so this is not a playable town.");
 
 				God.deletePlayer(p,false);
 				}
 				else {
-					System.out.println("Avgplayticks around " + p.getUsername() + " is " + avgPlayTicks + " and so this is a playable town.");
+				//	System.out.println("Avgplayticks around " + p.getUsername() + " is " + avgPlayTicks + " and so this is a playable town.");
 
 				God.deletePlayer(p,true);
 				}
@@ -468,7 +468,7 @@ public class Id extends Player {
 				if(p.last_login.getTime()>=today.getTime()-25*3600000&&!p.getEmail().equals(null)&&!p.getEmail().equals("nolinkedemail"))
 				God.sendMail(p.getEmail(),p.getUsername(),"Account Deletion Notice","Account Deletion Notice","");
 			} else if(p.last_login.getTime()<(today.getTime()-14*24*3600000)) {
-				System.out.println(p.getUsername() + " is eligible for late deletion.");
+			//	System.out.println(p.getUsername() + " is eligible for late deletion.");
 				God.deletePlayer(p,false);
 				i--;
 			} else if(p.last_login.getTime()<(today.getTime()-13*24*3600000)) // this goes after the 14, so 14 catches it if it goes beyond. same with early player.
@@ -476,7 +476,7 @@ public class Id extends Player {
 				if(p.last_login.getTime()>=(today.getTime()-(13*24+1)*3600000)&&!p.getEmail().equals(null)&&!p.getEmail().equals("nolinkedemail"))
 				God.sendMail(p.getEmail(),p.getUsername(),"Account Deletion Notice","Account Deletion Notice", "");
 			}else {
-				System.out.println("Late player qualified: " +(p.last_login.getTime()<(today.getTime()-14*24*3600000)) +" " + p.getUsername() + " is NOT eligible for early player deletion as their difference is " + (p.last_login.getTime()-(today.getTime()-48*3600000))+"s and last_login is " + p.last_login);
+			//	System.out.println("Late player qualified: " +(p.last_login.getTime()<(today.getTime()-14*24*3600000)) +" " + p.getUsername() + " is NOT eligible for early player deletion as their difference is " + (p.last_login.getTime()-(today.getTime()-48*3600000))+"s and last_login is " + p.last_login);
 
 			}
 			} catch(Exception exc) { exc.printStackTrace(); getPs().b.sendYourself("I tried to delete " + p.ID + " but failed.","Error report."); System.out.println("Id was saved."); }
