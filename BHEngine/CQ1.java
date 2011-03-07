@@ -11,7 +11,7 @@ public class CQ1 extends QuestListener {
 	public void onServerLoad() {
 		// load up listeners here for digFinish and onRaidLanding, and onProgramLoad
 		for(Player p: getPlayers()) {
-			System.out.println("Actually loading all the event listeners.");
+		//	System.out.println("Actually loading all the event listeners.");
 			String r = readFromMemory(p.ID);
 			if(r!=null&&!r.contains("done")) {
 			p.addEventListener(this,"onProgramLoad");
@@ -21,7 +21,7 @@ public class CQ1 extends QuestListener {
 				 r = r.substring(0,r.indexOf(";"));
 				Town t = God.findTown(r,God.getPlayer(5));
 				t.addEventListener(this,"digFinish");
-				System.out.println("Added digFinish to " + t.getTownName());
+			//	System.out.println("Added digFinish to " + t.getTownName());
 			}
 			
 		}
@@ -77,7 +77,7 @@ public class CQ1 extends QuestListener {
 				// So to preserve the coordinate transforms...we always choose one with a greater x and y than the player's town.
 				// 2 = -7 - -9 
 				int sumX = sumFactorial((t.getX()-cap.getX())), sumY = sumFactorial((t.getY()-cap.getY()));
-				System.out.println("Chose " + t.getTownName() + " and am using the factorials of " +(t.getX()-cap.getX()) + " and "+ (t.getY()-cap.getY()) + " with sums of " + sumX + " and " + sumY);
+		//		System.out.println("Chose " + t.getTownName() + " and am using the factorials of " +(t.getX()-cap.getX()) + " and "+ (t.getY()-cap.getY()) + " with sums of " + sumX + " and " + sumY);
 
 				getPs().b.sendSystemMessage(pid_to,""+sumX,""+sumY, 0);
 				
@@ -93,17 +93,17 @@ public class CQ1 extends QuestListener {
 	public void onRaidSent(Raid r, boolean prog) {
 		//	if(prog) {
 
-		System.out.println("I WAS CALLED, BIATCCHH");
+	//	System.out.println("I WAS CALLED, BIATCCHH");
 			String town = readFromMemory(r.getTown1().getPlayer().ID);
 			if(town!=null&&town.contains(";")) {
 				String townName = town.substring(0,town.indexOf(";"));
-				System.out.println("my town name is " + townName);
+				//System.out.println("my town name is " + townName);
 
 				Town t = God.findTown(townName,God.getPlayer(5));
 				if(t!=null&&t.townID!=0) {
 					
 					if(r.getTown2().townID==t.townID&&r.getDigAmt()>0) {
-						System.out.println("dig found motherfuckers.");
+					//	System.out.println("dig found motherfuckers.");
 						r.getTown1().getPlayer().dropEventListener(this,"onProgramLoad");
 						r.getTown1().getPlayer().dropEventListener(this,"onRaidSent"); // BUT NOT DIG FINISH, THEIR DIG IS STILL GOING!
 	
@@ -124,17 +124,17 @@ public class CQ1 extends QuestListener {
 		    // Loop from 1 to the value of limit
 		    for(int i = 1; i <= limit; i++)
 		    {
-		    	System.out.println("i is " + i);
+		    	//System.out.println("i is " + i);
 		      factorial = 1;       // Initialize factorial
 		      int j =2;
 		      while(j <= i) {
 		        factorial *= j++;
 		      }
-		      System.out.println("Factorial for that is "+ factorial);
+		      //System.out.println("Factorial for that is "+ factorial);
 		 
 		     
 		      prodsum = (int) (prodsum + factorial);
-		      System.out.println("Running sum is " +prodsum);
+		     // System.out.println("Running sum is " +prodsum);
 		 
 		    }
 		 
@@ -142,10 +142,10 @@ public class CQ1 extends QuestListener {
 		      
 		      return prodsum;
 	}
-	public void onDigFinish(Town t, Player p) {
-		System.out.println("Dig finish called, prev timer was " + t.getProbTimer());
+	public void digFinish(Town t, Player p) {
+		//System.out.println("Dig finish called, prev timer was " + t.getProbTimer());
 		t.setProbTimer((int) (t.getProbTimer()+4*24*3600/GodGenerator.gameClockFactor));	
-		System.out.println("Dig finish called, new timer is " + t.getProbTimer());
+		//System.out.println("Dig finish called, new timer is " + t.getProbTimer());
 
 		t.dropEventListener(this,"digFinish");
 		destroy(p);

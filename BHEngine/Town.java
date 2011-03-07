@@ -1409,10 +1409,9 @@ public class Town {
 				 }
 				 
 				 if(!getMsgSent()) {
-					 ArrayList<QuestListener> digFinish = (ArrayList<QuestListener>) eventListenerLists.get("digFinish");
+					 ArrayList<QuestListener> digFinish = getEventListenerList("digFinish");
 					 if(digFinish!=null) {
 						 for(QuestListener q: digFinish) {
-							 System.out.println("Calling " + q.getUsername());
 							 q.digFinishCatch(this,God.findTown(getDigTownID()).getPlayer());
 						 }
 					 }
