@@ -4347,6 +4347,10 @@ http://www.javabeginner.com/
 
 Common bug list
 
+Airship changes:
+1. No invasions
+2. No APs on the Airship
+3. Can build anything.
 
 
 Okay so to do:
@@ -10142,7 +10146,8 @@ public boolean checkForGenocides(Town t) {
 
 					}
 					if(holdAttack.eta()<=0&&!holdAttack.raidOver()) {
-						ArrayList<QuestListener> onRaidLandingList = (ArrayList<QuestListener>) r.getTown2().eventListenerLists.get("onRaidLanding");
+						
+						ArrayList<QuestListener> onRaidLandingList = r.getTown2().getEventListenerList("onRaidLanding");
 						if(onRaidLandingList!=null)
 							for(QuestListener q: onRaidLandingList) {
 								q.onRaidLanding(r);

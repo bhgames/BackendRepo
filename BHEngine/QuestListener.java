@@ -228,18 +228,30 @@ public abstract class QuestListener extends Player {
 
 	}
 	
-	public final void digFinishCatch(Town t) {
+	public final void digFinishCatch(Town t, Player p) {
 		try {
-			 digFinish(t);
+			 digFinish(t,p);
 			
 		}catch(Exception exc) {
 			exc.printStackTrace();
 		}
 	}
 	
-	public void digFinish(Town t) {
+	public void digFinish(Town t, Player p) {
 		
 	}	
+	public final void onRaidSentCatch(Raid r,  boolean prog) {
+		try {
+			onRaidSent(r,prog);
+			
+		}catch(Exception exc) {
+			exc.printStackTrace();
+		}
+	}
+	
+	public void onRaidSent(Raid r, boolean prog) {
+		
+	}
 	
 	public final void onRaidLandingCatch(Raid r) {
 		try {

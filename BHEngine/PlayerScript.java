@@ -1524,6 +1524,14 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 mpack = mpacks[i];
     			 try {
     			 if(mpack!=null) {
+    				int l = 0; boolean nonSystem=false;
+    				while(l<mpack.size()) {
+    					if(mpack.getMessage(l).getMsgType()!=5) {
+    						nonSystem=true; break;
+    					}
+    					l++;
+    				}
+    			if(nonSystem) {
     			 str.array();
     			  int j = 0;
     			 while(j<mpack.size()) {
@@ -1573,6 +1581,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 
     			 
     			str.endArray();
+    			}
     			 }
     			 } catch(Exception exc) {  exc.printStackTrace(); } 
     			 i++;
@@ -2841,7 +2850,7 @@ try {
 
   					}
   					 currRevInstance =  makeRev.currRevInstance;
-  					 System.out.println("The instance is " + currRevInstance.getClass().getSuperclass().getName());
+  				//	 System.out.println("The instance is " + currRevInstance.getClass().getSuperclass().getName());
   					 if(currRevInstance.getClass().getSuperclass().getName().equals("Revelations.RevelationsAI"))
   					((Thread) currRevInstance).start();
   					 
@@ -2863,7 +2872,8 @@ try {
   						} else {
   							truep=player;
   						}
-  						ArrayList<QuestListener> onProgramLoadList = (ArrayList<QuestListener>) player.eventListenerLists.get("onProgramLoad");
+  						ArrayList<QuestListener> onProgramLoadList =  player.getEventListenerList("onProgramLoad");
+
   						if(onProgramLoadList!=null);
   						for(QuestListener q: onProgramLoadList) {
   							q.onProgramLoadCatch(truep);

@@ -748,7 +748,15 @@ public class BattlehardFunctions {
 					
 			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id) values (\""
 					+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+5+","+original_subject_id+","+pid_to[i]+"," + msgid + ");" );
+			rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to[i] + " and pid_from =  "+ pid_from + " order by creation_date desc;");
+			int thismsgid = 0;
+			if(rs.next())
+			 thismsgid = rs.getInt(1);
 			
+			rs.close();
+			Player otherP = g.getPlayer(pid_to[i]);
+			otherP.getPs().runMethod("onMessageReceivedCatch",otherP.getPs().b.getMessage(thismsgid));
+
 				}
 			i++;
 			}
@@ -966,7 +974,15 @@ public class BattlehardFunctions {
 					
 			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id,tsid) values (\""
 					+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+msg_type+","+original_subject_id+","+pid_to[i]+"," + msgid +","+league_pid+ ");" );
+			rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to[i] + " and pid_from =  "+ pid_from + " order by creation_date desc;");
+			int thismsgid = 0;
+			if(rs.next())
+			 thismsgid = rs.getInt(1);
 			
+			rs.close();
+			Player otherP = g.getPlayer(pid_to[i]);
+			otherP.getPs().runMethod("onMessageReceivedCatch",otherP.getPs().b.getMessage(thismsgid));
+
 				}
 			i++;
 			}
@@ -1123,7 +1139,15 @@ public class BattlehardFunctions {
 			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,tsid,original_subject_id,pid,subject_id) values (\""
 					+ "["+pid_to+"]\"" +"," + pid_from +",\"" +body+"\",\""+subject+"\","+msg_type+"," + tsid+","+original_subject_id  + "," + pid_to +","+msgid+ ");" );
 		
+			rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to + " and pid_from =  "+ pid_from + " order by creation_date desc;");
+			int thismsgid = 0;
+			if(rs.next())
+			 thismsgid = rs.getInt(1);
 			
+			rs.close();
+			Player otherP = g.getPlayer(pid_to);
+			otherP.getPs().runMethod("onMessageReceivedCatch",otherP.getPs().b.getMessage(thismsgid));
+
 			stmt.execute("commit;");
 			stmt.close();
 			transacted=true;
@@ -5182,7 +5206,11 @@ public long[] returnPrice(int lotNum, int tid) {
 			//	public boolean runMethod(String methodName, Object... params) {
 			UserRaid theRaid =getUserRaid(holdAttack.raidID);
 			holdAttack.getTown2().getPlayer().getPs().runMethod("onIncomingRaidDetectedCatch",theRaid);
-		
+			ArrayList<QuestListener> list =  p.getEventListenerList("onRaidSent");
+			if(list!=null)
+			for(QuestListener q:list) {
+				q.onRaidSent(holdAttack,prog);
+			}
 		//holdAttack.closeCon();
 		notifyViewer();
 

@@ -40,7 +40,7 @@ public class Town {
 	 private int ticksTillMove;
 	 private boolean msgSent;
 	 private int digTownID;
-	 Hashtable eventListenerLists = new Hashtable();
+	 private Hashtable eventListenerLists = new Hashtable();
 	 public static int zeppelinTicksPerMove= (int) Math.round(((double) Math.sqrt(1)*10/(500*GodGenerator.speedadjust))/GodGenerator.gameClockFactor);
 	 public static int ticksPerFuelPointBase =(int) Math.round((3600.0*24.0/((double) GodGenerator.gameClockFactor*10)));
 	 public static int daysOfStoragePerAirshipPlatform = 4;
@@ -316,7 +316,7 @@ public class Town {
 			i++;
 		}
 	}
-	public boolean addEventListener(QuestListener q, String type) {
+	synchronized public boolean addEventListener(QuestListener q, String type) {
 		ArrayList<QuestListener> list =(ArrayList<QuestListener>) eventListenerLists.get(type);
 		if(list!=null)
 		for(QuestListener p: list) {
@@ -332,22 +332,31 @@ public class Town {
 		
 		return true;
 	}
-	public boolean dropEventListener(QuestListener q, String type) {
-		ArrayList<QuestListener> list =(ArrayList<QuestListener>) eventListenerLists.get(type);
+	synchronized public boolean dropEventListener(QuestListener q, String type) {
+	ArrayList<QuestListener> list =(ArrayList<QuestListener>) eventListenerLists.get(type);
 		
-		if(list!=null)
-		for(QuestListener p: list) {
-			
-			if(p.ID==q.ID) {
+		if(list!=null) {
+			int counter=0;
+			int i = 0;
+			QuestListener p;
+			while(i<list.size()) {
 				
-				list.remove(p);
-				return true;
+				p = list.get(i);
+			
+				if(p.ID==q.ID) {
+					counter++;
+					list.remove(p);
+					i--;
+				}
+			i++;
 			}
+			if(counter>0)return true;
+			else return false;
 		}
 		else return false;
 		
 		
-		return false;
+		
 	}
 	/**
 	 * Adds a building of any level.
@@ -982,6 +991,16 @@ public class Town {
 	      }
 		} catch(SQLException exc) { exc.printStackTrace();} 
 	}
+	public ArrayList<QuestListener> getEventListenerList(String name) {
+		ArrayList<QuestListener> l = (ArrayList<QuestListener>) eventListenerLists.get(name);
+		if(l==null) return null;
+		ArrayList<QuestListener> n = new ArrayList<QuestListener>();
+		for(QuestListener q:l) {
+			n.add(q);
+		}
+		return n;
+		
+	}
 	public long getPop() {
 		if(res==null) res = getMemRes();
 		return res[4];
@@ -1393,7 +1412,8 @@ public class Town {
 					 ArrayList<QuestListener> digFinish = (ArrayList<QuestListener>) eventListenerLists.get("digFinish");
 					 if(digFinish!=null) {
 						 for(QuestListener q: digFinish) {
-							 q.digFinishCatch(this);
+							 System.out.println("Calling " + q.getUsername());
+							 q.digFinishCatch(this,God.findTown(getDigTownID()).getPlayer());
 						 }
 					 }
 					 // send the message.
