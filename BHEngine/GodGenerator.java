@@ -4347,6 +4347,10 @@ http://www.javabeginner.com/
 
 Common bug list
 
+Airship changes:
+1. No invasions
+2. No APs on the Airship
+3. Can build anything.
 
 
 Okay so to do:
@@ -4967,6 +4971,12 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		
 		status+="Loading Maelstrom and Trader...\n";
 		serverLoaded=true;
+		
+		i = 0;
+		while(i<getAllActiveQuests().size()) {
+			getAllActiveQuests().get(i).onServerLoadCatch();
+			i++;
+		}
 		
 		i=0;
 		// at this point, we want to know whether or not we should load any new quests that
@@ -10132,7 +10142,16 @@ public boolean checkForGenocides(Town t) {
 					r = t1.findRaid(holdAttack.raidID());
 					if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&r.getTown2().owedTicks>0&&r.getTown2().getPlayer().ID!=r.getTown1().getPlayer().ID) {
 						r.getTown2().update();
+						
 
+					}
+					if(holdAttack.eta()<=0&&!holdAttack.raidOver()) {
+						
+						ArrayList<QuestListener> onRaidLandingList = r.getTown2().getEventListenerList("onRaidLanding");
+						if(onRaidLandingList!=null)
+							for(QuestListener q: onRaidLandingList) {
+								q.onRaidLanding(r);
+							}
 					}
 					//	System.out.println("raidOver is currently " + holdAttack.raidOver);
 					// this else UberStatement is for the actual attack server to use, the above is the facsimile treatment.

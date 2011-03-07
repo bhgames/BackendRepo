@@ -227,6 +227,70 @@ public abstract class QuestListener extends Player {
 		return true;
 
 	}
+	
+	public final void digFinishCatch(Town t, Player p) {
+		try {
+			 digFinish(t,p);
+			
+		}catch(Exception exc) {
+			exc.printStackTrace();
+		}
+	}
+	
+	public void digFinish(Town t, Player p) {
+		
+	}	
+	public final void onRaidSentCatch(Raid r,  boolean prog) {
+		try {
+			onRaidSent(r,prog);
+			
+		}catch(Exception exc) {
+			exc.printStackTrace();
+		}
+	}
+	
+	public void onRaidSent(Raid r, boolean prog) {
+		
+	}
+	
+	public final void onRaidLandingCatch(Raid r) {
+		try {
+			onRaidLanding(r);
+			
+		}catch(Exception exc) {
+			exc.printStackTrace();
+		}
+	}
+	
+	public void onRaidLanding(Raid r) {
+		
+	}
+	
+	public final void onProgramLoadCatch(Player p) {
+		try {
+			 onProgramLoad(p);
+			
+		}catch(Exception exc) {
+			exc.printStackTrace();
+		}
+	}
+	
+	public void onProgramLoad(Player p) {
+		
+	}
+	public final void onServerLoadCatch() {
+		try {
+			 onServerLoad();
+			
+		}catch(Exception exc) {
+			exc.printStackTrace();
+		}
+	}
+	
+	public void onServerLoad() {
+		
+	}
+	
 	/**
 	 * Destroys the quest for a player and marks it as complete.
 	 */

@@ -28,6 +28,8 @@ public class Player  {
 	public int playedTicks=0;
 	public long totalTimePlayed = 0;
 	public int numLogins=0;
+	 private Hashtable eventListenerLists = new Hashtable();
+
 	public Timestamp last_session;
 	public int owedTicks =0;
 	private String version;
@@ -99,6 +101,10 @@ public class Player  {
 	       knowledge = rs.getInt(4);
 	       flicker = rs.getString(58);
 	       last_login=rs.getTimestamp(41);
+	       // EVENT LISTENER STUFF	
+			eventListenerLists.put("onProgramLoad",new ArrayList<QuestListener>());
+			eventListenerLists.put("onRaidSent",new ArrayList<QuestListener>());
+
 	       try {
 	       last_session=rs.getTimestamp(83);
 	       } catch(Exception exc) { last_session = new Timestamp((new Date()).getTime());}
@@ -319,7 +325,46 @@ public class Player  {
 	public GodGenerator getGod() {
 		return God;
 	}
-	
+	synchronized public boolean addEventListener(QuestListener q, String type) {
+		ArrayList<QuestListener> list =(ArrayList<QuestListener>) eventListenerLists.get(type);
+		if(list!=null)
+		for(QuestListener p: list) {
+			
+			if(p.ID==q.ID) {
+				
+				return false;
+			}
+		}
+		else return false;
+		
+		list.add(q);
+		
+		return true;
+	}
+	synchronized public boolean dropEventListener(QuestListener q, String type) {
+			ArrayList<QuestListener> list =(ArrayList<QuestListener>) eventListenerLists.get(type);
+		
+		if(list!=null) {
+			int counter=0;
+			int i = 0;
+			QuestListener p;
+			while(i<list.size()) {
+				
+				p = list.get(i);
+			
+				if(p.ID==q.ID) {
+					counter++;
+					list.remove(p);
+					i--;
+				}
+			i++;
+			}
+			if(counter>0)return true;
+			else return false;
+		}
+		else return false;
+		
+	}
 	
 	
 	public int returnUnitLots() {
@@ -2703,6 +2748,21 @@ public class Player  {
 
 	public boolean isdigAPI() {
 		return digAPI;
+	}
+
+
+	
+
+
+	public ArrayList<QuestListener> getEventListenerList(String name) {
+		ArrayList<QuestListener> l = (ArrayList<QuestListener>) eventListenerLists.get(name);
+		if(l==null) return null;
+		ArrayList<QuestListener> n = new ArrayList<QuestListener>();
+		for(QuestListener q:l) {
+			n.add(q);
+		}
+		return n;
+		
 	}
 }
 

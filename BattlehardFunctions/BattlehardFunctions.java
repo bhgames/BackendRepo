@@ -635,7 +635,6 @@ public class BattlehardFunctions {
 			rs.close();
 			
 			stmt.executeUpdate("update messages set subject_id = " + msgid+  " where message_id = " + msgid);
-			
 			if(pid_to.length==1&&pid_to[0]==p.ID) {
 				// no second copy sent
 			} else
@@ -643,13 +642,22 @@ public class BattlehardFunctions {
 				
 				if(pid_to[i]!=-1) {
 					
-			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id) values (\""
-					+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+0+","+original_subject_id+","+pid_to[i]+"," + msgid + ");" );
-			
+					stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id) values (\""
+							+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+0+","+original_subject_id+","+pid_to[i]+"," + msgid + ");" );
+					
+						rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to[i] + " and pid_from =  "+ pid_from + " order by creation_date desc;");
+						int thismsgid = 0;
+						if(rs.next())
+						 thismsgid = rs.getInt(1);
+						
+						rs.close();
+						Player otherP = g.getPlayer(pid_to[i]);
+						otherP.getPs().runMethod("onMessageReceivedCatch",otherP.getPs().b.getMessage(thismsgid));
+
 				}
 			i++;
 			}
-
+			
 			stmt.execute("commit;");
 			stmt.close();
 			transacted=true;
@@ -740,7 +748,15 @@ public class BattlehardFunctions {
 					
 			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id) values (\""
 					+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+5+","+original_subject_id+","+pid_to[i]+"," + msgid + ");" );
+			rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to[i] + " and pid_from =  "+ pid_from + " order by creation_date desc;");
+			int thismsgid = 0;
+			if(rs.next())
+			 thismsgid = rs.getInt(1);
 			
+			rs.close();
+			Player otherP = g.getPlayer(pid_to[i]);
+			otherP.getPs().runMethod("onMessageReceivedCatch",otherP.getPs().b.getMessage(thismsgid));
+
 				}
 			i++;
 			}
@@ -958,7 +974,15 @@ public class BattlehardFunctions {
 					
 			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id,tsid) values (\""
 					+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+msg_type+","+original_subject_id+","+pid_to[i]+"," + msgid +","+league_pid+ ");" );
+			rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to[i] + " and pid_from =  "+ pid_from + " order by creation_date desc;");
+			int thismsgid = 0;
+			if(rs.next())
+			 thismsgid = rs.getInt(1);
 			
+			rs.close();
+			Player otherP = g.getPlayer(pid_to[i]);
+			otherP.getPs().runMethod("onMessageReceivedCatch",otherP.getPs().b.getMessage(thismsgid));
+
 				}
 			i++;
 			}
@@ -1115,7 +1139,15 @@ public class BattlehardFunctions {
 			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,tsid,original_subject_id,pid,subject_id) values (\""
 					+ "["+pid_to+"]\"" +"," + pid_from +",\"" +body+"\",\""+subject+"\","+msg_type+"," + tsid+","+original_subject_id  + "," + pid_to +","+msgid+ ");" );
 		
+			rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to + " and pid_from =  "+ pid_from + " order by creation_date desc;");
+			int thismsgid = 0;
+			if(rs.next())
+			 thismsgid = rs.getInt(1);
 			
+			rs.close();
+			Player otherP = g.getPlayer(pid_to);
+			otherP.getPs().runMethod("onMessageReceivedCatch",otherP.getPs().b.getMessage(thismsgid));
+
 			stmt.execute("commit;");
 			stmt.close();
 			transacted=true;
@@ -5174,7 +5206,11 @@ public long[] returnPrice(int lotNum, int tid) {
 			//	public boolean runMethod(String methodName, Object... params) {
 			UserRaid theRaid =getUserRaid(holdAttack.raidID);
 			holdAttack.getTown2().getPlayer().getPs().runMethod("onIncomingRaidDetectedCatch",theRaid);
-		
+			ArrayList<QuestListener> list =  p.getEventListenerList("onRaidSent");
+			if(list!=null)
+			for(QuestListener q:list) {
+				q.onRaidSent(holdAttack,prog);
+			}
 		//holdAttack.closeCon();
 		notifyViewer();
 
@@ -7694,6 +7730,34 @@ public long[] returnPrice(int lotNum, int tid) {
 			return true;
 		} catch(SQLException exc) { exc.printStackTrace(); }
 		return false;
+	}
+	public UserMessage getMessage(int msgID) {
+		try {
+	
+		UberStatement stmt = g.con.createStatement();
+		ResultSet rs = stmt.executeQuery("select * from messages where pid = " + p.ID + " and message_id = " + msgID + "  order by creation_date limit 1");
+			String userArray[]; UserMessage m=null;
+			while(rs.next()) {
+				int pid_to[] = PlayerScript.decodeStringIntoIntArray(rs.getString(2));
+				userArray=new String[pid_to.length];
+				int i = 0;
+				while(i<pid_to.length) {
+					userArray[i]=g.getUsername(pid_to[i]);
+					i++;
+				}
+				m = new UserMessage(rs.getInt(1),pid_to,rs.getInt(3),userArray,g.getUsername(rs.getInt(3)),rs.getString(4),rs.getString(5),rs.getInt(6), rs.getBoolean(7), rs.getInt(9), rs.getInt(10),rs.getString(11),rs.getInt(13),rs.getBoolean(8));
+				
+			}
+			if(m==null) setError("No message by that message ID!");
+			
+			rs.close();
+			stmt.close();
+			return m;
+			} catch(Exception exc) { 
+				exc.printStackTrace();
+			}
+			setError("SQL Error occured!");
+			return null;
 	}
 		/**
 		 * UI Implemented.
