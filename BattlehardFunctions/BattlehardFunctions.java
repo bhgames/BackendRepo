@@ -6664,7 +6664,6 @@ public long[] returnPrice(int lotNum, int tid) {
 		}
 		Town t = g.findTown(townID);
 		if(t.getPlayer().ID!=p.ID) { setError("Not your town!"); return -1; }
-		
 		return QueueItem.getUnitTicks(tierType,t.getTotalEngineers(),t);
 
 			

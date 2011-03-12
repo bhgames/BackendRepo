@@ -354,11 +354,9 @@ public class Id extends Player {
 							
 							b = idT.addBuilding("Headquarters",4,1,0);
 								 //	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, int target,String name) {
-								System.out.println("Defending myself by hitting " + t.getTownName());
 
 							 int auAmts[] = {idT.getAu().get(0).getSize(),0,0,0,0,0};
-							 System.out.println(
-							 getPs().b.attack(idT.townID,t.getX(),t.getY(),auAmts,"attack",0,"GARBLEDTRANSMISSION") + ":" + getPs().b.getError());
+							 getPs().b.attack(idT.townID,t.getX(),t.getY(),auAmts,"attack",0,"GARBLEDTRANSMISSION");
 							 
 							 
 							 idT.killBuilding(b.bid);
@@ -374,11 +372,9 @@ public class Id extends Player {
 						
 							b = idT.addBuilding("Headquarters",4,1,0);
 								 //	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, int target,String name) {
-								System.out.println("Defending myself by sieging " + t.getTownName());
 							
 							 int auAmts[] = {idT.getAu().get(0).getSize(),0,0,0,0,0};
-							 System.out.println(
-							 getPs().b.attack(idT.townID,t.getX(),t.getY(),auAmts,"siege",0,"GARBLEDTRANSMISSION") + ":" + getPs().b.getError());
+							 getPs().b.attack(idT.townID,t.getX(),t.getY(),auAmts,"siege",0,"GARBLEDTRANSMISSION");
 							 
 							 
 							 idT.killBuilding(b.bid);

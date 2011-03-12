@@ -91,7 +91,7 @@ public class CQ1 extends QuestListener {
 	}
 	
 	public void onRaidSent(Raid r, boolean prog) {
-		//	if(prog) {
+		if(prog) {
 
 	//	System.out.println("I WAS CALLED, BIATCCHH");
 			String town = readFromMemory(r.getTown1().getPlayer().ID);
@@ -114,7 +114,7 @@ public class CQ1 extends QuestListener {
 				}
 			}
 			
-	//	}
+		}
 	}
 	
 	public int sumFactorial(int limit) {

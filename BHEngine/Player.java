@@ -325,7 +325,7 @@ public class Player  {
 	public GodGenerator getGod() {
 		return God;
 	}
-	synchronized public boolean addEventListener(QuestListener q, String type) {
+	 public boolean addEventListener(QuestListener q, String type) {
 		ArrayList<QuestListener> list =(ArrayList<QuestListener>) eventListenerLists.get(type);
 		if(list!=null)
 		for(QuestListener p: list) {
@@ -341,10 +341,11 @@ public class Player  {
 		
 		return true;
 	}
-	synchronized public boolean dropEventListener(QuestListener q, String type) {
+	 public boolean dropEventListener(QuestListener q, String type) {
 			ArrayList<QuestListener> list =(ArrayList<QuestListener>) eventListenerLists.get(type);
 		
 		if(list!=null) {
+			synchronized(list) {
 			int counter=0;
 			int i = 0;
 			QuestListener p;
@@ -361,6 +362,7 @@ public class Player  {
 			}
 			if(counter>0)return true;
 			else return false;
+			}
 		}
 		else return false;
 		

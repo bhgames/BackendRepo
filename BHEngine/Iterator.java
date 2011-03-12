@@ -258,7 +258,7 @@ public class Iterator implements Runnable {
 					God.getPlayer((Integer) p.get("pid")).getPs().runMethod("dailyCatch",null);
 				}
 					p.put("holdingIteratorID","-1"); 
-
+					p.put("internalClock",internalClock);
 				}
 
 			}
@@ -343,6 +343,17 @@ public class Iterator implements Runnable {
 				
 				i++;
 			}
+			i = 0;boolean tripped4 = false;
+			ArrayList<Hashtable> programs = God.programs;
+			//	 System.out.println(iterateID + " checking the lag timer...");
+				while(i<programs.size()) {
+					if(((Object) programs.get(i).get("Revelations")).getClass().getSuperclass().getName().equals("Revelations.RevelationsAI2")
+							&&((Integer) programs.get(i).get("internalClock"))<internalClock){  //240 is 15 mins, minimum.
+						
+						tripped4=true; break; }
+					
+					i++;
+				}
 			
 			
 			

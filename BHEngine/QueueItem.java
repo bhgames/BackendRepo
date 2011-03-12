@@ -249,7 +249,9 @@ public static int days = 5;
 
 		 ticks*=chgdays/GodGenerator.gameClockFactor;
 		 if(p.getUbTimer()>0) ticks/=2.0;
-
+		 if(ticks>52*7*24*3600/GodGenerator.gameClockFactor) {
+			 ticks = 52*7*24*3600/GodGenerator.gameClockFactor;
+		 }
 		 return ((int) Math.round(ticks)+1);
 	}
 	
@@ -338,8 +340,14 @@ public static int days = 5;
 	//	 System.out.println("new ticks after: "+ ticks);
 		 ticks*=chgdays/GodGenerator.gameClockFactor;
 		 if(p.getUbTimer()>0) ticks/=2.0;
+		 if(ticks>52*7*24*3600/GodGenerator.gameClockFactor) {
+			 ticks = 52*7*24*3600/GodGenerator.gameClockFactor;
+		 }
+		 int toRet =  ((int) Math.round(ticks))+1;
+	
+		 
 
-		 return ((int) Math.round(ticks)+1);
+		 return toRet;
 	}
 	
 	public void modifyUnitTicksForItem(int hAUpop, Town t) {
@@ -435,6 +443,9 @@ public static int days = 5;
 
 		 if(p.getUbTimer()>0) ticks/=2.0;
 		 ticks+=1;
+		 if(ticks>52*7*24*3600/GodGenerator.gameClockFactor) {
+			 ticks = 52*7*24*3600/GodGenerator.gameClockFactor;
+		 }
 		 setTicksPerUnit((int) Math.round(ticks));
 	}
 

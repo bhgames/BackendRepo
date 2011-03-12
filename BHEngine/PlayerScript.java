@@ -2437,7 +2437,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 		long before = currTime.getTime();
 		t.start();
 		try {
-			t.join(5000);
+			t.join(60000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -2445,8 +2445,8 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 		t.stop();
 		currTime = new Date();
 		long afterTime = currTime.getTime();
-		if(afterTime-before>=5000) {
-				b.sendYourself("Your " + methodName + " method took " + (afterTime-before) + " ms. This is greater than 5s, the limit. Please make your code more efficient.","Gigabyte is Cutting You");
+		if(afterTime-before>=60000) {
+				b.sendYourself("Your " + methodName + " method took " + (afterTime-before) + " ms. This is greater than 60s, the limit. Please make your code more efficient.","Gigabyte is Cutting You");
 
 		}
 	//	b.sendYourself("This method took " + (afterTime-before) + " ms."," Time");
@@ -2838,13 +2838,13 @@ try {
   				//	Class param = Class.forName(""+newSCons.getParameterTypes()[0],false,urlload);
   					createRevelations makeRev = new createRevelations(""+player.ID,newSCons,revb);
   					makeRev.start();
-  					makeRev.join(5000);
+  					makeRev.join(60000);
   					makeRev.stop();
   					if(makeRev.currRevInstance==null) {
   						if(otherb==null)
-  							b.setError("Your Constructor method ran for more than 5s!");
+  							b.setError("Your Constructor method ran for more than 60s!");
   							else
-  							otherb.setError("Your Constructor method ran for more than 5s!");
+  							otherb.setError("Your Constructor method ran for more than 60s!");
   						
   						return false;
 
@@ -2861,6 +2861,7 @@ try {
   					r.put("pingFails",0);
   					r.put("startAt", player.God.gameClock);
   					r.put("holdingIteratorID","-1");
+  					r.put("internalClock",player.God.gameClock);
   					
 
   					

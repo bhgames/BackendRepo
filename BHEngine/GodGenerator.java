@@ -37,6 +37,7 @@ import BattlehardFunctions.BattlehardFunctions;
 import BattlehardFunctions.UserBuilding;
 import BattlehardFunctions.UserRaid;
 import BattlehardFunctions.UserTPR;
+import BattlehardFunctions.UserTown;
 import BattlehardFunctions.UserTrade;
 import BattlehardFunctions.UserTradeSchedule;
 
@@ -108,13 +109,14 @@ after 20 ms. Make it hourly.---CHECK---
  
  
  To add:
- onBuildingFinish(TID,LotNumber)
- whenTownInvaded
- onQueEmpty(TID,lotNum) for arms factories
-onMessageReceived
-onAttackLanding
-onTradeLanding
-onTradeReturning
+ onBuildingFinish(TID,LotNumber)---CHECK---
+ whenTownInvaded---CHECK---
+onQueEmpty(TID,lotNum) for arms factories---CHECK---
+onMessageReceived---CHECK---
+onAttackLanding---CHECK---
+onTradeLanding---ADDED---
+onTradeReturning---ADDED---
+onOutgoingRaidReturned(so when it gets back)
  
  
  
@@ -7766,7 +7768,6 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 	int townSize = 0;
 	int t2TownSize=0;
 	int numHQBunkers=0;
-	System.out.println("-1");
 
 	if(t2.getPlayer().isQuest()) {
 	
@@ -7837,10 +7838,8 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		i++;
 	}
 	
-	System.out.println("0");
 
 	if(t1p.getTownTech()<=townSize) return false;
-	System.out.println("1");
 
 	if(numHQBunkers!=0) return false;
 	// Not like townTech'll be less than the town size but just in case, we don't
@@ -7874,7 +7873,6 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 	// invasion!
 	boolean townGot=false;
 	// Fucking static methods make me have to reference every goddamn thing.
-	System.out.println("2");
 
 	if(t2TownSize==1) {
 		// if this is the player's last town, then we need to try to get them
@@ -7917,11 +7915,19 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 	} 
 		
 	}
-	System.out.println("3");
 	
 	// if the code gets here, we can give the town away.
 	//System.out.println("Preparing to give the town.");
 	t2.giveTown(holdAttack,t1p); // give the town away.
+	UserTown[] towns = t1p.getPs().b.getUserTowns();
+	UserTown theT=null;
+	for(UserTown t: towns) {
+		if(t.getTownID()==t2.townID) {
+			theT=t;
+			break;
+		}
+	}
+	t1p.getPs().runMethod("onEnemyTownInvadedCatch",theT);
 	
 	return true;
 }
@@ -10147,6 +10153,7 @@ public boolean checkForGenocides(Town t) {
 					}
 					if(holdAttack.eta()<=0&&!holdAttack.raidOver()) {
 						
+						r.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidLandingCatch",holdAttack);
 						ArrayList<QuestListener> onRaidLandingList = r.getTown2().getEventListenerList("onRaidLanding");
 						if(onRaidLandingList!=null)
 							for(QuestListener q: onRaidLandingList) {
@@ -10450,7 +10457,7 @@ public boolean checkForGenocides(Town t) {
 				actt.setTicksToHit(t.getTicksToHit() - 1);
 			} else if(t.getTicksToHit()<=0&&!t.isTradeOver()) {
 			if(actt.getTown2().owedTicks>0)	actt.getTown2().update();
-				
+				actt.getTown1().getPlayer().getPs().runMethod("onOutgoingTradeLandingCatch",t);
 				/*
 				 * Time to offload resources!
 				 */
@@ -10518,7 +10525,9 @@ public boolean checkForGenocides(Town t) {
 				actt.setTicksToHit(t.getTotalTicks());
 				actt.setTradeOver(true);
 				
-				
+				actt.getTown1().getPlayer().getPs().runMethod("onOutgoingTradeReturningCatch",
+						actt.getTown1().getPlayer().getPs().b.getUserTrade(actt.tradeID));
+
 
 				
 				
@@ -11792,7 +11801,10 @@ public boolean checkForGenocides(Town t) {
 					b.modifyTicksLevel(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getEngTech()); b.setTicksToFinish(b.getTicksToFinish()+1); 
 					} 
 				else if(b.getTicksToFinish()>=b.getTicksToFinishTotal()&&b.getLvlUps()>0) {
+					//UserRaid theRaid =getUserRaid(holdAttack.raidID);
+					//holdAttack.getTown2().getPlayer().getPs().runMethod("onIncomingRaidDetectedCatch",theRaid);
 				b.setLvlUps(b.getLvlUps()-1);
+				
 			
 				// for mines!
 				
@@ -11806,6 +11818,8 @@ public boolean checkForGenocides(Town t) {
 					b.levelUp(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getEngTech());
 			
 				}
+				
+				holdTown.getPlayer().getPs().runMethod("onBuildingFinishedCatch",holdTown.getPlayer().getPs().b.getUserBuilding(b.bid));
 				}
 				
 				if(b.getNumLeftToBuild()>0) {
@@ -11873,12 +11887,16 @@ public boolean checkForGenocides(Town t) {
 						// this means that there is a queue item with 0 or less number left to build.
 						// it should be removed from the queue.
 						q.deleteMe();
+						if(b.Queue().size()<=0) {
+							
+							holdTown.getPlayer().getPs().runMethod("onAttackUnitQueueEmptyCatch", holdTown.getPlayer().getPs().b.getUserBuilding(b.bid));
+						}
 						
 						// then the next one will be used next time around!
 						
 					}
 					
-					}
+					} 
 					
 					 }
 				u++;

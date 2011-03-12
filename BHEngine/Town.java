@@ -272,7 +272,7 @@ public class Town {
 		// This is why originalTID is kept.
 		// extra 1 is because level 1 from 0 based is like 2, need it to not include
 		// zero in this count.
-		if(slots>lvl) return false;
+		if(slots>lvl&&getPlayer().ID!=5&&!getPlayer().isQuest()) return false;
 		else return true;
 	}
 
@@ -316,7 +316,7 @@ public class Town {
 			i++;
 		}
 	}
-	synchronized public boolean addEventListener(QuestListener q, String type) {
+	 public boolean addEventListener(QuestListener q, String type) {
 		ArrayList<QuestListener> list =(ArrayList<QuestListener>) eventListenerLists.get(type);
 		if(list!=null)
 		for(QuestListener p: list) {
@@ -332,10 +332,11 @@ public class Town {
 		
 		return true;
 	}
-	synchronized public boolean dropEventListener(QuestListener q, String type) {
+	 public boolean dropEventListener(QuestListener q, String type) {
 	ArrayList<QuestListener> list =(ArrayList<QuestListener>) eventListenerLists.get(type);
 		
 		if(list!=null) {
+			synchronized(list) {
 			int counter=0;
 			int i = 0;
 			QuestListener p;
@@ -352,6 +353,7 @@ public class Town {
 			}
 			if(counter>0)return true;
 			else return false;
+			}
 		}
 		else return false;
 		
@@ -1595,8 +1597,8 @@ public class Town {
 		 b = findBuilding(bid);
 		//System.out.println("I found the building to kill.");
 
-		System.out.println("Destroying " + b.getLotNum() + " which is a " + b.getType() +
-" and bid of " + b.bid + " and of town " + townID + " b deconstruct is " + b.isDeconstruct());
+		//System.out.println("Destroying " + b.getLotNum() + " which is a " + b.getType() +
+//" and bid of " + b.bid + " and of town " + townID + " b deconstruct is " + b.isDeconstruct());
 		/*if(b.isMineBldg()) {
 			if(b.getType().equals("Metal Warehouse")) {
 				getResCaps()[0]-=b.getCap();
