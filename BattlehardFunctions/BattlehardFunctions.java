@@ -253,7 +253,7 @@ public class BattlehardFunctions {
 	 *  
 	 *   To grab the array of town hashtables, use the key "townHash".
 	 *   Each hashtable in the town hashtable array has keys "townName","owner","pid","SSL", "resEffects"(an array), "debris"(an array),
-	 *   "x", and "y".
+	 *   "x", "y", "dig"(which returns true if a dig is present.)
 	 *   
 	 *  To grab the maptile array of hashtables, use the key "tileHash". Each entry is a hashtable containing
 	 *  these keys: mid, an integer identifier for the tile, centerx, an integer that represents the at what spot
@@ -628,15 +628,21 @@ public class BattlehardFunctions {
 			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,readed) values (\""
 					+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+0+","+original_subject_id+","+p.ID+","+meRead+");" );
 			rs = stmt.executeQuery("select message_id from messages where pid = " + p.ID + " order by creation_date desc;");
+			
+			
 			int msgid = 0;
 			if(rs.next())
 			 msgid = rs.getInt(1);
 			
 			rs.close();
 			
+			
+			
 			stmt.executeUpdate("update messages set subject_id = " + msgid+  " where message_id = " + msgid);
 			if(pid_to.length==1&&pid_to[0]==p.ID) {
-				// no second copy sent
+				// no second copy sent, but if you are not a program, your program should know.
+				if(!prog)
+				p.getPs().runMethod("onMessageReceivedCatch",p.getPs().b.getMessage(msgid));
 			} else
 			while(i<pid_to.length) {
 				
@@ -4497,6 +4503,7 @@ public long[] returnPrice(int lotNum, int tid) {
 	 * offsupport
 	 * support
 	 * debris
+	 * dig(this type can only be sent if you also have the dig api!)
 
 	 * Target designations:
 	 * 0: Bomb all targets(random decision).(This can get bunkers.)
@@ -4540,6 +4547,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		 * offsupport
 		 * support
 		 * debris
+		 * dig(this type can only be sent if you also have the dig api!)
 		 * 
 		 * Target designations:
 		 * 0: Bomb all targets(random decision).(This can get bunkers.)
@@ -4819,6 +4827,7 @@ public long[] returnPrice(int lotNum, int tid) {
 	 * offsupport
 	 * support
 	 * debris
+	 * dig(this type can only be sent if you also have the dig api!)
 	 *
 	 *Target designations: 
 	 * 0: Bomb all targets(random decision).(This can get bunkers.)
@@ -4871,6 +4880,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		 * offsupport
 		 * support
 		 * debris
+		 * dig(this type can only be sent if you also have the dig api!)
 		 * 
 		 * 
 		 *Target designations: 
@@ -9963,7 +9973,10 @@ public long[] returnPrice(int lotNum, int tid) {
 	
 		int i = 0; Town t = g.findTown(tid);
 	//	System.out.println("The townID belongs to " + t.getPlayer().ID);
-
+		if(t==null||(t!=null&&t.townID==0)) {
+			setError("Invalid town!");
+			return null;
+		}
 		if(t.getPlayer().ID!=p.ID) return null; Building actb;
 		ArrayList<UserBuilding> tses = new ArrayList<UserBuilding>();
 		int totalEngineers = t.getTotalEngineers(); int x = t.getX(); int y = t.getY();

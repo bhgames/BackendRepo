@@ -179,7 +179,8 @@ public class CQ1 extends QuestListener {
 				"The algorithm to decode each number is the same. The formula below gets you through the first decryption, and it's the same for Y as it is for X:<br /><br />" +
 				"1!+2!+3!+...decoded_number_X!=encoded_number_X<br /><br />" +
 				"Once you have both your x encryption and y encryption decrypted, you're not done yet. These numbers represent relative distances from your capital. You can transform them into actual coordinates via this formula:<br /><br />" +
-				"actual_coordinate_X=decoded_number_X+capitalX<br /><br />Once you've decoded your x and y, you must send a dig to that location. On sending the dig to the correct location, you will instantly be rewarded by this quest. However, you must complete the dig normally and be offered the dig prize message and accept it to get the treasure waiting there and actually finish the quest. Good luck!";
+				"actual_coordinate_X=decoded_number_X+capitalX<br /><br />Once you've decoded your x and y, you must send a dig to that location. On sending the dig to the correct location, you will instantly be rewarded by this quest. However, you must complete the dig normally and be offered the dig prize message and accept it to get the treasure waiting there and actually finish the quest.<br /><br />To send a dig, you must use the attack() method with 'dig' for the mission type. You can " +
+				"call attack() under any other mission type using Attack Automation API, but you need the Dig API also to call attack() with the 'dig' mission type.<br /><br /> Good luck!";
 				
 				
 			

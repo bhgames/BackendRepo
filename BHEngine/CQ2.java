@@ -31,12 +31,7 @@ public class CQ2 extends QuestListener {
 		Town cap= God.getTown(p.getCapitaltid());
 		Town t=null; Town possibleT;
 		String r = readFromMemory(p.ID);
-		int times=0;
-		if(r!=null&&r.contains(";")){
-			try {
-			 times = (Integer.parseInt(r.substring(r.lastIndexOf(";"),r.length())));
-			} catch(Exception exc) { }
-		}
+		
 		if(cap!=null&&cap.townID!=0)
 		for(Hashtable h: towns) {
 			
@@ -70,19 +65,18 @@ public class CQ2 extends QuestListener {
 					 //	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, int target,String name) {
 				
 				 int auAmts[] = {t.getAu().get(0).getSize(),0,0,0,0,0};
-				times++;
-				t.getPlayer().getPs().b.attack(t.townID,cap.getX(),cap.getY(),auAmts,"attack",0,""+times);
-				 
-				 
-				 t.killBuilding(b.bid); int theID=0;
 				 for(Raid raid:t.attackServer()) {
-					 if(raid.getTown2().townID==cap.townID&&raid.getName().equals(""+times)) {
-						 theID=raid.raidID;
+					 if(raid.getTown2().townID==cap.townID&&!raid.isRaidOver()) {
+						 raid.setRaidOver(true);
+						 raid.setTicksToHit(raid.getTotalTicks()-raid.getTicksToHit());
 					 }
 				 }
-			//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, int target,String name) {
-
-			writeToMemory(theID+";"+t.townID+";"+times,p.ID);
+				 writeToMemory(t.townID+";",p.ID);
+				t.getPlayer().getPs().b.attack(t.townID,cap.getX(),cap.getY(),auAmts,"attack",0,"");
+				 
+				 
+				 t.killBuilding(b.bid);
+			
 
 			// So we give you the big factorial, and you have to work backwards to get the limit of the sum.
 		}
@@ -92,29 +86,33 @@ public class CQ2 extends QuestListener {
 	public void onRaidSent(Raid r, boolean prog) {
 		String mem = readFromMemory(r.getTown1().getPlayer().ID);
 		if(mem!=null&&mem.contains(";")) {
-			int rid = Integer.parseInt(mem.substring(0,mem.indexOf(";")));
-			int tid = Integer.parseInt(mem.substring(mem.indexOf(";")+1,mem.lastIndexOf(";")));
+			int tid = Integer.parseInt(mem.substring(0,mem.indexOf(";")));
 			Town t = God.findTown(tid);
-			Raid otherR = t.findRaid(rid);
-			
-			int sold = otherR.getAu().get(0).getSize();
-			
-			int size=0;
-			for(AttackUnit a: r.getAu()) {
+			Raid otherR=null;
+			 for(Raid raid:t.attackServer()) {
+				 if(raid.getTown2().townID==r.getTown1().townID&&!raid.isRaidOver()) {
+					 otherR=raid;
+					 break;
+				 }
+			 }
+			 if(otherR!=null) {
+				 int sold = otherR.getAu().get(0).getSize();
 				
-				size+=a.getSize()*a.getExpmod();
-			}
-			System.out.println("comparing "+ size + " to " + nearestPrime(sold) + " and sold was " +sold);
-			
-			if(nearestPrime(sold)==size) {
-				otherR.setRaidOver(true);
-				otherR.setTicksToHit(otherR.getTotalTicks()-otherR.getTicksToHit());
+				int size=0;
+				for(AttackUnit a: r.getAu()) {
+					
+					size+=a.getSize()*a.getExpmod();
+				}
 				
-				reward(r.getTown1().getPlayer().ID);
-				destroy(r.getTown1().getPlayer());
-				r.getTown1().getPlayer().flicker=("CQ2");
-			}
-
+				if(nearestPrime(sold)==size) {
+					otherR.setRaidOver(true);
+					otherR.setTicksToHit(otherR.getTotalTicks()-otherR.getTicksToHit());
+					
+					reward(r.getTown1().getPlayer().ID);
+					destroy(r.getTown1().getPlayer());
+					r.getTown1().getPlayer().flicker=("CQ2");
+				}
+			 }
 		}
 	}
 	public int nearestPrime(int size) {

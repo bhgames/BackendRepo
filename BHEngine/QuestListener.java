@@ -230,6 +230,8 @@ public abstract class QuestListener extends Player {
 	
 	public final void digFinishCatch(Town t, Player p) {
 		try {
+			if(partOfQuest(p,getUsername()))
+
 			 digFinish(t,p);
 			
 		}catch(Exception exc) {
@@ -242,6 +244,8 @@ public abstract class QuestListener extends Player {
 	}	
 	public final void onRaidSentCatch(Raid r,  boolean prog) {
 		try {
+			if(partOfQuest(r.getTown1().getPlayer(),getUsername()))
+
 			onRaidSent(r,prog);
 			
 		}catch(Exception exc) {
@@ -255,6 +259,8 @@ public abstract class QuestListener extends Player {
 	
 	public final void onRaidLandingCatch(Raid r) {
 		try {
+			if(partOfQuest(r.getTown1().getPlayer(),getUsername()))
+
 			onRaidLanding(r);
 			
 		}catch(Exception exc) {
@@ -268,6 +274,7 @@ public abstract class QuestListener extends Player {
 	
 	public final void onProgramLoadCatch(Player p) {
 		try {
+			if(partOfQuest(p,getUsername()))
 			 onProgramLoad(p);
 			
 		}catch(Exception exc) {

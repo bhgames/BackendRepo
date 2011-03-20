@@ -4344,7 +4344,7 @@ be rich.
 
 /* Journal:
 http://www.cstutoringcenter.com/problems/
-
+http://davidghedini.blogspot.com/2010/12/install-glassfish-3-on-centos.html
 http://www.javabeginner.com/
 
 Common bug list
@@ -9262,10 +9262,10 @@ public boolean checkForGenocides(Town t) {
 				synchronized(t2.getRes()) {
 					
 					while(l<t2.getRes().length-1) {
-						System.out.println("This player is getting " + totalpercent + " (1 being 100%) % of " + totalCost[l] + " at " + l + " with before debris being " + t2.getDebris()[l]);
+					//	System.out.println("This player is getting " + totalpercent + " (1 being 100%) % of " + totalCost[l] + " at " + l + " with before debris being " + t2.getDebris()[l]);
 						t2.getRes()[l]+=(long) Math.round(((double) totalCost[l])*totalpercent);
 						t2.getDebris()[l]-=(long) Math.round(((double) totalCost[l])*totalpercent);
-						System.out.println("As a result, the remaining debris is " + t2.getDebris()[l]);
+					//	System.out.println("As a result, the remaining debris is " + t2.getDebris()[l]);
 						l++;
 					}
 				}
@@ -9273,7 +9273,7 @@ public boolean checkForGenocides(Town t) {
 				if(numUnitsRemainingD==0) {
 					// fuckin kill missile silos..
 					UserBuilding[] bldgs = t2p.getPs().b.getUserBuildings(t2.townID,"Missile Silo");
-					System.out.println("Destroying the Missile Silos.");
+				//	System.out.println("Destroying the Missile Silos.");
 					int l = 0;
 					if(bldgs.length>0) t2p.God.sendNukeMessage(t1p.getUsername(),t2,false);
 					while(l<bldgs.length) {
@@ -9303,7 +9303,7 @@ public boolean checkForGenocides(Town t) {
 				
 				boolean premium=false;
 				int bp=0;
-				System.out.println(t1p.getUsername() + " premiumTimer is " + t1p.getPremiumTimer());
+				//System.out.println(t1p.getUsername() + " premiumTimer is " + t1p.getPremiumTimer());
 				if(currentExpAdvSizeDef>0) // only get BP from fights, my man.
 				if(percentlossdiff<0) {
 					
