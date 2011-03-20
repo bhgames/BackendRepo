@@ -674,7 +674,7 @@ public static int baseResourceAmt = 2000;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
 		}
-		if(type.equals("Airship Platform")) { 
+		if(type.equals("Airstrip")) { 
 			cost[0] = 150;
 			cost[1] = 70;
 			cost[2] = 110;
@@ -694,32 +694,32 @@ public static int baseResourceAmt = 2000;
 			cost[3] = 130;
 			cost[4] = 0;
 		}
-		if(type.equals("Metal Refinery")) { 
+		if(type.equals("Foundry")) { 
 			cost[0] = 40;
 			cost[1] = 150;
 			cost[2] = 140;
 			cost[3] = 70;
 			cost[4] = 0;
-		}if(type.equals("Timber Processing Plant")) { 
+		}if(type.equals("Sawmill")) { 
 			cost[0] = 70;
 			cost[1] = 40;
 			cost[2] = 150;
 			cost[3] = 140;
 			cost[4] = 0;
-		}if(type.equals("Materials Research Center")) { 
+		}if(type.equals("Crystal Refinery")) { 
 			cost[0] = 140;
 			cost[1] = 70;
 			cost[2] = 40;
 			cost[3] = 150;
 			cost[4] = 0;
-		}if(type.equals("Hydroponics Lab")) { 
+		}if(type.equals("Hydroponics Bay")) { 
 			cost[0] = 150;
 			cost[1] = 140;
 			cost[2] = 70;
 			cost[3] = 40;
 			cost[4] = 0;
 		}
-		if(type.equals("Headquarters")) { 
+		if(type.equals("Command Center")) { 
 			cost[0] = 70;
 			cost[1] = 40;
 			cost[2] = 150;
@@ -735,8 +735,18 @@ public static int baseResourceAmt = 2000;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
 			
+		}	
+		if(type.equals("Manufacturing Plant")) {//100 100 100 100
+			cost[0] = 150;
+			cost[1] = 70;
+			cost[2] = 140;
+			cost[3] = 40;
+			cost[4] = 0;
+			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
+			
+			
 		}
-		if(type.equals("Construction Yard")) {
+		if(type.equals("Storage Yard")) {
 			cost[0] = 70;
 			cost[1] = 150;
 			cost[2] = 140;
@@ -763,7 +773,7 @@ public static int baseResourceAmt = 2000;
 			
 		}
 		
-		if(type.equals("Communications Center")) {
+		if(type.equals("Resource Cache")) {
 			cost[0] = 140;
 			cost[1] = 40;
 			cost[2] = 150;
@@ -789,7 +799,7 @@ public static int baseResourceAmt = 2000;
 
 			
 		}
-		if(type.equals("Bunker")) {
+		if(type.equals("Fortification")) {
 			cost[0] = 140;
 			cost[1] = 150;
 			cost[2] = 40;
@@ -814,7 +824,7 @@ public static int baseResourceAmt = 2000;
 			
 			
 		}
-		if(type.equals("Timber Warehouse")) {
+		if(type.equals("Lumber Yard")) {
 	
 			cost[0] = 70;
 			cost[1] = 40;
@@ -826,7 +836,7 @@ public static int baseResourceAmt = 2000;
 			
 			
 		}
-		if(type.equals("Manufactured Materials Warehouse")) {
+		if(type.equals("Crystal Repository")) {
 
 			cost[0] = 140;
 			cost[1] = 70;
@@ -839,7 +849,7 @@ public static int baseResourceAmt = 2000;
 			
 		}
 		
-		if(type.equals("Food Warehouse")) {
+		if(type.equals("Granary")) {
 	
 			cost[0] = 150;
 			cost[1] = 140;
@@ -874,7 +884,7 @@ public static int baseResourceAmt = 2000;
 			
 			
 		}
-		if(type.equals("Manufactured Materials Plant")) {
+		if(type.equals("Crystal Mine")) {
 			cost[0] = 100;
 			cost[1] = 90;
 			cost[2] = 90;
@@ -885,7 +895,7 @@ public static int baseResourceAmt = 2000;
 			
 			
 		}
-		if(type.equals("Food Farm")) {
+		if(type.equals("Farm")) {
 			cost[0] = 95;
 			cost[1] = 95;
 			cost[2] = 100;

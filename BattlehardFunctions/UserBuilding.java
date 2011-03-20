@@ -138,89 +138,80 @@ private static int baseResourceAmt = 1000;
 	}
 	
 	public static UserBuilding[] getBuildings() {
-		UserBuilding to[] = new UserBuilding[22];
+		UserBuilding to[] = new UserBuilding[23];
 		to[0] = new UserBuilding("Headquarters");
 		to[1] = new UserBuilding("Arms Factory");
-		to[2] = new UserBuilding("Construction Yard");
+		to[2] = new UserBuilding("Storage Yard");
 		to[3] = new UserBuilding("Institute");
-		to[4] = new UserBuilding("Communications Center");
+		to[4] = new UserBuilding("Resource Cache");
 		to[5] = new UserBuilding("Trade Center");
-		to[6] = new UserBuilding("Bunker");
+		to[6] = new UserBuilding("Fortification");
 		to[7] = new UserBuilding("Metal Warehouse");
 		to[8] = new UserBuilding("Timber Warehouse");
-		to[9] = new UserBuilding("Manufactured Materials Warehouse");
+		to[9] = new UserBuilding("Crystal Warehouse");
 		to[10] = new UserBuilding("Food Warehouse");
 	
 		to[11] = new UserBuilding("Missile Silo");
 		to[12] = new UserBuilding("Recycling Center");
-		to[13] = new UserBuilding("Airship Platform");
-		to[14] = new UserBuilding("Metal Refinery");
-		to[15] = new UserBuilding("Timber Processing Plant");
-		to[16] = new UserBuilding("Materials Research Center");
-		to[17] = new UserBuilding("Hydroponics Lab");
+		to[13] = new UserBuilding("Airstrip");
+		to[14] = new UserBuilding("Foundry");
+		to[15] = new UserBuilding("Sawmill");
+		to[16] = new UserBuilding("Crystal Refinery");
+		to[17] = new UserBuilding("Hydroponics Bay");
 		to[18] = new UserBuilding("Metal Mine");
 		to[19] = new UserBuilding("Timber Field");
-		to[20] = new UserBuilding("Manufactured Materials Plant");
+		to[20] = new UserBuilding("Crystal Mine");
 		to[21] = new UserBuilding("Food Farm");
+		to[22] = new UserBuilding("Manufacturing Plant");
+
 		return to;
 	}
 	public void setDescription(String type) {
-		if(type.equals("Headquarters")) { 
+		if(type.equals("Command Center")) { 
 			this.type=type;
-			cost[0] = 70;
-			cost[1] = 40;
-			cost[2] = 150;
-			cost[3] = 140;
-			cost[4] = 0;
-			desc = "This building controls all of your ingoing and outgoing raids. Each level you add to" +
-					" this building adds an extra slot for a raid, and you can only have one per town." +
-					" This building and your bunkers must be demolished before an enemy can have a chance of" +
-					" invading your town.";
+			cost = Building.getCost(type);
+
+			desc = "Requires: Nothing. <br /><br />This building is the center of any city. No building in a city can be more than two levels above your highest leveled command center." +
+					" Leveling your command center allows you to send out more raids at once, protect more civilians in the event of enemy glassing attempts, and increases" +
+					" the radius of the world map which you can see.";
 		}
 		if(type.equals("Arms Factory")) {//100 100 100 100
 			this.type=type;
-			cost[0] = 150;
-			cost[1] = 70;
-			cost[2] = 140;
-			cost[3] = 40;
-			cost[4] = 0;
+			cost = Building.getCost(type);
+
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 
-			desc = "An Arms Factory allows you to build the combat units you have in your unit slots. You can also fill" +
-					" or empty your slots with unit templates from the UTCC in this building. Combat slots are universal across" +
-					" all towns - you cannot fill each town with different unit types. Leveling up this building " +
-					" gives the raids you send from the town it's located in extra defensive protection on those foreign battlefields" +
-					" in the same way that bunkers do at home on defensive mode.";
+			desc = "Requires: Level 1 Command Center.<br /><br />An Arms Factory allows you to build ground units. Increasing it's level increases the amount you can build at any one time.";
 			
 		}
-		if(type.equals("Construction Yard")) {
+		if(type.equals("Manufacturing Plant")) {//100 100 100 100
 			this.type=type;
-			cost[0] = 70;
-			cost[1] = 150;
-			cost[2] = 140;
-			cost[3] = 40;
-			cost[4] = 0;
+			cost = Building.getCost(type);
+
+			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
+
+			desc = "Requires: Level 10 Institute and Level 5 Arms Factory.<br /><br /> A Manufacturing Plant gives you the ability to build advanced ground units like the Juggernaught and Tank class. Leveling up this plant increases the amount of units you can build at one time and reduces the overall build times for combat units in your town by 1.5% per level.";
+			
+		}
+		if(type.equals("Storage Yard")) {
+			this.type=type;
+			cost = Building.getCost(type);
+
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 		//	peopleInside=0;
 			
 			
-			desc = "A construction yard allows you to demolish and upgrade buildings.(You can still build buildings without a" +
-					" construction yard.) They also build and house engineers, which lower" +
-					" the build times on pretty much everything that your town produces. Engineers in one town do not effect the building times" +
-					" in another town you own. Each level increases the engineer housing capacity of the building.";
+			desc = "Requires: Level 10 of each Warehouse type.<br /><br />The Storage Yard acts as a warehouse that stores all four types of resources. After level 5, it protects a certain net amount of resources from theft and cannot be leveled beyond the current lowest leveled warehouse.";
 		}
 		if(type.equals("Institute")) {
 			this.type=type;
-			cost[0] = 40;
-			cost[1] = 140;
-			cost[2] = 70;
-			cost[3] = 150;
-			cost[4] = 0;
+			cost = Building.getCost(type);
+
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			;
 		//	peopleInside=0;
 			
-			desc = "An institute allows you to conduct research into different areas. They also house and build scholars, and these" +
+			desc = "Requires: Level 1 Command Center.<br /><br />An institute allows you to conduct research into different areas. They also house and build scholars, and these" +
 					" scholars create knowledge points that you use to pursue the aforementioned research. Increasing building levels" +
 					" increases the housing capacity for scholars.";
 			
@@ -229,21 +220,14 @@ private static int baseResourceAmt = 1000;
 			
 		}
 		
-		if(type.equals("Communications Center")) {
+		if(type.equals("Resource Cache")) {
 			this.type=type;
-			cost[0] = 140;
-			cost[1] = 40;
-			cost[2] = 150;
-			cost[3] = 70;
-			cost[4] = 0;
+			cost = Building.getCost(type);
+
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			;
 		//	peopleInside=0;
-			desc = "A communications center is an absolute requirement to join, create, or maintain a league.  Wondering why you would ever want to level up your communications center?" +
-					" To account for the extra tax income pouring into each League-owned town from you and other members, the League has higher" +
-					" resource caps proportional to the aggregate level of all communications centers owned by league members. Also, upgrading" +
-					" these buildings allows you to detect all raids trades to and from any town nearby to spy on your neighbor, and increases the distance from the town at which" +
-					" you can make invasions.";
+			desc = "Requires: Level 1 of each Warehouse type and Level 3 Institute. <br /><br />Each level of the Resource Cache allows you to hide more resources from attacking armies.";
 			
 			
 		}
@@ -252,42 +236,32 @@ private static int baseResourceAmt = 1000;
 		
 		if(type.equals("Trade Center")) {
 			this.type=type;
-			cost[0] = 100;
-			cost[1] = 100;
-			cost[2] = 100;
-			cost[3] = 100;
-			cost[4] = 0;
+			cost = Building.getCost(type);
+
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			;
 		//	peopleInside=0;
-			desc = "Trade Centers are required to maintain any sort of trade relationship with your own territories or other players'. " +
+			desc = "Requires: Level 3 Command Center and Level 1 Institute.<br /><br />Trade Centers are required to maintain any sort of trade relationship with your own territories or other players'. " +
 					"Within the Trade Center you can both build and house Traders. Increasing building level increases the housing capacity of traders and the trading slots" +
 					" available.";
 			
 
 			
 		}
-		if(type.equals("Bunker")) {
+		if(type.equals("Fortification")) {
 			this.type=type;
-			cost[0] = 140;
-			cost[1] = 150;
-			cost[2] = 40;
-			cost[3] = 70;
-			cost[4] = 0;
+			cost = Building.getCost(type);
+
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
-			desc = "Bunkers provide different advantages depending on their mode. In Defense Mode, Bunkers provide extra protection " +
-					"for your soldiers when you are attacked. In VIP Mode, they protect a certain percentage of your citizenry from being" +
-					" bombed in a Glassing/Strafing run or being slaughtered in a Genocide/Glassing campaign. In Resource Cache mode," +
-					" they protect a certain percentage of your resources from being thefted during an enemy raid. Increasing level" +
-					" increases the percentage of effectiveness offered by each option.";
+			desc = "Requires: Level 5 Command Center, Level 5 Institute, and Level 5 Arms Factory.<br /><br />Fortifications lend protective bonuses to your armies when you are attacked. Each level of a fortification increases the amount of combat units it can protect.";
 			
 			
 			
-		}if(type.equals("Airship Platform")) {
+		}if(type.equals("Airstrip")) {
 			this.type=type;
 			cost = Building.getCost(type);
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
-			desc = "This building allows you to create Airships and constantly generates a supply of Airship fuel, the rate of which is determined " +
+			desc = "Requires: Level 10 Command Center, Level 10 Arms Factory, Level 5 Manufacturing Plant, and Airship Blueprint Research. <br /><br /> The Airstrip is used for the creation and maintenance of an Airforce. Each level increase increases the amount of units you can build at one time. In addition, this building allows you to create Airships and constantly generates a supply of Airship fuel, the rate of which is determined " +
 					"by this building's level. You can refuel Airships with this building by hovering the Airship over the town on the World Map.";
 			
 			
@@ -296,10 +270,10 @@ private static int baseResourceAmt = 1000;
 			this.type=type;
 			cost = Building.getCost(type);
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
-			desc = "The most powerful and destructive weapon in the game, a nuclear missile can be used either to create a SkyBurst EMP blast, which knocks out all A.I.s in an area " +
+			desc = "Requires: Level 15 Manufacturing Plant and Level 15 Institute.<br /><br /> The most powerful and destructive weapon in the game, a nuclear missile can be used either to create a SkyBurst EMP blast, which knocks out all A.I.s in an area " +
 					" as well as leaving behind fall out, with no casualties or building destruction, or as a GroundBurst Nuke, which will level buildings, kill soldiers, and also leave fall out clouds but " +
 					"won't cause an EMP Blast. When any player begins constructing a Level 1 Silo, a message is sent to all nearby players " +
-					"notifying them of this gross transgression against the denizens of the A.I. Wars Universe. " +
+					"notifying them of this gross transgression against the denizens of this Universe. " +
 					"The time it takes to build the Silo to level 1 is one week, returning to normal upgrade times for later levels, and this building can be destroyed " +
 					"by any successful attack on the town it resides in while in this initial building phase. A successful attack means that your army is completely destroyed at the end of the assault. " +
 					"Once built, every level you purchase on this building increases the severity of the destructive effects of the nuke. All" +
@@ -316,116 +290,100 @@ private static int baseResourceAmt = 1000;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			;
 		//	peopleInside=0;
-			desc = "When someone attacks your town, and units die on either side, debris is created about the town and must be collected with debris missions from either you or someone else. However, if you" +
-					" have a Recycling Center on site, immediately after the attack is completed, you receive some of the debris directly back into your resource store, with no mission sending required.";
+			desc = "Requires: Level 10 Command Center, Level 10 Institute, Level 10 Manufacturing Plant.<br /><br />This building automatically collects a percentage of debris from battles that happen in the town in which it's located, allows you to see what other towns have debris around them for manual collection by your army, and refunds you a percentage of the cost of your units when you force them to commit suicide. Leveling this building increases the percentage collected as debris, and percentage cost refunded by suicide.";
 			
 			
 		}
-		if(type.equals("Metal Refinery")) {
+		if(type.equals("Foundry")) {
 			this.type=type;
 			cost = Building.getCost(type);
 
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			;
 		//	peopleInside=0;
-			desc = "Metal Refineries boost your metal production in the town by putting the ore you mine through a more efficient refinement process.";
+			desc = "Requires: Level 15 Metal Mine.<br /><br />Max Level: 20<br /><br />Foundries boost your metal production in the town by putting the ore you mine through a more efficient refinement process.";
 			
 			
-		}if(type.equals("Timber Processing Plant")) {
+		}if(type.equals("Sawmill")) {
 			this.type=type;
 			cost = Building.getCost(type);
 
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			;
 		//	peopleInside=0;
-			desc = "Timber Processing Plants boost your timber production by allowing you to get more product out of even the most unusable parts of the tree.";
+			desc = "Requires: Level 15 Timber Field.<br /><br />Max Level: 20<br /><br />Sawmills boost your timber production by allowing you to get more product out of even the most unusable parts of the tree.";
 			
 			
-		}if(type.equals("Materials Research Center")) {
+		}if(type.equals("Crystal Refinery")) {
 			this.type=type;
 			cost = Building.getCost(type);
 
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			;
 		//	peopleInside=0;
-			desc = "This additional building allows your civilization to boost manufactured materials production through additional quality assurance techniques and new fabrication technologies.";
+			desc = "Requires: Level 15 Crystal Mine.<br /><br />Max Level: 20<br /><br />Crystal Refineries boost your crystal production through a more efficient refinement process.";
 			
 			
-		}if(type.equals("Hydroponics Lab")) {
+		}if(type.equals("Hydroponics Bay")) {
 			this.type=type;
 			cost = Building.getCost(type);
 
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			;
 		//	peopleInside=0;
-			desc = "Hydroponics Labs are used to boost your food output by using advanced technologies to enhance growth in your Food Farm.";
+			desc = "Requires: Level 15 Farm.<br /><br />Max Level: 20<br /><br />Hydroponics Bays are used to boost your food output by using advanced technologies to enhance growth in your Farm.";
 			
 			
 		}
 		
 		if(type.equals("Metal Warehouse")) {
 			this.type=type;
-			cost[0] = 40;
-			cost[1] = 150;
-			cost[2] = 140;
-			cost[3] = 70;
-			cost[4] = 0;
+			cost = Building.getCost(type);
+
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
-			desc = "Warehouses add to your town's storage capacity of a resource. Leveling up this building increases it's storage capacity," +
+			desc = "Requires: Level 1 Institute.<br /><br />Warehouses add to your town's storage capacity of a resource. Leveling up this building increases it's storage capacity," +
 					"and therefore, your town's.";
 			
 		}
-		if(type.equals("Timber Warehouse")) {
+		if(type.equals("Lumber Yard")) {
 
 			this.type=type;
-			cost[0] = 70;
-			cost[1] = 40;
-			cost[2] = 150;
-			cost[3] = 140;
-			cost[4] = 0;
+			cost = Building.getCost(type);
+
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
-			desc = "Warehouses add to your town's storage capacity of a resource. Leveling up this building increases it's storage capacity," +
+			desc = "Requires: Level 1 Institute.<br /><br />Warehouses add to your town's storage capacity of a resource. Leveling up this building increases it's storage capacity," +
 			"and therefore, your town's.";
 			
 		}
-		if(type.equals("Manufactured Materials Warehouse")) {
+		if(type.equals("Crystal Repository")) {
 
 			this.type=type;
-			cost[0] = 140;
-			cost[1] = 70;
-			cost[2] = 40;
-			cost[3] = 150;
-			cost[4] = 0;
+			cost = Building.getCost(type);
+
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
 			
-			desc = "Warehouses add to your town's storage capacity of a resource. Leveling up this building increases it's storage capacity," +
+			desc = "Requires: Level 1 Institute.<br /><br />Warehouses add to your town's storage capacity of a resource. Leveling up this building increases it's storage capacity," +
 			"and therefore, your town's.";
 		}
 		
-		if(type.equals("Food Warehouse")) {
+		if(type.equals("Granary")) {
 
 			this.type=type;
-			cost[0] = 150;
-			cost[1] = 140;
-			cost[2] = 70;
-			cost[3] = 40;
-			cost[4] = 0;
+			cost = Building.getCost(type);
+
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
-			desc = "Warehouses add to your town's storage capacity of a resource. Leveling up this building increases it's storage capacity," +
+			desc = "Requires: Level 1 Institute.<br /><br />Warehouses add to your town's storage capacity of a resource. Leveling up this building increases it's storage capacity," +
 			"and therefore, your town's.";
 			
 		}
 		if(type.equals("Metal Mine")) {
 			this.type=type;
-			cost[0] = 100;
-			cost[1] = 130;
-			cost[2] = 60;
-			cost[3] = 110;
-			cost[4] = 0;
+			cost = Building.getCost(type);
+
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
 			
@@ -433,35 +391,26 @@ private static int baseResourceAmt = 1000;
 		}
 		if(type.equals("Timber Field")) {
 			this.type=type;
-			cost[0] = 95;
-			cost[1] = 95;
-			cost[2] = 60;
-			cost[3] = 150;
-			cost[4] = 0;
+			cost = Building.getCost(type);
+
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
 			
 			
 		}
-		if(type.equals("Manufactured Materials Plant")) {
+		if(type.equals("Crystal Mine")) {
 			this.type=type;
-			cost[0] = 100;
-			cost[1] = 90;
-			cost[2] = 90;
-			cost[3] = 120;
-			cost[4] = 0;
+			cost = Building.getCost(type);
+
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
 			
 			
 		}
-		if(type.equals("Food Farm")) {
+		if(type.equals("Farm")) {
 			this.type=type;
-			cost[0] = 95;
-			cost[1] = 95;
-			cost[2] = 100;
-			cost[3] = 110;
-			cost[4] = 0;
+			cost = Building.getCost(type);
+
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
 			
