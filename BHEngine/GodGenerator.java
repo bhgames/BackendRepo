@@ -10229,7 +10229,7 @@ public boolean checkForGenocides(Town t) {
 					// Now this is a return raid.
 				//	System.out.println("Returning...");
 					int c = 0;
-					
+					r.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturnedCatch",holdAttack);
 						AU = r.getAu(); tAU = t1.getAu();
 					do {
 						 au = AU.get(c);
