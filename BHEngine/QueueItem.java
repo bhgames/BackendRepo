@@ -6,6 +6,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import BattlehardFunctions.UserBuilding;
+
 public class QueueItem {
 public int qid;
 private Building b;
@@ -15,6 +17,7 @@ private int AUNumber; // This is how many of them
 private int AUtoBuild;
 private int currTicks;
 private long cost[];
+private static int baseBuildTime=(int) Math.round(60*10.0/GodGenerator.gameClockFactor);
 private int townsAtTime,originalAUAmt,totalNumber;
 private GodGenerator God;
 private UberConnection con;
@@ -182,10 +185,41 @@ public static int days = 5;
 	public void setCost(long[] cost) {
 		this.cost = cost;
 	}
-
+	/**
+	 * The new unit tick getter.
+	 * @param howMany - how many troops you are building(tanks are worth 10, juggers are worth 40, and so on. It's their expmod.
+	 * @param totalEngineers
+	 * @param t
+	 * @return
+	 */
+	public static int getUnitTicks(int howMany, Town t) {
+		Player p = t.getPlayer();
+		double engEffect = p.God.Maelstrom.getEngineerEffect(t.getX(),t.getY());
+		int engTech = p.getEngTech();
+		int totalEngineers = t.getTotalEngineers();
+		totalEngineers=(int) Math.round(((double) totalEngineers) *(1+engEffect+.05*(engTech-1))+1);
+		UserBuilding b[] = p.getPs().b.getUserBuildings(t.townID,"Manufacturing Plant");
+		int totalNumLev = 0;
+		for(UserBuilding bldg:b) {
+			
+			totalNumLev+=bldg.getLvl();
+		}
+		double bldgEffect = 1-(((double) totalNumLev)*.025);
+		if(bldgEffect<.1) bldgEffect = .1;
+		double totalEngEffect = 1-(((double) totalEngineers))*.005625;
+		if(totalEngEffect<.1) totalEngEffect=.1;
+		
+		int totalTicks = (int) Math.round(howMany*baseBuildTime*totalEngEffect*bldgEffect);
+		if(totalTicks<1) totalTicks=1;
+		return totalTicks;
+		
+		
+		
+	}
 
 	public static int getUnitTicksForMany(int theMany, int totalEngineers, Town t) {
-		double addon;
+		return getUnitTicks(theMany,t);
+	/*	double addon;
 		Player p = t.getPlayer();
 		double engEffect = p.God.Maelstrom.getEngineerEffect(t.getX(),t.getY());
 		int engTech = p.getEngTech();
@@ -198,15 +232,7 @@ public static int days = 5;
 		double avgLevel=0;
 		 int k = 0;
 		 int highLvl=0;
-	/*	while(k<towns.size()) {
-			avgLevel+=(int) Math.round(((double) p.God.getAverageLevel(towns.get(k)) )/ ((double) towns.size()));
-			int x = 0;
-			while(x<towns.get(k).bldg().size()) {
-				if(towns.get(k).bldg().get(x).getLvl()>highLvl) highLvl=towns.get(k).bldg().get(x).getLvl();
-				x++;
-			}
-			k++;
-		}*/
+
 			avgLevel+=(int) Math.round(((double) p.God.getAverageLevel(t) ));
 			int x = 0;
 			while(x<t.bldg().size()) {
@@ -252,11 +278,35 @@ public static int days = 5;
 		 if(ticks>52*7*24*3600/GodGenerator.gameClockFactor) {
 			 ticks = 52*7*24*3600/GodGenerator.gameClockFactor;
 		 }
-		 return ((int) Math.round(ticks)+1);
+		 return ((int) Math.round(ticks)+1);*/
 	}
 	
+	
 	public static int getUnitTicks(int hAUpop, int totalEngineers, Town t) {
-		double addon;
+		int theMany=1; 
+		switch(hAUpop) {
+		 case 1:
+			 //t = 345600*(number*expMod)*Exp(1-townEngineers/capForLevelAtCSL)/(CSL^2)
+			 theMany = AttackUnit.soldierExpMod;
+
+			 break;
+		 case 5:
+			 //566,3400 is the old one
+			 theMany=AttackUnit.tankExpMod;
+		//	 days+=1;
+			 	 break;
+		 case 10:
+			 //1066 6400
+			// days+=2;
+			 theMany=AttackUnit.juggerExpMod;
+
+		 case 20:
+		//	 days+=3;
+			 theMany=AttackUnit.bomberExpMod;
+
+		 }
+		return getUnitTicks(theMany,t);
+	/*	double addon;
 		Player p = t.getPlayer();
 		double engEffect = p.God.Maelstrom.getEngineerEffect(t.getX(),t.getY());
 		int engTech = p.getEngTech();
@@ -266,15 +316,7 @@ public static int days = 5;
 		double avgLevel=0;
 		 int k = 0;
 		 int highLvl=0;
-	/*	while(k<towns.size()) {
-			avgLevel+=(int) Math.round(((double) p.God.getAverageLevel(towns.get(k)) )/ ((double) towns.size()));
-			int x = 0;
-			while(x<towns.get(k).bldg().size()) {
-				if(towns.get(k).bldg().get(x).getLvl()>highLvl) highLvl=towns.get(k).bldg().get(x).getLvl();
-				x++;
-			}
-			k++;
-		}*/
+
 			avgLevel+=(int) Math.round(((double) p.God.getAverageLevel(t) ));
 			int x = 0;
 			while(x<t.bldg().size()) {
@@ -347,12 +389,12 @@ public static int days = 5;
 	
 		 
 
-		 return toRet;
+		 return toRet;*/
 	}
 	
 	public void modifyUnitTicksForItem(int hAUpop, Town t) {
 		// because these ticks represent not the attack unit order but their slot order.
-		double addon;
+	/*	double addon;
 		int totalEngineers = t.getTotalEngineers();Player p = t.getPlayer();
 		double engEffect = p.God.Maelstrom.getEngineerEffect(t.getX(),t.getY());
 		int engTech = p.getEngTech();
@@ -363,15 +405,7 @@ public static int days = 5;
 		double avgLevel=0;
 		 int k = 0;
 		 int highLvl=0;
-	/*	while(k<towns.size()) {
-			avgLevel+=(int) Math.round(((double) p.God.getAverageLevel(towns.get(k)) )/ ((double) towns.size()));
-			int x = 0;
-			while(x<towns.get(k).bldg().size()) {
-				if(towns.get(k).bldg().get(x).getLvl()>highLvl) highLvl=towns.get(k).bldg().get(x).getLvl();
-				x++;
-			}
-			k++;
-		}*/
+	
 			avgLevel+=(int) Math.round(((double) p.God.getAverageLevel(t) ));
 			int x = 0;
 			while(x<t.bldg().size()) {
@@ -445,8 +479,29 @@ public static int days = 5;
 		 ticks+=1;
 		 if(ticks>52*7*24*3600/GodGenerator.gameClockFactor) {
 			 ticks = 52*7*24*3600/GodGenerator.gameClockFactor;
+		 }*/
+		 int theMany=1;
+		 switch(hAUpop) {
+		 case 1:
+			 //t = 345600*(number*expMod)*Exp(1-townEngineers/capForLevelAtCSL)/(CSL^2)
+			 theMany = AttackUnit.soldierExpMod;
+			 break;
+		 case 5:
+			 //566,3400 is the old one
+			 theMany=AttackUnit.tankExpMod;
+		//	 days+=1;
+			 	 break;
+		 case 10:
+			 //1066 6400
+			// days+=2;
+			 theMany=AttackUnit.juggerExpMod;
+
+		 case 20:
+		//	 days+=3;
+			 theMany=AttackUnit.bomberExpMod;
+
 		 }
-		 setTicksPerUnit((int) Math.round(ticks));
+		 setTicksPerUnit(getUnitTicks(theMany,t));
 	}
 
 

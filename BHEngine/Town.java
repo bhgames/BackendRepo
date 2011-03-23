@@ -255,13 +255,13 @@ public class Town {
 	 public boolean slotsFree() {
 		 int lvl=0;
 		 try {
-		 lvl=getPlayer().getPs().b.getUserBuildings(townID,"Headquarters")[0].getLvl();
+		 lvl=getPlayer().getPs().b.getUserBuildings(townID,"Command Center")[0].getLvl();
 		 } catch(IndexOutOfBoundsException exc) {
 			 return false;
 		 }
 	/*	try {
 			UberStatement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select lvl from bldg where tid = " + townID + " and name = 'Headquarters'");
+			ResultSet rs = stmt.executeQuery("select lvl from bldg where tid = " + townID + " and name = 'Command Center'");
 			if(rs.next()) lvl = rs.getInt(1);
 			rs.close();
 			stmt.close();
@@ -427,7 +427,7 @@ public class Town {
 			// otherwise will not be added if just people are building!!!
 			bldgserver().add(b); }
 		
-		 if(b.getType().equals("Construction Yard")) {
+		 if(b.getType().equals("Command Center")) {
 	//	res[4]+=b.peopleInside; 
 	//	if(player!=null)
 	//	player.totalPopulation+=b.peopleInside;
@@ -440,21 +440,28 @@ public class Town {
 		else if(b.getType().equals("Metal Warehouse")) {
 			getResCaps()[0]+=b.getCap();
 		}
-		else if(b.getType().equals("Timber Warehouse")) {
+		else if(b.getType().equals("Lumber Yard")) {
 			getResCaps()[1]+=b.getCap();
 		}
-		else if(b.getType().equals("Manufactured Materials Warehouse")) {
-			getResCaps()[2]+=b.getCap();;
+		else if(b.getType().equals("Crystal Repository")) {
+			getResCaps()[2]+=b.getCap();
 		}
-		else if(b.getType().equals("Food Warehouse")) {
+		else if(b.getType().equals("Granary")) {
 			getResCaps()[3]+=b.getCap();
+		}else if(b.getType().equals("Storage Yard")) {
+			getResCaps()[0]+=b.getCap();
+			getResCaps()[1]+=b.getCap();
+			getResCaps()[2]+=b.getCap();
+
+			getResCaps()[3]+=b.getCap();
+
 		} else if(b.getType().equals("Metal Mine")) {
 			getResInc()[0]=GodGenerator.gameClockFactor*baseResourceGrowthRate*Math.pow(b.getLvl()+1,2)/3600;
 		} else if(b.getType().equals("Timber Field")) {
 			getResInc()[1]=GodGenerator.gameClockFactor*baseResourceGrowthRate*Math.pow(b.getLvl()+1,2)/3600;
-		} else if(b.getType().equals("Manufactured Materials Plant")) {
+		} else if(b.getType().equals("Crystal Mine")) {
 			getResInc()[2]=GodGenerator.gameClockFactor*baseResourceGrowthRate*Math.pow(b.getLvl()+1,2)/3600;
-		} else if(b.getType().equals("Food Farm")) {
+		} else if(b.getType().equals("Farm")) {
 			getResInc()[3]=GodGenerator.gameClockFactor*baseResourceGrowthRate*Math.pow(b.getLvl()+1,2)/3600;
 		}
 		
@@ -570,18 +577,18 @@ public class Town {
 	
 	public void makeZeppelinFuel(int num) {
 		/*
-		 * This method checks for buildings that are Airship Platforms and loads them with teh fuels.
+		 * This method checks for buildings that are Airstrips and loads them with teh fuels.
 		 */
 		int i = 0; Building b;
 		double cloudFactor = getPlayer().God.Maelstrom.getEngineerEffect(getX(),getY());
 		while(i<bldg().size()) {
 			b = bldg().get(i);
-			if(b.getType().equals("Airship Platform")) {
+			if(b.getType().equals("Airstrip")) {
 				/*
 				 * 	 public static int ticksPerFuelPointBase =(int) Math.round((3600.0*24.0/((double) GodGenerator.gameClockFactor*10)));
 	 					public static int daysOfStoragePerAirshipPlatform = 4;
 				 */
-					 // if we just loaded, then ticksPerPerson isn't set and must be. If we don't cap may not work for Airship Platforms!
+					 // if we just loaded, then ticksPerPerson isn't set and must be. If we don't cap may not work for Airstrips!
 					if(b.getTicksPerPerson()==0) b.modifyPeopleTicks(getTotalEngineers(),cloudFactor,getPlayer().getEngTech());
 
 					if(b.getTicksLeft()>=b.getTicksPerPerson()) {
@@ -623,7 +630,7 @@ public class Town {
 			double cloudFactor = getPlayer().God.Maelstrom.getEngineerEffect(getX(),getY());
 			while(i<bldg().size()) {
 				b = bldg().get(i);
-				if(b.getType().equals("Airship Platform")&&b.getPeopleInside()>0) {
+				if(b.getType().equals("Airstrip")&&b.getPeopleInside()>0) {
 					/*
 					 * 	 public static int ticksPerFuelPointBase =(int) Math.round((3600.0*24.0/((double) GodGenerator.gameClockFactor*10)));
 		 					public static int daysOfStoragePerAirshipPlatform = 4;
@@ -1048,13 +1055,18 @@ public class Town {
 			if(b.getType().equals("Metal Warehouse")) {
 				getResCaps()[0]-=(b.getCap()-newcap);
 			}
-			else if(b.getType().equals("Timber Warehouse")) {
+			else if(b.getType().equals("Lumber Yard")) {
 				getResCaps()[1]-=(b.getCap()-newcap);
 			}
-			else if(b.getType().equals("Manufactured Materials Warehouse")) {
+			else if(b.getType().equals("Crystal Repository")) {
 				getResCaps()[2]-=(b.getCap()-newcap);
 			}
-			else if(b.getType().equals("Food Warehouse")) {
+			else if(b.getType().equals("Granary")) {
+				getResCaps()[3]-=(b.getCap()-newcap);
+			}else if(b.getType().equals("Storage Yard")) {
+				getResCaps()[0]-=(b.getCap()-newcap);
+				getResCaps()[1]-=(b.getCap()-newcap);
+				getResCaps()[2]-=(b.getCap()-newcap);
 				getResCaps()[3]-=(b.getCap()-newcap);
 			} }
 			b.setCap(newcap); // So we use the old one to get the difference between the new and old
@@ -1069,10 +1081,10 @@ public class Town {
 		} else if(b.getType().equals("Timber Field")) {
 			getResInc()[1]=GodGenerator.gameClockFactor*Town.baseResourceGrowthRate*Math.pow(b.getLvl()+1,2)/3600;
 
-		}else if(b.getType().equals("Manufactured Materials Plant")) {
+		}else if(b.getType().equals("Crystal Mine")) {
 			getResInc()[2]=GodGenerator.gameClockFactor*Town.baseResourceGrowthRate*Math.pow(b.getLvl()+1,2)/3600;
 
-		}else if(b.getType().equals("Food Farm")) {
+		}else if(b.getType().equals("Farm")) {
 			getResInc()[3]=GodGenerator.gameClockFactor*Town.baseResourceGrowthRate*Math.pow(b.getLvl()+1,2)/3600;
 
 		}}
@@ -1090,8 +1102,8 @@ public class Town {
 		actb.setLvl(b.getLvl() - 1);
 		
 		if(b.getLvl()<=0&&!b.getType().equals("Metal Mine")&&!b.getType().equals("Timber Field")
-				  &&!b.getType().equals("Manufactured Materials Plant")&&
-				  !b.getType().equals("Food Farm")) {
+				  &&!b.getType().equals("Crystal Mine")&&
+				  !b.getType().equals("Farm")) {
 			
 			  
 			// destroy building code.
@@ -1158,7 +1170,7 @@ public class Town {
 		ArrayList<Building> bldg = bldg();
 		int i = 0; int totalEngineers=0;
 		while(i<bldg.size()) {
-			if(bldg.get(i).getType().equals("Construction Yard"))
+			if(bldg.get(i).getType().equals("Command Center"))
 			totalEngineers+=bldg.get(i).getPeopleInside();
 			i++;
 		}
@@ -1166,7 +1178,7 @@ public class Town {
 		/*
 		try {
 			UberStatement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select sum(ppl) from bldg where tid = " + townID + " and name = 'Construction Yard';");
+			ResultSet rs = stmt.executeQuery("select sum(ppl) from bldg where tid = " + townID + " and name = 'Command Center';");
 			int totalEngineers=0;
 			if(rs.next())
 			 totalEngineers = rs.getInt(1);
@@ -1603,13 +1615,13 @@ public class Town {
 			if(b.getType().equals("Metal Warehouse")) {
 				getResCaps()[0]-=b.getCap();
 			}
-			else if(b.getType().equals("Timber Warehouse")) {
+			else if(b.getType().equals("Lumber Yard")) {
 				getResCaps()[1]-=b.getCap();
 			}
-			else if(b.getType().equals("Manufactured Materials Warehouse")) {
+			else if(b.getType().equals("Crystal Repository")) {
 				getResCaps()[2]-=b.getCap();
 			}
-			else if(b.getType().equals("Food Warehouse")) {
+			else if(b.getType().equals("Granary")) {
 				getResCaps()[3]-=b.getCap();
 			}
 			// in the event of a lost warehouse, you lose whatever is left of it's
@@ -1705,7 +1717,7 @@ public class Town {
 
 					addBuilding("Timber Field",1,3,0);
 				}
-				rs =stmt.executeQuery("select count(*) from bldg where tid = " + townID + " and name = 'Manufactured Materials Plant';");
+				rs =stmt.executeQuery("select count(*) from bldg where tid = " + townID + " and name = 'Crystal Mine';");
 				 counter = 0;
 				if(rs.next()) {
 					counter=rs.getInt(1);
@@ -1716,9 +1728,9 @@ public class Town {
 					//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
 					System.out.println(townID + " is replacing a Man Mat Plant.");
 
-					addBuilding("Manufactured Materials Plant",2,3,0);
+					addBuilding("Crystal Mine",2,3,0);
 				}
-				rs =stmt.executeQuery("select count(*) from bldg where tid = " + townID + " and name = 'Food Farm';");
+				rs =stmt.executeQuery("select count(*) from bldg where tid = " + townID + " and name = 'Farm';");
 				 counter = 0;
 				if(rs.next()) {
 					counter=rs.getInt(1);
@@ -1727,9 +1739,9 @@ public class Town {
 				rs.close();
 				if(counter==0) {
 					//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
-					System.out.println(townID + " is replacing a Food Farm.");
+					System.out.println(townID + " is replacing a Farm.");
 
-					addBuilding("Food Farm",3,3,0);
+					addBuilding("Farm",3,3,0);
 				}
 				i++;
 			}
@@ -2186,7 +2198,9 @@ public class Town {
 				b.setDeconstruct(false); 
 				player.setTotalPopulation(player.getTotalPopulation()-b.getPeopleInside()); // because they're losing them.
 				// insert resource cap info here when ready.
-				if(b.getType().equals("Arms Factory")) {
+				if(b.getType().equals("Arms Factory")||
+						b.getType().equals("Manufacturing Plant")||
+						b.getType().equals("Airstrip")) {
 				int j = 0;
 				while(j<b.Queue().size()) {
 					 q = b.Queue().get(j);
@@ -2890,10 +2904,10 @@ public class Town {
 				} else if(b.getType().equals("Timber Field")) {
 					resCaps[1]+=(long) Building.getCap(b.getLvl()-1,true);
 
-				}else if(b.getType().equals("Manufactured Materials Plant")) {
+				}else if(b.getType().equals("Crystal Mine")) {
 					resCaps[2]+=(long) Building.getCap(b.getLvl()-1,true);
 
-				}else if(b.getType().equals("Food Farm")) {
+				}else if(b.getType().equals("Farm")) {
 					resCaps[3]+=(long) Building.getCap(b.getLvl()-1,true);
 
 				}
@@ -2904,13 +2918,19 @@ public class Town {
 			b = bldg.get(i);
 			if(b.getType().equals("Metal Warehouse")) {
 				resCaps[0]+=(long) Building.getCap(b.getLvl(),true);
-			} else if(b.getType().equals("Timber Warehouse")) {
+			} else if(b.getType().equals("Lumber Yard")) {
 				resCaps[1]+=(long) Building.getCap(b.getLvl(),true);
 
-			}else if(b.getType().equals("Manufactured Materials Warehouse")) {
+			}else if(b.getType().equals("Crystal Repository")) {
 				resCaps[2]+=(long) Building.getCap(b.getLvl(),true);
 
-			}else if(b.getType().equals("Food Warehouse")) {
+			}else if(b.getType().equals("Granary")) {
+				resCaps[3]+=(long) Building.getCap(b.getLvl(),true);
+
+			}else if(b.getType().equals("Storage Yard")) {
+				resCaps[0]+=(long) Building.getCap(b.getLvl(),true);
+				resCaps[1]+=(long) Building.getCap(b.getLvl(),true);
+				resCaps[2]+=(long) Building.getCap(b.getLvl(),true);
 				resCaps[3]+=(long) Building.getCap(b.getLvl(),true);
 
 			}
@@ -2966,15 +2986,15 @@ public class Town {
 			if(rs.next()) resCaps[0]=(long) Math.ceil(Building.resourceAmt*rs.getLong(1));
 			rs.close();
 			
-			rs = stmt.executeQuery("select sum(pow(lvl+2,2)) from bldg where tid = " + townID + " and name = 'Timber Warehouse';");
+			rs = stmt.executeQuery("select sum(pow(lvl+2,2)) from bldg where tid = " + townID + " and name = 'Lumber Yard';");
 			if(rs.next()) resCaps[1]=(long) Math.ceil(Building.resourceAmt*rs.getLong(1));
 			rs.close();
 			
-			rs = stmt.executeQuery("select sum(pow(lvl+2,2))from bldg where tid = " + townID + " and name = 'Manufactured Materials Warehouse';");
+			rs = stmt.executeQuery("select sum(pow(lvl+2,2))from bldg where tid = " + townID + " and name = 'Crystal Repository';");
 			if(rs.next()) resCaps[2]=(long) Math.ceil(Building.resourceAmt*rs.getLong(1));
 			rs.close();
 			
-			rs = stmt.executeQuery("select sum(pow(lvl+2,2)) from bldg where tid = " + townID + " and name = 'Food Warehouse';");
+			rs = stmt.executeQuery("select sum(pow(lvl+2,2)) from bldg where tid = " + townID + " and name = 'Granary';");
 			if(rs.next()) resCaps[3]=(long) Math.ceil(Building.resourceAmt*rs.getLong(1));
 			rs.close();
 			
@@ -3038,13 +3058,13 @@ public class Town {
 		double[] additions = new double[5];
 		while(i<bldg.size()) {
 			b = bldg.get(i);
-			if(b.getType().equals("Metal Refinery")) {
+			if(b.getType().equals("Foundry")) {
 				additions[0]+=b.getLvl()*.05;
-			}else if(b.getType().equals("Timber Processing Plant")) {
+			}else if(b.getType().equals("Sawmill")) {
 				additions[1]+=b.getLvl()*.05;
-			}else if(b.getType().equals("Materials Research Center")) {
+			}else if(b.getType().equals("Crystal Refinery")) {
 				additions[2]+=b.getLvl()*.05;
-			}else if(b.getType().equals("Hydroponics Lab")) {
+			}else if(b.getType().equals("Hydroponics Bay")) {
 				additions[3]+=b.getLvl()*.05;
 			}
 			i++;
@@ -3065,13 +3085,13 @@ public class Town {
 
 				if(getPlayer().getTimberTimer()>0) resIncs[1]*=1.25;
 
-			}else if(b.getType().equals("Manufactured Materials Plant")) {
+			}else if(b.getType().equals("Crystal Mine")) {
 				resIncs[2]=((double) GodGenerator.gameClockFactor)*((double) Town.baseResourceGrowthRate)*Math.pow(b.getLvl()+1,2)/3600;
 				resIncs[2]*=(1+additions[2]);
 
 				if(getPlayer().getMmTimer()>0) resIncs[2]*=1.25;
 
-			}else if(b.getType().equals("Food Farm")) {
+			}else if(b.getType().equals("Farm")) {
 				resIncs[3]=((double) GodGenerator.gameClockFactor)*((double) Town.baseResourceGrowthRate)*Math.pow(b.getLvl()+1,2)/3600;
 				resIncs[3]*=(1+additions[3]);
 
@@ -3305,15 +3325,15 @@ public class Town {
 			if(rs.next()) resCaps[0]=(long) Math.ceil(Building.resourceAmt*rs.getLong(1));
 			rs.close();
 			
-			rs = stmt.executeQuery("select sum(pow(lvl+2,2)) from bldg where tid = " + townID + " and name = 'Timber Warehouse';");
+			rs = stmt.executeQuery("select sum(pow(lvl+2,2)) from bldg where tid = " + townID + " and name = 'Lumber Yard';");
 			if(rs.next()) resCaps[1]=(long) Math.ceil(Building.resourceAmt*rs.getLong(1));
 			rs.close();
 			
-			rs = stmt.executeQuery("select sum(pow(lvl+2,2))from bldg where tid = " + townID + " and name = 'Manufactured Materials Warehouse';");
+			rs = stmt.executeQuery("select sum(pow(lvl+2,2))from bldg where tid = " + townID + " and name = 'Crystal Repository';");
 			if(rs.next()) resCaps[2]=(long) Math.ceil(Building.resourceAmt*rs.getLong(1));
 			rs.close();
 			
-			rs = stmt.executeQuery("select sum(pow(lvl+2,2)) from bldg where tid = " + townID + " and name = 'Food Warehouse';");
+			rs = stmt.executeQuery("select sum(pow(lvl+2,2)) from bldg where tid = " + townID + " and name = 'Granary';");
 			if(rs.next()) resCaps[3]=(long) Math.ceil(Building.resourceAmt*rs.getLong(1));
 			rs.close();
 			
@@ -3405,11 +3425,11 @@ public class Town {
 			if(rs.next()) resIncs[1]=((double) GodGenerator.gameClockFactor)*((double) Town.baseResourceGrowthRate)*rs.getDouble(1)/3600;
 			rs.close();
 			
-			rs = stmt.executeQuery("select sum(pow(lvl+1,2)) from bldg where tid = " + townID + " and name = 'Manufactured Materials Plant';");
+			rs = stmt.executeQuery("select sum(pow(lvl+1,2)) from bldg where tid = " + townID + " and name = 'Crystal Mine';");
 			if(rs.next()) resIncs[2]=((double) GodGenerator.gameClockFactor)*((double) Town.baseResourceGrowthRate)*rs.getDouble(1)/3600;
 			rs.close();
 			
-			rs = stmt.executeQuery("select sum(pow(lvl+1,2)) from bldg where tid = " + townID + " and name = 'Food Farm';");
+			rs = stmt.executeQuery("select sum(pow(lvl+1,2)) from bldg where tid = " + townID + " and name = 'Farm';");
 			if(rs.next()) resIncs[3]=((double) GodGenerator.gameClockFactor)*((double) Town.baseResourceGrowthRate)*rs.getDouble(1)/3600;
 			rs.close();
 			

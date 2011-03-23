@@ -1887,7 +1887,7 @@ public static void main(String args[]) {
             	stmt2.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp," +
             			"deconstruct,pploutside,bunkerMode) values ('Manufactured Materials Plant',2,3,-1,0,0,0,"+t.getInt(1)+",0,0,-1,0);");
             	stmt2.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp," +
-            			"deconstruct,pploutside,bunkerMode) values ('Food Farm',3,3,-1,0,0,0,"+t.getInt(1)+",0,0,-1,0);");
+            			"deconstruct,pploutside,bunkerMode) values ('Farm',3,3,-1,0,0,0,"+t.getInt(1)+",0,0,-1,0);");
             }
             stmt2.execute("commit;");
             stmt2.close(); t.close(); stmt.close(); con.close();
@@ -6091,8 +6091,8 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		double lvl=0;
 		while(i<bldg.size()) {
 			if(((t.getPlayer().isLeague()||t.isZeppelin())&&!bldg.get(i).getType().equals("Metal Mine")
-					&&!bldg.get(i).getType().equals("Timber Field")&&!bldg.get(i).getType().equals("Manufactured Materials Plant")
-					&&!bldg.get(i).getType().equals("Food Farm"))||(!t.getPlayer().isLeague()&&!t.isZeppelin())){
+					&&!bldg.get(i).getType().equals("Timber Field")&&!bldg.get(i).getType().equals("Crystal Mine")
+					&&!bldg.get(i).getType().equals("Farm"))||(!t.getPlayer().isLeague()&&!t.isZeppelin())){
 				
 				lvl+=((double) bldg.get(i).getLvl());
 				numCounted++;
@@ -7834,7 +7834,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 	ArrayList<Building> bldg = t2.bldg();
 	int i = 0;
 	while(i<bldg.size()) {
-		if(bldg.get(i).getType().equals("Bunker")||bldg.get(i).getType().equals("Headquarters")) numHQBunkers++;
+		if(bldg.get(i).getType().equals("Fortification")||bldg.get(i).getType().equals("Command Center")) numHQBunkers++;
 		i++;
 	}
 	
@@ -8025,7 +8025,7 @@ public static boolean removeCivilianAU(Town t) { // NOBODY USES THIS SHIT NO MO.
 					t.getRes()[4]+=holdA.getSize();
 					
 				}
-			else	if(holdA.getCivType().equals("Construction Yard")) {
+			else	if(holdA.getCivType().equals("Command Center")) {
 					
 					t.getPlayer().setTotalPopulation(
 							t.getPlayer().getTotalPopulation() + holdA.getSize());
@@ -8261,10 +8261,10 @@ public boolean checkForGenocides(Town t) {
 		Town possZepp=null;
 		if(t2.getPlayer().ID==5) {
 			 possZepp = t2.getPlayer().God.findZeppelin(t2.getX(),t2.getY());
-			 System.out.println("Looking for zepp with tid of " + possZepp.townID);
+			// System.out.println("Looking for zepp with tid of " + possZepp.townID);
 			if(possZepp.townID!=0&&possZepp.getPlayer().ID!=t1.getPlayer().ID) {
 				// there is a zeppelin overhead of this Id town and shit,
-				System.out.println("Detected zepp");
+			//	System.out.println("Detected zepp");
 				// it's not yours!
 				actattack.setTown2(possZepp);
 				t2=possZepp; // now the player is attacking the Zeppelin.
@@ -8291,7 +8291,7 @@ public boolean checkForGenocides(Town t) {
 		t2au = t2.getAu();
 		} catch(Exception exc) {
 			exc.printStackTrace(); 
-			System.out.println("Without AU...we must return!");
+			//System.out.println("Without AU...we must return!");
 			actattack.setRaidOver(true);
 			actattack.setTicksToHit(actattack.getTotalTicks());
 			actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
@@ -8345,7 +8345,7 @@ public boolean checkForGenocides(Town t) {
 		UserBuilding t2bldg[] = t2p.getPs().b.getUserBuildings(t2.townID,"all");
 		while(j<t2bldg.length) {
 			 b = t2bldg[j];
-			if(b.getType().equals("Bunker"))  bunkerSize+=Math.round(.33*.05*t2p.getBunkerTech()*getPeople(b.getLvl(),3,4,totalUnitPrice));
+			if(b.getType().equals("Fortification"))  bunkerSize+=Math.round(.33*.05*t2p.getBunkerTech()*getPeople(b.getLvl(),3,4,totalUnitPrice));
 		//	else if(b.type.equals("Bunker")&&b.bunkerMode==1&&b.getLvl()>25) bunkerSize+=Math.exp(25)+(b.getLvl()-25)*Math.exp(25);
 			
 			j++;
@@ -8356,7 +8356,7 @@ public boolean checkForGenocides(Town t) {
 		double civvybunkerfrac=((double) bunkerSize)/((double) pop);
 	//	System.out.println("bunkerSize is " + bunkerSize + " res[4] is " + holdAttack.getTown2().res[4] + " civvybunkerfrac(before I check for >1 cbfs) is " +  civvybunkerfrac);
 	//	System.out.println("AFSize is " + afSize);
-		combatData+="bunkerSize is " + bunkerSize + " res[4] is " + pop+ " civvybunkerfrac(before I check for >1 cbfs) is " +  civvybunkerfrac;
+		//combatData+="bunkerSize is " + bunkerSize + " res[4] is " + pop+ " civvybunkerfrac(before I check for >1 cbfs) is " +  civvybunkerfrac;
 		if(civvybunkerfrac>1) civvybunkerfrac=1; // don't want them getting over 1 in protection!
 		if(holdAttack.allClear()&&t2bldg.length>0) {
 			// This means the civilians are fighting. Need to add any new units.
@@ -8396,7 +8396,7 @@ public boolean checkForGenocides(Town t) {
 					Civ.setName("Trader");
 					
 				}
-				if(Civ.getCivType().equals("Construction Yard")) {
+				if(Civ.getCivType().equals("Command Center")) {
 					Civ.setName("Engineer");
 					
 				}
@@ -8518,7 +8518,7 @@ public boolean checkForGenocides(Town t) {
 		
 			 if(sigmaTerm<0) sigmaTerm=0;
 			// Now I need the exponential term, which includes the sigma term a little.
-			 combatData+=("Inc.AdvSizeWithMod: " + currentExpAdvSizeOffWithDivMods + " Stealth is " + Math.round(t1p.getStealth()) + " townPop: " + (pop+1));
+		//	 combatData+=("Inc.AdvSizeWithMod: " + currentExpAdvSizeOffWithDivMods + " Stealth is " + Math.round(t1p.getStealth()) + " townPop: " + (pop+1));
 				//double expTerm1 = (sigmaTerm*holdAttack.town1.getStealth()*10)/currentArmySize;
 				// it takes twice as much concealment to launch a good offensive attack than a defensive one.
 				// Can be fixed later but would be a good rule of thumb: Twice the concealment for offense.
@@ -8561,7 +8561,7 @@ public boolean checkForGenocides(Town t) {
 				} 
 				// at this point we know currentArmySizedef. So we put the if UberStatement here for genocide.
 				
-				combatData+=("ExpAdvSizeDef: " + currentExpAdvSizeDef + " ExpAdvSizeOff:" + currentExpAdvSizeOff);
+			//	combatData+=("ExpAdvSizeDef: " + currentExpAdvSizeDef + " ExpAdvSizeOff:" + currentExpAdvSizeOff);
 				
 				
 				
@@ -8672,7 +8672,7 @@ public boolean checkForGenocides(Town t) {
 			
 				while(j<t2bldg.length) {
 					 b = t2bldg[j];
-					if(b.getType().equals("Bunker"))  bunkerSize+=Math.round(.33*.05*t2p.getBunkerTech()*getPeople(b.getLvl(),totalPoppedUnits,4,totalUnitPrice/t2p.towns().size())); // because units price decrease with town size
+					if(b.getType().equals("Fortification"))  bunkerSize+=Math.round(.33*.05*t2p.getBunkerTech()*getPeople(b.getLvl(),totalPoppedUnits,4,totalUnitPrice/t2p.towns().size())); // because units price decrease with town size
 
 					//else if(b.type.equals("Bunker")&&b.bunkerMode==0&&b.getLvl()>25) bunkerSize+=Math.exp(25)+(b.getLvl()-25)*Math.exp(25);
 					
@@ -8686,7 +8686,7 @@ public boolean checkForGenocides(Town t) {
 				}
 				afSize = 0;
 				j=0;
-				UserBuilding t1bldg[] = t1p.getPs().b.getUserBuildings(t1.townID,"Arms Factory");
+				/*UserBuilding t1bldg[] = t1p.getPs().b.getUserBuildings(t1.townID,"CombatProduction");
 				while(j<t1bldg.length) {
 					 b = t1bldg[j];
 					if(b.getType().equals("Arms Factory"))  afSize+=Math.round(.05*t1p.getAfTech()*getPeople(b.getLvl(),totalPoppedUnitsOff,4,totalUnitPrice/t1p.towns().size())); // add back the lvl<25 if you change!
@@ -8694,7 +8694,7 @@ public boolean checkForGenocides(Town t) {
 					
 					j++;
 				}
-				
+				ARMS FACTORIES NO LONGER PROTECT*/ 
 				k = 0;
 				double totalHPOff=0,totalPopOff=0,totalHPDef=0,totalPopDef=0;
 				String offNames = "";
@@ -8883,7 +8883,7 @@ public boolean checkForGenocides(Town t) {
 					if(armysizeofffrac>1)armysizeofffrac=1; // don't want >1 armysizefracs.
 					///bunkerfrac=(1-.05*bunkerTech*armysizefrac)
 					double affrac = (1-.05*((double) t1p.getAfTech())*armysizeofffrac); 
-					combatHeader+="The attackers Arms Factories conferred a " + Math.round((-100*(affrac-1))) + "% advantage average on their troops.";
+					//combatHeader+="The attackers Arms Factories conferred a " + Math.round((-100*(affrac-1))) + "% advantage average on their troops.";
 				
 					while(k<t1au.size()) {
 					 def = t1au.get(k);
@@ -11118,8 +11118,8 @@ public boolean checkForGenocides(Town t) {
 		long bunkerSize=0; Building b;
 		while(i<r.getTown2().bldg().size()) {
 			 b = r.getTown2().bldg().get(i);
-			if(b.getType().equals("Bunker"))  bunkerSize+=(long)Math.round(.33*.05*((double) r.getTown2().getPlayer().getBunkerTech()) *((double) Building.resourceAmt)*Math.pow((b.getLvl()+2),2));
-
+			if(b.getType().equals("Resource Cache"))  bunkerSize+=(long)Math.round(.33*.05*1*((double) Building.resourceAmt)*Math.pow((b.getLvl()+2),2));
+			if(b.getType().equals("Storage Yard")&&b.getLvl()>=5) bunkerSize+=(long)Math.round(.33*.05*1*((double) Building.resourceAmt)*Math.pow((b.getLvl()-4+2),2));
 			i++;
 		}
 		
@@ -11287,7 +11287,7 @@ public boolean checkForGenocides(Town t) {
 		
 		while(j<bldg.length) {
 			 b = bldg[j];
-			if(b.getType().equals("Bunker"))  bunkerSize+=Math.round(.33*.05*t2p.getBunkerTech()*getPeople(b.getLvl(),3,4,totalUnitPrice/t2p.towns().size()));
+			if(b.getType().equals("Fortification"))  bunkerSize+=Math.round(.33*.05*t2p.getBunkerTech()*getPeople(b.getLvl(),3,4,totalUnitPrice/t2p.towns().size()));
 			j++;
 		}
 		j=0;
@@ -11333,7 +11333,7 @@ public boolean checkForGenocides(Town t) {
 		
 		int i = 0; double mult = 1.0;
 		
-		if(r!=null&&r.bombTarget().equals("Bunker")) mult = 4.0; // if it's a bunker, we make it tougher.
+		if(r!=null&&r.bombTarget().equals("Fortification")) mult = 4.0; // if it's a bunker, we make it tougher.
 		while(i<bnr.length) {
 			bnr[i]+=(int) Math.round(((double) bnr[i])*.05*(((double) t2p.getStabilityTech())-1.0)*mult); // add stability tech.
 			i++;
@@ -11420,11 +11420,11 @@ public boolean checkForGenocides(Town t) {
 		 * 0: Bomb all targets(random decision).(This can get bunkers.)
 		 * 1: Bomb warehouses
 		 * 2: Bomb Arms Factories
-		 * 3: Bomb Headquarters
+		 * 3: Bomb Command Center
 		 * 4: Bomb Trade Centers
 		 * 5: Bomb Institutes.
 		 * 6: Bomb Communications Centers.
-		 * 7: Bomb Construction Yards.
+		 * 7: Bomb Command Centers.
 		 * 8: Bomb Bunkers
 		 * 
 		 */
@@ -11439,7 +11439,7 @@ public boolean checkForGenocides(Town t) {
 			targName = "Arms Factory";
 			break;
 		case 3:
-			targName = "Headquarters";
+			targName = "Command Center";
 			break;
 		case 4:
 			targName = "Trade Center";
@@ -11451,10 +11451,10 @@ public boolean checkForGenocides(Town t) {
 			targName = "Communications Center";
 			break;
 		case 7:
-			targName = "Construction Yard";
+			targName = "Command Center";
 			break;
 		case 8:
-			targName="Bunker";
+			targName=Fortification";
 			break;
 		}*/
 		String targName="all";
@@ -11466,8 +11466,8 @@ public boolean checkForGenocides(Town t) {
 		i = 0; int numbldgs=0; int numpeopleinbldgs = 0;
 	
 		while(i<bldg.length) {
-			if((bldg[i].getType().contains(targName)||targName.equals("all")||(targName.equals("Refinery")&&(bldg[i].getType().equals("Metal Refinery")
-					||bldg[i].getType().equals("Timber Processing Plant")||bldg[i].getType().equals("Materials Research Center")||bldg[i].getType().equals("Hydroponics Lab"))))&&bldg[i].getLvl()>0) { numbldgs++; numpeopleinbldgs+=bldg[i].getPeopleInside(); }
+			if((bldg[i].getType().contains(targName)||targName.equals("all")||(targName.equals("Refinery")&&(bldg[i].getType().equals("Foundry")
+					||bldg[i].getType().equals("Sawmill")||bldg[i].getType().equals("Crystal Refinery")||bldg[i].getType().equals("Hydroponics Bay"))))&&bldg[i].getLvl()>0) { numbldgs++; numpeopleinbldgs+=bldg[i].getPeopleInside(); }
 			i++;
 		}
 		if(numbldgs==0||(bldgbombers==0&&numpeopleinbldgs==0)) return 1+",vic+,vic+"; // so if there are no more targets left, return false,
@@ -11477,8 +11477,8 @@ public boolean checkForGenocides(Town t) {
 		i=0;  j = 0;
 		
 		while(i<bldg.length) {
-			if((bldg[i].getType().contains(targName)||targName.equals("all")||(targName.equals("Refinery")&&(bldg[i].getType().equals("Metal Refinery")
-					||bldg[i].getType().equals("Timber Processing Plant")||bldg[i].getType().equals("Materials Research Center")||bldg[i].getType().equals("Hydroponics Lab"))))&&bldg[i].getLvl()>0) {  bldgindex[j]=i; j++; }
+			if((bldg[i].getType().contains(targName)||targName.equals("all")||(targName.equals("Refinery")&&(bldg[i].getType().equals("Foundry")
+					||bldg[i].getType().equals("Sawmill")||bldg[i].getType().equals("Crystal Refinery")||bldg[i].getType().equals("Hydroponics Bay"))))&&bldg[i].getLvl()>0) {  bldgindex[j]=i; j++; }
 			i++;
 		}		
 		
@@ -11702,9 +11702,9 @@ public boolean checkForGenocides(Town t) {
 		    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
 			    		  		"'Timber Field',1,3,-1,0,0,0,"+tid+",0,0,-1,0);");
 		    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-			    		  		"'Manufactured Materials Plant',2,3,-1,0,0,0,"+tid+",0,0,-1,0);");
+			    		  		"'Crystal Mine',2,3,-1,0,0,0,"+tid+",0,0,-1,0);");
 		    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-			    		  		"'Food Farm',3,3,-1,0,0,0,"+tid+",0,0,-1,0);");
+			    		  		"'Farm',3,3,-1,0,0,0,"+tid+",0,0,-1,0);");
 		    		  System.out.println("I am adding a new town of " + tid);
 		    		  t = new Town(tid,this);
 		    	
@@ -11812,7 +11812,26 @@ public boolean checkForGenocides(Town t) {
 			//	System.out.println(b.lvlUps + " is the way.");
 
 				if(b.getLvlUps()<=0&&!b.isDeconstruct()) {  b.setLvl(b.getLvl()+1);}
-				else if(b.getLvlUps()<=0&&b.isDeconstruct()) { holdTown.killBuilding(b.bid); }
+				else if(b.getLvlUps()<=0&&b.isDeconstruct()) { 
+					UserBuilding[] rec = holdTown.getPlayer().getPs().b.getUserBuildings(holdTown.townID,"Recycling Center");
+					int totallevel = 0;
+					for(UserBuilding bl: rec) {
+						totallevel+=bl.getLvl();
+					}
+					double totalperc = .0166*totallevel;
+					if(totalperc<.0) totalperc = 0;
+					if(totalperc>.5) totalperc=.5;
+					int j = 0;
+					long cost[] = holdTown.getPlayer().getPs().b.returnPriceToGetToLevel(b.getLvl(),b.getType());
+					synchronized(holdTown.getResBuff()) {
+						while(j<cost.length) { 
+							holdTown.getResBuff()[j]+=cost[j]*totalperc;
+							j++;
+						}
+					}
+					holdTown.killBuilding(b.bid);
+				
+				}
 				else if(b.getLvlUps()>0){ 
 					b.setLvl(b.getLvl()+1);
 					b.levelUp(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getEngTech());
@@ -11835,7 +11854,9 @@ public boolean checkForGenocides(Town t) {
 					} else {b.modifyPeopleTicks(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getEngTech()); b.setTicksLeft(b.getTicksLeft()+1); }
 					
 				}
-				if(b.getType().equals("Arms Factory")) {
+				if(b.getType().equals("Arms Factory")||
+						b.getType().equals("Manufacturing Plant")||
+						b.getType().equals("Airstrip")) {
 					if(b.Queue().size()>0) {
 						int o =0;
 						while(o<b.Queue().size()) {
@@ -12739,9 +12760,9 @@ public boolean checkForGenocides(Town t) {
 		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
   		  		"'Timber Field',1,3,-1,0,0,0,"+tid+",0,0,-1,0);");
 		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-  		  		"'Manufactured Materials Plant',2,3,-1,0,0,0,"+tid+",0,0,-1,0);");
+  		  		"'Crystal Mine',2,3,-1,0,0,0,"+tid+",0,0,-1,0);");
 		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-  		  		"'Food Farm',3,3,-1,0,0,0,"+tid+",0,0,-1,0);");
+  		  		"'Farm',3,3,-1,0,0,0,"+tid+",0,0,-1,0);");
 		  stmt.execute("commit;");
 		  Town t = new Town(tid,this);
 		  iteratorTowns.add(t);
@@ -12974,8 +12995,8 @@ public boolean checkForGenocides(Town t) {
 			while(y<bldg.length) { // demolish all possible buildings.
 				if(!bldg[y].getType().equals("Metal Mine")&&
 						!bldg[y].getType().equals("Timber Field")&&
-						!bldg[y].getType().equals("Manufactured Materials Plant")&&
-						!bldg[y].getType().equals("Food Farm")) ptown.killBuilding(bldg[y].getBid());
+						!bldg[y].getType().equals("Crystal Mine")&&
+						!bldg[y].getType().equals("Farm")) ptown.killBuilding(bldg[y].getBid());
 				else ptown.findBuilding(bldg[y].getBid()).setLvl(3);
 				y++;
 			//	Id.getPs().b.demolish(ptown.bldg().get(y).getLotNum(),ptown.townID);

@@ -159,7 +159,7 @@ public static int baseResourceAmt = 2000;
 			
 			
 		}
-		if(type.equals("Construction Yard")) {
+		if(type.equals("Command Center")) {
 			this.type=type;
 			cost[0] = 70;
 			cost[1] = 150;
@@ -245,7 +245,7 @@ public static int baseResourceAmt = 2000;
 			
 			
 		}
-		if(type.equals("Timber Warehouse")) {
+		if(type.equals("Lumber Yard")) {
 			mineBldg=true;
 
 			this.type=type;
@@ -260,7 +260,7 @@ public static int baseResourceAmt = 2000;
 			
 			
 		}
-		if(type.equals("Manufactured Materials Warehouse")) {
+		if(type.equals("Crystal Repository")) {
 			mineBldg=true;
 
 			this.type=type;
@@ -276,7 +276,7 @@ public static int baseResourceAmt = 2000;
 			
 		}
 		
-		if(type.equals("Food Warehouse")) {
+		if(type.equals("Granary")) {
 			mineBldg=true;
 
 			this.type=type;
@@ -405,7 +405,7 @@ public static int baseResourceAmt = 2000;
 		// So we want engineers to slowly become easier to build over time.
 		// 
 	//	t = 345600*(number)*Exp(1-townEngineers/capForLevelAtBuildingLevel)/(BuildingCap^2)
-		if(type.equals("Airship Platform"))  return getAirshipTicks(totalEngineers,cloudFactor,engTech,blvl);
+		if(type.equals("Airstrip"))  return getAirshipTicks(totalEngineers,cloudFactor,engTech,blvl);
 		totalEngineers=(int) Math.round(((double) totalEngineers) *(1+cloudFactor+.05*(engTech-1))+1);
 		double totalTicks = getTicksForLevelingAtLevel(totalEngineers,blvl,cloudFactor,engTech,type); // Already is in GameClockFactors.
 		
@@ -460,7 +460,7 @@ public static int baseResourceAmt = 2000;
 		 * except then the engineers would do next to nothing to the ticks - given that this
 		 * gets divided over, there'd always be nearly a 1/300 correspondence. Not good enough.
 		 * So we've got to put in a factor of say...300 on the top, to allow for ticks to start at 5 minutes. THen if they
-		 * filled out the construction yard with engineers to it's capacity, then the next level should only be
+		 * filled out the Command Center with engineers to it's capacity, then the next level should only be
 		 * 1/5th of it's previous one. Similarly, if this is another building, it's decreased a shitload also.
 		 * But every time you level it up it goes away!
 		 */
@@ -486,12 +486,16 @@ public static int baseResourceAmt = 2000;
 		double nextLevelBase = (int) Math.round((50*(lvl+lvlUp+1)*(lvl+lvlUp+1)*Math.sqrt((lvl+lvlUp+1)))/GodGenerator.gameClockFactor);
 		double base = (int) Math.round(nextLevelBase/6.0);
 		double expFactor = base*5;
-		double eng = Math.pow((totalEngineers*(1+cloudFactor+.05*(engTech-1))+1),2);
-		eng = Math.log(eng);
-		eng = Math.pow(eng,2.5);
+	//	double eng = Math.pow((totalEngineers*(1+cloudFactor+.05*(engTech-1))+1),2);
+	//	eng = Math.log(eng);
+	//	eng = Math.pow(eng,2.5);
+		totalEngineers=(int) Math.round(((double) totalEngineers) *(1+cloudFactor+.05*(engTech-1))+1);
+		double totalEngEffect = 1-(((double) totalEngineers))*.01125;
+		if(totalEngEffect<.1) totalEngEffect=.1;
+		
 		if(lvl+lvlUp+1==1) return 1;
 		else
-		return (int) (1+Math.round(base+expFactor*Math.exp(1-eng/getCap(lvl,false))/Math.exp(1)));
+		return (int) (1+Math.round((base+expFactor)*totalEngEffect/*Math.exp(1-eng/getCap(lvl,false))/Math.exp(1))*/));
 		
 	
 	}
@@ -503,12 +507,16 @@ public static int baseResourceAmt = 2000;
 		double nextLevelBase = (int) Math.round((50*(lvlYouWant*lvlYouWant*Math.sqrt(lvlYouWant)))/GodGenerator.gameClockFactor);
 		double base = (int) Math.round(nextLevelBase/6.0);
 		double expFactor = base*5;
-		double eng = Math.pow((totalEngineers*(1+cloudFactor+.05*(engTech-1))+1),2);
-		eng = Math.log(eng);
-		eng = Math.pow(eng,2.5);
+	//	double eng = Math.pow((totalEngineers*(1+cloudFactor+.05*(engTech-1))+1),2);
+		totalEngineers=(int) Math.round(((double) totalEngineers) *(1+cloudFactor+.05*(engTech-1))+1);
+		double totalEngEffect = 1-(((double) totalEngineers))*.01125;
+		if(totalEngEffect<.1) totalEngEffect=.1;
+		//eng = Math.log(eng);
+		//eng = Math.pow(eng,2.5);
+		
 		if(lvlYouWant==1) return 1;
 		else
-		return (int)(1+ Math.round(base+expFactor*Math.exp(1-eng/getCap(lvlYouWant,false))/Math.exp(1)));
+		return (int)(1+ Math.round((base+expFactor)*totalEngEffect)/*Math.exp(1-eng/getCap(lvlYouWant,false))/Math.exp(1))*/);
 	}
 	
 	
@@ -602,15 +610,11 @@ public static int baseResourceAmt = 2000;
 		try {
 		 String  update ="";
 		 UberStatement stmt = con.createStatement();
-			  if(!type.equals("Arms Factory")) {
  			   update = "update bldg set name = '" + type + "', lvl = " + getLvl() + ", lvling = " +
  		  ticksToFinish + ", ppl = " + peopleInside + ", pplbuild = " + numLeftToBuild + ", pplticks = " +
  		  ticksLeft + ", lvlUp = " + lvlUps + ", deconstruct = " + deconstruct + ", bunkerMode = " + bunkerMode +", refuelTicks = " + refuelTicks+", nukeMode = " + nukeMode 
  		  + " where bid = " + bid + ";";
- 		  }  else
- 			  update = "update bldg set name = '" + type + "', lvl = " + getLvl() + ", lvling = " +
-	    		  ticksToFinish + ", lvlUp = " + lvlUps + ", deconstruct = " + deconstruct
-		    	  + " where bid = " + bid + ";";
+ 	
  			  
  		  
 		
@@ -628,7 +632,7 @@ public static int baseResourceAmt = 2000;
 	}
 	public long getCap() {
 		long cap=0;
-		if(type.equals("Airship Platform")) return getAirshipCap(getTicksPerPerson());
+		if(type.equals("Airstrip")) return getAirshipCap(getTicksPerPerson());
 		if(isMineBldg()) cap=(long) Math.ceil(resourceAmt*Math.pow(getLvl()+2,2));
 		else cap = (long) Math.ceil(Math.sqrt(6)*(getLvl()+1));
 		return cap;
@@ -658,8 +662,8 @@ public static int baseResourceAmt = 2000;
 	
 	public boolean isMineBldg() {
 		String type = getType();
-		if(type.equals("Metal Warehouse")||type.equals("Timber Warehouse")
-				||type.equals("Manufactured Materials Warehouse")||type.equals("Food Warehouse")) return true;
+		if(type.equals("Metal Warehouse")||type.equals("Lumber Yard")
+				||type.equals("Manufactured Materials Warehouse")||type.equals("Granary")) return true;
 		else return false;
 	}
 	public static long[] getCost(String type) {

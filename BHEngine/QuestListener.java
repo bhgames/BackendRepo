@@ -811,7 +811,7 @@ public abstract class QuestListener extends Player {
     		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
 	    		  		"'Timber Field',1,3,-1,0,0,0,"+tid+",0,0,-1,0);");
     		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Manufactured Materials Plant',2,3,-1,0,0,0,"+tid+",0,0,-1,0);");
+	    		  		"'Crystal Mine',2,3,-1,0,0,0,"+tid+",0,0,-1,0);");
     		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
 	    		  		"'Food Farm',3,3,-1,0,0,0,"+tid+",0,0,-1,0);");
     		  

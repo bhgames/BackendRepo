@@ -26,11 +26,11 @@ public class Trader implements Runnable {
 					stmt = g.con.createStatement();
 					stmt2 = g.con.createStatement();
 					// assuming only one-to-one resource trades...
-					rs = stmt.executeQuery("select count(*) from trade where made_at > CURRENT_TIMESTAMP-7*24*360000;");
+					rs = stmt.executeQuery("select count(*) from trade where made_at > CURRENT_TIMESTAMP-INTERVAL 1 WEEK;");
 					rs.next();
 					if(rs.getInt(1)>100) {
 						rs.close();
-					rs = stmt.executeQuery("select * from trade where made_at > CURRENT_TIMESTAMP-7*24*360000;");
+					rs = stmt.executeQuery("select * from trade where made_at > CURRENT_TIMESTAMP-INTERVAL 1 WEEK;");
 					while(rs.next()) {
 					//	System.out.println("Found trades.");
 						rs2 = stmt2.executeQuery("select * from tradeschedule where tsid = " +rs.getInt(13));

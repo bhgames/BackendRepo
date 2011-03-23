@@ -404,7 +404,7 @@ public class PlayerScript implements Runnable {
     								 holdPart.length())));
     			 else toRet+="invaldcmd";
     		 }
-    	 }  else if(holdCmd.equals("bf.changeBunkerMode")) {
+    	 } /* else if(holdCmd.equals("bf.changeBunkerMode")) {
     		 // int, int, int --> number format fails --> int, string, int
     		 try {
     			 toRet+=""+b.changeBunkerMode(Integer.parseInt(holdPart.substring(0,holdPart.indexOf(","))),
@@ -417,7 +417,7 @@ public class PlayerScript implements Runnable {
     						 Integer.parseInt(holdPart.substring(holdPart.lastIndexOf(",")+1,
     								 holdPart.length())));
     		 }
-    	 }  else if(holdCmd.equals("bf.buildCombatUnit")) {
+    	 } */ else if(holdCmd.equals("bf.buildCombatUnit")) {
     		// System.out.println("Fuck this.");
     		 holdPartUse = new String(holdPart);
     		 // number, string, number, String or string, number, number, number
@@ -1960,12 +1960,14 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 ||holdCmd.equals("bf.getQuestDescription")||holdCmd.equals("bf.setAutoRun")
     	 		 ||holdCmd.equals("bf.useBP")||holdCmd.equals("bf.pingQuest")
     	 		 ||holdCmd.equals("bf.abortAirship")||holdCmd.equals("bf.offloadResources")
-    	 		 ||holdCmd.equals("bf.setVersion")) {
+    	 		 ||holdCmd.equals("bf.setVersion")||holdCmd.equals("bf.getCacheEffectToString")) {
     		 //int
     		 if(holdCmd.equals("bf.deleteUserSR"))
     			 toRet+=b.deleteUserSR(Integer.parseInt(holdPart));
     		 else if(holdCmd.equals("bf.markReadUserSR")) 
     			 toRet+=b.markReadUserSR(Integer.parseInt(holdPart));
+    		 else if(holdCmd.equals("bf.getCacheEffectToString")) 
+    			 toRet+=b.getCacheEffectToString(Integer.parseInt(holdPart));
     		 else if(holdCmd.equals("bf.pingQuest")) 
     			 toRet+=b.pingQuest(holdPart);
     		 else if(holdCmd.equals("bf.setAutoRun")) 

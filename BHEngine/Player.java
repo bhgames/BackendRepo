@@ -1007,7 +1007,7 @@ public class Player  {
 			bldg = t.bldg();
 			while(j<bldg.size()) {
 				b = bldg.get(j);
-				if(b.getType().equals("Construction Yard")) totaleng+=b.getPeopleInside();
+				if(b.getType().equals("Command Center")) totaleng+=b.getPeopleInside();
 				else if(b.getType().equals("Trade Center")) totaltrad+=b.getPeopleInside();
 				else if(b.getType().equals("Institute")) totalschol+=b.getPeopleInside();
 				else if(b.getType().equals("Communications Center")) totalmess+=b.getPeopleInside();
@@ -1079,7 +1079,7 @@ public class Player  {
 		      //	       last_login=rs.getTimestamp(41);
 
 		      if(rs.getInt(1)==0&&(rs.getTimestamp(2).getTime()!=last_login.getTime()||owedTicks==0||(owedTicks>0&&(God.gameClock-owedTicks)<God.saveWhenTicks))) {
-		    	  System.out.println("Actually saving " + getUsername() + " and his owedTicks was " + owedTicks + " and gameClock diff is " + (God.gameClock-owedTicks) + " compared to " + God.saveWhenTicks + " and his last_login saved was " + rs.getTimestamp(2) + " and actual was " +last_login);
+		    	//  System.out.println("Actually saving " + getUsername() + " and his owedTicks was " + owedTicks + " and gameClock diff is " + (God.gameClock-owedTicks) + " compared to " + God.saveWhenTicks + " and his last_login saved was " + rs.getTimestamp(2) + " and actual was " +last_login);
 		    	  // when do we save with owedTicks?
 		    	  // we know if owedTicks is less than saveWhenTicks, then
 		    	  // the player has been changed since last save. 

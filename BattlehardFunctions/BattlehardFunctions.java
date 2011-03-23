@@ -315,7 +315,7 @@ public class BattlehardFunctions {
 			bldg = t1.bldg();
 			int y = 0; int aggregate=0;
 			while(y<bldg.size()) {
-				if(bldg.get(y).getType().equals("Communications Center"))aggregate+=bldg.get(y).getLvl();
+				if(bldg.get(y).getType().equals("Command Center"))aggregate+=bldg.get(y).getLvl();
 				y++;
 			}
 		/*	 rs = stmt.executeQuery("select sum(lvl) from bldg where tid = " + t1.townID + " and name = 'Communications Center';");
@@ -329,7 +329,9 @@ public class BattlehardFunctions {
 
 			int i=0;
 			int t1x = t1.getX(); int t1y = t1.getY();
-			
+			boolean haveRec=false;
+			 if(haveBldg("Recycling Center",t1.townID)) haveRec=true;
+
 			while(i<towns.size()) {
 				int x = towns.get(i).getX(); y = towns.get(i).getY();
 			
@@ -391,7 +393,14 @@ public class BattlehardFunctions {
 							 r.put("destX",towns.get(i).getDestX());
 							 r.put("destY",towns.get(i).getDestY());
 							 r.put("movementTicks",towns.get(i).getTicksTillMove());
-							 r.put("debris",towns.get(i).getDebris());
+							 if(haveRec)
+								 r.put("debris",towns.get(i).getDebris());
+							 else {
+								 long empty[] = new long[4];
+								 r.put("derbis",empty);
+							 }
+
+							 
 							 r.put("aiActive",g.programRunning(towns.get(i).getPlayer().ID));
 							 boolean isCapital=false;
 							 if(towns.get(i).townID==towns.get(i).getPlayer().getCapitaltid()) isCapital=true;
@@ -1838,7 +1847,7 @@ public class BattlehardFunctions {
 		
 		/**
 		 * UI Implemented.
-		 * Loads a template into one of your Arms Factory build slots if it is legal to do so. Returns true
+		 * Loads a template into one of your military production build slots if it is legal to do so. Returns true
 		 * if done successfully.
 		 */
 	public boolean createCombatUnit(int slotNumber,String unitTemplateName) {
@@ -1994,7 +2003,7 @@ public class BattlehardFunctions {
 	
 		/**
 			 * UI Implemented.
-			 * Returns true if you can load a template into one of your Arms Factory build slots(ie if it is legal to do so.)
+			 * Returns true if you can load a template into one of your military production facility build slots(ie if it is legal to do so.)
 			 * 
 			 */
 		public boolean canCreateCombatUnit( int slotNumber,String unitTemplateName) {
@@ -2275,7 +2284,7 @@ public class BattlehardFunctions {
 			
 					UserBuilding currBldg=null;
 					j=0;
-					UserBuilding[] bldg = getUserBuildings(townID,"Arms Factory");
+					UserBuilding[] bldg = getUserBuildings(townID,"CombatProduction");
 					while(j<bldg.length) {
 						currBldg = bldg[j];
 						
@@ -2377,9 +2386,45 @@ public class BattlehardFunctions {
 
 		
 		}
+		
 		/**
 		 * UI Implemented.
-		 * Returns a string that tells you what the bunker
+		 * 
+		 * Returns in a string what you see on the resource cache menu about how many resources are protected.
+		 */
+		
+		public String getCacheEffectToString(int townID) {
+			if(prog&&!p.isAdvancedAttackAPI()) {
+				setError("You do not have the Advanced Attack API!");
+				return null;
+			}
+			boolean keep = false;
+			if(prog) keep=true;
+			prog=false;
+			UserBuilding[] bldg = getUserBuildings(townID,"all");
+			if(keep) prog = true;
+			int j = 0; UserBuilding currBldg;
+			long resSize = 0;
+			while(j<bldg.length) {
+				currBldg = bldg[j];
+			//	if(currBldg.getLotNum()==lotNum) bunkerMode = currBldg.getBunkerMode();
+			
+				if(currBldg.getType().equals("Resource Cache"))resSize+=(long) Math.round(.33*.05*((double) Building.resourceAmt)*Math.pow(currBldg.getLvl()+2,2));
+				if(currBldg.getType().equals("Storage Yard")&&currBldg.getLvl()>=5) resSize+=(long) Math.round(.33*.05*((double) Building.resourceAmt)*Math.pow(currBldg.getLvl()-4+2,2));
+					
+				
+		
+				j++;
+			}
+			
+			String toRet= "Your resource caches protect " + resSize + " of each resource.";
+
+			return toRet;
+		}
+		/**
+		 * @deprecated
+		 * UI Implemented.
+		 * Returns a string that tells you what the fortification
 		 * is capable of doing, exactly what is displayed on the menu of the UI.
 		 * If you want a more data-analysis friendly version, check out
 		 * getBunkerEffect().
@@ -2413,7 +2458,7 @@ public class BattlehardFunctions {
 			if(prog) keep=true;
 			prog=false;
 
-			UserBuilding[] bldg = getUserBuildings(townID,"Bunker");
+			UserBuilding[] bldg = getUserBuildings(townID,"Fortification");
 			if(keep) prog = true;
 			while(j<bldg.length) {
 				currBldg = bldg[j];
@@ -2455,20 +2500,20 @@ public class BattlehardFunctions {
 				double percentprotection = .05*p.getBunkerTech()*armysizefrac*100;
 				
 				if(percentprotection>100)  toRet+= "Gives complete protection to your combat units in this town. "+((int) Math.round(percentprotection-100))
-						+ "% more army can be protected by your defense bunkers.  <br /><br />";
-				else toRet+= "Your defense bunkers give " + ((int) Math.round(percentprotection)) + "% protection to your combat units in this town. <br /><br />";
+						+ "% more army can be protected by your defense fortifications.  <br /><br />";
+				else toRet+= "Your defense fortifications give " + ((int) Math.round(percentprotection)) + "% protection to your combat units in this town. <br /><br />";
 
 				long pop = t.getPop();
 				//		double civvybunkerfrac=((double) bunkerSize)/((double) pop);
 
 				double civvybunkerfrac=(civvyBunkerSize/((double) pop))*100;
-				if(civvybunkerfrac>100) toRet+= "Your bunkers protect all of your civilian units from bombing and siege attacks. " + 
-						(((int)civvyBunkerSize)-pop) + " more civilians can be protected by your bunkers. <br /><br />";
+				if(civvybunkerfrac>100) toRet+= "Your fortifications protect all of your civilian units from bombing and siege attacks. " + 
+						(((int)civvyBunkerSize)-pop) + " more civilians can be protected by your fortifications. <br /><br />";
 
-				else toRet+= "Your bunkers protect " + (int) civvybunkerfrac + "% ("+ (int) civvyBunkerSize + " civilians) of your civilians from bombing/siege attacks.  <br /><br />";
+				else toRet+= "Your fortifications protect " + (int) civvybunkerfrac + "% ("+ (int) civvyBunkerSize + " civilians) of your civilians from bombing/siege attacks.  <br /><br />";
 
 
-				toRet+= "Your bunkers protect " + resSize + " of each resource.";
+				toRet+= "Your fortifications protect " + resSize + " of each resource.";
 
 			return toRet;
 		}
@@ -2523,10 +2568,10 @@ public class BattlehardFunctions {
 	 * @deprecated
 	 * UI Implemented.
 	 * 0 is combat mode, 1 is VIP mode, and 2 is resource cache mode. This method changes
-	 * the bunker in the lot number specified in the town with the ID given to the bunkerMode
-	 * supplied.
+	 * the fortification in the lot number specified in the town with the ID given to the bunkerMode
+	 * supplied. This no longer does anything.
 	 */
-public boolean changeBunkerMode(int lotNum, int tid, int bunkerMode) {
+private boolean changeBunkerMode(int lotNum, int tid, int bunkerMode) {
 	if(prog&&!p.isAttackAPI()) {
 		setError("You do not have the Attack API!");
 		return false;
@@ -2560,6 +2605,40 @@ public long[] returnPrice(int lotNum, int tid) {
 
 }
 /**
+ * Returns a long array representing the net amount of resources to get to a certain level of building.
+ * Great for guestimating.
+ * @param lvl
+ * @return
+ */
+	public long[] returnPriceToGetToLevel(int lvl, String buildingType) {
+		if(prog&&!p.isAdvancedBuildingAPI()) {
+			setError("You do not have the Advanced Building API!");
+			return null;
+		}
+		int i = 0;
+		// LINKED TO ALL BUILDING PRICES
+		double additive=0;
+		long[] cost=new long[4];
+		//	public Building(String type, int lotNum, int totalEngineers, double cloudFactor, int engTech) {
+		long[] basecost=Building.getCost(buildingType);
+		if(basecost==null) {
+			setError("Invalid building type!");
+			return null;
+		}
+	//	Building b = new Building("Bunker",0,0,0,1); // just dummy
+		
+		i=0;
+		while(i<lvl) {
+			int j = 0;
+			while(j<basecost.length) {
+				cost[j]+=basecost[j]*Math.pow(i+1,2+.03*(i+1));
+				j++;
+			}
+			i++;
+		}
+		return cost;
+	}
+/**
  * Returns a number representing the net amount of resources(all lumped) to get to a certain level of building.
  * Great for guestimating.
  * @param lvl
@@ -2577,8 +2656,8 @@ public long[] returnPrice(int lotNum, int tid) {
 		//	public Building(String type, int lotNum, int totalEngineers, double cloudFactor, int engTech) {
 		int basecost=0;
 	//	Building b = new Building("Bunker",0,0,0,1); // just dummy
-		while(i<Building.getCost("Bunker").length) {
-			basecost+=Building.getCost("Bunker")[i];
+		while(i<Building.getCost("Fortification").length) {
+			basecost+=Building.getCost("Fortification")[i];
 			i++;
 		}
 		i=0;
@@ -2694,7 +2773,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					  stmt.close();
 					  
 				  } catch(SQLException exc) { exc.printStackTrace(); }*/
-					 UserBuilding b[] = getUserBuildings(holdT.townID,"Construction Yard");
+					 UserBuilding b[] = getUserBuildings(holdT.townID,"Command Center");
 					 while(i<b.length) {
 						 currentlyBuilding+=b[i].getNumLeftToBuild();
 						 i++;
@@ -2830,7 +2909,7 @@ public long[] returnPrice(int lotNum, int tid) {
 						 while(k<towns.size()) {
 							 t = towns.get(k);
 							 i=0;
-							 bldg = getUserBuildings(t.townID,"Arms Factory");
+							 bldg = getUserBuildings(t.townID,"CombatProduction");
 								 while(i<bldg.length) {
 									
 										 int j = 0;
@@ -2931,10 +3010,48 @@ public long[] returnPrice(int lotNum, int tid) {
 		}
 		return false;
 	}
+	/**
+	 * Returns true if there is a building of that type with that level.
+	 * @param type
+	 * @param lvl
+	 * @param townID
+	 * @return
+	 */
+public  boolean haveBldg(String type, int lvl, int townID) {
+	
+		
+		if(prog&&!p.isAdvancedBuildingAPI()) {
+			setError("You do not have the Advanced Building API!");
+			return false;
+		}
+		// type could be a string. Need to return it.
+		Town t = g.findTown(townID);
+		if(t.getPlayer().ID!=p.ID) return false;
+		/*
+		try {
+			UberStatement stmt = g.con.createStatement();
+			ResultSet rs = stmt.executeQuery("select count(*) from bldg where tid = " + t.townID + " and name = '"+type+"';");
+			int num=0;
+			if(rs.next()) num=rs.getInt(1);
+			rs.close();
+			stmt.close();
+			
+			if(num>0) return true;
+			
+		} catch(SQLException exc) { exc.printStackTrace(); }*/
+		
+		ArrayList<Building> bldg = t.bldg();
+		int i = 0;
+		while(i<bldg.size()) {
+			if(bldg.get(i).getType().equals(type)&&bldg.get(i).getLvl()==lvl) { return true; }
+			i++;
+		}
+		return false;
+	}
 
 	/**
 	 * UI Implemented.
-	 * Cancel queue item identified by it's qid in an Arms Factory identified
+	 * Cancel queue item identified by it's qid in an military production facility identified
 	 * by it's lotNum in a town specified by it's town id, tid.
 	 */
 	public boolean cancelQueueItem(int qid, int lotNum, int tid ) {
@@ -2950,7 +3067,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		/**
 		 * @deprecated
 		 * UI Implemented.
-		 * Cancel queue item identified by it's qid in an Arms Factory identified
+		 * Cancel queue item identified by it's qid in a military production facility identified
 		 * by it's lotNum in a town specified by it's townName.
 		 */
 	public boolean cancelQueueItem(int qid, int lotNum,String townName) {
@@ -3397,15 +3514,15 @@ public long[] returnPrice(int lotNum, int tid) {
 	if(keep) prog = true;
 
 			 if(holdBldg.getLvl()==0) {
-				 setError("Cannot demolish a level 0 building. Cancel it's queue item in the construction yard instead to get rid of it!");
+				 setError("Cannot demolish a level 0 building. Cancel it's queue item in the Command Center instead to get rid of it!");
 				 return false;
 			 }
 			 // So now we have the bldg(). If it has more than one lvlUp, it needs to cancelQueueItem on every single leveled
 			 //thing up until it's levelUps are gone. Then, it needs to call levelUp in town, and that will be modified
 			 // to not subtract resources if deconstruct is on, which it will be, of course. Then everything will run like clockwork.
 			  if(holdBldg.getType().equals("Metal Mine")||holdBldg.getType().equals("Timber Field")
-					  ||holdBldg.getType().equals("Manufactured Materials Plant")||
-					  holdBldg.getType().equals("Food Farm")) {
+					  ||holdBldg.getType().equals("Crystal Mine")||
+					  holdBldg.getType().equals("Farm")) {
 				  setError("Cannot demolish mines.");
 				  return false;
 			  }
@@ -3490,8 +3607,8 @@ public long[] returnPrice(int lotNum, int tid) {
 			// not F = CY*!F, !F = !CY + F
 			 i = 0;
 			
-			if(!b.getType().equals("Construction Yard")) return false;
-			if(b.getType().equals("Construction Yard")&&(b.getPeopleInside()+b.getNumLeftToBuild()+number)>b.getCap()) return false;
+			if(!b.getType().equals("Command Center")) return false;
+			if(b.getType().equals("Command Center")&&(b.getPeopleInside()+b.getNumLeftToBuild()+number)>b.getCap()) return false;
 			// if this is a building and we're above cap, get out.
 			
 			cost = returnPrice(holdT.getTownName(),"Engineer",number);
@@ -3679,8 +3796,28 @@ public long[] returnPrice(int lotNum, int tid) {
 			// we don't do buildings here, that is a separate thing...
 			// should probably do combat units here.
 				 i = 0;
-				
-				if(!b.getType().equals("Arms Factory")) return false;
+				 AttackUnit a = null;
+				while(i<p.getAu().size()) {
+					if(p.getAu().get(i).getName().equals(unit)) {
+						a = p.getAu().get(i);
+						break;
+					}
+					i++;
+				}
+				if(a==null) {
+					setError("Invalid unit!");
+					return false;
+				}
+				if(a.getExpmod()==AttackUnit.soldierExpMod&&!b.getType().equals("Arms Factory")){
+					setError("You have not chosen an Arms Factory!");
+					return false;
+				}else if((a.getExpmod()==AttackUnit.tankExpMod||a.getExpmod()==AttackUnit.juggerExpMod)&&!b.getType().equals("Manufacturing Plant")){
+					setError("You have not chosen a Manufacturing Plant!");
+					return false;
+				}if(a.getExpmod()==AttackUnit.bomberExpMod&&!b.getType().equals("Airstrip")){
+					setError("You have not chosen an Airstrip!");
+					return false;
+				}
 				
 		
 			cost = returnPrice(holdT.getTownName(),unit,number);
@@ -3819,7 +3956,7 @@ public long[] returnPrice(int lotNum, int tid) {
 	/**
 	 * UI Implemented.
 	 * Builds the number of unit type specified(combat only) in the town designated by
-	 * the town id and in the Arms Factory designated by it's lotNum.
+	 * the town id and in the military production facility designated by it's lotNum.
 	 */	
 	public boolean buildCombatUnit(String type, int number, int lotNum, int tid) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -3836,7 +3973,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		 * @deprecated
 		 * UI Implemented.
 		 * Builds the number of unit type specified(combat only) in the town designated by
-		 * townName and in the Arms Factory designated by it's lotNum.
+		 * townName and in the military production facility designated by it's lotNum.
 		 */
 	public boolean buildCombatUnit(int lotNum, String townName, int number, String type) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -3892,6 +4029,17 @@ public long[] returnPrice(int lotNum, int tid) {
 						 k++;
 					 }
 					 a = AU.get(saved);
+					 Building myaf = holdT.findBuilding(bid);
+					 if(a.getExpmod()==AttackUnit.soldierExpMod&&!myaf.getType().equals("Arms Factory")) {
+						 setError("This is not an Arms Factory!");
+						 
+					 }else if((a.getExpmod()==AttackUnit.tankExpMod||a.getExpmod()==AttackUnit.juggerExpMod)&&!myaf.getType().equals("Manufacturing Plant")) {
+						 setError("This is not an Manufacturing Plant!");
+						 
+					 }else if((a.getExpmod()==20)&&!myaf.getType().equals("Airstrip")) {
+						 setError("This is not an Airstrip!");
+						 
+					 }
 					 if(totalQueued+number*a.getExpmod()>thisAF.getCap()*popped) {
 						 setError("Too many units queued already!");
 						 return false;
@@ -3958,7 +4106,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					if(prog) keep=true;
 					prog=false;
 
-				UserBuilding[] bldgs = getUserBuildings(holdT.townID,"Arms Factory");
+				UserBuilding[] bldgs = getUserBuildings(holdT.townID,"CombatProduction");
 				if(keep) prog = true;
 				 while(i<bldgs.length) {
 					
@@ -4213,10 +4361,34 @@ public long[] returnPrice(int lotNum, int tid) {
 				}
 				int oldSize = a.getSize();
 				t.setSize(i,a.getSize() - number);
+				//	public long[] returnPrice(String townName, String unitType, int number) {
+
+				long cost[] = returnPrice(a.getName(),number,t.townID);
+				if(a.getSize()<0) { t.setSize(i,0);
+					cost = returnPrice(a.getName(),oldSize,t.townID);
+				}
 				
-				if(a.getSize()<0) { t.setSize(i,0); }
+				if(a.getSize()>oldSize){ t.setSize(i,oldSize); 
+					int j=0;
+					while(j<cost.length) { cost[j]=0; j++; }
+				}
 				
-				if(a.getSize()>oldSize){ t.setSize(i,oldSize); }
+				UserBuilding[] rec = getUserBuildings(t.townID,"Recycling Center");
+				int totallevel = 0;
+				for(UserBuilding b: rec) {
+					totallevel+=b.getLvl();
+				}
+				double totalperc = .0166*totallevel;
+				if(totalperc<.0) totalperc = 0;
+				if(totalperc>.5) totalperc=.5;
+				
+				int j = 0;
+				synchronized(t.getResBuff()) {
+					while(j<cost.length) { 
+						t.getResBuff()[j]+=cost[j]*totalperc;
+						j++;
+					}
+				}
 				// Just some reasonable checks. We duplicate our math to avoid having to recall new town AU objects that are updated
 				// from the database.
 				return true;
@@ -4228,7 +4400,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		return false;
 	}
 	/**
-	 * Automatically finds the largest arms factory in the town and builds
+	 * Automatically finds the largest military production facility in the town capable of building your unit and builds
 	 * the number of the unit type(military only) described in the town designed
 	 * by town id if possible.
 	 */
@@ -4245,7 +4417,7 @@ public long[] returnPrice(int lotNum, int tid) {
 	}
 		/**
 		 * @deprecated
-		 * Automatically finds the largest arms factory in the town and builds
+		 * Automatically finds the largest building for your unit type in the town and builds
 		 * the number of the unit type(military only) described in the town designed
 		 * by townName if possible.
 		 * 
@@ -4265,24 +4437,35 @@ public long[] returnPrice(int lotNum, int tid) {
 		 int j = 0;
 		 ArrayList<AttackUnit> au;
 		 Town holdT = g.findTown(townName,p);
+
+		 int i = 0;
+		 AttackUnit AU = new AttackUnit();
+		 au = holdT.getAu();
+		 while(i<au.size()) {
+			 AU = au.get(i);
+			 if(AU.getName().equals(type)) break;
+			 i++;
+		 }
 		 boolean keep = false;
 		 if(prog) keep = true;
 		 prog=false;
-		 boolean haveIt = haveBldg(townName,"Arms Factory");
+		 boolean haveIt = false;
+		 if(AU.getExpmod()==AttackUnit.soldierExpMod) {
+			 haveIt = haveBldg(townName,"Arms Factory");
+		 }
+		 else if(AU.getExpmod()==AttackUnit.tankExpMod||AU.getExpmod()==AttackUnit.juggerExpMod) {
+			 haveIt = haveBldg(townName,"Manufacturing Plant");
+
+		 } else if(AU.getExpmod()==20) {
+			 haveIt = haveBldg(townName, "Airstrip");
+		 }
+		  
 		 if(keep) prog=true;
 			 if(haveIt) {
 					if(!checkMP(holdT.townID)) return false;
 
 				 // need to formulate combat unit costs. Let's get the unit.
 				 
-				 int i = 0;
-				 AttackUnit AU = new AttackUnit();
-				 au = holdT.getAu();
-				 while(i<au.size()) {
-					 AU = au.get(i);
-					 if(AU.getName().equals(type)) break;
-					 i++;
-				 }
 				 
 				 // now we have the AU. Get unit type and make bases off this.
 				 // we need the total population of this AU in all towns.
@@ -4333,7 +4516,8 @@ public long[] returnPrice(int lotNum, int tid) {
 					  i = 0;
 					  bldg = t.bldg();
 				 while(i<bldg.size()) {
-					 if(bldg.get(i).getType().equals("Arms Factory")) {
+					 if((bldg.get(i).getType().equals("Arms Factory")||bldg.get(i).getType().equals("Manufacturing Plant")
+								||bldg.get(i).getType().equals("Airstrip"))) {
 						 
 						 int k = 0;
 						  b = bldg.get(i);
@@ -4366,8 +4550,10 @@ public long[] returnPrice(int lotNum, int tid) {
 					bldg = holdT.bldg();
 					while(k<holdT.bldg().size()) {
 						 holdB =bldg.get(k);
-						if((holdB.getType().equals("Arms Factory")&&b!=null&&holdB.getLvl()>b.getLvl())
-								||(holdB.getType().equals("Arms Factory")&&b==null))
+						if(((holdB.getType().equals("Arms Factory")||holdB.getType().equals("Manufacturing Plant")
+								||holdB.getType().equals("Airstrip"))&&b!=null&&holdB.getLvl()>b.getLvl())
+								||((holdB.getType().equals("Arms Factory")||holdB.getType().equals("Manufacturing Plant")
+										||holdB.getType().equals("Airstrip"))&&b==null))
 							
 							b = holdB;
 				
@@ -4506,18 +4692,18 @@ public long[] returnPrice(int lotNum, int tid) {
 	 * dig(this type can only be sent if you also have the dig api!)
 
 	 * Target designations:
-	 * 0: Bomb all targets(random decision).(This can get bunkers.)
+	 * 0: Bomb all targets(random decision).(This can get Fortifications.)
 	 * 1: Bomb warehouses
 	 * 2: Bomb Arms Factories
-	 * 3: Bomb Headquarters
+	 * 3: Bomb Command Center
 	 * 4: Bomb Trade Centers
 	 * 5: Bomb Institutes.
 	 * 6: Bomb Communications Centers.
-	 * 7: Bomb Construction Yards.
-	 * 9: Bomb Airship Platforms
+	 * 7: Bomb Command Centers.
+	 * 9: Bomb Airstrips
 	 * 10: Bomb Missile Silos
 	 * 11: Bomb Recycling Centers
-	 * 12: Bomb Metal Refineries, Timber Processing Plants, Materials Research Centers, and Hydroponics Labs 
+	 * 12: Bomb Metal Refineries, Sawmills, Crystal Refinerys, and Hydroponics Bays 
 	 */
 	public boolean canSendAttack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, int target, String name) {
 		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")&&!QuestListener.partOfQuest(p,"BQ8")) {
@@ -4550,18 +4736,18 @@ public long[] returnPrice(int lotNum, int tid) {
 		 * dig(this type can only be sent if you also have the dig api!)
 		 * 
 		 * Target designations:
-		 * 0: Bomb all targets(random decision).(This can get bunkers.)
+		 * 0: Bomb all targets(random decision).(This can get Fortifications.)
 		 * 1: Bomb warehouses
 		 * 2: Bomb Arms Factories
-		 * 3: Bomb Headquarters
+		 * 3: Bomb Command Center
 		 * 4: Bomb Trade Centers
 		 * 5: Bomb Institutes.
 		 * 6: Bomb Communications Centers.
-		 * 7: Bomb Construction Yards. 
-		 * 9: Bomb Airship Platforms
+		 * 7: Bomb Command Centers. 
+		 * 9: Bomb Airstrips
 		 * 10: Bomb Missile Silos
 		 * 11: Bomb Recycling Centers
-		 * 12: Bomb Metal Refineries, Timber Processing Plants, Materials Research Centers, and Hydroponics Labs
+		 * 12: Bomb Metal Refineries, Sawmills, Crystal Refinerys, and Hydroponics Bays
 			 */
 	public boolean canSendAttack(String yourTownName, int enemyx, int enemyy, int auAmts[], String attackType, int target,String name) {
 		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")&&!QuestListener.partOfQuest(p,"BQ8")) {
@@ -4586,7 +4772,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		}
 		
 		if(!t1.slotsFree()) {
-			setError("No slots. Upgrade headquarters!");
+			setError("No slots. Upgrade Command Center!");
 			return false; // no slots, no attacks, bitch.
 		}
 		
@@ -4830,19 +5016,19 @@ public long[] returnPrice(int lotNum, int tid) {
 	 * dig(this type can only be sent if you also have the dig api!)
 	 *
 	 *Target designations: 
-	 * 0: Bomb all targets(random decision).(This can get bunkers.)
+	 * 0: Bomb all targets(random decision).(This can get Fortifications.)
 	 * 1: Bomb warehouses
 	 * 2: Bomb Arms Factories
-	 * 3: Bomb Headquarters
+	 * 3: Bomb Command Center
 	 * 4: Bomb Trade Centers
 	 * 5: Bomb Institutes.
 	 * 6: Bomb Communications Centers.
-	 * 7: Bomb Construction Yards.
-	 * 8: Bomb Bunkers
-	 * 9: Bomb Airship Platforms
+	 * 7: Bomb Command Centers.
+	 * 8: Bomb Fortifications
+	 * 9: Bomb Airstrips
 	 * 10: Bomb Missile Silos
 	 * 11: Bomb Recycling Centers
-	 * 12: Bomb Metal Refineries, Timber Processing Plants, Materials Research Centers, and Hydroponics Labs
+	 * 12: Bomb Metal Refineries, Sawmills, Crystal Refinerys, and Hydroponics Bays
 	 */
 	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, int target,String name) {
 		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")&&!QuestListener.partOfQuest(p,"BQ8")) {
@@ -4884,18 +5070,18 @@ public long[] returnPrice(int lotNum, int tid) {
 		 * 
 		 * 
 		 *Target designations: 
-		 * 0: Bomb all targets(random decision).(This can get bunkers.)
+		 * 0: Bomb all targets(random decision).(This can get Fortifications.)
 		 * 1: Bomb warehouses
 		 * 2: Bomb Arms Factories
-		 * 3: Bomb Headquarters
+		 * 3: Bomb Command Center
 		 * 4: Bomb Trade Centers
 		 * 5: Bomb Institutes.
 		 * 6: Bomb Communications Centers.
-		 * 7: Bomb Construction Yards.
-		 * 9: Bomb Airship Platforms
+		 * 7: Bomb Command Centers.
+		 * 9: Bomb Airstrips
 		 * 10: Bomb Missile Silos
 		 * 11: Bomb Recycling Centers
-		 * 12: Bomb Metal Refineries, Timber Processing Plants, Materials Research Centers, and Hydroponics Labs	
+		 * 12: Bomb Metal Refineries, Sawmills, Crystal Refinerys, and Hydroponics Bays	
 		 * 	 */
 	public boolean attack(String yourTownName, int enemyx, int enemyy, int auAmts[], String attackType, int target,String name) {
 		// So if you are part of RQ3-5 or BQ8, you should get through no matter what.
@@ -4920,7 +5106,7 @@ public long[] returnPrice(int lotNum, int tid) {
 			return false;
 		}
 		if(!t1.slotsFree()) {
-			setError("No slots. Upgrade headquarters!");
+			setError("No slots. Upgrade Command Center!");
 			return false; // no slots, no attacks, bitch.
 		}
 		
@@ -5398,14 +5584,14 @@ public long[] returnPrice(int lotNum, int tid) {
 		 * origination, and is given to speed up
 		 * the search algorithm. newTarget is the new target designation, can be:
 		 * 
-		 * 0: Bomb all targets(random decision).(This can get bunkers.)
+		 * 0: Bomb all targets(random decision).(This can get Fortifications.)
 		 * 1: Bomb warehouses
 		 * 2: Bomb Arms Factories
-		 * 3: Bomb Headquarters
+		 * 3: Bomb Command Center
 		 * 4: Bomb Trade Centers
 		 * 5: Bomb Institutes.
 		 * 6: Bomb Communications Centers.
-		 * 7: Bomb Construction Yards.
+		 * 7: Bomb Command Centers.
 		 */
 	public boolean changeBombTarget(int raidID, int newTarget, int yourTownID) {
 		if(prog&&!p.isAttackAPI()) {
@@ -5437,14 +5623,14 @@ public long[] returnPrice(int lotNum, int tid) {
 		Raid actr = new Raid(raidID,g);
 		if(found&&r!=null) {//double protection with r!=null part.
 			/*
-			 * 0: Bomb all targets(random decision).(This can get bunkers.)
+			 * 0: Bomb all targets(random decision).(This can get Fortifications.)
 			 * 1: Bomb warehouses
 			 * 2: Bomb Arms Factories
-			 * 3: Bomb Headquarters
+			 * 3: Bomb Command Center
 			 * 4: Bomb Trade Centers
 			 * 5: Bomb Institutes.
 			 * 6: Bomb Communications Centers.
-			 * 7: Bomb Construction Yards.
+			 * 7: Bomb Command Centers.
 			 * 
 			 */
 			if(r.raidOver()) return false; // no need for a raid that's over!
@@ -6138,14 +6324,23 @@ public long[] returnPrice(int lotNum, int tid) {
 	 * the resources, open lot spot, and a few other requirements are met.)
 	 * 
 	 * @param type - Type of building, can be:
-	 * Headquarters (One per city.)
+	 * Command Center
 	 * Arms Factory
-	 * Construction Yard
 	 * Institute
 	 * Communications Center
 	 * Trade Center
-	 * Bunker
-	 * Metal/Timber/Manufactured Materials/Food Warehouse
+	 * Fortification
+	 * Metal Warehouse/Lumber Yard/Crystal Repository/Granary
+	 * Airstrip
+	 * Manufacturing Plant
+	 * Recycling Center
+	 * Resource Cache
+	 * Sawmill
+	 * Foundry
+	 * Crystal Refinery
+	 * Hydroponics Bay
+	 * Storage Yard
+	 * Missile Silo
 	 * @param lotNum Desired lot number for the building to be placed on.
 	 * @param town Name of the desired town for placement.
 	 * @return
@@ -6167,23 +6362,23 @@ public long[] returnPrice(int lotNum, int tid) {
 	 * the resources, open lot spot, and a few other requirements are met.)
 	 * 
 	 * @param type - Type of building, can be:
-	 * Headquarters (One per city.)
+	 * Command Center 
 	 * Arms Factory
-	 * Construction Yard
+	 * Command Center
 	 * Institute
 	 * Communications Center
 	 * Trade Center
-	 * Bunker
-	 * Metal/Timber/Manufactured Materials/Food Warehouse
+	 * Fortification
+	 * Metal/Timber/Manufactured Materials/Granary
 	 * 
 	 * (Can only build the below buildings with the proper researches.)
-	 * Airship Platform
+	 * Airstrip
 	 * Missile Silo
 	 * Recycling Center
-	 * Metal Refinery
-	 * Timber Processing Plant
-	 * Materials Research Center
-	 * Hydroponics Lab
+	 * Foundry
+	 * Sawmill
+	 * Crystal Refinery
+	 * Hydroponics Bay
 	 * 
 	 * @param lotNum Desired lot number for the building to be placed on.
 	 * @param town Name of the desired town for placement.
@@ -6202,49 +6397,89 @@ public long[] returnPrice(int lotNum, int tid) {
 		
 		
 		  if(type.equals("Metal Mine")||type.equals("Timber Field")
-				  ||type.equals("Manufactured Materials Plant")||
-				  type.equals("Food Farm")) {
+				  ||type.equals("Crystal Mine")||
+				  type.equals("Farm")) {
 			  setError("Cannot build mines.");
 			  return false;
 		  }		
 		  
-		  if(!type.equals("Headquarters")&&!type.equals("Arms Factory")&&!type.equals("Construction Yard")&&
+		  if(!type.equals("Arms Factory")&&!type.equals("Manufacturing Plant")&&!type.equals("Command Center")&&
 				  !type.equals("Institute")&&!type.equals("Communications Center")&&!type.equals("Trade Center")&&
-				  !type.equals("Bunker")&&!type.equals("Metal Warehouse")&&!type.equals("Timber Warehouse")&&
-				  !type.equals("Manufactured Materials Warehouse")&&!type.equals("Food Warehouse")
-				  &&!type.equals("Airship Platform")&&!type.equals("Missile Silo")&&!type.equals("Recycling Center")
-				  &&!type.equals("Metal Refinery")&&!type.equals("Timber Processing Plant")&&!type.equals("Materials Research Center")
-				  &&!type.equals("Hydroponics Lab")) {
+				  !type.equals("Fortification")&&!type.equals("Metal Warehouse")&&!type.equals("Lumber Yard")&&
+				  !type.equals("Crystal Repository")&&!type.equals("Granary")
+				  &&!type.equals("Airstrip")&&!type.equals("Missile Silo")&&!type.equals("Recycling Center")
+				  &&!type.equals("Foundry")&&!type.equals("Sawmill")&&!type.equals("Crystal Refinery")
+				  &&!type.equals("Hydroponics Bay")) {
 			  setError("Incorrect building type.");
 			  return false;
 		  }
-		  
-		  if((type.equals("Airship Platform")&&!p.isZeppTech())) {
-			  setError("You do not possess this technology yet!");
-			  return false;
-		  } else if((type.equals("Missile Silo")&&!p.isMissileSiloTech())) {
-			  setError("You do not possess this technology yet!");
-			  return false;
-		  }else if((type.equals("Recycling Center")&&!p.isRecyclingTech())) {
-			  setError("You do not possess this technology yet!");
-			  return false;
-		  }else if((type.equals("Metal Refinery")&&!p.isMetalRefTech())) {
-			  setError("You do not possess this technology yet!");
-			  return false;
-		  }else if((type.equals("Timber Processing Plant")&&!p.isTimberRefTech())) {
-			  setError("You do not possess this technology yet!");
-			  return false;
-		  }else if((type.equals("Materials Research Center")&&!p.isManMatRefTech())) {
-			  setError("You do not possess this technology yet!");
-			  return false;
-		  }else if((type.equals("Hydroponics Lab")&&!p.isFoodRefTech())) {
-			  setError("You do not possess this technology yet!");
-			  return false;
-		  }
+
 		  int k = 0;
 		boolean found = false;
 		Town holdT; Building b;
 		holdT = g.findTown(town,p);
+		
+		  if((type.equals("Airstrip")&&!p.isZeppTech())&&haveBldg("Command Center",10,holdT.townID)
+				  &&haveBldg("Arms Factory",10,holdT.townID)&&haveBldg("Manufacturing Plant",5,holdT.townID)
+				  ) {
+			  setError("You do not satisfy the building requirements for this yet!");
+			  return false;
+		  } else if((type.equals("Missile Silo"))&&haveBldg("Manufacturing Plant",15,holdT.townID)
+				  &&haveBldg("Institute",15,holdT.townID)) {
+			  setError("You do not satisfy the building requirements for this yet!");
+			  return false;
+		  }else if((type.equals("Recycling Center"))&&haveBldg("Command Center",10,holdT.townID)
+				  &&haveBldg("Institute",10,holdT.townID)&&haveBldg("Manufacturing Plant",10,holdT.townID)) {
+			  setError("You do not satisfy the building requirements for this yet!");
+			  return false;
+		  }else if((type.equals("Foundry")&&haveBldg("Metal Mine",15,holdT.townID))) {
+			  setError("You do not satisfy the building requirements for this yet!");
+			  return false;
+		  }else if((type.equals("Sawmill")&&haveBldg("Timber Field",15,holdT.townID))) {
+			  setError("You do not satisfy the building requirements for this yet!");
+			  return false;
+		  }else if((type.equals("Crystal Refinery")&&haveBldg("Crystal Mine",15,holdT.townID))) {
+			  setError("You do not satisfy the building requirements for this yet!");
+			  return false;
+		  }else if((type.equals("Hydroponics Bay")&&haveBldg("Farm",15,holdT.townID))) {
+			  setError("You do not satisfy the building requirements for this yet!");
+			  return false;
+		  }else if((type.equals("Fortification")&&haveBldg("Command Center",5,holdT.townID)
+				  &&haveBldg("Institute",5,holdT.townID)&&haveBldg("Arms Factory",5,holdT.townID))) {
+			  setError("You do not satisfy the building requirements for this yet!");
+			  return false;
+		  }else if((type.equals("Institute")&&haveBldg("Command Center",1,holdT.townID))) {
+			  setError("You do not satisfy the building requirements for this yet!");
+			  return false;
+		  }else if((type.equals("Manufacturing Plant")
+				  &&haveBldg("Institute",10,holdT.townID)&&haveBldg("Arms Factory",5,holdT.townID))) {
+			  setError("You do not satisfy the building requirements for this yet!");
+			  return false;
+		  }else if((type.equals("Resource Cache")&&haveBldg("Metal Warehouse",1,holdT.townID)
+				  &&haveBldg("Institute",3,holdT.townID)&&haveBldg("Lumber Yard",1,holdT.townID)
+				  &&haveBldg("Crystal Repository",1,holdT.townID)&&haveBldg("Granary",1,holdT.townID))) {
+			  setError("You do not satisfy the building requirements for this yet!");
+			  return false;
+		  }else if((type.equals("Storage Yard")&&haveBldg("Metal Warehouse",10,holdT.townID)
+				 &&haveBldg("Lumber Yard",10,holdT.townID)
+				  &&haveBldg("Crystal Repository",10,holdT.townID)&&haveBldg("Granary",10,holdT.townID))) {
+			  setError("You do not satisfy the building requirements for this yet!");
+			  return false;
+		  }else if((type.equals("Trade Center")&&haveBldg("Command Center",3,holdT.townID)
+				  &&haveBldg("Institute",1,holdT.townID))) {
+			  setError("You do not satisfy the building requirements for this yet!");
+			  return false;
+		  }else if((type.equals("Arms Factory")&&haveBldg("Command Center",1,holdT.townID)
+				  )) {
+			  setError("You do not satisfy the building requirements for this yet!");
+			  return false;
+		  }else if(  (type.equals("Metal Warehouse")||type.equals("Lumber Yard")
+				  ||type.equals("Crystal Repository")||type.equals("Granary"))
+				  &&haveBldg("Institute",1,holdT.townID)) {
+			  setError("You do not satisfy the building requirements for this yet!");
+			  return false;
+		  }
+		  
 		if(holdT.isZeppelin()) {
 			setError("You cannot build on an Airship!");
 			return false;
@@ -6298,7 +6533,7 @@ public long[] returnPrice(int lotNum, int tid) {
 			boolean keep=false;
 			if(prog) keep=true;
 			prog=false;
-			hqs = getUserBuildings(holdT.townID,"Headquarters").length;
+			hqs = getUserBuildings(holdT.townID,"Command Center").length;
 			if(keep) prog=true;
 			int j = 0;
 					ArrayList<Building> bldgs = holdT.bldg();
@@ -6309,7 +6544,7 @@ public long[] returnPrice(int lotNum, int tid) {
 			
 			
 			if(howmany>0) { setError("Cannot build on this lot, already a building present!"); return false; }
-			if(hqs>0&&type.equals("Headquarters")) { setError("Cannot build more than one Headquarters per town!"); return false; }
+			
 		
 			
 			// Means no building exists on that lot here. 
@@ -6400,6 +6635,7 @@ public long[] returnPrice(int lotNum, int tid) {
 				stmt.close();
 			} catch(SQLException exc) { exc.printStackTrace(); }*/
 			 i = 0;
+			 int highLvl=0;
 			ArrayList<Building> bldg = holdT.bldg();
 			Building b=null;
 			while(i<bldg.size()) {
@@ -6408,8 +6644,38 @@ public long[] returnPrice(int lotNum, int tid) {
 				i++;
 			}
 			
+			i = 0;
+			while(i<bldg.size()) {
+				if(bldg.get(i).getType().equals("Command Center")&&bldg.get(i).getLvl()>highLvl) highLvl=bldg.get(i).getLvl();
+				i++;
+			}
+			
 			if(b==null) { setError("Invalid lotNum!"); return false; }
 			
+			bid = b.bid; deconstruct = b.isDeconstruct(); lvl = b.getLvl(); lvlUp = b.getLvlUps(); name = b.getType();
+			if(lvl+lvlUp+1>highLvl+2&&!b.getType().equals("Command Center")) {
+				setError("You cannot level a building greater than your highest command center level!");
+				return false;
+			}
+			if(b.getType().equals("Storage Yard")) {
+				i = 0; int otherHighLvl=0;
+				while(i<bldg.size()) {
+					if(bldg.get(i).getType().equals("Metal Warehouse")
+							||bldg.get(i).getType().equals("Lumber Yard")||
+							bldg.get(i).getType().equals("Crystal Repository")||
+							bldg.get(i).getType().equals("Granary")&&bldg.get(i).getLvl()>otherHighLvl) otherHighLvl=bldg.get(i).getLvl();
+					i++;
+				}
+				if(lvl+lvlUp+1>otherHighLvl) {
+					setError("You cannot level a Storage Yard greater than your lowest level resource storage building level!");
+					return false;
+				}
+			}		
+			if((b.getType().equals("Foundry")||b.getType().equals("Sawmill")||b.getType().equals("Crystal Refinery")
+					||b.getType().equals("Hydroponics Bay"))&&(lvl+lvlUp+1)>20) {
+				setError("You cannot level this building greater than level 20!");
+				return false;
+			}
 			bid = b.bid; deconstruct = b.isDeconstruct(); lvl = b.getLvl(); lvlUp = b.getLvlUps(); name = b.getType();
 			
 			
@@ -6422,8 +6688,8 @@ public long[] returnPrice(int lotNum, int tid) {
 				boolean keepMe=false;
 				if(prog) keepMe=true;
 				prog=false;
-					if(!deconstruct&&!haveBldg(town, "Construction Yard")) {
-						setError("You need a construction yard to do this!");
+					if(!deconstruct&&!haveBldg(town, "Command Center")) {
+						setError("You need a Command Center to do this!");
 						return false;
 					}
 				if(keepMe) prog = true;
@@ -6520,16 +6786,45 @@ public long[] returnPrice(int lotNum, int tid) {
 		 i = 0;
 			ArrayList<Building> bldg = holdT.bldg();
 			Building b=null;
+			int highLvl = 0;
 			while(i<bldg.size()) {
 				slotsSpent+=bldg.get(i).getLvlUps();
 				if(bldg.get(i).getLotNum()==lotNum) {b = bldg.get(i); }
 				i++;
 			}
+			i = 0;
+			while(i<bldg.size()) {
+				if(bldg.get(i).getType().equals("Command Center")&&bldg.get(i).getLvl()>highLvl) highLvl=bldg.get(i).getLvl();
+				i++;
+			}
+		
 			
 			if(b==null) { setError("Invalid lotNum!"); return false; }
 			
 			bid = b.bid; deconstruct = b.isDeconstruct(); lvl = b.getLvl(); lvlUp = b.getLvlUps(); name = b.getType();
-			
+			if(lvl+lvlUp+1>highLvl+2&&!b.getType().equals("Command Center")) {
+				setError("You cannot level a building greater than your highest command center level!");
+				return false;
+			}
+			if(b.getType().equals("Storage Yard")) {
+				i = 0; int otherHighLvl=0;
+				while(i<bldg.size()) {
+					if(bldg.get(i).getType().equals("Metal Warehouse")
+							||bldg.get(i).getType().equals("Lumber Yard")||
+							bldg.get(i).getType().equals("Crystal Repository")||
+							bldg.get(i).getType().equals("Granary")&&bldg.get(i).getLvl()>otherHighLvl) otherHighLvl=bldg.get(i).getLvl();
+					i++;
+				}
+				if(lvl+lvlUp+1>otherHighLvl) {
+					setError("You cannot level a Storage Yard greater than your lowest level resource storage building level!");
+					return false;
+				}
+			}
+			if((b.getType().equals("Foundry")||b.getType().equals("Sawmill")||b.getType().equals("Crystal Refinery")
+					||b.getType().equals("Hydroponics Bay"))&&(lvl+lvlUp+1)>20) {
+				setError("You cannot level this building greater than level 20!");
+				return false;
+			}
 			
 		
 	if(slotsSpent>=p.getBuildingSlotTech()) {
@@ -6699,7 +6994,7 @@ public long[] returnPrice(int lotNum, int tid) {
 	 * THIS METHOD IS NO LONGER USED.
 	 * 
 	 * UI Implemented. Returns a string array that can be used to characterize
-	 * the effect of a single construction yard on build times in a city.
+	 * the effect of a single Command Center on build times in a city.
 	 * 
 	 * @param lotNum
 	 * @param tid
@@ -6721,25 +7016,25 @@ public long[] returnPrice(int lotNum, int tid) {
 		double without = QueueItem.getUnitTicks(1,0,t);
 		float perc = (float) ((without-QueueItem.getUnitTicks(1,totalEngineers,t))/without);
 		perc*=100;
-		red[0] = "Soldiers are experiencing a " + perc + "% reduction in build time due to this Construction Yard.";
+		red[0] = "Soldiers are experiencing a " + perc + "% reduction in build time due to this Command Center.";
 		without = QueueItem.getUnitTicks(5,0,t);
 		perc = (float) ((without-QueueItem.getUnitTicks(5,totalEngineers,t))/without);
 		perc*=100;
-		red[1] = "Tanks are experiencing a " + perc + "% reduction in build time due to this Construction Yard.";
+		red[1] = "Tanks are experiencing a " + perc + "% reduction in build time due to this Command Center.";
 		without = QueueItem.getUnitTicks(10,0,t);
 		perc = (float) ((without-QueueItem.getUnitTicks(10,totalEngineers,t))/without);
 		perc*=100;
-		red[2] = "Juggernaughts are experiencing a " + perc + "% reduction in build time due to this Construction Yard.";
+		red[2] = "Juggernaughts are experiencing a " + perc + "% reduction in build time due to this Command Center.";
 		without = QueueItem.getUnitTicks(20,0,t);
 		perc = (float) ((without-QueueItem.getUnitTicks(20,totalEngineers,t))/without);
 		perc*=100;
-		red[3] = "Bombers are experiencing a " + perc+ "% reduction in build time due to this Construction Yard.";
+		red[3] = "Bombers are experiencing a " + perc+ "% reduction in build time due to this Command Center.";
 		//	public int getTicksPerPerson(int totalEngineers, double cloudFactor, int engTech) {
 		without = Building.getTicksPerPerson(0,engEffect,engTech);
 		perc = (float) ((without -Building.getTicksPerPerson(totalEngineers,engEffect,engTech))/without);
 		perc*=100;
 
-		red[4] = "Civilians are experiencing a " + perc + "% reduction in build time due to this Construction Yard.";
+		red[4] = "Civilians are experiencing a " + perc + "% reduction in build time due to this Command Center.";
 		int i = 1;
 		while(i<=30) {
 			//	public static int getTicksForLevelingAtLevel(int totalEngineers,int lvlYouWant, double cloudFactor, int engTech) {
@@ -6747,7 +7042,7 @@ public long[] returnPrice(int lotNum, int tid) {
 			without = Building.getTicksForLevelingAtLevel(0,i,engEffect,engTech);
 			perc = (float) ((without -Building.getTicksForLevelingAtLevel(totalEngineers,i,engEffect,engTech))/without);
 			perc*=100;
-			red[4+(i-1)] = "Buildings upgrading to level " + i + " are experiencing a " +  perc + "% reduction in build time due to this Construction Yard.";
+			red[4+(i-1)] = "Buildings upgrading to level " + i + " are experiencing a " +  perc + "% reduction in build time due to this Command Center.";
 			i++;
 		}
 		return red;*/
@@ -6801,7 +7096,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					/*
 					try {
 						UberStatement stmt = g.con.createStatement();
-						ResultSet rs = stmt.executeQuery("select lvl,bid from bldg where tid = " + holdT.townID + " and slot = "+ slot + " and name = 'Construction Yard'");
+						ResultSet rs = stmt.executeQuery("select lvl,bid from bldg where tid = " + holdT.townID + " and slot = "+ slot + " and name = 'Command Center'");
 						if(rs.next()){ lvl = rs.getInt(1); bid = rs.getInt(2); }
 						rs.close();
 						stmt.close();
@@ -6810,12 +7105,12 @@ public long[] returnPrice(int lotNum, int tid) {
 					int i = 0;
 					ArrayList<Building> bldg = holdT.bldg();
 					while(i<bldg.size()) {
-						if(bldg.get(i).getLotNum()==slot&&bldg.get(i).getType().equals("Construction Yard")) {bid = bldg.get(i).bid; lvl = bldg.get(i).getLvl(); break; }
+						if(bldg.get(i).getLotNum()==slot&&bldg.get(i).getType().equals("Command Center")) {bid = bldg.get(i).bid; lvl = bldg.get(i).getLvl(); break; }
 						i++;
 					}
 					
 					if(lvl==0) { 
-						setError("No fully constructed construction yard on this lot!");
+						setError("No fully constructed Command Center on this lot!");
 						return false;
 					}
 						
@@ -6917,7 +7212,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					
 					 b = null;
 					
-					UserBuilding cys[] = getUserBuildings(holdTown.townID,"Construction Yard");
+					UserBuilding cys[] = getUserBuildings(holdTown.townID,"Command Center");
 					
 					if(b.getLvl()==0) break; 
 					if(number>=(b.getCap()-(b.getPeopleInside()+b.getNumLeftToBuild()))) number =(int) (b.getCap()-(b.getPeopleInside()+b.getNumLeftToBuild()));
@@ -9962,6 +10257,9 @@ public long[] returnPrice(int lotNum, int tid) {
 	/**
 	 * Returns an array of UserBuilding objects from the town id. This is different
 	 * from getBuildings which just returns the types!
+	 * 
+	 * Put in the type you want. Special types: "all" returns all buildings, and "CombatProduction" returns all 
+	 * military unit production buildings.
 	 * Returns null if invalid.
 	 */
 	
@@ -9986,10 +10284,13 @@ public long[] returnPrice(int lotNum, int tid) {
 
 		while(i<bldg.size()) {
 			actb = bldg.get(i);
-			if(type.equals("all")||actb.getType().equals(type)) {
+			if(type.equals("all")||actb.getType().equals(type)||(type.equals("CombatProduction")
+					&&(type.equals("Arms Factory")||type.equals("Manufacturing Plant")||type.equals("Airstrip"))
+					)) {
 		boolean mineBldg=false;
 		String name = actb.getType();
 		if(name.contains("Warehouse"))mineBldg=true;
+		
 		int lvl = actb.getLvl();
 		int ppl = actb.getPeopleInside();
 		int  bid = actb.bid;
@@ -10043,7 +10344,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		return toRet;
 	}
 	/**
-	 * Get only buildings that are on the building server.
+	 * Get only buildings that are on the building server. "all" returns all buildings, "CombatProduction" returns all combat unit production buildings.
 	 * @param tid
 	 * @param type
 	 * @return
@@ -10062,8 +10363,10 @@ public long[] returnPrice(int lotNum, int tid) {
 
 		while(i<bldg.size()) {
 			actb = bldg.get(i);
-			if(type.equals("all")||actb.getType().equals(type)) {
-		boolean mineBldg=false;
+			if(type.equals("all")||actb.getType().equals(type)||(type.equals("CombatProduction")
+					&&(type.equals("Arms Factory")||type.equals("Manufacturing Plant")||type.equals("Airstrip"))
+					)) {
+				boolean mineBldg=false;
 		String name = actb.getType();
 		if(name.contains("Warehouse"))mineBldg=true;
 		int lvl = actb.getLvl();
@@ -12430,10 +12733,10 @@ public long[] returnPrice(int lotNum, int tid) {
 		boolean keep = false;
 		if(prog) keep = true;
 		prog = false;
-		if(p.towns().size()<p.getTownTech()&&haveBldg("Airship Platform",townID)) {
+		if(p.towns().size()<p.getTownTech()&&haveBldg("Airstrip",townID)) {
 			addZeppelin(t.getX(),t.getY(),resEffects,airshipName);
 		} else {
-			setError("You are either missing a town tech or need an Airship Platform!");
+			setError("You are either missing a town tech or need an Airstrip!");
 		}
 		
 		if(keep) prog = true;
@@ -12748,7 +13051,7 @@ public long[] returnPrice(int lotNum, int tid) {
 				else if(reward.equals("zeppelin")) {
 					String tech[] ={ "zeppTech","townTech"};
 					completeResearches(tech,true);
-					sendYourself("Sir,\n We found an ancient Airship from long ago. We weren't able to salvage it, but we were able to salvage an extra town slot and the plans to build an Airship Platform. From an Airship Platform, you could build your own Airship! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					sendYourself("Sir,\n We found an ancient Airship from long ago. We weren't able to salvage it, but we were able to salvage an extra town slot and the plans to build an Airstrip. From an Airstrip, you could build your own Airship! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 
 					
 				}
@@ -13087,21 +13390,21 @@ public long[] returnPrice(int lotNum, int tid) {
     		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
 	    		  		"'Timber Field',1,3,-1,0,0,0,"+tid+",0,0,-1,0);");
     		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Manufactured Materials Plant',2,3,-1,0,0,0,"+tid+",0,0,-1,0);");
+	    		  		"'Crystal Mine',2,3,-1,0,0,0,"+tid+",0,0,-1,0);");
     		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Food Farm',3,3,-1,0,0,0,"+tid+",0,0,-1,0);");
+	    		  		"'Farm',3,3,-1,0,0,0,"+tid+",0,0,-1,0);");
     		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Headquarters',4,1,-1,0,0,0,"+tid+",0,0,-1,0);");
+	    		  		"'Command Center',4,1,-1,0,0,0,"+tid+",0,0,-1,0);");
     		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
 	    		  		"'Metal Warehouse',5,1,-1,0,0,0,"+tid+",0,0,-1,0);");
     		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Timber Warehouse',6,1,-1,0,0,0,"+tid+",0,0,-1,0);");
+	    		  		"'Lumber Yard',6,1,-1,0,0,0,"+tid+",0,0,-1,0);");
     		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Manufactured Materials Warehouse',7,1,-1,0,0,0,"+tid+",0,0,-1,0);");
+	    		  		"'Crystal Repository',7,1,-1,0,0,0,"+tid+",0,0,-1,0);");
     		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Food Warehouse',8,1,-1,0,0,0,"+tid+",0,0,-1,0);");
+	    		  		"'Granary',8,1,-1,0,0,0,"+tid+",0,0,-1,0);");
     		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Construction Yard',9,1,-1,0,0,0,"+tid+",0,0,-1,0);");
+	    		  		"'Command Center',9,1,-1,0,0,0,"+tid+",0,0,-1,0);");
     		  
     		  Town t = new Town(tid,g);
     		  rs.close();

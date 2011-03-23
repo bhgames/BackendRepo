@@ -75,8 +75,8 @@ public class Id extends Player {
 					while(k<t.bldg().size()) {
 						if(t.bldg().get(k).getType().equals("Metal Mine")||
 								t.bldg().get(k).getType().equals("Timber Field")||
-								t.bldg().get(k).getType().equals("Manufactured Materials Plant")||
-								t.bldg().get(k).getType().equals("Food Farm")) avgMineLvl+=t.bldg().get(k).getLvl();
+								t.bldg().get(k).getType().equals("Crystal Mine")||
+								t.bldg().get(k).getType().equals("Farm")) avgMineLvl+=t.bldg().get(k).getLvl();
 						k++;
 					}
 					
@@ -119,8 +119,8 @@ public class Id extends Player {
 				b = myT.bldg().get(i);
 				if(b.getType().equals("Metal Mine")||
 						b.getType().equals("Timber Field")||
-						b.getType().equals("Manufactured Materials Plant")||
-						b.getType().equals("Food Farm")) {
+						b.getType().equals("Crystal Mine")||
+						b.getType().equals("Farm")) {
 					b.setLvl(toSet);
 				}
 				
@@ -193,8 +193,8 @@ public class Id extends Player {
 						while(k<t.bldg().size()) {
 							if(t.bldg().get(k).getType().equals("Metal Mine")||
 									t.bldg().get(k).getType().equals("Timber Field")||
-									t.bldg().get(k).getType().equals("Manufactured Materials Plant")||
-									t.bldg().get(k).getType().equals("Food Farm")) avgMineLvl+=t.bldg().get(k).getLvl();
+									t.bldg().get(k).getType().equals("Crystal Mine")||
+									t.bldg().get(k).getType().equals("Farm")) avgMineLvl+=t.bldg().get(k).getLvl();
 							k++;
 						}
 						
@@ -306,7 +306,7 @@ public class Id extends Player {
 
 							 if(t.getPlayer().getPlayedTicks()>(7*24*3600/GodGenerator.gameClockFactor)) {
  
-							b = idT.addBuilding("Headquarters",4,1,0);
+							b = idT.addBuilding("Command Center",4,1,0);
 							
 							 idT.setSize(0,(int) Math.round(((Double) cslHash.get(0).get("avgTroopNumber"))/3.0));
 							 //	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, int target,String name) {
@@ -352,7 +352,7 @@ public class Id extends Player {
 						idT = as.get(j).getTown2();
 						if(idT.getAu().get(0).getSize()>0) {
 							
-							b = idT.addBuilding("Headquarters",4,1,0);
+							b = idT.addBuilding("Command Center",4,1,0);
 								 //	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, int target,String name) {
 
 							 int auAmts[] = {idT.getAu().get(0).getSize(),0,0,0,0,0};
@@ -370,7 +370,7 @@ public class Id extends Player {
 						}
 						idT.setSize(0,(int) Math.round(totalNum*.3));
 						
-							b = idT.addBuilding("Headquarters",4,1,0);
+							b = idT.addBuilding("Command Center",4,1,0);
 								 //	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, int target,String name) {
 							
 							 int auAmts[] = {idT.getAu().get(0).getSize(),0,0,0,0,0};

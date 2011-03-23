@@ -172,7 +172,7 @@ private static int baseResourceAmt = 1000;
 			cost = Building.getCost(type);
 
 			desc = "Requires: Nothing. <br /><br />This building is the center of any city. No building in a city can be more than two levels above your highest leveled command center." +
-					" Leveling your command center allows you to send out more raids at once, protect more civilians in the event of enemy glassing attempts, and increases" +
+					" Leveling your command center allows you to send out more raids at once, and increases" +
 					" the radius of the world map which you can see.";
 		}
 		if(type.equals("Arms Factory")) {//100 100 100 100
@@ -290,7 +290,7 @@ private static int baseResourceAmt = 1000;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			;
 		//	peopleInside=0;
-			desc = "Requires: Level 10 Command Center, Level 10 Institute, Level 10 Manufacturing Plant.<br /><br />This building automatically collects a percentage of debris from battles that happen in the town in which it's located, allows you to see what other towns have debris around them for manual collection by your army, and refunds you a percentage of the cost of your units when you force them to commit suicide. Leveling this building increases the percentage collected as debris, and percentage cost refunded by suicide.";
+			desc = "Requires: Level 10 Command Center, Level 10 Institute, Level 10 Manufacturing Plant.<br /><br />This building automatically collects a percentage of debris from battles that happen in the town in which it's located, allows you to see what other towns have debris around them for manual collection by your army, and refunds you a percentage of the cost of your units and buildings when you destroy them yourself. Leveling this building increases the percentage collected as debris, and percentage cost refunded by self-destruction of units or buildings.";
 			
 			
 		}

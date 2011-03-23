@@ -1438,7 +1438,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			        	.key("peopleInside")
 			        	.value(b.getPeopleInside());
 			        	int u = 0; int popped = 1;
-			        	if(b.getType().equals("Arms Factory")) {
+			        	if(b.getType().equals("Arms Factory")||b.getType().equals("Manufacturing Plant")||b.getType().equals("Airstrip")) {
 			        		popped=0;
 			        		while(u<pau.size()) {
 			        			if(!pau.get(u).getName().equals("locked")&&!pau.get(u).getName().equals("empty")) popped++;
