@@ -1505,21 +1505,14 @@ public class BattlehardFunctions {
 		return t1Required;
 	
 	}
-		/**
-		 * Creates a unit template if the parameters are legal! THIS METHOD CAN ONLY BE CALLED
-		 * BY ID OR BY QUESTS. 
-		 */
-	public boolean createUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum, boolean id) {
+		
+	/*public boolean createUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum, boolean id) {
 		if(p.ID==5||p.isQuest()) return createUnitTemplate(unitName,tierNumber,concealment,armor,cargo,speed,weaponsArray,graphicNum);
 		else return false;
  	}
 	private boolean createUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
 
-		/*
-		 * So this must be where the rules and unit stuff is kept!
-		 * 
-		 * Syntax: createUnit(unitName, slotNumber, tierNumber, concealment, armor, cargo, speed, int[] weaponsArray, graphicNumber)
-		 */
+		
 		
 		// Right, so, making this shit work.
 
@@ -1595,26 +1588,14 @@ public class BattlehardFunctions {
 		
 		
 	}
-	/**
-	 * Returns true if a unit template can be created, given the parameters. THIS METHOD CAN ONLY BE CALLED
-	 * BY ID OR BY QUESTS. 
-	 */
+	
 	public boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum, boolean id) {
 		if(p.ID==5||p.isQuest()) return canCreateUnitTemplate(unitName,tierNumber,concealment,armor,cargo,speed,weaponsArray,graphicNum);
 		else return false;
  	}
 	
 	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-/*	
-		int i = 0;
-		while(i<p.AUTemplates.size()) {
-			System.out.println(p.getAu().get(i).name);
-			if(p.getAu().get(i).name.equals(unitName)){
-				error="Unit with that name already exists.";
-				return false; // no double naming.
-			}
-			i++;
-		}*/
+
 
 		if(unitName.length()==0) {
 			setError("Must give this template a name!");
@@ -1738,7 +1719,7 @@ public class BattlehardFunctions {
 	
 		return true;
 		
-	}
+	}*/
 
 	private boolean checkLP() {
 		// for leagues only really. We use this to check if you're an admin,
@@ -1822,45 +1803,16 @@ public class BattlehardFunctions {
 		}
 
 	}
-		/**
-		 * UI Implemented.
-		 * Deletes an AU template by the given name.
-		 */
-	private boolean deleteAUTemplate(String name) {
-		if(!checkLP()) return false;
-		int i = 0;AttackUnit a;
-		while(i<p.getAUTemplates().size()) {
-			a = p.getAUTemplates().get(i);
-			if(a.getName().equals(name)) {
-				
-				p.setMemAUTemplate(a,1);
-				synchronized(p.getAUTemplates()) { 		
-					p.setAUTemplates(p.getMemAUTemplates());
 
-				}
-				return true;
-			}
-			i++;
-		}
-		return false;
-	}
 		
-		/**
-		 * UI Implemented.
-		 * Loads a template into one of your military production build slots if it is legal to do so. Returns true
-		 * if done successfully.
-		 */
+		/*
 	public boolean createCombatUnit(int slotNumber,String unitTemplateName) {
 		if(prog&&!p.isAttackAPI()) {
 			setError("You do not have the Attack API!");
 			return false;
 		}
 		// SEE CANCREATECOMBATUNIT FOR LEAGUE PERMISSIONS CHECK!
-		/*
-		 * So this must be where the rules and unit stuff is kept!
-		 * 
-		 * Syntax: createUnit(unitName, slotNumber, tierNumber, concealment, armor, cargo, speed, int[] weaponsArray, graphicNumber)
-		 */
+	
 		// Right, so, making this shit work.
 		// Now you must have the template to make the attack unit.
 		String unitName=unitTemplateName;
@@ -1995,17 +1947,13 @@ public class BattlehardFunctions {
 				k++;
 			}
 				i++;
-		}*/
+		}
 
 			return true;
 				
 	}
 	
-		/**
-			 * UI Implemented.
-			 * Returns true if you can load a template into one of your military production facility build slots(ie if it is legal to do so.)
-			 * 
-			 */
+	
 		public boolean canCreateCombatUnit( int slotNumber,String unitTemplateName) {
 			if(!checkLP()) return false;
 			if(prog&&!p.isAttackAPI()) {
@@ -2237,7 +2185,7 @@ public class BattlehardFunctions {
 					 setError("You cannot replace this unit type while there are still men of that type!");
 					 return false;		
 				}
-			 } catch(SQLException exc) { exc.printStackTrace(); }*/
+			 } catch(SQLException exc) { exc.printStackTrace(); }
 			int k = 0; 
 			ArrayList<AttackUnit> au;
 			while(k<towns.size()) {
@@ -2264,7 +2212,7 @@ public class BattlehardFunctions {
 		 * getAFEffect().
 		 * @param townID
 		 * @return
-		 */
+		
 		public String getAFEffectToString(int townID) {
 			if(prog&&!p.isAdvancedAttackAPI()) {
 				setError("You do not have the Advanced Attack API!");
@@ -2330,7 +2278,7 @@ public class BattlehardFunctions {
 		 * @param lotNum
 		 * @param townID
 		 * @return
-		 */
+		 
 		public String getAFEffectToString(int lotNum, int townID) {
 			if(prog&&!p.isAdvancedAttackAPI()) {
 				setError("You do not have the Advanced Attack API!");
@@ -2352,7 +2300,7 @@ public class BattlehardFunctions {
 				if(rs.next()) lvl = rs.getInt(1);
 				rs.close();
 				stmt.close();
-			} catch(SQLException exc) { exc.printStackTrace(); }*/
+			} catch(SQLException exc) { exc.printStackTrace(); }
 			
 			ArrayList<Building> bldg = t.bldg();
 			while(i<bldg.size()) {
@@ -2385,7 +2333,7 @@ public class BattlehardFunctions {
 				else return  ((int) Math.round(percentprotection)) + "% of combat units protected in offensives.";
 
 		
-		}
+		}*/
 		
 		/**
 		 * UI Implemented.
@@ -2867,12 +2815,12 @@ public long[] returnPrice(int lotNum, int tid) {
 						 
 						 
 						 double multiplier=0;
-						 switch(AU.getPop()) {
+						 switch(AU.getType()) {
 						 case 1:
 							 multiplier=1*modifier;
 							// System.out.println("multiplier is: " + multiplier + " and p.towns().size is " + p.towns().size());
 							 break;
-						 case 5:
+						 case 2:
 							 multiplier=10*modifier; // so we want the price to
 							 // be that of six soldiers as a baseline, but the
 							 // six soldiers themselves have price increases for each
@@ -2887,10 +2835,10 @@ public long[] returnPrice(int lotNum, int tid) {
 							 // 1, 2*3/2 = 3, 
 							 // 
 							 break;
-						 case 10:
+						 case 3:
 							 multiplier=40*modifier;
 							 break;
-						 case 20:
+						 case 4:
 							 multiplier=20;
 							 break;
 						 }
@@ -2931,7 +2879,7 @@ public long[] returnPrice(int lotNum, int tid) {
 						 cost[1] = (long) Math.round(10*factor); // timber
 						 cost[2] = (long) Math.round(26*factor);//manmat
 						 cost[3] = (long) Math.round(9*factor); //food
-						 cost[4] = -AU.getPop(); // // need a 10, 25, 15, 30
+						 cost[4] = -AU.getExpmod(); // // need a 10, 25, 15, 30
 						 
 						 return cost;
 					 }
@@ -3147,12 +3095,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							//		 " numleft is " + q.returnNumLeft());
 						 double multiplier=0;
 						 double modifier=Math.pow(.75,q.getTownsAtTime());
-						 switch(AU.getPop()) {
+						 switch(AU.getType()) {
 						 case 1:
 							 multiplier=1*modifier;
 							// System.out.println("multiplier is: " + multiplier + " and p.towns().size is " + p.towns().size());
 							 break;
-						 case 5:
+						 case 2:
 							 multiplier=10*modifier; // so we want the price to
 							 // be that of six soldiers as a baseline, but the
 							 // six soldiers themselves have price increases for each
@@ -3167,10 +3115,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							 // 1, 2*3/2 = 3, 
 							 // 
 							 break;
-						 case 10:
+						 case 3:
 							 multiplier=40*modifier;
 							 break;
-						 case 20:
+						 case 4:
 							 multiplier=20;
 							 break;
 						 }
@@ -3188,7 +3136,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						 cost[1] = (long) Math.round(10*factor); // timber
 						 cost[2] = (long) Math.round(26*factor);//manmat
 						 cost[3] = (long) Math.round(9*factor); //food
-						 cost[4] = -AU.getPop(); // // need a 10, 25, 15, 30
+						 cost[4] = -AU.getExpmod(); // // need a 10, 25, 15, 30
 						 int j = 0;
 							
 						 synchronized(res) {
@@ -3390,17 +3338,17 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		while(k<AU.size()) {
 			au = AU.get(k);
 			
-				 switch(au.getPopSize()) {
+				 switch(au.getType()) {
 					case 1:
 						currentExpAdvSizeDefWithDivMods+=au.getExpmod()*au.getSize();
 						break;
-					case 5:
+					case 2:
 						currentExpAdvSizeDefWithDivMods+=au.getExpmod()*au.getSize();
 						break;
-					case 10:
+					case 3:
 						currentExpAdvSizeDefWithDivMods+=au.getExpmod()*au.getSize();
 						break;
-					case 20:
+					case 4:
 						currentExpAdvSizeDefWithDivMods+=(int) Math.round(au.getExpmod()*au.getSize());
 						break;
 			
@@ -4073,11 +4021,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				 
 				 double multiplier=0;
 				 double modifier = Math.pow(.75,p.towns().size());
-				 switch(a.getPop()) {
+				 switch(a.getType()) {
 				 case 1:
 					 multiplier=1*modifier;
 					 break;
-				 case 5:
+				 case 2:
 					 multiplier=10*modifier; // so we want the price to
 					 // be that of six soldiers as a baseline, but the
 					 // six soldiers themselves have price increases for each
@@ -4089,10 +4037,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					 // it's factor below to determine how much it costs relative
 					 // to other brothers of itself it may have in existence.
 					 break;
-				 case 10:
+				 case 3:
 					 multiplier=40*modifier;
 					 break;
-				 case 20:
+				 case 4:
 					 multiplier=20;
 					 break;
 				 }
@@ -4127,7 +4075,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				 cost[1] = (long) Math.round(10*factor); // timber
 				 cost[2] = (long) Math.round(26*factor);//manmat
 				 cost[3] = (long) Math.round(9*factor); //food
-				 cost[4] = -a.getPop(); // // need a 10, 25, 15, 30
+				 cost[4] = -a.getExpmod(); // // need a 10, 25, 15, 30
 				 
 				 
 				 boolean canBuild = true;
@@ -4231,24 +4179,18 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							weap[z]=a.getWeap()[z];
 							z++;
 						}
-						sau.add(new UserAttackUnit(a.getAccuracy(),a.getAmmo(),a.getArmor(),a.getCargo(),a.getCivType(),
-								a.getConcealment(),a.getExpmod(),a.getFirepower(),a.getGraphicNum(),a.getHp(),a.getLotNum(),
-								a.getName(),a.getOriginalPlayer().ID,a.getOriginalSlot(),a.getOriginalTID(),a.getPopSize(),a.getSize(),
-								a.getSlot(),a.getSpeed(),a.getSupport(),weap,p.getUsername()));
+						//public UserAttackUnit(String name, int slot, int originalPlayerID, int originalSlot,
+					//	int originalTID,
+					//	int support, String originalPlayer) {
+						sau.add(new UserAttackUnit(a.getName(),a.getSlot(),a.getOriginalPlayer().ID,a.getOriginalSlot(),
+								a.getOriginalTID(),a.getSupport(),a.getOriginalPlayer().getUsername()));
 					
 				}
 				k++;
 			}
 			if(t.getDigTownID()==tid) { // if it's a dig, we add civilains.
-				int weap[] = new int[1];
-				weap[0]=t.getPlayer().getCivWeapChoice(); // These are the guys being attacked.
-				 a = new AttackUnit("Civilian", 0,weap,"Institute");
-				 a.setName("Scholar");
-				 a.setSize(t.getDigAmt());
-				sau.add(new UserAttackUnit(a.getAccuracy(),a.getAmmo(),a.getArmor(),a.getCargo(),a.getCivType(),
-						a.getConcealment(),a.getExpmod(),a.getFirepower(),a.getGraphicNum(),a.getHp(),a.getLotNum(),
-						a.getName(),p.ID,7,tid,a.getPopSize(),a.getSize(),
-						7,a.getSpeed(),a.getSupport(),weap,p.getUsername()));
+				
+				sau.add(new UserAttackUnit("Civilian",0,t.getPlayer().ID,0,t.getDigTownID(),1,t.getPlayer().getUsername()));
 			}
 			
 			
@@ -4439,7 +4381,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 Town holdT = g.findTown(townName,p);
 
 		 int i = 0;
-		 AttackUnit AU = new AttackUnit();
+		 AttackUnit AU = null;
 		 au = holdT.getAu();
 		 while(i<au.size()) {
 			 AU = au.get(i);
@@ -4478,11 +4420,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				 
 				 double multiplier=0;
 				 double modifier = Math.pow(.75,p.towns().size());
-				 switch(AU.getPop()) {
+				 switch(AU.getType()) {
 				 case 1:
 					 multiplier=1*modifier;
 					 break;
-				 case 5:
+				 case 2:
 					 multiplier=10*modifier; // so we want the price to
 					 // be that of six soldiers as a baseline, but the
 					 // six soldiers themselves have price increases for each
@@ -4494,10 +4436,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					 // it's factor below to determine how much it costs relative
 					 // to other brothers of itself it may have in existence.
 					 break;
-				 case 10:
+				 case 3:
 					 multiplier=40*modifier;
 					 break;
-				 case 20:
+				 case 4:
 					 multiplier=20;
 					 break;
 				 }
@@ -4539,7 +4481,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				 cost[1] = (long) Math.round(10*factor); // timber
 				 cost[2] = (long) Math.round(26*factor);//manmat
 				 cost[3] = (long) Math.round(9*factor); //food
-				 cost[4] = -AU.getPop(); // // need a 10, 25, 15, 30
+				 cost[4] = -AU.getExpmod(); // // need a 10, 25, 15, 30
 				 
 				 
 				 boolean canBuild = true;
@@ -4622,45 +4564,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 return false;
 
 	}
-	/**
-	 * UI Implemented.
-	 * All civilians get to hold one weapon from the tier 1 class. The number corresponds to the index of the UserWeapon
-	 * object in the UserWeapon array returned by the getWeapon() method.  
-	 */
-	public int getCivWeap() {
-		if(prog&&!p.isAdvancedAttackAPI()) {
-			setError("You do not have the Advanced Attack API!");
-			return -1;
-		}
-		return p.getCivWeapChoice();
-	}
-
-		/**
-		 * UI Implemented.
-		 * All civilians get to hold one weapon from the tier 1 class. You can change the number
-		 * specifying that weapon here. The number corresponds to the index of the UserWeapon
-		 * object in the UserWeapon array returned by the getWeapon() method.  
-		 */
-	public boolean changeCivWeap(int catalogNumber) {
-		if(!checkLP()) return false;
-		if(prog&&!p.isAttackAPI()) {
-			setError("You do not have the Attack API!");
-			return false;
-		}
-		// changes the civWeapType to the user's chosen one.
-		
-		// I wonder how I know whether or not the weapon is researched? This isn't here yet.
-		
-		if(catalogNumber<6) { // keeps it at least in the first tier.
-			// Now I need to check if we have the technology.
-			
-			if(p.getWeap()[catalogNumber])
-			p.setCivWeapChoice(catalogNumber);
-			notifyViewer();
-			return true;
-		}
-		return false;
-	}
+	
 	/**
 	 * 
 	 * Returns in seconds, the tick rate of God. This is the unit that all timers in the game
@@ -4831,7 +4735,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				int z = 0; boolean foundBomber=false;
 				while(z<t1au.size()) {
 					hau = t1au.get(z);
-					if(hau.getPopSize()==20&&holdNumbers.length>z&&holdNumbers[z]>0) {
+					if(hau.getType()==4&&holdNumbers.length>z&&holdNumbers[z]>0) {
 						foundBomber=true;
 						break;
 					}
@@ -4848,7 +4752,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			int z = 0; boolean foundBomber=false;
 			while(z<t1au.size()) {
 				hau = t1au.get(z);
-				if(hau.getPopSize()==20&&holdNumbers.length>z&&holdNumbers[z]>0) {
+				if(hau.getType()==4&&holdNumbers.length>z&&holdNumbers[z]>0) {
 					foundBomber=true;
 					break;
 				}
@@ -4986,7 +4890,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			}
 			// If this is a support unit, but it's not an offensive one(i.e. support=2), then this
 			// user cannot send it anywhere.
-			if(scout==1&&addThis.getSize()>0&&addThis.getPopSize()!=1) {
+			if(scout==1&&addThis.getSize()>0&&addThis.getType()!=1) {
 				setError("Can't send non-soldiers on scouting missions.");
 				return false; 
 			}
@@ -5165,7 +5069,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				int z = 0; boolean foundBomber=false;
 				while(z<t1au.size()) {
 					hau = t1au.get(z);
-					if(hau.getPopSize()==20&&holdNumbers.length>z&&holdNumbers[z]>0) {
+					if(hau.getType()==4&&holdNumbers.length>z&&holdNumbers[z]>0) {
 						foundBomber=true;
 						break;
 					}
@@ -5182,7 +5086,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			int z = 0; boolean foundBomber=false;
 			while(z<t1au.size()) {
 				hau = t1au.get(z);
-				if(hau.getPopSize()==20&&holdNumbers.length>z&&holdNumbers[z]>0) {
+				if(hau.getType()==4&&holdNumbers.length>z&&holdNumbers[z]>0) {
 					foundBomber=true;
 					break;
 				}
@@ -5351,7 +5255,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			}
 			// If this is a support unit, but it's not an offensive one(i.e. support=2), then this
 			// user cannot send it anywhere.
-			if(scout==1&&addThis.getSize()>0&&addThis.getPopSize()!=1) {
+			if(scout==1&&addThis.getSize()>0&&addThis.getType()!=1) {
 				setError("You must send soldiers on a scouting mission!");
 				return false; 
 			}
@@ -5392,11 +5296,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		// but it'll always be zero if dig isn't on!
 		if(Bomb) holdAttack.setBombTarget(target);
 		if(scout==1) holdAttack.makeScoutRun(); // never going to be a bomb+scout run.
-		while(k<au.size()) {
-			holdAttack.add(au.get(k)); // This block here so above we can abort if wrong type of supporting unit.
-			// don't want to add the raid to the server before this check.
-			k++;
-		}
+		
 		
 		
 			//	public boolean runMethod(String methodName, Object... params) {
@@ -5790,12 +5690,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, g.findTown(x,y), Genocide, Bomb,support,invade,"noname",false,au,0);
 	
 		holdAttack.setResupplyID(raidID);
-		
-		while(k<au.size()) {
-			holdAttack.add(au.get(k)); // This block here so above we can abort if wrong type of supporting unit.
-			// don't want to add the raid to the server before this check.
-			k++;
-		}
+	
 		//holdAttack.closeCon();
 		notifyViewer();
 
@@ -6106,7 +6001,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			// better than missing one.
 					 g = 0;  au = new ArrayList<AttackUnit>();
 					
-					while(g<6) { // get an array ready!
+					while(g<p.getAu().size()) { // get an array ready!
 						au.add(p.getAu().get(g).returnCopy());
 						g++;
 					}
@@ -6249,10 +6144,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						 // myTown needs to be town1 because this is going to be the ghost destinator town - where the raid
 						// will "believe" this return raid came from.
 						g=0;
-						while(g<au.size()) {
-							holdAttack.add(au.get(g));
-							g++;
-						}
+						
 						holdAttack.endRaid(); // uses endRaid method to set raidOver=true;
 					
 					
@@ -9402,143 +9294,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.aLotTechPrice*(p.getALotTech()));
 
 					int lotTech = p.getALotTech();
-					int weap[] = new int[0];
 
-					AttackUnit a = new AttackUnit("empty",0,0,0,0,lotTech,0,weap,0);
-					p.setAu(a);
 					p.setALotTech(lotTech + 1);
 
 				
-			}/*else if(array[i].equals("soldierTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.soldierTechPrice);
-
-				p.setSoldierTech(true);
-			}else if(array[i].equals("tankTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.tankTechPrice);
-
-				p.setTankTech(true);
-
-			}else if(array[i].equals("juggerTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.juggerTechPrice);
-
-				p.setJuggerTech(true);
-
-			}else if(array[i].equals("bomberTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.bomberTechPrice);
-
-				p.setBomberTech(true);
-
-			}*/
-			else if(array[i].equals("ShockTrooper")) {
-				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-				int weap[] = {0,1};
-				// 1. Shock Trooper(25,50,75,50,'0,1,')  with Destroyer Class Upgrade  Weak Concealment, Strong against Armor
-
-				if(canCreateUnitTemplate("Shock Trooper",1,25,50,75,50,weap,0)) {
-					createUnitTemplate("Shock Trooper",1,25,50,75,50,weap,0);
-					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.soldierTechPrice);
-
-				}
-			}else if(array[i].equals("Pillager")) {
-				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-			// 2. Pillager (50,25,75,50,'3,4,') with Mayhem Upgrade  Upgrade Weak Armor, Strong against Speed
-
-				int weap[] = {3,4};
-				
-				if(canCreateUnitTemplate("Pillager",1,50,25,75,50,weap,4)) {
-					createUnitTemplate("Pillager",1,50,25,75,50,weap,4);
-					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.soldierTechPrice);
-
-				}
-			}else if(array[i].equals("Vanguard")) {
-				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-				// 3. Vanguard (50,50,75,25,'2,5,') with Defender Weak Speed, Strong against Concealment
-
-				int weap[] = {2,5};
-				if(canCreateUnitTemplate("Vanguard",1,50,50,75,25,weap,2)) {
-					createUnitTemplate("Vanguard",1,50,50,75,25,weap,2);
-					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.soldierTechPrice);
-
-				}
-				
-			}else if(array[i].equals("Wolverine")) {
-
-				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-			// 1. Wolverine (50,100,150,100,'6,7,')  with Devastator Upgrade Weak Concealment, Strong Against Armor
-
-				int weap[] = {6,7};
-				if(canCreateUnitTemplate("Wolverine",2,50,100,150,100,weap,3)) {
-					createUnitTemplate("Wolverine",2,50,100,150,100,weap,3);
-					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.tankTechPrice);
-
-				}	
-			}else if(array[i].equals("Seeker")) {
-				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-				// 2. Seeker (100,50,150,100,'9,10,')with Battlehard Upgrade Weak Armor, Strong against Speed
-
-				int weap[] = {9,10};
-				if(canCreateUnitTemplate("Seeker",2,100,50,150,100,weap,5)) {
-					createUnitTemplate("Seeker",2,100,50,150,100,weap,5);
-					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.tankTechPrice);
-
-				}	
-			}else if(array[i].equals("Damascus")) {
-				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-				// 3. Damascus (100,100,150,50,'8,11,')  with Stonewall Upgrade  Weak Speed, Strong against Concealment
-
-				int weap[] = {8,11};
-				if(canCreateUnitTemplate("Damascus",2,100,100,150,50,weap,6)) {
-					createUnitTemplate("Damascus",2,100,100,150,50,weap,6);
-					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.tankTechPrice);
-
-				}	
-			}else if(array[i].equals("Punisher")) {
-				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-			// 1. Punisher (100,200,300,200,'12,13,')  with Impervious Upgrade Weak Concealment, Strong Against Armor
-
-				int weap[] = {12,13};
-				if(canCreateUnitTemplate("Punisher",3,100,200,300,200,weap,8)) {
-					createUnitTemplate("Punisher",3,100,200,300,200,weap,8);
-					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.juggerTechPrice);
-
-				}	
-			}else if(array[i].equals("Dreadnaught")) {
-				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-			// 2. Dreadnaught (200,100,300,200,'15,16,')  with Conqueror Upgrade Weak ArmorStrong Against Speed
-
-				int weap[] = {15,16};
-				if(canCreateUnitTemplate("Dreadnaught",3,200,100,300,200,weap,9)) {
-					createUnitTemplate("Dreadnaught",3,200,100,300,200,weap,9);
-					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.juggerTechPrice);
-
-				}	
-			}else if(array[i].equals("Collossus")) {
-				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-				// 3. Collossus (200,200,300,100, '14,17,') with Ironside Upgrade Weak Speed, Strong against Concealment
-
-				int weap[] = {14,17};
-				if(canCreateUnitTemplate("Collossus",3,200,200,300,100,weap,7)) {
-					createUnitTemplate("Collossus",3,200,200,300,100,weap,7);
-					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.juggerTechPrice);
-
-				}	
-			}/*else if(array[i].equals("Helios")) {
-				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-				int weap[] = {20};
-				if(canCreateUnitTemplate("Helios",4,29,29,30,12,weap,1)) {
-					createUnitTemplate("Helios",4,29,29,30,12,weap,1);
-					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.bomberTechPrice);
-
-				}	
-			}else if(array[i].equals("Horizon")) {
-				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-				int weap[] = {19};
-				if(canCreateUnitTemplate("Horizon",4,12,29,29,30,weap,3)) {
-					createUnitTemplate("Horizon",4,12,29,29,30,weap,3);
-					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.bomberTechPrice);
-
-				}	
-			}*/else if(array[i].equals("Hades")) {
+			}/*else if(array[i].equals("Hades")) {
 				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
 				//  1. Hades (30,30,11,29,'18,') (holding The H.I.V.E.) with Conqueror Upgrade
 
@@ -9548,7 +9308,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.bomberTechPrice);
 
 				}	
-			} else if(array[i].equals("zeppTech")) { 
+			} */else if(array[i].equals("zeppTech")) { 
 				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.zeppelinTechPrice);
 				p.setZeppTech(true);
 			}else if(array[i].equals("missileSiloTech")) { 
@@ -9678,7 +9438,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						x=0;
 							while(x<pau.size()) {
 							if(!pau.get(x).getName().equals("locked")&&!pau.get(x).getName().equals("empty")) {
-								if(pau.get(x).getPopSize()>0)
+								if(pau.get(x).getType()>0)
 							num[x]+= ((double) amt)/*(1-((double) p.getBrkups())/48.0)*//((double) divider*pau.get(x).getExpmod());   // ((double) QueueItem.days*(24*3600-1800*(p.brkthrus-p.brkups+1)))/((double) GodGenerator.gameClockFactor*(QueueItem.getUnitTicks(pau.get(x).getPopSize(),t.getTotalEngineers(),t)*divider));
 							if(num[x]<0) {
 								setError("Somehow you've gone past the troop Push limit and gotten away with it. Please contact support.");
@@ -10059,96 +9819,6 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 * UI Implemented.
 		 * This method returns the array of all UserWeapon objects.
 		 */
-	public UserWeapon[] getWeapons() {
-		if(prog&&!p.isAdvancedAttackAPI()) {
-			setError("You do not have the Advanced Attack API!");
-			return null;
-		}
-		//	public AttackUnit(String name,  int lotNum, int weap[], String civType) {
-		int weap[] = new int[1];
-		weap[0]=0;
-		AttackUnit a = new AttackUnit("Blah",3,weap,"Nada.");
-		int i = 0;
-		UserWeapon[] hold= new UserWeapon[a.getFp().length];
-		String name;
-		while(i<a.getFp().length) {
-			
-			
-			switch(i) {
-			case 0:
-				name = (new String("Pump Action EMP Burster"));
-				break;
-			case 1:
-				name = (new String("Pulverizer"));
-				break;
-			case 2:
-				name = (new String("Rail Gun"));
-				break;
-			case 3:
-				name = (new String("Plasma Rifle"));
-				break;
-			case 4:
-				name = (new String("Arc-Thrower"));
-				break;
-			case 5:
-				name = (new String("Laser Rifle"));
-				break;
-			case 6:
-				name = (new String("WTF Class Rocket Launcher"));
-				break;
-			case 7:
-				name = (new String("Automatic EMP Burster"));
-				break;
-			case 8:
-				name = (new String("EMP Grenade Launcher"));
-				break;
-			case 9:
-				name = (new String("Plasma Minigun"));
-				break;
-			case 10:
-				name = (new String("Gauss Cannon"));
-				break;
-			case 11:
-				name = (new String("Fully Automated Laser Drone"));
-				break;
-			case 12:
-				name = (new String("B.R.T.H.L.E."));
-				break;
-			case 13:
-				name = (new String("Singularity Whip"));
-				break;
-			case 14:
-				name = (new String("Superstring Accelerator Cannon"));
-				break;
-			case 15:
-				name = (new String("Quantum Anomaly Enabler (Q.A.E.)"));
-				break;
-			case 16:
-				name = (new String("Gauss Minigun with Antigravity Support"));
-				break;
-			case 17:
-				name = (new String("EMP Wasp"));
-				break;
-			case 18:
-				name = (new String("H.I.V.E."));
-				break;
-			case 19:
-				name = (new String("The Horizon Machine"));
-				break;
-			case 20:
-				name = (new String("Focused Nova Bomb"));
-				break;
-			default:
-				name = "Error";
-			
-			}
-			
-			hold[i]=new UserWeapon(a.getFp()[i],a.getAmm()[i],a.getAcc()[i],name,i);
-			i++;	
-		}
-		
-		return hold;
-	}
 	/**
 	 * UI Implemented.
 	 * Returns an array of all the different building types in the game,
@@ -11493,16 +11163,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						weap[k]=b.getWeap()[k]; // protect the values!
 						k++;
 					}
-					if(j<6) 
-					toRet[j] = new UserAttackUnit(b.getAccuracy(),b.getAmmo(),b.getArmor(),b.getCargo(),b.getCivType(),
-							b.getConcealment(),b.getExpmod(),b.getFirepower(),b.getGraphicNum(),b.getHp(),b.getLotNum(),
-							b.getName(),p.ID,b.getSlot(),tid,b.getPopSize(),b.getSize(),
-							b.getSlot(),b.getSpeed(),b.getSupport(),weap,p.getUsername());
+					if(b.getSupport()==0) 
+						/*
+						 * public UserAttackUnit(String name, int slot, int originalPlayerID, int originalSlot,
+		int originalTID,
+		int support, String originalPlayer) {
+						 */
+					toRet[j] = new UserAttackUnit(b.getName(),b.getSlot(),p.ID,b.getSlot(),tid,0,p.getUsername());
 					else
-						toRet[j] = new UserAttackUnit(b.getAccuracy(),b.getAmmo(),b.getArmor(),b.getCargo(),b.getCivType(),
-								b.getConcealment(),b.getExpmod(),b.getFirepower(),b.getGraphicNum(),b.getHp(),b.getLotNum(),
-								b.getName(),b.getOriginalPlayer().ID,b.getOriginalSlot(),b.getOriginalTID(),b.getPopSize(),b.getSize(),
-								b.getSlot(),b.getSpeed(),b.getSupport(),weap,b.getOriginalPlayer().getUsername());
+						toRet[j] = new UserAttackUnit(b.getName(),b.getSlot(),b.getOriginalPlayer().ID,b.getOriginalSlot(),b.getOriginalTID(),b.getSupport(),
+								b.getOriginalPlayer().getUsername());
 					j++;
 				}
 				setError("noerror");
@@ -11511,10 +11181,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 	}
 	
-	
+	/*
 	/**
 	 * Returns an array of the user's attack unit templates.
-	 */
+	 
 	
 	public UserAttackUnit[] getUserAttackUnitTemplates() {
 		if(prog&&!p.isAdvancedAttackAPI()) {
@@ -11537,6 +11207,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					}
 					Player original = b.getOriginalPlayer();
 					if(original==null) original=p;
+			
 					toRet[j] = new UserAttackUnit(b.getAccuracy(),b.getAmmo(),b.getArmor(),b.getCargo(),b.getCivType(),
 							b.getConcealment(),b.getExpmod(),b.getFirepower(),b.getGraphicNum(),b.getHp(),b.getLotNum(),
 							b.getName(),original.ID,b.getOriginalSlot(),b.getOriginalTID(),b.getPopSize(),b.getSize(),
@@ -11547,7 +11218,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 				return toRet;
 			
-	}
+	}*/
 	/**
 	 * Returns an array of the user's attack units. They are of size zero as they are the models
 	 * for the ones in the UserTowns. They are stored at the UserPlayer level, not the UserTown level.
@@ -11574,10 +11245,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			}
 			Player original = b.getOriginalPlayer();
 			if(original==null) original=p;
-			toRet[j] = new UserAttackUnit(b.getAccuracy(),b.getAmmo(),b.getArmor(),b.getCargo(),b.getCivType(),
-					b.getConcealment(),b.getExpmod(),b.getFirepower(),b.getGraphicNum(),b.getHp(),b.getLotNum(),
-					b.getName(),original.ID,b.getOriginalSlot(),b.getOriginalTID(),b.getPopSize(),b.getSize(),
-					b.getSlot(),b.getSpeed(),b.getSupport(),weap,p.getUsername());
+		
+			toRet[j] = new UserAttackUnit(b.getName(),b.getSlot(),p.ID,b.getSlot(),0,0,p.getUsername());
+	
 			j++;
 		}
 		setError("noerror");
@@ -11740,7 +11410,6 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 		UserTown[] t = getUserTowns();
 		UserAttackUnit au[] = getUserAttackUnits();
-		UserAttackUnit AUTemplates[] = getUserAttackUnitTemplates();
 		boolean weap[] = new boolean[p.getWeap().length];
 		int k = 0;
 		if(!checkMP()) return null;
@@ -11775,7 +11444,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		String leagueName = null;
 		if(p.getLeague()!=null) leagueName=p.getLeague().getUsername();
-		return new UserPlayer(AUTemplates,p.ID,p.getLotTech(),p.getAfTech(),au,bomberPicTech,
+		return new UserPlayer(p.ID,p.getLotTech(),p.getAfTech(),au,bomberPicTech,
 				p.isBomberTech(),p.getKnowledge(),p.getBuildingSlotTech(),
 				p.getBunkerTech(),p.getCivWeapChoice(),p.getEngTech(),p.isLeague(),juggerPicTech,
 				p.isJuggerTech(),leagueName,p.getScholTech(),p.getScholTicks(),p.getScholTicksTotal(),
@@ -11995,7 +11664,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						x=0;
 							while(x<pau.size()) {
 							if(!pau.get(x).getName().equals("locked")&&!pau.get(x).getName().equals("empty")) {
-								if(pau.get(x).getPopSize()>0)
+								if(pau.get(x).getType()>0)
 							num[x]+= ((amt))/((double) divider*pau.get(x).getExpmod());   // ((double) QueueItem.days*(24*3600-1800*(p.brkthrus-p.brkups+1)))/((double) GodGenerator.gameClockFactor*(QueueItem.getUnitTicks(pau.get(x).getPopSize(),t.getTotalEngineers(),t)*divider));
 							
 						//	System.out.println(b.bid + " contributes  " + [x]+ " of au " + p.getAu().get(x).name + " in town " + t.townName);
@@ -13163,7 +12832,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 *Then for the weapons, just choose between 0 and 5 for soldier, 6 and 12 for tank, 13 and 18 for juggernaught. Choose random graphicNum between 0 and 10.
 		 *
 		 */
-		int mult=1;
+	/*	int mult=1;
 		switch(type) {
 		case 2:
 			mult=2;
@@ -13258,7 +12927,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		if(!can) error = getError();
 		if(test&&out!=null) out.print("conc: " + conc + " armor: " + armor + " speed: " + speed + " cargo: " + cargo + " weap1: " + weap1  + " weap2: " + weap2 + " type: " + type + " graphicNum: " + graphicNum + " unitName: " + unitName + " can: " +can + " error: " + getError());
 		if(test&&out==null) System.out.print("conc: " + conc + " armor: " + armor + " speed: " + speed + " cargo: " + cargo + " weap1: " + weap1  + " weap2: " + weap2 + " type: " + type + " graphicNum: " + graphicNum + " unitName: " + unitName + " can: " + can + " error: " + getError());
-
+		*/
 		return true;
 	}
 	/**

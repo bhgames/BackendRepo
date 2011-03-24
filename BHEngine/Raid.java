@@ -123,9 +123,9 @@ public class Raid {
 		   
 		      
 		      
-		      stmt.executeUpdate("insert into raid (tid1, tid2, distance, ticksToHit, genocide, raidOver,allClear,m,t,mm,f,totalTicks,Bomb,invade,name,genoRounds,digAmt) values (" +
+		      stmt.executeUpdate("insert into raid (tid1, tid2, distance, ticksToHit, genocide, raidOver,allClear,m,t,mm,f,totalTicks,Bomb,invade,name,genoRounds,digAmt,auSizes) values (" +
 		    		  town1.townID + "," + town2.townID + "," + distance + "," + ticksToHit + "," + Genocide + "," + false + "," + 
-		    		  false + "," + 0+ "," +0 + "," + 0 + "," +0 + "," + ticksToHit+"," + Bomb + "," + invade + ",\"" + name +  "\"," + genoRounds +","+digAmt+ ");");
+		    		  false + "," + 0+ "," +0 + "," + 0 + "," +0 + "," + ticksToHit+"," + Bomb + "," + invade + ",\"" + name +  "\"," + genoRounds +","+digAmt+ ",'"+PlayerScript.toJSONString(au)+"');");
 		      stmt.execute("commit;");
 		      
 			     Thread.currentThread().sleep(10);
@@ -146,7 +146,12 @@ public class Raid {
 		      	raidID=(ridstuff.getInt(1));
 				//town1.attackServer.add(this); // <---- THIS NEEDS TO BE RETURNED TO NORMAL IF YOU GO BACK TO MEMORYLOADING!
 			//      System.out.println("I put on " +raidID);
-
+		      	for(AttackUnit j:au) {
+		      		
+					stmt.executeUpdate("insert into raidSupportAU (rid,tid,tidslot,size) values (" + raidID + "," +
+							getTown1().townID + "," + j.getSlot() + "," + j.getSize() + ");"); // don't need original slot, need
+					// current town slot for remembering!
+		      	}
 		      ridstuff.close();
 			 /* Thread.currentThread().sleep(100);
 
@@ -271,9 +276,9 @@ public class Raid {
 		      
 		      // let's add this raid and therefore get the rid out of it.
 		      
-		      stmt.executeUpdate("insert into raid (tid1, tid2, distance, ticksToHit, genocide, raidOver,allClear,m,t,mm,f,totalTicks,Bomb,support,invade,name,debris,digAmt) values (" +
+		      stmt.executeUpdate("insert into raid (tid1, tid2, distance, ticksToHit, genocide, raidOver,allClear,m,t,mm,f,totalTicks,Bomb,support,invade,name,debris,digAmt,auSizes) values (" +
 		    		  town1.townID + "," + town2.townID + "," + distance + "," + ticksToHit + "," + Genocide + "," + false + "," + 
-		    		  false + "," + 0+ "," +0 + "," + 0 + "," +0 + "," + ticksToHit+"," + Bomb + "," + support + "," + invade + ",\"" + name +  "\","+debris+","+digAmt+");");
+		    		  false + "," + 0+ "," +0 + "," + 0 + "," +0 + "," + ticksToHit+"," + Bomb + "," + support + "," + invade + ",\"" + name +  "\","+debris+","+digAmt+",'"+PlayerScript.toJSONString(au)+"');");
 		      stmt.execute("commit;");
 		      
 			     Thread.currentThread().sleep(10);
@@ -304,6 +309,12 @@ public class Raid {
 		      
 		      	raidID=(ridstuff.getInt(1));
 		     
+		      	for(AttackUnit j:au) {
+		      		
+					stmt.executeUpdate("insert into raidSupportAU (rid,tid,tidslot,size) values (" + raidID + "," +
+							getTown1().townID + "," + j.getSlot() + "," + j.getSize() + ");"); // don't need original slot, need
+					// current town slot for remembering!
+		      	}
 				//town1.attackServer.add(this); // <---- THIS NEEDS TO BE RETURNED TO NORMAL IF YOU GO BACK TO MEMORYLOADING!
 		//	      System.out.println("I put on " +raidID);
 			      	town1.attackServer().add(this); // even if this error happens, raid still works...
@@ -335,7 +346,7 @@ public class Raid {
 		
 	}
 	
-	public void add(AttackUnit j) {
+	private void add(AttackUnit j) {
 		// THIS IS ONLY FOR DB USAGE...
 	//getAu().add(j); 
 	UberStatement stmt;
@@ -353,12 +364,13 @@ public class Raid {
       
       // let's add this raid and therefore get the rid out of it.
 		if(j.getSlot()<6) {
-      stmt.executeUpdate("update raid set au" + (j.getSlot()+1) + " = " + j.getSize() + " where rid = " + raidID + ";");
+      //stmt.executeUpdate("update raid set au" + (j.getSlot()+1) + " = " + j.getSize() + " where rid = " + raidID + ";");
 		} else {
 			
 			stmt.executeUpdate("insert into raidSupportAU (rid,tid,tidslot,size) values (" + raidID + "," +
 					getTown1().townID + "," + j.getSlot() + "," + j.getSize() + ");"); // don't need original slot, need
 			// current town slot for remembering!
+			
 			
 		}
 		
@@ -654,19 +666,21 @@ public class Raid {
 		
 		ArrayList<AttackUnit> raidAU = new ArrayList<AttackUnit>();
 		AttackUnit auHold;
+		String auSizesStr = getString("auSizes");
+		int auSizes[] = PlayerScript.decodeStringIntoIntArray(auSizesStr);
 		ArrayList<AttackUnit> tau = getTown1().getAu();
-		while(y<6) {
+		while(y<auSizes.length) {
 			 auHold = tau.get(y).returnCopy();
 			if(getSupport()==1&&getTown1().getPlayer().ID!=getTown2().getPlayer().ID){
 				 auHold.makeSupportUnit(auHold.getSlot(),getTown1().getPlayer(),getTown1().townID);
 			} else if(getSupport()==2&&getTown1().getPlayer().ID!=getTown2().getPlayer().ID) auHold.makeOffSupportUnit(auHold.getSlot(),getTown1().getPlayer(),getTown1().townID);
 
-			auHold.setSize(getInt("au" + (y+1)));
+			auHold.setSize(auSizes[y]);
 			raidAU.add(auHold);
 			
 			y++;
 		}
-		
+		/* OLDER SUPPORT CODE.
 		try {
 		
 			UberStatement rustown2 = con.createStatement();
@@ -692,10 +706,10 @@ public class Raid {
 		}
 		
 		rrs2.close();
-		rustown2.close();
+		rustown2.close();*/
 		
 		au= raidAU;
-		} catch(SQLException exc) { exc.printStackTrace(); }
+		//} catch(SQLException exc) { exc.printStackTrace(); }
 		
 		}
 		return au;
@@ -759,13 +773,14 @@ public class Raid {
 		  // By placeholders I mean they are like extra au fields for the raid, the actual
 		  // data is held on the supportAU table.
 		try {
-		   int k = 6;
+		   int k = 0;
 		   UberStatement stmt = con.createStatement();
 		   ArrayList<AttackUnit> au = getAu();
 		//   stmt.executeUpdate("update raid set ticksToHit=-1 where rid = " + raidID);
 		   setTicksToHit(-1);
 		   save(); // save the current state right before deletion.
 		  while(k<au.size()) {
+			  if(au.get(k).getSupport()>0)
 				stmt.executeUpdate("delete from raidSupportAU where tid = " + getTown1().townID + " and rid = " + raidID + 
 						" and tidslot = " + au.get(k).getSlot() + ";");		    			  
 			  k++;
@@ -779,29 +794,25 @@ public class Raid {
    		  try {
    			  UberStatement stmt = con.createStatement();
    	   		  ArrayList<AttackUnit> au = getAu();
-   	   		  if(getTown1().townID==3569)
-   	   		  System.out.println("I am raid " + raidID);
+   	   		
    		String   update="";
    		  try {
    			
    		   update = "update raid set distance = " + distance + ", ticksToHit = " + ticksToHit + ", genocide = " +
    		  Genocide + ", raidOver = " + raidOver + ", allClear = " + allClear + ", m = "+  metal + ", t = " + 
-   		  timber + ", mm = " + manmat + ", f = " + food +  ", au1 = " +
-	    	  au.get(0).getSize() + ", au2 = " + au.get(1).getSize() + ", au3 = " + au.get(2).getSize() + ", au4 = " + au.get(3).getSize() +
-	    	  ", au5 = " + au.get(4).getSize() + ", au6 = " + au.get(5).getSize() + ", bomb = " + Bomb
+   		  timber + ", mm = " + manmat + ", f = " + food +  "auSizes='"+ PlayerScript.toJSONString(getAu()) +"', bomb = " + Bomb
 	    	  + ", bombtarget = " + bombTarget + ", support = " + support + ", scout = " + scout+ ", invade = " + invade + ", resupplyID = " +
 	    	  resupplyID + ", totalTicks = " + totalTicks + " where rid = " + raidID +";";
    		  } catch(IndexOutOfBoundsException exc) {
    			  exc.printStackTrace();
-   			  System.out.println("Found");
    		  }
    		  stmt.executeUpdate(update);
    		  
-   		  int k = 6;
+   		/*  int k = 6;
    		  while(k<au.size()) {
    				stmt.executeUpdate("update raidSupportAU set size = " + au.get(k).getSize() + " where tid = " + town1.townID + " and rid = " + raidID + " and tidslot = " + au.get(k).getSlot() + ";");		    			  
    			  k++;
-   		  }
+   		  }*/
    		  stmt.close();
    		  
    		  // either being added back to town or was completely wiped out, either way, should be removed from memory.

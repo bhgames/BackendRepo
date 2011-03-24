@@ -318,7 +318,7 @@ public class PlayerScript implements Runnable {
     	 
     		 // string.
     		toRet+=""+b.deleteAUTemplate(holdPart);
-    	 } */else if(holdCmd.equals("bf.createCombatUnit")||holdCmd.equals("bf.canCreateCombatUnit")) {
+    	 } else if(holdCmd.equals("bf.createCombatUnit")||holdCmd.equals("bf.canCreateCombatUnit")) {
 
     		 //number, string
     		
@@ -329,7 +329,7 @@ public class PlayerScript implements Runnable {
     	    		toRet+=""+b.canCreateCombatUnit(Integer.parseInt(holdPart.substring(0,holdPart.indexOf(","))),
     	    				 holdPart.substring(holdPart.indexOf(",")+1,holdPart.length()));
     			 
-    	 } else if(holdCmd.equals("bf.cancelQueueItem")) {
+    	 } */else if(holdCmd.equals("bf.cancelQueueItem")) {
     	 
     		 // number, string or number, number or (number,number,number or number,number,string)
     		 if(!holdPart.substring(holdPart.indexOf(",")+1,holdPart.length()).contains(",")) { 
@@ -501,7 +501,7 @@ public class PlayerScript implements Runnable {
         		toRet+=b.sendHome(array1,num2,num3);
     		 }
     	 }    	
-    	 else if(holdCmd.equals("bf.getBunkerEffectToString")||holdCmd.equals("bf.getAFEffectToString")) {
+    	 /*else if(holdCmd.equals("bf.getBunkerEffectToString")||holdCmd.equals("bf.getAFEffectToString")) {
 
     	 
     		 // number, number,
@@ -518,7 +518,7 @@ public class PlayerScript implements Runnable {
         	 toRet+= b.getAFEffectToString(num1,num2);
     		 }
  
-    	 }else if(holdCmd.equals("bf.getTicksPerAttackUnit")) {
+    	 }*/else if(holdCmd.equals("bf.getTicksPerAttackUnit")) {
     		 //number,number
     		 int num1 = Integer.parseInt(holdPart.substring(0,holdPart.indexOf(",")));
     		 int num2 = Integer.parseInt(holdPart.substring(holdPart.lastIndexOf(",")+1,holdPart.length()));
@@ -1202,7 +1202,7 @@ public class PlayerScript implements Runnable {
     		 
     		 toRet+=b.leaveLeague();
     	 }
-    	 else if(holdCmd.equals("bf.getWeapons")) {
+   /* 	 else if(holdCmd.equals("bf.getWeapons")) {
     		 // no args
     		 str = new JSONStringer();
     		 u = b.getWeapons();
@@ -1222,7 +1222,7 @@ public class PlayerScript implements Runnable {
     		 str.endArray();
     		 } catch(JSONException exc) { exc.printStackTrace();  toRet+="internalservererror";}
     		toRet+=str.toString();
-    	 }
+    	 }*/
     	 else if(holdCmd.equals("bf.getLeagueInfo")) {
     		 // no args
     		 str = new JSONStringer();
@@ -1317,12 +1317,7 @@ public class PlayerScript implements Runnable {
     		 
     		toRet+=str.toString();}
     	 }
-    	 else if(holdCmd.equals("bf.getCivWeap")) {
-    		 // no args
-    		
-    		toRet+=b.getCivWeap();
-    		
-    	 }else if(holdCmd.equals("bf.getVersion")) {
+    	 else if(holdCmd.equals("bf.getVersion")) {
     		 // no args
      		
      		toRet+=b.getVersion();
@@ -1978,8 +1973,6 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 toRet+=b.setVersion(holdPart);
     		 else if(holdCmd.equals("bf.markUnReadUserSR")) 
     			 toRet+=b.markUnReadUserSR(Integer.parseInt(holdPart));
-    		 else if(holdCmd.equals("bf.changeCivWeap"))
-    			 toRet+=b.changeCivWeap(Integer.parseInt(holdPart));
     		 else if(holdCmd.equals("bf.abortAirship"))
     			 toRet+=b.abortAirship(Integer.parseInt(holdPart));
     		 else if(holdCmd.equals("bf.offloadResources"))
@@ -3153,6 +3146,27 @@ try {
 		 int k = 0;
 		 while(k<array.length) {
 			 arrayWriter.value(array[k]);
+
+			 k++;
+		 }
+		 arrayWriter.endArray();
+		 return arrayWriter.toString();
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			return "internal_parser_error";
+	}
+	public static String toJSONString(ArrayList<AttackUnit> au) {
+		JSONStringer arrayWriter=new JSONStringer();
+		if(au==null) return "false";
+		 try {
+			arrayWriter.array();
+	
+		 int k = 0;
+		 while(k<au.size()) {
+			 arrayWriter.value(au.get(k).getSize());
 
 			 k++;
 		 }

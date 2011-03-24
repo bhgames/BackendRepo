@@ -1186,23 +1186,15 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 						//	public AttackUnit(String name, double conc, double armor, double cargo, double speed, int slot, int popSize, int weap[], int graphicNum) {
 						j.object()
 						.key("name").value(aunit.getName())
-						.key("conc").value(aunit.getConcealment())
+				//		.key("conc").value(aunit.getConcealment())
 						.key("armor").value(aunit.getArmor())
 						.key("cargo").value(aunit.getCargo())
 						.key("speed").value(aunit.getSpeed())
 						.key("slot").value(aunit.getSlot())
-						.key("firepower").value(aunit.getFirepower())
-						.key("ammo").value(aunit.getAmmo())
-						.key("accuracy").value(aunit.getAccuracy())
-						.key("popSize").value(aunit.getPopSize())
-						.key("weap").array();
-						int k = 0;
-						while(k<aunit.getWeap().length) {
-							j.value(aunit.getWeap()[k]);
-							k++;
-						}
-						j.endArray()
-						.key("graphicNum").value(aunit.getGraphicNum())
+						.key("attackDamage").value(aunit.getAttackDamage())
+						.key("attackType").value(aunit.getAttackType())
+						.key("armorType").value(aunit.getArmorType())
+						.key("type").value(aunit.getType())
 						.endObject();
 						} catch(Exception exc) { exc.printStackTrace(); System.out.println("Player load saved."); }
 
@@ -1219,23 +1211,15 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 						
 						j.object()
 						.key("name").value(aunit.getName())
-						.key("conc").value(aunit.getConcealment())
+				//		.key("conc").value(aunit.getConcealment())
 						.key("armor").value(aunit.getArmor())
 						.key("cargo").value(aunit.getCargo())
 						.key("speed").value(aunit.getSpeed())
 						.key("slot").value(aunit.getSlot())
-						.key("firepower").value(aunit.getFirepower())
-						.key("ammo").value(aunit.getAmmo())
-						.key("accuracy").value(aunit.getAccuracy())
-						.key("popSize").value(aunit.getPopSize())
-						.key("weap").array();
-						int k = 0;
-						while(k<aunit.getWeap().length) {
-							j.value(aunit.getWeap()[k]);
-							k++;
-						}
-						j.endArray()
-						.key("graphicNum").value(aunit.getGraphicNum());
+						.key("attackDamage").value(aunit.getAttackDamage())
+						.key("attackType").value(aunit.getAttackType())
+						.key("armorType").value(aunit.getArmorType())
+						.key("type").value(aunit.getType());
 						j.endObject();
 						} catch(Exception exc) { exc.printStackTrace(); System.out.println("Player load saved for au."); }
 						i++;

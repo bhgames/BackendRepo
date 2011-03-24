@@ -72,11 +72,18 @@ public class Town {
 		ArrayList<AttackUnit> aufortown = new ArrayList<AttackUnit>();
 		 i = 0;
 		AttackUnit ha;
+		String sizeString = getMemString("auSizes");
+		int[] auSizes = PlayerScript.decodeStringIntoIntArray(sizeString);
 		try {
-		while(i<6) {
+		while(i<au.size()) { 
 			 ha = au.get(i).returnCopy();
-			ha.setSize(getMemInt("au" + (i+1)));
-			
+		//	ha.setSize(getMemInt("au" + (i+1)));
+			 try {
+			 ha.setSize(auSizes[i]);
+			 } catch(ArrayIndexOutOfBoundsException exc) {
+				 exc.printStackTrace();
+				 System.out.println("Setup for town " + getTownName() + " saved. i was " + i + " auSizes was " + auSizes.length + " and au was " + au.size());
+			 }
 			aufortown.add(ha);
 			i++;
 		}
@@ -87,8 +94,8 @@ public class Town {
 		UberStatement sau = con.createStatement();
 			
 		ResultSet saurs = sau.executeQuery("select * from supportAU where tid = " + townID + " order by slotnum asc");
-	 UberStatement aus; ResultSet aurs;Player foreignP; String weapons;int weapc = 0; int weapforau[]; String holdPart; AttackUnit sAU;
-	 aus = con.createStatement();
+		UberStatement aus; ResultSet aurs;Player foreignP; String weapons;int weapc = 0; int weapforau[]; String holdPart; AttackUnit sAU;
+		aus = con.createStatement();
 
 		while(saurs.next()) {
 			int forTownSlot = saurs.getInt(3); // foreign town's slot.
@@ -142,9 +149,9 @@ public class Town {
 						weapc++;
 					}
 				
-				 sAU = new AttackUnit(aurs.getString(1), aurs.getDouble(4), aurs.getDouble(5), 
-						aurs.getDouble(6), aurs.getDouble(7), thisTownSlot, popSize, weapforau,aurs.getInt(10));
-				sAU.setSize(saurs.getInt(5));
+				 sAU = new AttackUnit(aurs.getString(1), aurs.getInt(3));
+				sAU.setSize(auSizes[i]);
+				i++; // so auSizes gets incremented every time.
 				if(saurs.getInt(6)==1) sAU.makeSupportUnit(forTownSlot,foreignP,originalTID);
 				else if(saurs.getInt(6)==2) sAU.makeOffSupportUnit(forTownSlot,foreignP,originalTID);
 			
@@ -292,10 +299,10 @@ public class Town {
 		while(i<attackServer().size()) {
 			r = attackServer().get(i);
 			if(r.getTown2()==null) {
-				System.out.println(getTownName() + " is saving us from " + r.raidID);
+				//System.out.println(getTownName() + " is saving us from " + r.raidID);
 				try {
 				int j = 0;
-				while(j<6) {
+				while(j<r.getAu().size()) {
 					setSize(j,r.getAu().get(j).getSize());
 					j++;
 				}
@@ -1273,7 +1280,7 @@ public class Town {
 		synchronized(au) {
 			int popSize=0; int i = 0;
 		while(i<au.size()) {
-			if(au.get(i).getSlot()==slot){ popSize=au.get(i).getPopSize(); break; }
+			if(au.get(i).getSlot()==slot){ popSize=au.get(i).getExpmod(); break; }
 			i++;
 		}
 
@@ -1530,7 +1537,7 @@ public class Town {
 		 // supportAU are deleted by the AU Check method when there are no further raid support AU out nor supportAU at home.
 	 try {
 		 UberStatement stmt = con.createStatement();
-	 	  int j = 6; String updateAU[] = null;
+	 /*	  int j = 6; String updateAU[] = null;
     	  if(getAu().size()>6) 
     	  updateAU = new String[getAu().size()-6];
     	  AttackUnit hau;
@@ -1541,7 +1548,6 @@ public class Town {
     	   if(hau.getSupport()>0) {
     		  // means it is a support au of some sort. This needs to be updated in a different place.
     		   
-    		System.out.println("updating " + hau.getName() + " with size " + hau.getSize());
     			  updateAU[j-(6)] = "update supportAU set size = " + hau.getSize() + " where tid = " + townID + " and slotnum = "+ hau.getSlot() + ";";
 
     		
@@ -1552,13 +1558,11 @@ public class Town {
     	  
 	    	  j++;
 	    	  
-    	  }
+    	  }*/
     	  ArrayList<AttackUnit> au = getAu();
     	  String update = "update town set townName = '" + townName + "', x = " + x + ", y = " + y + 
 	    	  ", m = " + getRes()[0] + ", t = " + getRes()[1] + ", mm = " + getRes()[2] + ", f = " + getRes()[3] + ", pop = " + getRes()[4] +
-	    	   ", au1 = " +
-	    	  au.get(0).getSize() + ", au2 = " +  au.get(1).getSize() + ", au3 = " +  au.get(2).getSize() + ", au4 = " +  au.get(3).getSize() +
-	    	  ", au5 = " + au.get(4).getSize() + ", au6 =" +  au.get(5).getSize() +", owedTicks = " + owedTicks+", zeppelin = " + zeppelin + ",  fuelcells = " + fuelCells + 
+	    	  "auSizes = '"+PlayerScript.toJSONString(au)  +"', owedTicks = " + owedTicks+", zeppelin = " + zeppelin + ",  fuelcells = " + fuelCells + 
 	    	  ", ticksTillMove = " + ticksTillMove +", digTownID = " + digTownID +", msgSent = " +msgSent + ", digAmt = " + digAmt+  ", destX = " + destX +", destY = " + destY + ", probTimer =  " + probTimer + ", findTime = " + findTime + ", digCounter = " + digCounter 
 	    	  +", debm = " + getDebris()[0] + ", debt = " + getDebris()[1] + ", debmm = " + getDebris()[2] + ", debf = " + getDebris()[3] +" where tid = " + townID + ";";
 	    	  stmt.executeUpdate(update);
@@ -2278,7 +2282,8 @@ public class Town {
 			i=0;
 			retAU = new ArrayList<AttackUnit>();
 			ArrayList<AttackUnit> au = getAu();
-			while(i<6) { // only want the player's own AUs,
+			while(i<au.size()) { // only want the player's own AUs,
+				if(au.get(i).getSupport()==0)
 				retAU.add(au.get(i).returnCopy());
 				i++;
 			}
@@ -2287,11 +2292,11 @@ public class Town {
 			while(i<attackServer().size()) { // get all home au.
 				 currR = attackServer().get(i);
 				 j = 0;
-				while(j<6) {
-					
-					retAU.get(j).setSize(retAU.get(j).getSize()+currR.getAu().get(j).getSize());
-					currR.getAu().get(j).setSize(0);
-					
+				while(j<retAU.size()) {
+					if(retAU.get(j).getSupport()==0) {
+						retAU.get(j).setSize(retAU.get(j).getSize()+currR.getAu().get(j).getSize());
+						currR.getAu().get(j).setSize(0);
+					}
 					j++;
 				}
 				currR.deleteMe();
@@ -2319,11 +2324,7 @@ public class Town {
 					int testhold = (int) Math.round(Math.sqrt(Math.pow((x-closestTown.getX()),2)+Math.pow((y-closestTown.getY()),2))*10/(lowSpeed*GodGenerator.speedadjust));
 					retAURaid = new Raid(distance,testhold,closestTown,this,false,false,0,false,"Run Away!",false,retAU,0);
 					retAURaid.setRaidOver(true); // so now it's a "return raid" on the server with full
-					i = 0;
-					while(i<6) {
-						retAURaid.add(retAU.get(i)); // adding all of the units.
-						i++; 
-					}
+				
 				}
 			
 			
@@ -2404,7 +2405,7 @@ public class Town {
 			while(i<au.size()) {
 				 a = au.get(i);
 					au.remove(i);
-					player.setTotalPopulation(player.getTotalPopulation()-a.getSize()*a.getPopSize());
+					player.setTotalPopulation(player.getTotalPopulation()-a.getSize()*a.getExpmod());
 
 			}
 			
@@ -2430,7 +2431,8 @@ public class Town {
 		//	System.out.println("Killed attack server.");
 			ArrayList<AttackUnit> newAU = incomingPlayer.getAu();
 			i=0;
-			while(i<6) {
+			while(i<newAU.size()) {
+				if(newAU.get(i).getSupport()==0) {
 				 a =newAU.get(i).returnCopy();
 				 if(r!=null) {
 				a.setSize(r.getAu().get(i).getSize());
@@ -2440,6 +2442,7 @@ public class Town {
 				
 				au.add(a); // making a new attack unit set!
 				//System.out.println("New attack unit is " + au.get(i).getName());
+				}
 				i++;
 			}
 			
@@ -3225,19 +3228,7 @@ public class Town {
 		this.au = au;
 	}
 
-	public void setMemSize(int index, int size) {
-		if(index<6) setMemInt("au"+(index+1),size);
-		else {
-			try {
-				UberStatement stmt = con.createStatement();
-				AttackUnit a = getAu().get(index);
-			
-				stmt.executeUpdate("update supportAU setMem size = " +size + " where slotnum = " +a.getSlot() +  " and tid = " + townID);
-				
-				stmt.close();
-			} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Your shit is a-okay."); } 
-		}
-	}
+	
 	
 	public void setMemPlayer(Player player) {
 		setMemInt("pid",player.ID);

@@ -216,7 +216,7 @@ public class Player  {
 			}
 			rs.close();
 
-			au = getMemAu(); AUTemplates = getMemAUTemplates();
+			au = getMemAu(); 
 			try {
 			getAchievements();
 			} catch(Exception exc) { exc.printStackTrace(); System.out.println("No idea why this error happened, but player load saved."); } 
@@ -886,62 +886,11 @@ public class Player  {
 					}
 				
 				
-				au.add(new AttackUnit(aurs.getString(1), aurs.getDouble(4), aurs.getDouble(5), 
-						aurs.getDouble(6), aurs.getDouble(7), aurs.getInt(3), popSize, weapforau,aurs.getInt(10)));
+				au.add(new AttackUnit(aurs.getString(1), aurs.getInt(3)));
 			}
 			
 			aurs.close();aus.close(); 
-			 aus = con.createStatement();
-			 aurs = aus.executeQuery("select * from autemplate where pid = " + ID); // should find six units.
-
-			// setAUTemplates(new ArrayList<AttackUnit>());
-				AUTemplates = new ArrayList<AttackUnit>();
-
-				while(aurs.next()) {
-					int type = aurs.getInt(7);
-					int popSize = 0;
-					switch(type) {
-					case 1: 
-						popSize=1;
-						break;
-					case 2:
-						popSize=5;
-						break;
-					case 3:
-						popSize=10;
-						break;
-					case 4:
-						popSize=20;
-						break;
-					}
-					 weapons = aurs.getString(8); // weaps getting time...which weapons are equipped?
-					if(weapons==null) weapons="";
-				       weapc = 0; 
-				        holdPart = weapons;
-				       while(!holdPart.equals("")) {
-				    	   holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
-				    	   weapc++;
-				       }
-				       
-				        weapforau = new int[weapc]; 
-				       
-				       weapc=0;
-						while(weapc<weapforau.length) {
-
-							weapforau[weapc]=Integer.parseInt(weapons.substring(0,weapons.indexOf(",")));
-							
-							weapons = weapons.substring(weapons.indexOf(",")+1,weapons.length());
-
-							weapc++;
-						}
-					
-					//	public AttackUnit(String name, double conc, double armor, double cargo, double speed, int slot, int popSize, int weap[], int graphicNum) {
-
-					getAUTemplates().add(new AttackUnit(aurs.getString(1), aurs.getDouble(3), aurs.getDouble(4), 
-							aurs.getDouble(5), aurs.getDouble(6), -1, popSize, weapforau,aurs.getInt(9))); // slot is -1 for template units, no slots, bitches.
-				} // NOTICE THE DISCREPANCY, 9 V 10 ON LAST ARGUMENT, DUE TO AUTEMPLATES NOT HAVING A SLOT COLUMN! WATCHHHH!
-
-			 aurs.close(); aus.close();
+			
 			 
 			// time to get town stuff.
 			 tus = con.createStatement();
@@ -992,7 +941,7 @@ public class Player  {
 		ArrayList<AttackUnit> au = getAu();
 		ArrayList<Building> bldg;
 		while(i<au.size()) {
-			totalpopulation+=God.getTotalSize(au.get(i),this)*au.get(i).getPopSize();
+			totalpopulation+=God.getTotalSize(au.get(i),this)*au.get(i).getExpmod();
 			i++;
 		}
 
@@ -1018,10 +967,10 @@ public class Player  {
 			au = t.getAu();
 			while(j<au.size()) {
 				a = au.get(j);
-				if(a.getName().equals("Engineer")) totaleng+=a.getSize()*a.getPopSize();
-				if(a.getName().equals("Trader")) totaltrad+=a.getSize()*a.getPopSize();
-				if(a.getName().equals("Scholar")) totalschol+=a.getSize()*a.getPopSize();
-				if(a.getName().equals("Messenger")) totalmess+=a.getSize()*a.getPopSize();
+				if(a.getName().equals("Engineer")) totaleng+=a.getSize();
+				if(a.getName().equals("Trader")) totaltrad+=a.getSize();
+				if(a.getName().equals("Scholar")) totalschol+=a.getSize();
+				if(a.getName().equals("Messenger")) totalmess+=a.getSize();
 
 
 				j++;
@@ -1155,7 +1104,7 @@ public class Player  {
 	      AttackUnit hau;
 	      String weapons;
 	      try {
-	      while(co<6) {
+	      while(co<getAu().size()) {
 	    	   hau = getAu().get(co);
 	    	   weapons="";
 	    	  int j = 0;
@@ -1164,14 +1113,8 @@ public class Player  {
 	    		  j++;
 	    		  
 	    	  }
-	    	  int type;
-	    	  if(hau.getPopSize()==1) type = 1;
-	    	  else if(hau.getPopSize()==5) type = 2;
-	    	  else if(hau.getPopSize()==10) type = 3;
-	    	  else if(hau.getPopSize()==20) type=4;
-	    	  else if(hau.getPopSize()==0) type=5;
-	    	  else type = 6; // means somebody went-a-hackin'.
-	    	  updateAU[co] = "update attackunit set name = \"" + hau.getName() + "\", slot = " + hau.getSlot() + ", conc = " + hau.getConcealment() + 
+	    	  int type=hau.getType();
+	    	  updateAU[co] = "update attackunit set name = \"" + hau.getName() + "\", slot = " + hau.getSlot() + ", conc = " + hau.getArmorType() + 
 	    	  ", armor = " + hau.getArmor() + ", cargo = " + hau.getCargo() + ", speed = " + hau.getSpeed() + ", type = " +type + ", weapons = '" +
 	    	  weapons + "' where pid = " + ID +" and slot = "+  hau.getSlot() + ";";
 
@@ -1379,15 +1322,8 @@ public class Player  {
 	    		  
 	    	  }
 	    	  
-	    	  int type;
-	    	  if(hau.getPopSize()==1) type = 1;
-	    	  else if(hau.getPopSize()==5) type = 2;
-	    	  else if(hau.getPopSize()==10) type = 3;
-	    	  else if(hau.getPopSize()==20) type=4;
-	    	  else if(hau.getPopSize()==0) type=5;
-	    	  else type = 6; // means somebody went-a-hackin'.
-		
-		  	 String updateAU = "update attackunit set name = \"" + hau.getName() + "\", slot = " + hau.getSlot() + ", conc = " + hau.getConcealment() + 
+	    	  int type=hau.getType();
+		  	 String updateAU = "update attackunit set name = \"" + hau.getName() + "\", slot = " + hau.getSlot() + ", conc = " + hau.getArmorType() + 
 			  ", armor = " + hau.getArmor() + ", cargo = " + hau.getCargo() + ", speed = " + hau.getSpeed() + ", type = " +type + ", weapons = '" +
 			  weapons + "' where pid = " + ID +" and slot = "+  hau.getSlot() + ";";
 		  	 UberStatement stmt = con.createStatement();
@@ -1409,46 +1345,9 @@ public class Player  {
 
 		String weapons; int weapc = 0; String holdPart; int weapforau[];
 		while(aurs.next()) {
-			int type = aurs.getInt(8);
-			int popSize = 0;
-			switch(type) {
-			case 1: 
-				popSize=1;
-				break;
-			case 2:
-				popSize=5;
-				break;
-			case 3:
-				popSize=10;
-				break;
-			case 4:
-				popSize=20;
-				break;
-			}
-			 weapons = aurs.getString(9); // weaps getting time...which weapons are equipped?
-			if(weapons==null) weapons="";
-		       weapc = 0; 
-		        holdPart = weapons;
-		       while(!holdPart.equals("")) {
-		    	   holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
-		    	   weapc++;
-		       }
-		       
-		        weapforau = new int[weapc]; 
-		       
-		       weapc=0;
-				while(weapc<weapforau.length) {
-
-					weapforau[weapc]=Integer.parseInt(weapons.substring(0,weapons.indexOf(",")));
-					
-					weapons = weapons.substring(weapons.indexOf(",")+1,weapons.length());
-
-					weapc++;
-				}
 			
 			
-			au.add(new AttackUnit(aurs.getString(1), aurs.getDouble(4), aurs.getDouble(5), 
-					aurs.getDouble(6), aurs.getDouble(7), aurs.getInt(3), popSize, weapforau,aurs.getInt(10)));
+			au.add(new AttackUnit(aurs.getString(1), aurs.getInt(3)));
 		}
 		
 		aurs.close();aus.close(); 
@@ -1742,48 +1641,7 @@ public class Player  {
 	 * @param hau
 	 * @param addDelEdit
 	 */
-	public void setMemAUTemplate(AttackUnit hau, int addDelEdit) {
-		try {
-			  UberStatement stmt = con.createStatement();
-			  
-	    	   String weapons="";
-	    	   
-	    	  int j = 0;
-	    	  while(j<hau.getWeap().length) { // this holds which weapon is what. And all that shizzit.
-	    		  weapons+=hau.getWeap()[j]+",";
-	    		  j++;
-	    		  
-	    	  }
-	    	  
-	    	  int type;
-	    	  if(hau.getPopSize()==1) type = 1;
-	    	  else if(hau.getPopSize()==5) type = 2;
-	    	  else if(hau.getPopSize()==10) type = 3;
-	    	  else if(hau.getPopSize()==20) type=4;
-	    	  else if(hau.getPopSize()==0) type=5;
-	    	  else type = 6; // means somebody went-a-hackin'.
-	    	  switch(addDelEdit) {
-	    	  case 0:
-	    		  stmt.executeUpdate("insert into autemplate(name,pid,conc,armor,cargo,speed,type,weapons,graphic) values ('" +
-	    				  hau.getName() + "'," + ID + "," + hau.getConcealment() + "," + hau.getArmor() + "," + hau.getCargo() + "," + hau.getSpeed() +
-	    				  "," + type + ",'" + weapons + "'," + hau.getGraphicNum() + ");");
-	    	  break;
-	    	  case 1:
-	    		  stmt.executeUpdate("delete from autemplate where pid = " + ID + " and name = '" + hau.getName() + "';");
-	    		  break;
-	    	  case 2:
-	    		  stmt.executeUpdate("update autemplate set name = \"" + hau.getName() + "\", conc = " + hau.getConcealment() + 
-		    	  ", armor = " + hau.getArmor() + ", cargo = " + hau.getCargo() + ", speed = " + hau.getSpeed() + ", type = " +type + ", weapons = '" +
-		    	  weapons + "', graphic = " + hau.getGraphicNum() + " where pid = " + ID +" and name = '"+  hau.getName() + "';");
-	    		  break;
-	    	  }
-	    	 
-	    	  stmt.close();
-			
-		} catch(SQLException exc) { exc.printStackTrace(); }
 	
-	
-	}
 	public void setAUTemplate(AttackUnit hau) {
 		int i = 0;
 		ArrayList<AttackUnit> AUTemplates = getAUTemplates();
@@ -1791,7 +1649,7 @@ public class Player  {
 			if(AUTemplates.get(i).getName().equals(hau.getName())) AUTemplates.set(i,hau);
 			i++;
 		}
-	}
+	}/*
 	public ArrayList<AttackUnit> getMemAUTemplates() {
 		 ArrayList<AttackUnit> AUTemplates = new ArrayList<AttackUnit>();
 
@@ -1846,15 +1704,15 @@ public class Player  {
 				
 				//	public AttackUnit(String name, double conc, double armor, double cargo, double speed, int slot, int popSize, int weap[], int graphicNum) {
 
-				AUTemplates.add(new AttackUnit(aurs.getString(1), aurs.getDouble(3), aurs.getDouble(4), 
-						aurs.getDouble(5), aurs.getDouble(6), -1, popSize, weapforau,aurs.getInt(9))); // slot is -1 for template units, no slots, bitches.
+			//	AUTemplates.add(new AttackUnit(aurs.getString(1), aurs.getDouble(3), aurs.getDouble(4), 
+				//		aurs.getDouble(5), aurs.getDouble(6), -1, popSize, weapforau,aurs.getInt(9))); // slot is -1 for template units, no slots, bitches.
 			} // NOTICE THE DISCREPANCY, 9 V 10 ON LAST ARGUMENT, DUE TO AUTEMPLATES NOT HAVING A SLOT COLUMN! WATCHHHH!
 
-		 aurs.close(); aus.close();
+			aurs.close(); aus.close();
 			} catch(SQLException exc) { exc.printStackTrace(); }
 			return AUTemplates;
 		}
-	
+	*/
 	public ArrayList<AttackUnit> getAUTemplates() {
 		return AUTemplates;
 	}

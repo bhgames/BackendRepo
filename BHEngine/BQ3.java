@@ -139,8 +139,8 @@ public class BQ3 extends QuestListener {
 			else {
 				int weap[] = {0,0};
 				PlayerScript ps = getPs();
-				ps.b.createUnitTemplate("Iddite",1,80,20,75,25,weap,0,false);
-				ps.b.createCombatUnit(0,"Iddite");
+		//		ps.b.createUnitTemplate("Iddite",1,80,20,75,25,weap,0,false);
+			//	ps.b.createCombatUnit(0,"Iddite");
 				r+="loadedau;";
 			}
 		}

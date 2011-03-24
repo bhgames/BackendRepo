@@ -290,17 +290,17 @@ public static int days = 5;
 			 theMany = AttackUnit.soldierExpMod;
 
 			 break;
-		 case 5:
+		 case 2:
 			 //566,3400 is the old one
 			 theMany=AttackUnit.tankExpMod;
 		//	 days+=1;
 			 	 break;
-		 case 10:
+		 case 3:
 			 //1066 6400
 			// days+=2;
 			 theMany=AttackUnit.juggerExpMod;
 
-		 case 20:
+		 case 4:
 		//	 days+=3;
 			 theMany=AttackUnit.bomberExpMod;
 
@@ -486,17 +486,17 @@ public static int days = 5;
 			 //t = 345600*(number*expMod)*Exp(1-townEngineers/capForLevelAtCSL)/(CSL^2)
 			 theMany = AttackUnit.soldierExpMod;
 			 break;
-		 case 5:
+		 case 2:
 			 //566,3400 is the old one
 			 theMany=AttackUnit.tankExpMod;
 		//	 days+=1;
 			 	 break;
-		 case 10:
+		 case 3:
 			 //1066 6400
 			// days+=2;
 			 theMany=AttackUnit.juggerExpMod;
 
-		 case 20:
+		 case 4:
 		//	 days+=3;
 			 theMany=AttackUnit.bomberExpMod;
 

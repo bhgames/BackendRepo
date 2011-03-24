@@ -137,21 +137,13 @@ public class Maelstrom implements Runnable {
 			 * 6 acc
 			 * 
 			 */
-			if(a.getPopSize()!=20&&a.getPopSize()!=0)
-				switch(a.getGraphicNum()) {
-				case 8:
-					cloudmod=-.50;
-					break;
-				case 9:
-					cloudmod=-.25;
-					break;
-				}
+		/*
 			if(c.incs[0]<0)
 				a.setConcealment(a.getConcealment()
 						+ (int) Math.round((c.incs[0]*(1.0+cloudmod)*((double) a.getConcealment()))));
 			else
 				a.setConcealment(a.getConcealment()
-						+ (int) Math.round((c.incs[0]*(1.0)*((double) a.getConcealment()))));
+						+ (int) Math.round((c.incs[0]*(1.0)*((double) a.getConcealment()))));*/
 				if(c.incs[1]<0)
 				a.setArmor(a.getArmor() +  (int) Math.round((c.incs[1]*(1.0+cloudmod)*((double) a.getArmor()))));
 				else
@@ -168,11 +160,11 @@ public class Maelstrom implements Runnable {
 					a.setSpeed(a.getSpeed() +  (int) Math.round((c.incs[3]*(1.0)*((double) a.getSpeed()))));
 
 				if(c.incs[4]<0)
-				a.setFirepower(a.getFirepower() +  (int) Math.round((c.incs[4]*(1.0+cloudmod)*((double) a.getFirepower()))));
+				a.setAttackDamage(a.getAttackDamage() +  (int) Math.round((c.incs[4]*(1.0+cloudmod)*((double) a.getAttackDamage()))));
 				else
-					a.setFirepower(a.getFirepower() +  (int) Math.round((c.incs[4]*(1.0)*((double) a.getFirepower()))));
+					a.setAttackDamage(a.getAttackDamage() +  (int) Math.round((c.incs[4]*(1.0)*((double) a.getAttackDamage()))));
 
-				if(c.incs[5]<0)
+				/*if(c.incs[5]<0)
 				a.setAmmo(a.getAmmo() +  (int) Math.round((c.incs[5]*(1.0+cloudmod)*((double) a.getAmmo()))));
 				else
 					a.setAmmo(a.getAmmo() +  (int) Math.round((c.incs[5]*(1.0)*((double) a.getAmmo()))));
@@ -180,7 +172,7 @@ public class Maelstrom implements Runnable {
 				if(c.incs[6]<0)
 				a.setAccuracy(a.getAccuracy() +  (int) Math.round((c.incs[6]*(1.0+cloudmod)*((double) a.getAccuracy()))));
 				else
-					a.setAccuracy(a.getAccuracy() +  (int) Math.round((c.incs[6]*(1.0)*((double) a.getAccuracy()))));
+					a.setAccuracy(a.getAccuracy() +  (int) Math.round((c.incs[6]*(1.0)*((double) a.getAccuracy()))));*/
 
 
 			i++;
@@ -202,21 +194,14 @@ public class Maelstrom implements Runnable {
 			 * 6 acc
 			 * 
 			 */
-			if(a.getPopSize()!=20&&a.getPopSize()!=0)
-				switch(a.getGraphicNum()) {
-				case 8:
-					cloudmod=-.50;
-					break;
-				case 9:
-					cloudmod=-.25;
-					break;
-				}
-			if(c.incs[0]<0)
+			if(a.getType()!=4&&a.getType()!=0)
+				
+		/*	if(c.incs[0]<0)
 				a.setConcealment(a.getConcealment()
 						+ (int) Math.round((c.incs[0]*(1.0+cloudmod)*((double) a.getConcealment()))));
 			else
 				a.setConcealment(a.getConcealment()
-						+ (int) Math.round((c.incs[0]*(1.0)*((double) a.getConcealment()))));
+						+ (int) Math.round((c.incs[0]*(1.0)*((double) a.getConcealment()))));*/
 				if(c.incs[1]<0)
 				a.setArmor(a.getArmor() +  (int) Math.round((c.incs[1]*(1.0+cloudmod)*((double) a.getArmor()))));
 				else
@@ -233,11 +218,11 @@ public class Maelstrom implements Runnable {
 					a.setSpeed(a.getSpeed() +  (int) Math.round((c.incs[3]*(1.0)*((double) a.getSpeed()))));
 
 				if(c.incs[4]<0)
-				a.setFirepower(a.getFirepower() +  (int) Math.round((c.incs[4]*(1.0+cloudmod)*((double) a.getFirepower()))));
+				a.setAttackDamage(a.getAttackDamage() +  (int) Math.round((c.incs[4]*(1.0+cloudmod)*((double) a.getAttackDamage()))));
 				else
-					a.setFirepower(a.getFirepower() +  (int) Math.round((c.incs[4]*(1.0)*((double) a.getFirepower()))));
+					a.setAttackDamage(a.getAttackDamage() +  (int) Math.round((c.incs[4]*(1.0)*((double) a.getAttackDamage()))));
 
-				if(c.incs[5]<0)
+			/*	if(c.incs[5]<0)
 				a.setAmmo(a.getAmmo() +  (int) Math.round((c.incs[5]*(1.0+cloudmod)*((double) a.getAmmo()))));
 				else
 					a.setAmmo(a.getAmmo() +  (int) Math.round((c.incs[5]*(1.0)*((double) a.getAmmo()))));
@@ -245,7 +230,7 @@ public class Maelstrom implements Runnable {
 				if(c.incs[6]<0)
 				a.setAccuracy(a.getAccuracy() +  (int) Math.round((c.incs[6]*(1.0+cloudmod)*((double) a.getAccuracy()))));
 				else
-					a.setAccuracy(a.getAccuracy() +  (int) Math.round((c.incs[6]*(1.0)*((double) a.getAccuracy()))));
+					a.setAccuracy(a.getAccuracy() +  (int) Math.round((c.incs[6]*(1.0)*((double) a.getAccuracy()))));*/
 
 			
 
@@ -279,13 +264,13 @@ public class Maelstrom implements Runnable {
 			 * 
 			 */
 			
-			a.setConcealment(Math.round(((double) a.getConcealment() )/ (1.0+c.incs[0])));
+		//	a.setConcealment(Math.round(((double) a.getConcealment() )/ (1.0+c.incs[0])));
 			a.setArmor(Math.round(((double) a.getArmor() )/ (1+c.incs[1])));
 			a.setCargo(Math.round(((double) a.getCargo() ) / (1+c.incs[2])));
 			a.setSpeed(Math.round(((double) a.getSpeed() ) / (1+c.incs[3])));
-			a.setFirepower(Math.round(((double) a.getFirepower() )/ (1+c.incs[4])));
-			a.setAmmo(Math.round(((double) a.getAmmo() )/ (1+c.incs[5])));
-			a.setAccuracy(Math.round(((double) a.getAccuracy() ) / (1+c.incs[6])));
+			a.setAttackDamage(Math.round(((double) a.getAttackDamage() )/ (1+c.incs[4])));
+		//	a.setAmmo(Math.round(((double) a.getAmmo() )/ (1+c.incs[5])));
+	//		a.setAccuracy(Math.round(((double) a.getAccuracy() ) / (1+c.incs[6])));
 
 			i++;
 		}
@@ -304,13 +289,13 @@ public class Maelstrom implements Runnable {
 			 * 
 			 */
 			
-			a.setConcealment(Math.round(((double) a.getConcealment() )/ (1.0+c.incs[0])));
+		//	a.setConcealment(Math.round(((double) a.getConcealment() )/ (1.0+c.incs[0])));
 			a.setArmor(Math.round(((double) a.getArmor() )/ (1+c.incs[1])));
 			a.setCargo(Math.round(((double) a.getCargo() ) / (1+c.incs[2])));
 			a.setSpeed(Math.round(((double) a.getSpeed() ) / (1+c.incs[3])));
-			a.setFirepower(Math.round(((double) a.getFirepower() )/ (1+c.incs[4])));
-			a.setAmmo(Math.round(((double) a.getAmmo() )/ (1+c.incs[5])));
-			a.setAccuracy(Math.round(((double) a.getAccuracy() ) / (1+c.incs[6])));
+			a.setAttackDamage(Math.round(((double) a.getAttackDamage() )/ (1+c.incs[4])));
+		//	a.setAmmo(Math.round(((double) a.getAmmo() )/ (1+c.incs[5])));
+	//		a.setAccuracy(Math.round(((double) a.getAccuracy() ) / (1+c.incs[6])));
 
 			i++;
 		}

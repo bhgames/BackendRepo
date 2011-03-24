@@ -41,7 +41,6 @@ public class UserPlayer {
 	private boolean juggerTech;
 	private boolean bomberTech;
 	private boolean soldierPicTech[],tankPicTech[],juggerPicTech[],bomberPicTech[];
-	private UserAttackUnit[] AUTemplates;
 	private int tradeTech=1; // MAX IS TEN! Well, doesn't have to be...
 	private int bunkerTech=1;
 	private int stabilityTech = 1;
@@ -60,7 +59,7 @@ public class UserPlayer {
 	private UserTown[] towns;
 	
 	
-	public UserPlayer(UserAttackUnit[] templates, int id, int lotTech,
+	public UserPlayer(int id, int lotTech,
 			int afTech, UserAttackUnit[] au, boolean[] bomberPicTech,
 			boolean bomberTech, int knowledge, int buildingSlotTech,
 			int bunkerTech, int civWeapChoice, int engTech, boolean isLeague,
@@ -96,7 +95,6 @@ public class UserPlayer {
 		this.zeppTech=zeppTech; this.missileSiloTech=missileSiloTech;
 		this.recyclingTech=recyclingTech;this.metalRefTech=metalRefTech;
 		this.timberRefTech=timberRefTech;this.manMatRefTech=manMatRefTech;this.foodRefTech=foodRefTech;
-		AUTemplates = templates;
 		this.capitaltid=capitaltid;
 		this.totalBPEarned=totalBPEarned;
 		this.email=email;
@@ -285,9 +283,7 @@ public class UserPlayer {
 	public boolean[] getBomberPicTech() {
 		return bomberPicTech;
 	}
-	public UserAttackUnit[] getAUTemplates() {
-		return AUTemplates;
-	}
+
 	public int getTradeTech() {
 		return tradeTech;
 	}

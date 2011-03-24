@@ -4343,6 +4343,12 @@ be rich.
  */
 
 /* Journal:
+ * 
+ * Doing next:
+ * 
+ You need to fucking define the attack units, set them up, so they can be called. Then you need to make Air Units work.
+ 
+ 
 http://www.cstutoringcenter.com/problems/
 http://davidghedini.blogspot.com/2010/12/install-glassfish-3-on-centos.html
 http://www.javabeginner.com/
@@ -6116,186 +6122,6 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		return avgLevel;
 		*/
 	}
-	public static double[] returnModifiedConcealments(Raid holdAttack) {
-		String combatData = ""; String combatHeader = "";
-		int k = 0;
-		int currentArmySize = 0;
-		int currentExpAdvSizeOff = 0; boolean found = false;
-		int currentArmySizePop=0;
-		int currentExpAdvSizeOffWithDivMods =0; // So this is the expmod but with
-		// factors included for concealment like 2x on tank expmods so tanks
-		// are 2x as hard to hide as their 10 soldier equiv(seen as 20 soldiers.)
-		// This way they get to account for the fact that they get 2x the speed.
-		AttackUnit au;
-		do {
-			 au = holdAttack.getAu().get(k);
-			 switch(au.getPopSize()) {
-				case 1:
-					currentExpAdvSizeOffWithDivMods+=au.getExpmod()*au.getSize();
-					break;
-				case 5:
-					currentExpAdvSizeOffWithDivMods+=au.getExpmod()*au.getSize()*2;
-					break;
-				case 10:
-					currentExpAdvSizeOffWithDivMods+=au.getExpmod()*au.getSize()*4;
-					break;
-				case 20:
-					currentExpAdvSizeOffWithDivMods+=(int) Math.round(au.getExpmod()*au.getSize()*.5);
-					break;
-		
-				}
-			currentArmySize+=au.getSize();
-			
-			currentArmySizePop+=au.getSize()*au.getPopSize();
-			currentExpAdvSizeOff+=au.getSize()*au.getExpmod();
-			k++;
-		} while(k<holdAttack.getAu().size());
-		
-		// Found the highest concealment unit.
-		
-		// Now I need to add up all the other units concealment times their ratios to the highest one.
-		//IF YOU CHANGE THIS CONCEALMENT CODE, CHANGE SCOUTS ALSO
-		k = 0;
-		double sigmaTerm = 0; double moddedhi = 0;
-	
-		do {
-			 au = holdAttack.getAu().get(k);
-				double moddedother=0;
-				switch(au.getPopSize()) {
-				case 1:
-					moddedother=au.getConcealment();
-					break;
-				case 5:
-					moddedother=au.getConcealment()/2;
-					break;
-				case 10:
-					moddedother=au.getConcealment()/4;
-					break;
-				case 20:
-					moddedother=au.getConcealment()/.5;
-					break;
-				}
-				if(currentArmySize>0)
-				sigmaTerm+=((moddedother)*au.getSize()/(currentArmySize));
-			
-			k++;
-		} while(k<holdAttack.getAu().size());
-		/*if(found)
-		 sigmaTerm = moddedhi-sigmaTerm;
-		else sigmaTerm=0;*/
-		 if(sigmaTerm<0) sigmaTerm=0;
-		// Now I need the exponential term, which includes the sigma term a little.
-		// System.out.println("current population of army incoming is " + currentArmySizePop);
-			//double expTerm1 = (sigmaTerm*holdAttack.town1.getStealth()*10)/currentArmySize;
-			// it takes twice as much concealment to launch a good offensive attack than a defensive one.
-			// Can be fixed later but would be a good rule of thumb: Twice the concealment for offense.
-			// Not what I'd prefer, but it basically means that the army you can attack with at a certain concealment rating on a town
-			// of similar population is half the army you can defend with and get the same rating. It also means
-			// attacking armies that are large relative to the village size will suffer for it, leading to small armies against
-			// small villages, large armies against large villages, and a need to reconnoiter everything. Cool!
-			// Bunker system alleviates the low concealment problem - there is a defensive advantage to having
-			// those.
-			
-			//IF YOU CHANGE THIS CONCEALMENT CODE, CHANGE SCOUTS ALSO
-
-			 k = 0;
-			int currentExpAdvSizeDef = 0; found = false;
-			int currentArmySizedef = 0;
-			int currentArmySizeDefPop=0;
-			int currentExpAdvSizeDefWithDivMods=0;
-			do {
-				
-				 au = holdAttack.getTown2().getAu().get(k);
-				 switch(au.getPopSize()) {
-					case 1:
-						currentExpAdvSizeDefWithDivMods+=au.getExpmod()*au.getSize();
-						break;
-					case 5:
-						currentExpAdvSizeDefWithDivMods+=au.getExpmod()*au.getSize()*2;
-						break;
-					case 10:
-						currentExpAdvSizeDefWithDivMods+=au.getExpmod()*au.getSize()*4;
-						break;
-					case 20:
-						currentExpAdvSizeDefWithDivMods+=(int) Math.round(au.getExpmod()*au.getSize()*.5);
-						break;
-			
-					}
-				currentArmySizedef+=au.getSize();
-				currentExpAdvSizeDef+=au.getSize()*au.getExpmod();
-				currentArmySizeDefPop+=au.getSize()*au.getPopSize();
-				k++;
-			} while(k<holdAttack.getTown2().getAu().size());
-			// at this point we know currentArmySizedef. So we put the if UberStatement here for genocide.
-			
-	//		System.out.println("currentExpAdvSizeDef is " + currentExpAdvSizeDef + " currentExpAdvSizeOff is " + currentExpAdvSizeOff);
-			combatData+=("currentExpAdvSizeDef is " + currentExpAdvSizeDef + " currentExpAdvSizeOff is " + currentExpAdvSizeOff);
-
-			
-			
-			int numUnitsRemainingD=0;
-			boolean resFlag=true; // for standoffs, which are rare under new regime.
-			//IF YOU CHANGE THIS CONCEALMENT CODE, CHANGE SCOUTS ALSO
-
-			
-		
-			// Found the highest concealment unit.
-			
-			// Now I need to add up all the other units concealment times their ratios to the highest one.
-			
-			k = 0;
-			moddedhi = 0;
-		
-			double sigmaTermdef = 0;
-			do {
-				 au = holdAttack.getTown2().getAu().get(k);
-					double moddedother=0;
-					switch(au.getPopSize()) {
-					case 1:
-						moddedother=au.getConcealment();
-						break;
-					case 5:
-						moddedother=au.getConcealment()/2;
-						break;
-					case 10:
-						moddedother=au.getConcealment()/4;
-						break;
-					case 20:
-						moddedother=au.getConcealment()/.5;
-						break;
-					}
-					if(currentArmySizedef>0) 
-					sigmaTermdef+=((moddedother)*au.getSize()/(currentArmySizedef));
-				
-				
-				k++;
-			} while(k<holdAttack.getTown2().getAu().size());
-			
-			 if(sigmaTermdef<0) sigmaTermdef=0;
-//			 System.out.println("sigmaTermDef" + sigmaTermdef);
-				//IF YOU CHANGE THIS CONCEALMENT CODE, CHANGE SCOUTS ALSO
-
-			// Now I need the exponential term, which includes the sigma term a little.
-		
-			// System.out.println("current population of army in town is " + currentArmySizeDefPop);
-			 // used to use currentArmySizeDef in expTerm calcs, but this gives bigger units more concealment.
-			double expTerm2 = Math.exp(-(currentExpAdvSizeDefWithDivMods+1)/((sigmaTermdef+1)*holdAttack.getTown2().getStealth()));
-			double expTerm1 = Math.exp(-(currentExpAdvSizeOffWithDivMods+1)/((sigmaTerm+1)*holdAttack.getTown1().getStealth()*(holdAttack.getTown2().getPop()+1)/2));
-
-			// double expTerm2 = (sigmaTermdef*holdAttack.town2.getStealth()*holdAttack.town2.getPop())/currentArmySizedef;
-			//IF YOU CHANGE THIS CONCEALMENT CODE, CHANGE SCOUTS ALSO
-
-		
-		// Now put it all together for pre-combat concealment!
-		//	System.out.println(sigmaTermdef + " is sigmaTermDef, expTerm2 is " + expTerm2 + " expTerm 1 is" +expTerm1);
-			double Ca = (sigmaTerm+1)*expTerm1+1;
-			double Cd = (sigmaTermdef+1)*expTerm2+1;
-			
-			double toret[] = new double[2];
-			toret[0]=sigmaTerm+1;
-			toret[1]=sigmaTermdef+1;
-			return toret;
-	}
 
 	public Player createNewPlayer(String username, String password, int type, int tidToGive, String code,String email, boolean skipMe, int chosenTileX,int chosenTileY,boolean okayToMakeNewAccount, long fuid) {
 		/*
@@ -6409,7 +6235,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 
 
 			rs.close();
-			int numAttackUnits = 0;
+			/*int numAttackUnits = 0;
 			rs = stmt.executeQuery("select count(*) from attackunit where pid = " + pid);
 			if(rs.next()) numAttackUnits=rs.getInt(1);
 			rs.close();
@@ -6425,7 +6251,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				i++;
 			}
 			
-			}
+			}*/
 			Player p =null;
 	    	if(type==0){
 				 p = new Player(pid,this);
@@ -6447,14 +6273,13 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			
 			i = 0;
 			//Town t = new Town(0,this);
-			double rand = Math.random();
-			if(rand>.1) {
-				p.setVersion("new");
+			
+			p.setVersion("new");
 				
-			}
+			
 			int weapons[] = new int[0];
 			//	t.addUnitType(new AttackUnit("empty",0,0,0,0,i,0,weapons,0));
-				p.setAu(new AttackUnit("empty",0,0,0,0,i,0,weapons,0)); 
+		/*		p.setAu(new AttackUnit("empty",0,0,0,0,i,0,weapons,0)); 
 			i=1;
 			while(i<6) {
 
@@ -6464,7 +6289,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			//	t.addUnitType(new AttackUnit("locked",0,0,0,0,i,0,weapons,0));
 				p.setAu(new AttackUnit("locked",0,0,0,0,i,0,weapons,0)); // for the player.
 				i++;
-			}
+			}*/
 			
 					boolean weap[] = new boolean[21];
 			i = 1;
@@ -6509,8 +6334,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			
 	    	p.setRevTimer((int) Math.round(( (double) 52*7*24*3600)/((double) GodGenerator.gameClockFactor)));
 	    	p.setBp(p.getBp()+100);
-	    	if(p.getVersion().equals("original"))
-	    	p.setKnowledge(p.getKnowledge()+100);
+
 			// now that we've loaded'er up, we can
 			// wait to activate the player until after the giveNewCity
 			// mabob has been called.
@@ -6548,14 +6372,14 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				if(fuid==0)
 				p.getPs().b.joinQuest("ConnectWithFacebook");
 				
-		    	if(p.getVersion().equals("original")) {
+		    /*	if(p.getVersion().equals("original")) {
 				p.getPs().b.joinQuest("BQ1"); // must be after capitalcity and after cwf
 				int weapArrayNew[] = new int[2]; weapArrayNew[0]=0; weapArrayNew[1]=0;
 
 				p.setKnowledge(p.getKnowledge()+soldierTechPrice);
 				String toRes[] = {"ShockTrooper"};
 				ps.b.completeResearches(toRes); // give them a default template.
-				ps.b.createCombatUnit(0,"Shock Trooper"); } else if(p.getVersion().equals("new")) {
+				ps.b.createCombatUnit(0,"Shock Trooper"); } else*/ if(p.getVersion().equals("new")) {
 					p.getPs().b.joinQuest("NQ1");
 					p.setKnowledge(p.getKnowledge()+soldierTechPrice);
 					String toRes[] = {"ShockTrooper"};
@@ -6655,12 +6479,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		
 		ArrayList<AttackUnit> t1au = holdAttack.getAu();
 		ArrayList<AttackUnit> t2au = t2.getAu();
-		try {
-		t1.getPlayer().God.Maelstrom.addWeatherEffects(t1au,t2au,t2.getX(),t2.getY());
-		AttackUnit.addSkinEffects(t1au);
-		AttackUnit.addSkinEffects(t2au);
-		} catch(Exception exc) { exc.printStackTrace(); System.out.println("Weather or skin effects caused an exception but combat was saved."); }
-		
+	
 		while(i<t1au.size()) {
 			offPop+=t1au.get(i).getSize()*t1au.get(i).getExpmod();
 			i++;
@@ -6673,56 +6492,11 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		i=0;
 		double avgConc=0;
 		AttackUnit au;
-		if(offPop>0)
-		while(i<t1au.size()) {
-			double modded=0;
-			au = t1au.get(i);
-			 switch(au.getPopSize()) {
-				case 1:
-					modded=au.getConcealment();
-					break;
-				case 5:
-					modded=au.getConcealment()/2;
-					break;
-				case 10:
-					modded=au.getConcealment()/4;
-					break;
-				case 20:
-					modded=au.getConcealment()/.5;
-					break;
-		
-				}
-			 
-			 avgConc+=modded*(au.getSize()*au.getExpmod())/offPop;
-			i++;
-		}
-		double avgAcc=0;i=0;
-		if(defPop>0)
-		while(i<t2au.size()) {
-			double modded=0;
-			au = t2au.get(i);
-			 switch(au.getPopSize()) {
-				case 1:
-					modded=au.getConcealment();
-					break;
-				case 5:
-					modded=au.getConcealment()/2;
-					break;
-				case 10:
-					modded=au.getConcealment()/4;
-					break;
-				case 20:
-					modded=au.getConcealment()/.5;
-					break;
-		
-				}
-			 avgAcc+=modded*(au.getSize()*au.getExpmod())/defPop;
-			i++;
-		}
+
 		//((1+.05*scout)*avgConc)/((1+.05*stealth)*averageAcc)*cos^2(2pi*((yours)/(cover)))sin^2(2pi*(theirs/cover)). 
 		Player t1p = t1.getPlayer(); Player t2p = t2.getPlayer();
-		double Sa = (1+.25*t1p.getScoutTech())*avgConc+1;
-		double Sd = (1+.25*t2p.getStealth())*avgAcc+1;
+		double Sa = (1+.25*t1p.getScoutTech());
+		double Sd = (1+.25*t2p.getScoutTech());
 		double CSL = t2p.getPs().b.getCSL(t2.townID);
 		double SSL = CSL/t2p.towns().size();
 		CSL*=(1-((double) t2p.getStealthTech()+1.0)/20.0);
@@ -6740,17 +6514,14 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 	//	System.out.println("Sa/Sd is " + (Sa/Sd) + " and addon is " + addon + " from " + offContrib + " - " + defContrib);
 		if(addon>1) addon = 1;
 		if(addon<.1) addon=.1;
-		double S = (Sa/Sd)*(addon);
+		double sdiff = Sa-Sd+2;
+		double S = (sdiff)*(addon);
+		if(S<0) S=0;
 		String combatHeader = "The S value of this scouting raid was " + ( ((double) Math.round(S*10))/10)+". The incoming scouts had a scouting ability of " + ( ((double) Math.round(Sa*10))/10) + " and the defenders had a detection ability of " 
 		+ ( ((double) Math.round(Sd*10))/10) + ". The incoming scouts were within " + Math.abs(Math.round((100-100*offContrib))) + "% of their sweet spot."
 		+ " The defenders were within " + Math.abs(Math.round((100-100*defContrib))) + "% of their sweet spot. The Detection Soft Limit was " + CSL +" and Scout Size Limit " + SSL+".";
 	
-		try {
-		AttackUnit.removeEffects(t1au,t1p);
-		AttackUnit.removeEffects(t2au,t2p);
-	
-		} catch(Exception exc) { exc.printStackTrace(); System.out.println("Weather or skin effects caused an exception but combat was saved."); }
-
+		
 		//System.out.println("S is " + S + " Sa is " + Sa + " Sd is " + Sd);
 			// Now we have our s quotient...going up a stealth doubles
 			// your chances for success!
@@ -6804,7 +6575,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 					switch(replvl) {
 					// notice here, there are no breaks - you get four, you get all the information
 					// as it drops through each case!
-					case 4:
+				/*	case 4:
 						 i = 0;
 						auofffi=";";
 						while(i<t2au.size()) {
@@ -6823,45 +6594,8 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 							}
 							
 							i++;
-						}
-					case 3:
-						// adding buildings
-					/*	 type = new String[8];
-						type[0]="Headquarters";
-						type[1]="Warehouse";
-						type[2]="Arms Factory";
-						type[3] = "Construction Yard";
-						type[4]="Institute";
-						type[5]="Bunker";
-						type[6] = "Trade Center";
-						type[7]="Communications Center";
-						
-						 i = 0;
-						while(i<type.length) {
-							audefnames+=","+type[i];
-							int j = 0;
-							int numBldg = 0;
-							while(j<holdAttack.getTown2().bldg().size()) {
-								if(holdAttack.getTown2().bldg().get(j).type.contains(type[i])) numBldg++;
-								j++;
-							}
-							audefst+=","+numBldg;
-
-							i++;
 						}*/
-						
-					
-
-					/*	try {
-							UberStatement stmt = t1p.God.con.createStatement();
-							ResultSet rs = stmt.executeQuery("select name,lvl from bldg where tid = " + t2.townID);
-							while(rs.next()) {
-								audefnames+=","+rs.getString(1);
-								audefst+=","+rs.getInt(2);
-							}
-							rs.close();
-							stmt.close();
-						} catch(SQLException exc) { exc.printStackTrace(); }*/
+					case 3:
 						
 						i = 0;
 						ArrayList<Building> bldg = t2.bldg();
@@ -6900,7 +6634,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 					
 					}
 					Building b;
-					
+					/*
 					if(loadCivies) {
 						auoffnames+=",Engineer,Trader,Scholar";
 						
@@ -6916,7 +6650,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 						a.getArmor()+","+a.getCargo()+","+a.getSpeed()+","+a.getWeap()[0]+";";			
 						} 
 						
-					}
+					}*/
 					auoffnames+=",Cover Soft Limit";
 					auoffst+=","+t2p.getPs().b.getCSL(t2.townID);
 					auoffnames+=",Your Cover Size In Originating Town";
@@ -7316,7 +7050,8 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			r = raids.get(y);
 			auset = r.getAu();
 			int k = 0;
-			while(k<6) {
+			while(k<auset.size()) {
+				if(auset.get(k).getSupport()==0)
 				maxSize+=auset.get(k).getSize();
 				k++;
 			}
@@ -7543,10 +7278,9 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 					supportUnitNames+=","+newGuy.getName();
 					newGuy.setSize(0);
 					au = t2au;
-					int slot = 6; // default.
-					int indexCount = 6;
-					int k = 6;
-					int maxSlot=6;
+					int indexCount = 0;
+					int k = 0;
+					int maxSlot=0;
 					while(k<au.size()) {
 						if(au.get(k).getSlot()>maxSlot) {
 							maxSlot=au.get(k).getSlot();
@@ -8273,13 +8007,15 @@ public boolean checkForGenocides(Town t) {
 			 possZepp = t2.getPlayer().God.findZeppelin(t2.getX(),t2.getY());
 			if(possZepp.townID!=0) {
 				// there is a zeppelin overhead of this player town, it needs to add troops!
-				oldTownSizeArray = new int[6];
+				oldTownSizeArray = new int[t2.getAu().size()];
 				int i = 0;
 				isZeppAbove=true;
 				i=0;
-				while(i<6) {
-					oldTownSizeArray[i]=t2.getAu().get(i).getSize();
-					t2.setSize(i,t2.getAu().get(i).getSize()+possZepp.getAu().get(i).getSize());
+				while(i<t2.getAu().size()) {
+					if(t2.getAu().get(i).getSupport()==0){ // so what if town 2 has support that zeppy doesn't?
+						oldTownSizeArray[i]=t2.getAu().get(i).getSize();
+						t2.setSize(i,t2.getAu().get(i).getSize()+possZepp.getAu().get(i).getSize());
+					}
 					i++;
 				}
 			}
@@ -8321,8 +8057,7 @@ public boolean checkForGenocides(Town t) {
 		try {
 
 		t1.getPlayer().God.Maelstrom.addWeatherEffects(t1au,t2au,t2x,t2y);
-		AttackUnit.addSkinEffects(t1au);
-		AttackUnit.addSkinEffects(t2au);
+	
 
 		} catch(Exception exc) { exc.printStackTrace(); System.out.println("Weather or skin effects caused an exception but combat was saved."); }
 
@@ -8384,7 +8119,7 @@ public boolean checkForGenocides(Town t) {
 				
 				int weap[] = new int[1];
 				weap[0]=t2p.getCivWeapChoice(); // These are the guys being attacked.
-				 Civ = new AttackUnit("Civilian", b.getLotNum(),weap, b.getType());
+				 Civ = new AttackUnit("Civilian", b.getLotNum(),b.getType());
 				Civ.setSize((int) Math.round(((double) b.getPeopleInside())*(1-civvybunkerfrac)));
 		//		System.out.println("People being removed are " + ((int) Math.round(((double) b.getPeopleInside())*(1-civvybunkerfrac))));
 			//	System.out.println("civvybunker is " + civvybunkerfrac + " and it takes " + (1-civvybunkerfrac));
@@ -8422,7 +8157,7 @@ public boolean checkForGenocides(Town t) {
 
 			int weap[] = new int[1];
 			weap[0]=t1p.getCivWeapChoice(); // These are the guys being attacked.
-			AttackUnit Civ = new AttackUnit("Archaeologist", -2,weap, "Institute");
+			AttackUnit Civ = new AttackUnit("Archaeologist", -2, "Institute");
 			Civ.setName("Scholar");
 			Civ.setSize(actattack.getDigAmt());
 			t1au.add(Civ);
@@ -8433,183 +8168,46 @@ public boolean checkForGenocides(Town t) {
 			// THIS IS IF YOU'RE AT AN ID TOWN AND THERE IS A DIG THERE. THEN WE ADD THEIR UNITS TOO. GOD DAMNIT I HATE BOOKKEEPING.
 			int weap[] = new int[1];
 			weap[0]=(t2.getPlayer().God.findTown(t2.getDigTownID()).getPlayer()).getCivWeapChoice(); // These are the guys being attacked.
-			AttackUnit Civ = new AttackUnit("Archaeologist", -2,weap, "Institute");
+			AttackUnit Civ = new AttackUnit("Archaeologist", -2, "Institute");
 			Civ.setName("Scholar");
 			Civ.setSize(t2.getDigAmt());
 			t2au.add(Civ);
 			Civ.setSlot(t2au.size()-1);
 		}
 	
-			// Now we initiate the attack and remove the attack from the queue, posting a status report.
-			
-			// First we must calculate pre-concealment factor for both.
-			// Requires asking for player2's units.
-			/*
-			 * C = (HU_Concealment-Sigma(i, (#Ui/HU)*Ui_concealment))*Exp(-Curr_Army_Size/((HU_Concealment-Sigma(i, (#Ui/HU)*Ui_concealment))*Exp(StealthTechLvl)*10)) 
-			 * 
-			 */
-			// Looks like we may need to upgrade player infrastructure, so each player
-			// has units at base so we can inquire of them easily. 
 	
 			int k = 0;
 			int currentArmySize = 0;
 			int currentExpAdvSizeOff = 0; boolean found = false;
 			int currentArmySizePop=0;
-			int currentExpAdvSizeOffWithDivMods =0; // So this is the expmod but with
-			// factors included for concealment like 2x on tank expmods so tanks
-			// are 2x as hard to hide as their 10 soldier equiv(seen as 20 soldiers.)
-			// This way they get to account for the fact that they get 2x the speed.
+
 			AttackUnit au;
 			while(k<t1au.size()) {
 				 au = t1au.get(k);
-				 
-				 if(au.getSize()>0)
-				 switch(au.getPopSize()) {
-					case 1:
-						currentExpAdvSizeOffWithDivMods+=au.getExpmod()*au.getSize();
-						break;
-					case 5:
-						currentExpAdvSizeOffWithDivMods+=au.getExpmod()*au.getSize();
-						break;
-					case 10:
-						currentExpAdvSizeOffWithDivMods+=au.getExpmod()*au.getSize();
-						break;
-					case 20:
-						currentExpAdvSizeOffWithDivMods+=(int) Math.round(au.getExpmod()*au.getSize());
-						break;
-			
-					}
 				currentArmySize+=au.getSize();
-				
-				currentArmySizePop+=au.getSize()*au.getPopSize();
 				currentExpAdvSizeOff+=au.getSize()*au.getExpmod();
 				k++;
 			} 
-			
-			// Found the highest concealment unit.
-			
-			// Now I need to add up all the other units concealment times their ratios to the highest one.
-			//IF YOU CHANGE THIS CONCEALMENT CODE, CHANGE SCOUTS ALSO
-			k = 0;
-			double sigmaTerm = 0;
-			 while(k<t1au.size()) {
-				 au = t1au.get(k);
-					double moddedother=0;
-					switch(au.getPopSize()) {
-					case 1:
-						moddedother=au.getConcealment();
-						break;
-					case 5:
-						moddedother=au.getConcealment()/2;
-						break;
-					case 10:
-						moddedother=au.getConcealment()/4;
-						break;
-					case 20:
-						moddedother=au.getConcealment()/.5;
-						break;
-					}
-					if(currentArmySize>0) // gotta do it this way, what if there is one juggernaught?
-						// then size+1 makes 1/2 is half.
-					sigmaTerm+=((moddedother)*au.getSize()/(currentArmySize));
-				
-				k++;
-			}
-		
-			 if(sigmaTerm<0) sigmaTerm=0;
-			// Now I need the exponential term, which includes the sigma term a little.
-		//	 combatData+=("Inc.AdvSizeWithMod: " + currentExpAdvSizeOffWithDivMods + " Stealth is " + Math.round(t1p.getStealth()) + " townPop: " + (pop+1));
-				//double expTerm1 = (sigmaTerm*holdAttack.town1.getStealth()*10)/currentArmySize;
-				// it takes twice as much concealment to launch a good offensive attack than a defensive one.
-				// Can be fixed later but would be a good rule of thumb: Twice the concealment for offense.
-				// Not what I'd prefer, but it basically means that the army you can attack with at a certain concealment rating on a town
-				// of similar population is half the army you can defend with and get the same rating. It also means
-				// attacking armies that are large relative to the village size will suffer for it, leading to small armies against
-				// small villages, large armies against large villages, and a need to reconnoiter everything. Cool!
-				// Bunker system alleviates the low concealment problem - there is a defensive advantage to having
-				// those.
-				
-				//IF YOU CHANGE THIS CONCEALMENT CODE, CHANGE SCOUTS ALSO
 
 				 k = 0;
 				int currentExpAdvSizeDef = 0; found = false;
 				int currentArmySizedef = 0;
 				int currentArmySizeDefPop=0;
-				int currentExpAdvSizeDefWithDivMods=0;
 				while(k<t2au.size()) {
-					
 					 au = t2au.get(k);
-					 switch(au.getPopSize()) {
-						case 1:
-							currentExpAdvSizeDefWithDivMods+=au.getExpmod()*au.getSize();
-							break;
-						case 5:
-							currentExpAdvSizeDefWithDivMods+=au.getExpmod()*au.getSize();
-							break;
-						case 10:
-							currentExpAdvSizeDefWithDivMods+=au.getExpmod()*au.getSize();
-							break;
-						case 20:
-							currentExpAdvSizeDefWithDivMods+=(int) Math.round(au.getExpmod()*au.getSize());
-							break;
-				
-						}
 					currentArmySizedef+=au.getSize();
 					currentExpAdvSizeDef+=au.getSize()*au.getExpmod();
-					currentArmySizeDefPop+=au.getSize()*au.getPopSize();
 					k++;
 				} 
-				// at this point we know currentArmySizedef. So we put the if UberStatement here for genocide.
-				
-			//	combatData+=("ExpAdvSizeDef: " + currentExpAdvSizeDef + " ExpAdvSizeOff:" + currentExpAdvSizeOff);
-				
-				
-				
-				int numUnitsRemainingD=0;
-				boolean resFlag=true; // for standoffs, which are rare under new regime.
-				//IF YOU CHANGE THIS CONCEALMENT CODE, CHANGE SCOUTS ALSO
-
-				
 			
-				// Found the highest concealment unit.
 				
-				// Now I need to add up all the other units concealment times their ratios to the highest one.
+				
 				
 				k = 0;
 				
-				double sigmaTermdef = 0;
-				while(k<t2au.size()) {
-					 au = t2au.get(k);
-				
-						double moddedother=0;
-						switch(au.getPopSize()) {
-						case 1:
-							moddedother=au.getConcealment();
-							break;
-						case 5:
-							moddedother=au.getConcealment()/2;
-							break;
-						case 10:
-							moddedother=au.getConcealment()/4;
-							break;
-						case 20:
-							moddedother=au.getConcealment()/.5;
-							break;
-						}
-						if(currentArmySizedef>0)
-						sigmaTermdef+=((moddedother)*au.getSize()/(currentArmySizedef));
-					
-					
-					k++;
-				} 
+		
 			
-				 if(sigmaTermdef<0) sigmaTermdef=0;
-	//			 System.out.println("sigmaTermDef" + sigmaTermdef);
-					//IF YOU CHANGE THIS CONCEALMENT CODE, CHANGE SCOUTS ALSO
-
-				// Now I need the exponential term, which includes the sigma term a little.
-			
-				 combatData+=("Def.AdvSizeWithMod: " + currentExpAdvSizeDefWithDivMods + " Stealth is " + Math.round(t2p.getStealth()));
+	//		
 				 j=0; int totalPoppedUnits=0;
 				 ArrayList<AttackUnit> t2pau = t2p.getAu();
 					while(j<t2pau.size()) {
@@ -8618,53 +8216,34 @@ public boolean checkForGenocides(Town t) {
 					}
 					int t2townsize = t2p.towns().size();
 				 double bldglvl = getAverageLevel(t2);
-				 combatHeader+=" Actual offensive army size equivalent: " + currentExpAdvSizeOff + ", defensive: " + currentExpAdvSizeDef + ". Cover size equivalent for offensive: " + currentExpAdvSizeOffWithDivMods + ", defensive: " + currentExpAdvSizeDefWithDivMods + ".";
-				 combatHeader+=" Cover soft limit of " 
-				 + Math.round(4*Math.sqrt(6)*(bldglvl+1)*t2townsize*totalPoppedUnits) + ".";
+		//		 combatHeader+=" Actual offensive army size equivalent: " + currentExpAdvSizeOff + ", defensive: " + currentExpAdvSizeDef + ". Cover size equivalent for offensive: " + currentExpAdvSizeOffWithDivMods + ", defensive: " + currentExpAdvSizeDefWithDivMods + ".";
+			//	 combatHeader+=" Cover soft limit of " 
+				// + Math.round(4*Math.sqrt(6)*(bldglvl+1)*t2townsize*totalPoppedUnits) + ".";
 				 // used to use currentArmySizeDef in expTerm calcs, but this gives bigger units more concealment.
-				double expTerm2 = Math.exp(-(currentExpAdvSizeDefWithDivMods+1)/(4*Math.sqrt(6)*(bldglvl+1)*t2townsize*totalPoppedUnits*8+1));
-				double expTerm1 = Math.exp(-(currentExpAdvSizeOffWithDivMods+1)/(4*Math.sqrt(6)*(bldglvl+1)*t2townsize*totalPoppedUnits*8+1));
+				 int CSLHere = t2p.getPs().b.getCSL(t2.townID);
+				double expTerm2 = Math.exp(-(currentExpAdvSizeDef+1)/(CSLHere));
+				double expTerm1 = Math.exp(-(currentExpAdvSizeOff+1)/(CSLHere));
 
-				// double expTerm2 = (sigmaTermdef*holdAttack.getTown2().getStealth()*holdAttack.getTown2().getPop())/currentArmySizedef;
-				//IF YOU CHANGE THIS CONCEALMENT CODE, CHANGE SCOUTS ALSO
-
-				 combatData+="sigmaTerm: " + Math.round(sigmaTerm)+ ", sigmaTermdef: " + Math.round(sigmaTermdef);
-			
-			// Now put it all together for pre-combat concealment!
-			//	System.out.println(sigmaTermdef + " is sigmaTermDef, expTerm2 is " + expTerm2 + " expTerm 1 is" +expTerm1);
-			//	double Ca = (sigmaTerm+1)*expTerm1+1;
-			//	double Cd = (sigmaTermdef+1)*expTerm2+1;
-				
-				combatData+="ExpTerm1: " + expTerm1 + " ExpTerm2: " + expTerm2; //+ " Ca: " + Math.round(Ca) + " Cd: " + Math.round(Cd);
 				if(expTerm1<(.035*t1p.getStealthTech())) {
-			//	combatHeader+=" Due to the Alamo effect, the offense would be getting a " + (100-Math.round(expTerm1*100)) + "% decrement" +
-				//		" to their attributes, but this was above the " + (100-Math.round(100*.035*holdAttack.town1.getPlayer().stealthTech)) + "% limit " +
-					//			" dictated by their stealth Tech, so it was set to this limit.";
-				expTerm1=.035*t1p.getStealthTech();
+			
+					expTerm1=.035*t1p.getStealthTech();
 
 				}
 				try {
-				expTerm1=AttackUnit.getNewCSL(t1au, expTerm1);
+					expTerm1=AttackUnit.getNewCSL(t1au, expTerm1);
 				} catch(Exception exc) { exc.printStackTrace(); System.out.println("CSL skin effect had trouble, combat saved though.");}
-				combatHeader +=" Accounting for how much cover there was, the offense received a " + (100-Math.round(expTerm1*100)) + "% decrement to their attributes,";
+					combatHeader +=" Accounting for how much cover there was, the offense received a " + (100-Math.round(expTerm1*100)) + "% decrement to their attributes,";
 				
 				if(expTerm2<(.035*t2p.getStealthTech())) {
-			//		combatHeader+=" Due to the Alamo effect, the defense would be getting a " + (100-Math.round(expTerm2*100)) + "% decrement" +
-				//			" to their attributes, but this was above the " + (100-Math.round(100*.035*holdAttack.getTown2().getPlayer().stealthTech)) + "% limit " +
-					//				" dictated by their stealth Tech, so it was set to this limit.";
-				expTerm2=.035*t2p.getStealthTech();
+			
+					expTerm2=.035*t2p.getStealthTech();
 				}
 				try {
-				expTerm2=AttackUnit.getNewCSL(t2au, expTerm2);
+					expTerm2=AttackUnit.getNewCSL(t2au, expTerm2);
 				} catch(Exception exc) { exc.printStackTrace(); System.out.println("CSL skin effect had trouble, combat saved though.");}
 
 				combatHeader +=" and the defense received a " + (100-Math.round(expTerm2*100)) + "% decrement to their attributes.";
 
-				
-				
-				//IF YOU CHANGE THIS CONCEALMENT CODE, CHANGE SCOUTS ALSO
-
-				// Now we do the actual fight calculations.
 				
 				 
 				 j=0;
@@ -8686,25 +8265,14 @@ public boolean checkForGenocides(Town t) {
 				}
 				afSize = 0;
 				j=0;
-				/*UserBuilding t1bldg[] = t1p.getPs().b.getUserBuildings(t1.townID,"CombatProduction");
-				while(j<t1bldg.length) {
-					 b = t1bldg[j];
-					if(b.getType().equals("Arms Factory"))  afSize+=Math.round(.05*t1p.getAfTech()*getPeople(b.getLvl(),totalPoppedUnitsOff,4,totalUnitPrice/t1p.towns().size())); // add back the lvl<25 if you change!
-				//	else if(b.type.equals("Arms Factory")&&b.getLvl()>25) afSize+=Math.exp(25)+(b.getLvl()-25)*Math.exp(25);
-					
-					j++;
-				}
-				ARMS FACTORIES NO LONGER PROTECT*/ 
+			
 				k = 0;
-				double totalHPOff=0,totalPopOff=0,totalHPDef=0,totalPopDef=0;
 				String offNames = "";
 				String offUnitsBefore = "";
 				int offsize = 0, defsize = 0;
 				AttackUnit holdUnit;
 				 while(k<t1au.size()) {
 					 holdUnit = t1au.get(k);
-					totalHPOff += holdUnit.getHp()*holdUnit.getSize();
-					totalPopOff += holdUnit.getSize()*holdUnit.getPopSize(); // Need to change pop settings. 
 					if(holdUnit.getSize()>0) offsize++;
 					offNames += ","+ holdUnit.getName();
 					offUnitsBefore+= "," + holdUnit.getSize();
@@ -8716,560 +8284,391 @@ public boolean checkForGenocides(Town t) {
 				String defUnitsBefore = "";
 				while(k<t2au.size()) {
 					 holdUnit = t2au.get(k);
-					totalPopDef += holdUnit.getSize()*holdUnit.getPopSize(); // All units have population 1 right now, need to change this.
-					totalHPDef += holdUnit.getHp()*holdUnit.getSize();
 					defNames += ","+ holdUnit.getName();
 					defUnitsBefore += "," + holdUnit.getSize();
 					if(holdUnit.getSize()>0) defsize++;
 
 					k++;
 				} 
-				
-				
-				double holdHPLostDef[] = new double[t2au.size()]; // you need to make it the size that
-				double holdHPLostOff[] = new double[t1au.size()];
-				k = 0;  j = 0;
-				int counter = 0;
-				double defrand = Math.random();
-				boolean defensiveDefInc = false; // this is the veterancy decider variable - is it a defensive or offensive increase?
-				// if true, the defenders get a defensive increase.
-				
-				if(defrand>.5) defensiveDefInc = true;
-				
-				double offrand = Math.random();
-				boolean offensiveDefInc = false; // if true, the offensive team gets a defensive increase.
 		
-
-				double armysizefrac=((double) bunkerSize)/((double) currentExpAdvSizeDef+1); // used with bunker size of mode 0s.
-				
-				if(armysizefrac>1)armysizefrac=1; // don't want >1 armysizefracs.
-				///bunkerfrac=(1-.05*bunkerTech*armysizefrac)
-				double bunkerfrac = (1-.05*((double) t2p.getBunkerTech())*armysizefrac);
-				
-				combatHeader+="The defenses bunker provided an average protection of " + Math.round(-((bunkerfrac-1)*100)) + "%.";
-				combatData+="armysizefrac: " + armysizefrac;
-				if(offrand>.5) offensiveDefInc=true;
-			//	System.out.println("Total expmod pop for t1 is " + getTotalPopWithExpMod(holdAttack.town1.getPlayer()));
-			//	System.out.println("Total expmod pop for t2 is " + getTotalPopWithExpMod(holdAttack.getTown2().getPlayer()));
-				double averageVetOff[] = new double[t1au.size()];
-				double averageVetDef[] = new double[t2au.size()];
-				double averageVetOffHits[] =new double[t1au.size()];
-				double averageVetDefHits[] =new double[t2au.size()];
-
-				AttackUnit off,def;
-				while(k<t2au.size()) {
-					 def = t2au.get(k);
-					double differentialfrac = def.getSize()*def.getPopSize()/(totalPopDef+1); // so damage gets distributed to this
-					// army component proportional to the size of which it makes up the enemy army, not just divided evenly
-					// by six if there are six components, say.
-
-					while(j<t1au.size()) {
-						//size*population*(acc/Cd)(fp/armor)(ammo/speed)
-						 off = t1au.get(j);
-						if(def.getSize()>0&&off.getSize()>0) {// May get divide by zeroes otherwise.
-							
-						// below is veterancy block.
-						// gets offensive's random, defensive's random
-						// if offensive is getting an offensive lead and defensive
-						// is getting a defensive lead then the two advantages are combined and
-						// subtracted from one to get the full extent of the damage on the
-						// defending units.
-						offrand = Math.random(); defrand = Math.random();
-						double offensiveSubtractor = 0; double defensiveIncreaser = 0;
-						if(off.getLotNum()==-1)
-						if(off.getSupport()==0) {
-							if(!offensiveDefInc) offensiveSubtractor=offrand*.5*off.getExpmod()*GodGenerator.getTotalSize(off,t1p)
-							/(getTotalPopWithExpMod(t1p)+1); 
-							try {
-							averageVetOff[j]+=offensiveSubtractor;
-							averageVetOffHits[j]++;
-							} catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved."); }
-
-							}
-						else if(off.getSupport()>0) {
-							if(!offensiveDefInc) offensiveSubtractor=offrand*.5*off.getExpmod()*GodGenerator.getTotalSize(off,off.getOriginalPlayer())
-							/(getTotalPopWithExpMod(off.getOriginalPlayer())+1); 
-							try {
-							averageVetOff[j]+=offensiveSubtractor;
-							averageVetOffHits[j]++;
-							} catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved."); }
-
-							}
-						if(def.getLotNum()==-1) // lotnums are for civvies which do no veterancy.
-						if(def.getSupport()==0) {
-							if(defensiveDefInc) defensiveIncreaser = defrand*.5*def.getExpmod()*GodGenerator.getTotalSize(def,t2p)
-							/(getTotalPopWithExpMod(t2p)+1); 		
-							try {
-							averageVetDef[k]+=defensiveIncreaser;
-							averageVetDefHits[k]++;
-							} catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved."); }
-
-						}
-						else if(def.getSupport()>0) {
-							if(defensiveDefInc) defensiveIncreaser = defrand*.5*def.getExpmod()*GodGenerator.getTotalSize(def,def.getOriginalPlayer())
-							/(getTotalPopWithExpMod(def.getOriginalPlayer())+1);
-							try {
-							averageVetDef[k]+=defensiveIncreaser;
-							averageVetDefHits[k]++;
-							} catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved."); }
-
-						}
-						// So we look at original Player's pop if it's an offsupport unit!
-						double veterancyfrac = 1-defensiveIncreaser+offensiveSubtractor;
-					//	System.out.println("defensiveIncreaser for " + def.name + " is " + defensiveIncreaser);
-					//	System.out.println("offensiveSub for " + off.name + " is " + offensiveSubtractor);
-						combatData+="defensiveIncreaser for " + def.getName() + " is " + defensiveIncreaser;
-						combatData+="offensiveSub for " + off.getName() + " is " + offensiveSubtractor;
-						// defending unit ALWAYS subtracts because no matter who is defending, they want the lowest
-						// veterancy frac.
-						// defensive Increaser removes from veternacyFrac because this hits the HP LOST
-						// not HP KEPT so it lowers the hp that the defensive player's units will lose.
-						// veterancyfrac is 1 if no def or off.
-							
-							
-							
-						double weightedfrac = off.getSize()*off.getPopSize()/(totalPopOff+1); // to give it proper weight.
-						double holdfracs[] = new double[3];
-					//	System.out.println("fp is " + off.firepower + " armor is " + def.armor);
-						combatData+="fp is " + off.getFirepower() + " armor is " + def.getArmor();
-						 // basically we make it so factors of 26000 don't occur when Cd is low.
-						
-						if(off.getAccuracy()>0)
-						holdfracs[0] = (off.getAccuracy()/(def.getConcealment()*(expTerm2)+1));
-						else holdfracs[0]=(unarmedAmt)/(def.getConcealment()*expTerm2+1);
-							 
-						if(off.getFirepower()>0)
-						holdfracs[1] = (off.getFirepower()/(def.getArmor()*expTerm2+1));
-						else holdfracs[1]=(unarmedAmt)/(def.getArmor()*expTerm2+1);
-						
-						if(off.getAmmo()>0)
-						 holdfracs[2] = (off.getAmmo()/(def.getSpeed()*expTerm2+1));
-						else 
-						 holdfracs[2] = (unarmedAmt/(def.getSpeed()*expTerm2+1));
-
-						 double maxfrac=0;
-						 int g = 0;
-						 while(g<holdfracs.length) {
-							 maxfrac += holdfracs[g]/3.0;
-							combatData+="off on def frac " + g + " is " + holdfracs[g];
-
-							 g++;
-						 }
-						 double fero =1;
-						 if(t1p.getFeroTimer()>0) fero=1.1;
-							combatData+="For def HP weighted frac is " + weightedfrac + " diff is " + differentialfrac + " size is " + off.getSize()
-									+ " popsize is " + off.getPopSize() + " veterancyfrac is " + veterancyfrac + " defensiveInc " +
-									defensiveIncreaser + " offSub " + offensiveSubtractor + " bunkerfrac is " + bunkerfrac+ " maxfrac is " + maxfrac + " fero increase is " + fero;
-						holdHPLostDef[k] += .6*weightedfrac*100*off.getSize()*off.getPopSize()*maxfrac*differentialfrac*veterancyfrac*bunkerfrac*fero;
-						if(holdHPLostDef[k]<0) holdHPLostDef[k]=0;
-						// 100 is base unit of health here, so it works like so.
-						//.5 is there so that when everything is evened out, only 50% casualties,
-						// with 100% occuring against stronger(rel 2 maxfrac) battles.
-						}
-						j++;
-					}
+				double holdArmorDef[] = new double[t2au.size()]; // you need to make it the size that
+				double holdArmorOff[] = new double[t1au.size()];
+				j=0;
+				for(AttackUnit a:t1au) {
 					
-				//	holdHPLostDef[k]=holdHPLostDef[k]*Math.exp(.5*totalPopOff/totalPopDef)/Math.exp(1); // apply exponential advantage.
-					
-					j=0;
-					k++;
+					holdArmorOff[j]=a.getSize()*a.getArmor();
+					j++;
+					         
 				}
-				// so first we calculate every hplostdef and every hplostoff.
-				combatData+=("t2s pop:" + t2p.getTotalPopulation() + " t1s pop:" + t1p.getTotalPopulation());
-				k = 0;  j = 0;
-				 counter = 0;
-				 double armysizeofffrac=((double) afSize)/((double) currentExpAdvSizeOff+1); // used with bunker size of mode 0s.
+
+				j=0;
+				for(AttackUnit a:t2au) {
 					
-					if(armysizeofffrac>1)armysizeofffrac=1; // don't want >1 armysizefracs.
-					///bunkerfrac=(1-.05*bunkerTech*armysizefrac)
-					double affrac = (1-.05*((double) t1p.getAfTech())*armysizeofffrac); 
-					//combatHeader+="The attackers Arms Factories conferred a " + Math.round((-100*(affrac-1))) + "% advantage average on their troops.";
-				
-					while(k<t1au.size()) {
-					 def = t1au.get(k);
-					double differentialfrac = def.getSize()*def.getPopSize()/(totalPopOff+1); // so damage gets distributed to this
-
-					while(j<t2au.size()) {
-						//size*population*(acc/Cd)(fp/armor)(ammo/speed)
-						 off = t2au.get(j);
-						if(def.getSize()>0&&off.getSize()>0) {// May get divide by zeroes otherwise.
-							
-							
-							offrand = Math.random(); defrand = Math.random();
-							double offensiveIncreaser = 0; double defensiveDecreaser = 0;
-							// because now off is def!
-							
-							// now if offensiveDefInc is on that means the offenders
-							// need a defensive increase which happens when an offensiveIncreaser
-							// is calculated and subtracted from veterancyfrac since vf is prop. to
-							// damage done.
-							// defensive is now the offenders here so their units are off, but their
-							// boolean, which defDefInc is false if they are getting an offensive increase,
-							//will want to increase vetfrac and use the off unit.
-							if(offensiveDefInc&&def.getLotNum()==-1)
-							if(offensiveDefInc&&def.getSupport()==0) {offensiveIncreaser=defrand*.5*def.getExpmod()*GodGenerator.getTotalSize(def,t1p)
-							/(getTotalPopWithExpMod(t1p)+1);
-							try {
-							averageVetDef[k]+=offensiveIncreaser;
-							averageVetDefHits[k]++;
-							} catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved."); }
-							}
-							else if(offensiveDefInc&&def.getSupport()>0) { offensiveIncreaser=defrand*.5*def.getExpmod()*GodGenerator.getTotalSize(def,def.getOriginalPlayer())
-							/(getTotalPopWithExpMod(def.getOriginalPlayer())+1);
-							try {
-							averageVetDef[k]+=offensiveIncreaser;
-							averageVetDefHits[k]++;
-							} catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved."); }
-
-							}
-							if(!defensiveDefInc&&off.getLotNum()==-1)
-							if(!defensiveDefInc&&off.getSupport()==0) {defensiveDecreaser = offrand*.5*off.getExpmod()*GodGenerator.getTotalSize(off,t2p)
-							/(getTotalPopWithExpMod(t2p)+1);
-							try {
-							averageVetOff[j]+=defensiveDecreaser;
-							averageVetOffHits[j]++;
-							} catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved."); }
-
-							}
-							else if(!defensiveDefInc&&off.getSupport()>0) {defensiveDecreaser = offrand*.5*off.getExpmod()*GodGenerator.getTotalSize(off,off.getOriginalPlayer())
-							/(getTotalPopWithExpMod(off.getOriginalPlayer())+1);
-							try {
-							averageVetOff[j]+=defensiveDecreaser;
-							averageVetOffHits[j]++;
-							} catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved."); }
-
-							}
-							
-						//	System.out.println("For defensiveSub, Total units "+ GodGenerator.getTotalSize(def,holdAttack.getTown2().getPlayer()));
-						//	System.out.println(" and total pop is " +getTotalPopWithExpMod(holdAttack.getTown2().getPlayer()) + " defensiveDefInc is " +defensiveDefInc);
-							double veterancyfrac = 1+defensiveDecreaser-offensiveIncreaser;
-
-						//	System.out.println("defensiveDecreaser for " + off.name + " is " + defensiveDecreaser);
-						//	System.out.println("offensiveInc for " + def.name + " is " + offensiveIncreaser);
-							// veterancyfrac is 1 if no def or off. decreaser is added because what we're
-							// figuring below is HP LOST not HP KEPT.
-							
-							
-							double weightedfrac = off.getSize()*off.getPopSize()/(totalPopDef+1); // to give it proper weight.
-							double holdfracs[] = new double[3];
-						//	System.out.println("fp is " + off.firepower + " armor is " + def.armor);
-							
-							if(off.getAccuracy()>0)
-								holdfracs[0] = (off.getAccuracy()/(def.getConcealment()*expTerm1+1));
-								else holdfracs[0]=(unarmedAmt)/(def.getConcealment()*expTerm1+1);
-							
-							// holdfracs[0] = (off.accuracy/(Ca+1)); 
-								if(off.getFirepower()>0)
-							holdfracs[1] = (off.getFirepower()/(def.getArmor()*expTerm1+1));
-								else
-							holdfracs[1] = (unarmedAmt/(def.getArmor()*expTerm1+1));
-
-								if(off.getAmmo()>0)
-							 holdfracs[2] = (off.getAmmo()/(def.getSpeed()*expTerm1+1));
-								else
-							 holdfracs[2] = (unarmedAmt/(def.getSpeed()*expTerm1+1));
-
-							 double maxfrac=0;
-							 int g = 0;
-							 while(g<holdfracs.length) {
-								  maxfrac += holdfracs[g]/3.0;
-								 combatData+=("def on off frac " + g + " is " + holdfracs[g]);
-								 g++;
-							 }
-							 
-							 /*
-							  * def on off frac 0 is 5.471698113839964def on off frac 1 is 5.7254901960784315def on off frac 2 is 5.7254901960784315
-							  * For off HP weighted frac is 0.9090909090909091 diff is 0.975609756097561 size is 1 popsize is 10 veterancyfrac is 1.0 
-							  * defensiveSub 0.0 offInc 0.0 affrac is  0.9721904649370162
-							  */
-							 double fero =1;
-							 if(t2p.getFeroTimer()>0) fero=1.1;
-							combatData+="For off HP weighted frac is " + weightedfrac + " diff is " + differentialfrac + " size is " + off.getSize()
-									+ " popsize is " + off.getPopSize()+ " veterancyfrac is " + veterancyfrac + " defensiveSub " +
-									defensiveDecreaser + " offInc " + offensiveIncreaser + " affrac is  "+ affrac + " maxfrac is " + maxfrac + " fero increase is " + fero;
-							holdHPLostOff[k] += .6*weightedfrac*100*off.getSize()*off.getPopSize()*maxfrac*differentialfrac*veterancyfrac*affrac*fero;
-							// 100 is base unit of health here, so it works like so. 
-							if(holdHPLostOff[k]<0) { holdHPLostOff[k]=0; //System.out.println(k+"th was below 0 in HP, briefly.");
-							}
-
-						}
-					
-						j++;
-					}
-				//	holdHPLostOff[k]=holdHPLostOff[k]*Math.exp(.5*totalPopDef/totalPopOff)/Math.exp(1);
-					j=0;
-					k++;
+					holdArmorDef[j]=a.getSize()*a.getArmor(); // limited amount of armor in a battle.
+					j++;
+					         
 				}
+				int defUnitsLost[] = new int[t2au.size()];
+				int offUnitsLost[] = new int[t1au.size()];
+				boolean digOffSucc = true; // if the civilians from the dig offensive survived, then this remains true.
+				boolean digDefSucc = true; // if the civilians from the dig offensive survived, then this remains true.
+				long totalCost[]=new long[4];
+				boolean stopFighting=false;
+					while(!stopFighting) { // THIS IS THE GREAT ROUND LOOP. This causes the fighting to keep happening until stopFighting is true.
+					
+					
+					double holdHPLostDef[] = new double[t2au.size()]; // you need to make it the size that
+					double holdHPLostOff[] = new double[t1au.size()];
+	
+					k = 0;  j = 0;
+					int counter = 0;
 				
 	
-					// so we know that for each unit, we put in entries for each attacking unit,
-			
-				try {
-				k = 0;
-				AttackUnit a=null;
-				while(k<t1au.size()) {
-					if(averageVetOffHits[k]>0)
-						averageVetOff[k]/=averageVetOffHits[k];
+					double armysizefrac=((double) bunkerSize)/((double) currentExpAdvSizeDef+1); // used with bunker size of mode 0s.
 					
-						a = t1au.get(k);
+					if(armysizefrac>1)armysizefrac=1; // don't want >1 armysizefracs.
+					///bunkerfrac=(1-.05*bunkerTech*armysizefrac)
+					double bunkerfrac = (1-.05*((double) t2p.getBunkerTech())*armysizefrac);
+					
+					combatHeader+="The defenses bunker provided an average protection of " + Math.round(-((bunkerfrac-1)*100)) + "%.";
+			
+					AttackUnit off,def;
+					while(k<t2au.size()) {
+						 def = t2au.get(k);
+						double differentialfrac = def.getSize()*def.getExpmod()/(currentExpAdvSizeDef+1); // so damage gets distributed to this
+						// army component proportional to the size of which it makes up the enemy army, not just divided evenly
+						// by six if there are six components, say.
+	
+						while(j<t1au.size()) {
+							 off = t1au.get(j);
+							if(def.getSize()>0&&off.getSize()>0) {// May get divide by zeroes otherwise.
+								
+		 					double weightedfrac = off.getSize()*off.getExpmod()/(currentExpAdvSizeOff+1); // to give it proper weight.
+				
+							 double maxfrac=0;
+							
+							 double fero =1;
+							 if(t1p.getFeroTimer()>0) fero=1.1;
+							// so armor is a kept value over the rounds, so we subtract from it like energy...when it hits zero, we know
+							 // we've run out
+							 // but in HP, we're keeping track of HP LOST, not total HP, in this round, as it resets every round, so we add to it.
+							 // Basically, every round, each soldier that survives gets his full HP back for the next round, 
+							 // so no use keeping track of that - we keep track of lost HP and then subtract it from the total at the end
+							 // and figure out how many deaths that means. Armor, though, is a conserved value - like Master Chief's shields, it
+							 // can get knocked down over successive rounds.
+							 if(holdArmorDef[k]>0) 
+								 holdArmorDef[k] -= weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off))*maxfrac*differentialfrac*bunkerfrac*fero;
+							 else
+								 holdHPLostDef[k]+=weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off))*maxfrac*differentialfrac*bunkerfrac*fero;
+							}
+							j++;
+						}
 						
-					if(a.getSize()>0) // Don't show for units not there.
-					combatHeader+=a.getName() + " got a " + Math.round(averageVetOff[k]*100) + " % average veterancy advantage. ";
-					k++;
-				}
-				k = 0;
-				while(k<t2au.size()) {
-					if(averageVetDefHits[k]>0)
-						averageVetDef[k]/=averageVetDefHits[k];
-					
-						a = t2au.get(k);
+					//	holdHPLostDef[k]=holdHPLostDef[k]*Math.exp(.5*totalPopOff/totalPopDef)/Math.exp(1); // apply exponential advantage.
 						
-					if(a.getSize()>0)
-					combatHeader+=a.getName() + " got a " + Math.round(averageVetDef[k]*100) + " % average veterancy advantage. ";
-
+						j=0;
+						k++;
+					}
+					// so first we calculate every hplostdef and every hplostoff.
+					k = 0;  j = 0;
+					 counter = 0;
+					 double armysizeofffrac=((double) afSize)/((double) currentExpAdvSizeOff+1); // used with bunker size of mode 0s.
+						
+						if(armysizeofffrac>1)armysizeofffrac=1; // don't want >1 armysizefracs.
+						///bunkerfrac=(1-.05*bunkerTech*armysizefrac)
+						double affrac = (1-.05*((double) t1p.getAfTech())*armysizeofffrac); 
+						//combatHeader+="The attackers Arms Factories conferred a " + Math.round((-100*(affrac-1))) + "% advantage average on their troops.";
 					
-					k++;
-				}
+						while(k<t1au.size()) {
+						 def = t1au.get(k);
+						double differentialfrac = def.getSize()*def.getExpmod()/(currentExpAdvSizeDef+1); // so damage gets distributed to this
+	
+						while(j<t2au.size()) {
+							//size*population*(acc/Cd)(fp/armor)(ammo/speed)
+							 off = t2au.get(j);
+							if(def.getSize()>0&&off.getSize()>0) {// May get divide by zeroes otherwise.
+								
+								
+							
+								
+								double weightedfrac = off.getSize()*off.getExpmod()/(currentExpAdvSizeOff+1); // to give it proper weight.
+								
+								 double maxfrac=0;
+								
+								 double fero =1;
+								 if(t2p.getFeroTimer()>0) fero=1.1;
+								 if(holdArmorOff[k]>0)
+									holdArmorOff[k] -= weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off))*maxfrac*differentialfrac*fero;
+									else
+									holdHPLostOff[k] += weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off))*maxfrac*differentialfrac*fero;
+							
+	
+							}
+						
+							j++;
+						}
+						j=0;
+						k++;
+					}
+					
+		
+						// so we know that for each unit, we put in entries for each attacking unit,
+				
+	
 				
 					
-				} catch(Exception exc) { exc.printStackTrace(); System.out.println("Tried to make veterancy header. Combat was saved."); }
-				double totalOffLost = 0, totalDefLost = 0;
-
-			
+					k = 0;
+					double offExpAdv=0,defExpAdv=0;
+					 offExpAdv =Math.exp(.1*(1-((double) currentExpAdvSizeOff)/((double) (currentExpAdvSizeDef+1))))*100;
+					
+					 defExpAdv = Math.exp(.1*(1-((double) currentExpAdvSizeDef)/((double) (currentExpAdvSizeOff+1))))*100;
+				//currentExpAdvSizeDef is 40 currentExpAdvSizeOff is 30
+				//	combatHeader+="The exponential advantage increase on hp lost on offense was " + Math.round((100-offExpAdv)) + "% and on defense was " + Math.round((100-defExpAdv)) + "%.";
+					while(k<holdHPLostOff.length) {
+						if(currentExpAdvSizeDef>0)
+							combatData+=(k + "th lost " + Math.round(holdHPLostOff[k]) + " bef adv " + Math.round(holdHPLostOff[k]*Math.exp(.1*(1-((double) currentExpAdvSizeOff)/((double) (currentExpAdvSizeDef+1))))) + "hp aft.");
+						else 
+							combatData+=(k + "th lost " + holdHPLostOff[k] + " before exp advantage and 0 or unknown amount of hp.");
+						k++;
+					}
+					k = 0;
+					while(k<holdHPLostDef.length) {
+						if(currentExpAdvSizeOff>0)
+						combatData+=(k + "th lost " + Math.round(holdHPLostDef[k]) + " bef adv " +  Math.round(holdHPLostDef[k]*Math.exp(.1*(1-((double) currentExpAdvSizeDef)/((double) (currentExpAdvSizeOff+1))))) + "hp aft.");
+						else 
+							combatData+=(k + "th lost " + holdHPLostDef[k] + " before exp advantage and 0 or unknown amount of hp.");
+	
+						k++;
+					}
+	
+					k=0;
 				
-				k = 0;
-				double offExpAdv=0,defExpAdv=0;
-				 offExpAdv =Math.exp(.1*(1-((double) currentExpAdvSizeOff)/((double) (currentExpAdvSizeDef+1))))*100;
-				
-				 defExpAdv = Math.exp(.1*(1-((double) currentExpAdvSizeDef)/((double) (currentExpAdvSizeOff+1))))*100;
-			//currentExpAdvSizeDef is 40 currentExpAdvSizeOff is 30
-				combatHeader+="The exponential advantage increase on hp lost on offense was " + Math.round((100-offExpAdv)) + "% and on defense was " + Math.round((100-defExpAdv)) + "%.";
-				while(k<holdHPLostOff.length) {
-					totalOffLost+=holdHPLostOff[k];
-					if(currentExpAdvSizeDef>0)
-					combatData+=(k + "th lost " + Math.round(holdHPLostOff[k]) + " bef adv " + Math.round(holdHPLostOff[k]*Math.exp(.1*(1-((double) currentExpAdvSizeOff)/((double) (currentExpAdvSizeDef+1))))) + "hp aft.");
-					else 
-						combatData+=(k + "th lost " + holdHPLostOff[k] + " before exp advantage and 0 or unknown amount of hp.");
-					k++;
-				}
-				k = 0;
-				while(k<holdHPLostDef.length) {
-					totalDefLost+=holdHPLostDef[k];
-					if(currentExpAdvSizeOff>0)
-					combatData+=(k + "th lost " + Math.round(holdHPLostDef[k]) + " bef adv " +  Math.round(holdHPLostDef[k]*Math.exp(.1*(1-((double) currentExpAdvSizeDef)/((double) (currentExpAdvSizeOff+1))))) + "hp aft.");
-					else 
-						combatData+=(k + "th lost " + holdHPLostDef[k] + " before exp advantage and 0 or unknown amount of hp.");
+					 counter = 0;
+					long particularCost[] = null;
+					 while(k<t1au.size()) {
+						 holdUnit = t1au.get(k); // DON'T USE T1AU, IT DOESN'T CHANGE WHEN WE USE THE SETTER METHODS!
+						 // THAT'S ONLY USEFUL FOR THE UPPER ATTACK CODE WHERE IT DOES CALCULATIONS!
+							double holdHP = holdUnit.getSize()*holdUnit.getHp();
+							double holdOld = holdUnit.getSize();
+							if(currentExpAdvSizeDef>0) // if it's 0, we're not losing hp anyway, and this is a div/0 error.
+							holdHP-=holdHPLostOff[k]*Math.exp(.1*(1-((double) currentExpAdvSizeOff)/((double) (currentExpAdvSizeDef+1)))); 
+							if(holdUnit.getHp()>0)
+							actattack.setSize(k,(int) Math.round(((double) holdHP)/(holdUnit.getHp())));
+							//holdUnit.setSize((int) Math.round(((double) holdHP)/(holdUnit.getHp())));
+							
+							if(holdUnit.getSize()<0) {
+								actattack.setSize(k,0); // we must use the raid's setters
+								//holdUnit.setSize(0);
+							}
+						
+							
+							//t1.removeAU(holdUnit.getSlot(),(int) holdOld-holdUnit.getSize()); // This lowers the population of the player accordingly.
+							offUnitsLost[k]+= (int) (holdOld-holdUnit.getSize());
+							if(holdUnit.getSupport()==0)
+							particularCost = t1p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t1.townID);
+							else{
+								if(holdUnit.getLotNum()!=-1) {
+									// means is a digger or another civvie type.
+									actattack.setDigAmt(holdUnit.getSize());
+									if(actattack.getDigAmt()<=0) digOffSucc=false;
+									particularCost=t1p.getPs().b.returnPrice("Scholar",(int) (holdOld-holdUnit.getSize()),t1.townID);
+								} else
+								try {
+									particularCost = holdUnit.getOriginalPlayer().getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),holdUnit.getOriginalPlayer().towns().get(0).townID);
+									}catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved, though."); }
+								}
+	
+								
+							int l = 0;
+							
+							while(l<totalCost.length-1) {
+								if(particularCost!=null)
+								totalCost[l]+=particularCost[l];
+								l++;
+							}
+						
+						k++;
+					} 
+					
+					
+					k=0; 
+					ArrayList<Building> bldg;
+					Building actb;
 
-					k++;
-				}
-
-				k=0;
-				String offUnitsAfter = "";
-				int numUnitsRemainingO=0;
-				int totalRemainingBefA=0;
-				boolean digOffSucc = true; // if the civilians from the dig offensive survived, then this remains true.
-			
-				int expModOffAft = 0;
-				 counter = 0;
-				long totalCost[] = new long[5];
-				long particularCost[] = null;
-				 while(k<t1au.size()) {
-					 holdUnit = t1au.get(k); // DON'T USE T1AU, IT DOESN'T CHANGE WHEN WE USE THE SETTER METHODS!
-					 // THAT'S ONLY USEFUL FOR THE UPPER ATTACK CODE WHERE IT DOES CALCULATIONS!
+					while(k<t2au.size()) {
+						 holdUnit = t2au.get(k);
 						double holdHP = holdUnit.getSize()*holdUnit.getHp();
 						double holdOld = holdUnit.getSize();
-						if(currentExpAdvSizeDef>0) // if it's 0, we're not losing hp anyway, and this is a div/0 error.
-						holdHP-=holdHPLostOff[k]*Math.exp(.1*(1-((double) currentExpAdvSizeOff)/((double) (currentExpAdvSizeDef+1)))); 
-						if(holdUnit.getHp()>0)
-						actattack.setSize(k,(int) Math.round(((double) holdHP)/(holdUnit.getHp())));
-						//holdUnit.setSize((int) Math.round(((double) holdHP)/(holdUnit.getHp())));
+						holdHP-=holdHPLostDef[k]*Math.exp(.1*(1-((double) currentExpAdvSizeDef)/((double) (currentExpAdvSizeOff+1))));
 						
-						if(holdUnit.getSize()<0) {
-							actattack.setSize(k,0); // we must use the raid's setters
-							//holdUnit.setSize(0);
+						if(holdUnit.getLotNum()==-1) {
+						if(holdUnit.getHp()>0){
+						t2.setSize(k,(int) Math.round(((double) holdHP)/(holdUnit.getHp())));
+					//	holdUnit.setSize((int) Math.round(((double) holdHP)/(holdUnit.getHp())));
+						
 						}
-						numUnitsRemainingO+=holdUnit.getSize();
-						expModOffAft+=(holdOld-holdUnit.getSize())*holdUnit.getExpmod();
+						if(holdUnit.getSize()<0) {
+							t2.setSize(k,0);
+						//	holdUnit.setSize(0); // in case they are zero.
+						}
+						} else { // THIS MEANS THIS IS A CIVVY UNIT, SO WE DETRACT FROM HIS BUILDING!
+							int i = 0;
+							if(holdUnit.getHp()>0){
+								holdUnit.setSize((int) Math.round(((double) holdHP)/(holdUnit.getHp())));
+								
+								}
+								if(holdUnit.getSize()<0) {
+									holdUnit.setSize(0); // in case they are zero.
+								}
+							if(holdUnit.getLotNum()==-2) { // -2 lotNum is special, means it's a dig scholar.
+								t2.setDigAmt(holdUnit.getSize());
+								
+								if(t2.getDigAmt()==0) {
+									digDefSucc = false; // Means the other guy did win the dig. No civvies left!
+								}
+							}
+							else
+							while(i<t2bldg.length) {
+								b = t2bldg[i];
+								actb = t2.findBuilding(b.getBid());
+								if(b.getLotNum()==holdUnit.getLotNum()) actb.setPeopleInside((int) Math.round(b.getPeopleInside()-(holdOld-holdUnit.getSize())));
+								i++;
+							}
+							
 						
-						//t1.removeAU(holdUnit.getSlot(),(int) holdOld-holdUnit.getSize()); // This lowers the population of the player accordingly.
-						offUnitsAfter+= "," + (int) (holdOld-holdUnit.getSize());
-						if(k<6)
-						particularCost = t1p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t1.townID);
-						else{
-							if(holdUnit.getLotNum()!=-1) {
-								// means is a digger or another civvie type.
-								actattack.setDigAmt(holdUnit.getSize());
-								if(actattack.getDigAmt()<=0) digOffSucc=false;
-								particularCost=t1p.getPs().b.returnPrice("Scholar",(int) (holdOld-holdUnit.getSize()),t1.townID);
-							} else
+						}
+					
+							 
+						defUnitsLost[k] +=(int) (holdOld-holdUnit.getSize());
+						
+						if(holdUnit.getSupport()==0) {
 							try {
+							particularCost = t2p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t2.townID);
+							} catch(Exception exc) {
+								exc.printStackTrace();
+								System.out.println("Combat was saved.");
+							}
+						}else{
+								if(holdUnit.getLotNum()!=-1) { // if Id is town2, means these
+									// cvvies are probably diggers, and returnPrice would return null.
+									// means they are civvies. This if block is for civvies that are on temporary support for the battle.
+									try {
+										if(t2.getPlayer().ID==5) { // Id circumstances...
+											Town digT = t2p.God.getTown(t2.getDigTownID());
+											if(digT.townID!=0)
+											particularCost = digT.getPlayer().getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),digT.townID);
+	
+										} else // normal circumstances...for civvies
+											particularCost = t2p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t2.townID);
+									}catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved, though."); }
+	
+								} else
+								try { // for normal non-civvie support units.
 								particularCost = holdUnit.getOriginalPlayer().getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),holdUnit.getOriginalPlayer().towns().get(0).townID);
 								}catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved, though."); }
 							}
-
-							
 						int l = 0;
-						
 						while(l<totalCost.length-1) {
-							if(particularCost!=null)
 							totalCost[l]+=particularCost[l];
 							l++;
 						}
+						
+		
+						k++;
+					} 
+					
+					
+					
+				} // AFTER ROUNDS
+					synchronized(t2.getDebris()) { // ADDING DEBRIS
+						int l = 0;
+						while(l<totalCost.length-1) {
+							totalCost[l]=(long) Math.round(((double) totalCost[l])*.1);
+						//	System.out.println("10% of total cost of all units lost for " + l + " is " + totalCost[l]);
+							t2.getDebris()[l]+=totalCost[l];
+							l++;
+						}
+						
+						int i = 0;
+						double totalpercent=0;
+						while(i<t2.bldg().size()) {
+							if(t2.bldg().get(i).getType().equals("Recycling Center")) {
+								totalpercent+=.033*t2.bldg().get(i).getLvl();
+							}
+							i++;
+						}
+						if(totalpercent>1) totalpercent=1;
+						if(totalpercent<0) totalpercent=0;
+						
+						l = 0;
+						synchronized(t2.getRes()) {
+							
+							while(l<t2.getRes().length-1) {
+							//	System.out.println("This player is getting " + totalpercent + " (1 being 100%) % of " + totalCost[l] + " at " + l + " with before debris being " + t2.getDebris()[l]);
+								t2.getRes()[l]+=(long) Math.round(((double) totalCost[l])*totalpercent);
+								t2.getDebris()[l]-=(long) Math.round(((double) totalCost[l])*totalpercent);
+							//	System.out.println("As a result, the remaining debris is " + t2.getDebris()[l]);
+								l++;
+							}
+						}
+						}	
+					
+					
+					String offUnitsAfter = "";
+					String defUnitsAfter = "";
+
+					int expModOffAft=0,numUnitsRemainingD=0,numUnitsRemainingO=0,expModDefAft=0;
+					
+					
+					k=0;
+					while(k<t1au.size()) {
+						holdUnit = t1au.get(k);
+						expModOffAft+=(holdUnit.getSize())*holdUnit.getExpmod();
+
 						if(holdUnit.getLotNum()!=-1) { // we remove the civvie AFTER getting numUnitsRemaining, etc, or else it gets removed before we take data and
 							//it's all fucked up.
 							t1au.remove(k);
 							k--;//remove the civilian unit, no further need for it.
 						}
-					k++;
-				} 
-				
-				
-				k=0; boolean digDefSucc=true; // turned false if the scholars did not survive who were already here, digging.
-				String defUnitsAfter = "";
-				numUnitsRemainingD=0; int totalRemainingBefD = 0;
-				int expModDefAft = 0; 
-				ArrayList<Building> bldg;
-				Building actb;
-				while(k<t2au.size()) {
-					 holdUnit = t2au.get(k);
-					double holdHP = holdUnit.getSize()*holdUnit.getHp();
-					double holdOld = holdUnit.getSize();
-					holdHP-=holdHPLostDef[k]*Math.exp(.1*(1-((double) currentExpAdvSizeDef)/((double) (currentExpAdvSizeOff+1))));
-					
-					if(holdUnit.getLotNum()==-1) {
-					if(holdUnit.getHp()>0){
-					t2.setSize(k,(int) Math.round(((double) holdHP)/(holdUnit.getHp())));
-				//	holdUnit.setSize((int) Math.round(((double) holdHP)/(holdUnit.getHp())));
-					
+						numUnitsRemainingO+=holdUnit.getSize();
+
+						offUnitsAfter+=","+offUnitsLost[k];
+
+						k++;
 					}
-					if(holdUnit.getSize()<0) {
-						t2.setSize(k,0);
-					//	holdUnit.setSize(0); // in case they are zero.
-					}
-					} else { // THIS MEANS THIS IS A CIVVY UNIT, SO WE DETRACT FROM HIS BUILDING!
-						int i = 0;
-						if(holdUnit.getHp()>0){
-							holdUnit.setSize((int) Math.round(((double) holdHP)/(holdUnit.getHp())));
-							
-							}
-							if(holdUnit.getSize()<0) {
-								holdUnit.setSize(0); // in case they are zero.
-							}
-						if(holdUnit.getLotNum()==-2) { // -2 lotNum is special, means it's a dig scholar.
-							t2.setDigAmt(holdUnit.getSize());
-							
-							if(t2.getDigAmt()==0) {
-								digDefSucc = false; // Means the other guy did win the dig. No civvies left!
-							}
+					k=0;
+					while(k<t2au.size()) {
+						holdUnit = t2au.get(k);
+						expModDefAft+=(holdUnit.getSize())*holdUnit.getExpmod();
+
+						if(holdUnit.getLotNum()!=-1) { // we remove the civvie AFTER getting numUnitsRemaining, etc, or else it gets removed before we take data and
+							//it's all fucked up.
+							t2au.remove(k);
+							k--;//remove the civilian unit, no further need for it.
 						}
-						else
-						while(i<t2bldg.length) {
-							b = t2bldg[i];
-							actb = t2.findBuilding(b.getBid());
-							if(b.getLotNum()==holdUnit.getLotNum()) actb.setPeopleInside((int) Math.round(b.getPeopleInside()-(holdOld-holdUnit.getSize())));
-							i++;
+						numUnitsRemainingD+=holdUnit.getSize();
+						defUnitsAfter+=","+defUnitsLost[k];
+						
+						// now we add back the Zeppelin units.
+						
+						if(holdUnit.getSupport()==0&&isZeppAbove) {
+							
+							// so if I have x units and y of those units were originally town units, then if z is the after battle of x, and z 
+							// is less than y, then the units remain in the town. If z > y, the excess returns to the zeppelin.
+							int townUnitsBefore = oldTownSizeArray[k];
+							int townUnitsAfter = holdUnit.getSize();
+							int difference = townUnitsAfter-townUnitsBefore;
+							if(difference>0) {
+								possZepp.getAu().get(k).setSize(difference);
+								holdUnit.setSize(townUnitsBefore); // so we get the difference,
+								// tack it back, then set the unit properly.
+								
+							} else possZepp.getAu().get(k).setSize(0);
+							
 						}
 						
-					
+						k++;
 					}
-					
-					numUnitsRemainingD+=holdUnit.getSize();
-					expModDefAft+=(holdOld-holdUnit.getSize())*holdUnit.getExpmod(); // this really means what was LOST. 
-					
-				//	t2.removeAU(holdUnit.getSlot(),(int) holdOld-holdUnit.getSize()); 
-						 
-					defUnitsAfter += "," + (int) (holdOld-holdUnit.getSize());
-					if(k<6) {
-						try {
-						particularCost = t2p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t2.townID);
-						} catch(Exception exc) {
-							exc.printStackTrace();
-							System.out.println("Combat was saved.");
-						}
-					}else{
-							if(holdUnit.getLotNum()!=-1) { // if Id is town2, means these
-								// cvvies are probably diggers, and returnPrice would return null.
-								// means they are civvies.
-								try {
-									if(t2.getPlayer().ID==5) { // Id circumstances...
-										Town digT = t2p.God.getTown(t2.getDigTownID());
-										if(digT.townID!=0)
-										particularCost = digT.getPlayer().getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),digT.townID);
-
-									} else // normal circumstances...for civvies
-										particularCost = t2p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t2.townID);
-								}catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved, though."); }
-
-							} else
-							try {
-							particularCost = holdUnit.getOriginalPlayer().getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),holdUnit.getOriginalPlayer().towns().get(0).townID);
-							}catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved, though."); }
-						}
-					int l = 0;
-					while(l<totalCost.length-1) {
-						totalCost[l]+=particularCost[l];
-						l++;
-					}
-					
-					// now we add back the Zeppelin units.
-
-					if(k<6&&isZeppAbove) {
-						
-						// so if I have x units and y of those units were originally town units, then if z is the after battle of x, and z 
-						// is less than y, then the units remain in the town. If z > y, the excess returns to the zeppelin.
-						int townUnitsBefore = oldTownSizeArray[k];
-						int townUnitsAfter = holdUnit.getSize();
-						int difference = townUnitsAfter-townUnitsBefore;
-						if(difference>0) {
-							possZepp.getAu().get(k).setSize(difference);
-							holdUnit.setSize(townUnitsBefore); // so we get the difference,
-							// tack it back, then set the unit properly.
-							
-						} else possZepp.getAu().get(k).setSize(0);
-						
-					}
-					if(holdUnit.getLotNum()!=-1) { // we remove the civvie AFTER getting numUnitsRemaining, etc, or else it gets removed before we take data and
-						//it's all fucked up.
-						t2au.remove(k);
-						k--;//remove the civilian unit, no further need for it.
-					}
-					
-					
-					
-					k++;
-				} 
-				synchronized(t2.getDebris()) { // ADDING DEBRIS
-				int l = 0;
-				while(l<totalCost.length-1) {
-					totalCost[l]=(long) Math.round(((double) totalCost[l])*.1);
-					System.out.println("10% of total cost of all units lost for " + l + " is " + totalCost[l]);
-					t2.getDebris()[l]+=totalCost[l];
-					l++;
-				}
-				
-				int i = 0;
-				double totalpercent=0;
-				while(i<t2.bldg().size()) {
-					if(t2.bldg().get(i).getType().equals("Recycling Center")) {
-						totalpercent+=.033*t2.bldg().get(i).getLvl();
-					}
-					i++;
-				}
-				if(totalpercent>1) totalpercent=1;
-				if(totalpercent<0) totalpercent=0;
-				
-				l = 0;
-				synchronized(t2.getRes()) {
-					
-					while(l<t2.getRes().length-1) {
-					//	System.out.println("This player is getting " + totalpercent + " (1 being 100%) % of " + totalCost[l] + " at " + l + " with before debris being " + t2.getDebris()[l]);
-						t2.getRes()[l]+=(long) Math.round(((double) totalCost[l])*totalpercent);
-						t2.getDebris()[l]-=(long) Math.round(((double) totalCost[l])*totalpercent);
-					//	System.out.println("As a result, the remaining debris is " + t2.getDebris()[l]);
-						l++;
-					}
-				}
-				}	
 				if(numUnitsRemainingD==0) {
 					// fuckin kill missile silos..
 					UserBuilding[] bldgs = t2p.getPs().b.getUserBuildings(t2.townID,"Missile Silo");
@@ -9354,7 +8753,7 @@ public boolean checkForGenocides(Town t) {
 				if(bp<10||t1p.ID==5||t1p.isQuest()) bp = 0;
 				if(genocide) bp=(int) Math.round(((double) bp)/((double) actattack.getGenoRounds()));
 
-				System.out.println("Average CSL is " + avgCSL + " and fracOfCSL is  " +fracOfCSL + " and percentlossdiff is " + percentlossdiff + " and bp is " + bp);
+//				System.out.println("Average CSL is " + avgCSL + " and fracOfCSL is  " +fracOfCSL + " and percentlossdiff is " + percentlossdiff + " and bp is " + bp);
 			
 				if(premium) {
 					t2p.setBp(t2p.getBp()+bp);
@@ -9383,10 +8782,10 @@ public boolean checkForGenocides(Town t) {
 						k++;
 					}
 					double percdifflvl = ((double) (highLvl-avgLevel))/100;
-					System.out.println("avgLevel bef: " +avgLevel + " and high Lvl: "+ highLvl + " and percdifflvl =" + percdifflvl);
+				//	System.out.println("avgLevel bef: " +avgLevel + " and high Lvl: "+ highLvl + " and percdifflvl =" + percdifflvl);
 
 					avgLevel = (int) Math.round(((double) (1.0-percdifflvl)*((double) avgLevel) + percdifflvl*((double) highLvl)));
-					System.out.println("avgLevel after: " +avgLevel);
+				//	System.out.println("avgLevel after: " +avgLevel);
 					if(avgLevel<=0) avgLevel=1;
 					 k = 0;
 					AttackUnit a; int popped = 0;
@@ -9416,7 +8815,7 @@ public boolean checkForGenocides(Town t) {
 					if(bp<10||t2p.ID==5||t2p.isQuest()) bp = 0;
 					if(genocide) bp=(int) Math.round(((double) bp)/((double) actattack.getGenoRounds()));
 
-					System.out.println("Average CSL is " + avgCSL + " and fracOfCSL is  " +fracOfCSL + " and percentlossdiff is " + percentlossdiff + " and bp is " + bp);
+					//System.out.println("Average CSL is " + avgCSL + " and fracOfCSL is  " +fracOfCSL + " and percentlossdiff is " + percentlossdiff + " and bp is " + bp);
 				
 					if(premium) {
 						t1p.setBp(t1p.getBp()+bp);
@@ -9437,38 +8836,18 @@ public boolean checkForGenocides(Town t) {
 				if(!genocide)
 					combatHeader+=	" This means a " + Math.round(togain) + "% take of max cargo capturable in this raid.";
 				else combatHeader+= " Due to this being a campaign, the max cargo has been diminished to half of a full take.";
-				resFlag = true;
-				if(numUnitsRemainingD==totalRemainingBefD&&numUnitsRemainingO==totalRemainingBefA) {
-					// Stand off occurs. No resources are taken.
-					resFlag = false;
-				}
+				
 				
 				String bombReturn = bombLogicBlock(actattack,null,null); // bomb logic block. Can be removed as necessary,
-				// other wise needs to be used after the attack is complete.
-			//	System.out.println("Return value for bombLogic is " + bombReturn);
 				int returnNum = Integer.parseInt(bombReturn.substring(0,bombReturn.indexOf(",")));
-				//BHAttackViewer newWindow = new BHAttackViewer(holdAttack,defNames,offNames,defUnitsBefore,offUnitsBefore,defUnitsAfter,offUnitsAfter);
 			
 				String bombResultBldg = bombReturn.substring(bombReturn.indexOf(",")+1,bombReturn.lastIndexOf(","));
 				String bombResultPpl = bombReturn.substring(bombReturn.lastIndexOf(",")+1,bombReturn.length());
-				//System.out.println("return Num is " + returnNum + " bombBldg is " + bombResultBldg + " bombPpl is " + bombResultPpl);
-
-				// Right so the units are now fixed.
-				
-				// Now to send the attack back.
-				// find slowest unit left alive
-				try {
-				AttackUnit.removeEffects(t1au,t1p); /// must do before weather effects...or else it'll be wrong.
-				AttackUnit.removeEffects(t2au,t2p); /// must do before weather effects...or else it'll be wrong.
-				} catch(Exception exc) { exc.printStackTrace(); System.out.println("Weather or skin effects caused an exception but combat was saved."); }
-
-	
+		
 			
 				int c = 0;
 				double lowSpeed = 0;
 				AttackUnit g;
-				// we want it weighted...so we must divide by total size*expmod...
-				// because that gives us the total amount of soldier equivalents.
 				int totalsize=0;
 				do {
 					 g = t1au.get(c);
@@ -9478,19 +8857,8 @@ public boolean checkForGenocides(Town t) {
 					 c++;
 				} while(c<t1au.size());
 				if(lowSpeed==0) {
-					actattack.setRaidOver(true); // no need to reset ticksToHit, why return a ghostparty?
-					actattack.deleteMe(); // no longer needed in memory, release it.
-			/*	if(holdAttack.isGenocide()&&holdAttack.isAllClear()) {
-					// defenders win. Get rid of civilian AU.
-					//if(!holdAttack.getTown2().getPlayer().God.checkForGenocides(holdAttack.getTown2()))
-				//	removeCivilianAU(holdAttack.getTown2());
-					// if there are other genocides out there still hitting, leave this
-					// civilian au thing out...put raidOver to true before hand so it
-					// won't be found.
-				}*/
-			//	attackServer.remove(i);
-			//	i--; // Means no survivors. Gone due to fact that this needs to stay on to be updated.
-
+					actattack.setRaidOver(true);
+					actattack.deleteMe();
 				
 				} else {
 					lowSpeed/=totalsize;
@@ -9513,18 +8881,14 @@ public boolean checkForGenocides(Town t) {
 						actattack.setRaidOver(true);
 						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
 
-						if(resFlag) {
-							// Means can collect resources.
-							
-							// just gets total, divides by 1/4th, and takes one of each of those resources.
 						
 							moveResources(actattack,t2,percentlossdiff,false);
 							
 
-						}
+						
 				 }
 				}
-				else if(!genocide||(genocide&&!resFlag)) { // second condition means standoff during genocide.
+				else if(!genocide) { // second condition means standoff during genocide.
 					actattack.setTicksToHit(testhold);
 					actattack.setTotalTicks(testhold);
 
@@ -9532,7 +8896,6 @@ public boolean checkForGenocides(Town t) {
 					actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
 
 				
-				if(resFlag) {
 					// Means can collect resources.
 					
 					// just gets total, divides by 1/4th, and takes one of each of those resources.
@@ -9540,7 +8903,7 @@ public boolean checkForGenocides(Town t) {
 					moveResources(actattack,t2,percentlossdiff,false);
 					
 
-				}
+				
 				} else if(genocide&&numUnitsRemainingD>0&&!holdAttack.allClear()) {
 					actattack.setTicksToHit((int) Math.round(((double) testhold)/4));
 					actattack.setTotalTicks((int) Math.round(((double) testhold)/4));
@@ -9641,12 +9004,12 @@ public boolean checkForGenocides(Town t) {
 						actattack.setTicksToHit(testhold);
 						actattack.setTotalTicks(testhold);
 
-						if(resFlag) {
+					
 							
-							moveResources(actattack,t2,percentlossdiff,false);
+						moveResources(actattack,t2,percentlossdiff,false);
 
 
-						}
+						
 						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
 
 						// knock out capital city!
@@ -9806,11 +9169,11 @@ public boolean checkForGenocides(Town t) {
 				} 
 				
 					boolean toRet=true; String digMessage="none";
-					System.out.println(digOffSucc+ "," + digDefSucc + "," + t2.getDigAmt());
+				//	System.out.println(digOffSucc+ "," + digDefSucc + "," + t2.getDigAmt());
 					if(digOffSucc&&t2.getDigAmt()>0&&digDefSucc) { // only needs to be a dig there for this message. digOffSucc is true for non-attacks as well, 
 						// we don't NOT check for it because then digDefSucc may set this if statement off and not one of the others.
 						digMessage = "The defensive party repelled the attackers!";
-						System.out.println("Fuck you all.");
+				//		System.out.println("Fuck you all.");
 					} else if(digOffSucc&&!digDefSucc&&actattack.getDigAmt()>0){ // raid needs to be a dig for this to happen. This is the annihilation if - if defenders all dead, failed to defend and offenders arent.
 						t2.resetDig(actattack.getTown1().townID,actattack.getDigAmt(),true);
 
@@ -10929,7 +10292,7 @@ public boolean checkForGenocides(Town t) {
 		}
 		
 		i=0;
-		while(i<6) {
+		while(i<p.getAu().size()) {
 			totalpopwithexpmod+=getTotalSize(p.getAu().get(i),p)*p.getAu().get(i).getExpmod();
 			i++;
 		}
@@ -10944,7 +10307,7 @@ public boolean checkForGenocides(Town t) {
 		int totalpopwithexpmod = 0; Town t;
 		
 		i=0;
-		while(i<6) {
+		while(i<p.getAu().size()) {
 			totalpopwithexpmod+=getTotalSize(p.getAu().get(i),p)*p.getAu().get(i).getExpmod();
 			i++;
 		}
@@ -11127,7 +10490,7 @@ public boolean checkForGenocides(Town t) {
 		long totalCargo = 0; int totalSize=0;
 		while(i<r.getAu().size()) {
 			int n = r.getAu().get(i).getSize();
-			totalSize+=Math.round(((double) n*(n+1)*r.getAu().get(i).getPopSize()*r.getAu().get(i).getCargo())/2);// OLD CARGO
+			totalSize+=Math.round(((double) n*(n+1)*r.getAu().get(i).getCargo())/2);// OLD CARGO
 		//	totalSize+=Math.round(((double) n*r.getAu().get(i).getPopSize()*r.getAu().get(i).getCargo())); // NEW CARGO :)
 			// popsizes are 5 and 10 for juggers and tanks, so you get 5x as many cargo for a tank that's worth 10 men, but it's
 			// 2x as fast, so there's your tradeoff!
@@ -11361,7 +10724,7 @@ public boolean checkForGenocides(Town t) {
 		else {
 		t1au = holdAttack.getAu();
 		while(i<t1au.size()) {
-			if(t1au.get(i).getPopSize()==20&&t1au.get(i).getSize()>0) { hasBombers = true; break; }
+			if(t1au.get(i).getType()==4&&t1au.get(i).getSize()>0) { hasBombers = true; break; }
 			i++;
 		} 
 		}
@@ -11377,7 +10740,7 @@ public boolean checkForGenocides(Town t) {
 		while(i<t1au.size()) {
 			 a = t1au.get(i);
 
-			if(a.getPopSize()==20) {
+			if(a.getType()==4) {
 			//	System.out.println(a.name + "'s size is " + a.size);
 
 				switch(a.getWeap()[0]) {
@@ -11865,7 +11228,7 @@ public boolean checkForGenocides(Town t) {
 								int i = 0;
 								while(i<holdTown.getAu().size()) {
 									if(holdTown.getAu().get(i).getSlot()==q.getAUtoBuild()) {
-										q.modifyUnitTicksForItem(holdTown.getAu().get(i).getPopSize(),holdTown); 
+										q.modifyUnitTicksForItem(holdTown.getAu().get(i).getType(),holdTown); 
 										break;
 									}
 									i++;
@@ -11897,7 +11260,7 @@ public boolean checkForGenocides(Town t) {
 							int i = 0;
 							while(i<holdTown.getAu().size()) {
 								if(holdTown.getAu().get(i).getSlot()==q.getAUtoBuild()) {
-									q.modifyUnitTicksForItem(holdTown.getAu().get(i).getPopSize(),holdTown); 
+									q.modifyUnitTicksForItem(holdTown.getAu().get(i).getType(),holdTown); 
 									break;
 								}
 								i++;

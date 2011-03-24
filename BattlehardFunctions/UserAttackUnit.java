@@ -1,5 +1,7 @@
 package BattlehardFunctions;
 
+import BHEngine.AttackUnit;
+
 
 public class UserAttackUnit {
 private	double concealment, armor, cargo, speed;
@@ -30,36 +32,19 @@ soldierExpMod=1,tankExpMod=10,juggerExpMod=40,bomberExpMod=20,civilianExpMod=1, 
 tankPop=5,juggerPop=10,bomberPop=20,civilianPop=1,soldierPoints=400,tankPoints=800,juggerPoints=1600,bomberPoints=200,
 tier1=100,tier2=200,tier3=400,tier4=100;
 private String originalPlayer;
-public UserAttackUnit(double accuracy, 
-		double ammo, double armor, double cargo, String civType,
-		double concealment, int expmod,
-		double firepower,  int graphicNum, double hp, int lotNum,
-		String name, int originalPlayerID, int originalSlot,
-		int originalTID, int popSize, int size, int slot, double speed,
-		int support, int[] weap,String originalPlayer) {
+public UserAttackUnit(String name, int slot, int originalPlayerID, int originalSlot,
+		int originalTID,
+		int support, String originalPlayer) {
 	this.originalPlayer=originalPlayer;
-	this.accuracy = accuracy;
-	this.ammo = ammo;
-	this.armor = armor;
-	this.cargo = cargo;
-	this.civType = civType;
-	this.concealment = concealment;
-
-	this.expmod = expmod;
-	this.firepower = firepower;
-	this.graphicNum = graphicNum;
-	this.hp = hp;
-	this.lotNum = lotNum;
-	this.name = name;
+	
 	this.originalPlayerID = originalPlayerID;
 	this.originalSlot = originalSlot;
 	this.originalTID = originalTID;
-	this.popSize = popSize;
-	this.size = size;
+
 	this.slot = slot;
-	this.speed = speed;
 	this.support = support;
-	this.weap = weap;
+	this.name=name;
+	AttackUnit.setValues(this);
 }
 public String getOriginalPlayer() {
 	return originalPlayer;

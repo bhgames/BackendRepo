@@ -559,7 +559,7 @@ public static int baseResourceAmt = 2000;
 	
 		      QueueItem q = new QueueItem(qrs.getInt(1),this,God);
 				
-		      q.modifyUnitTicksForItem(a.getPopSize(),t); 
+		      q.modifyUnitTicksForItem(a.getType(),t); 
 			
 				
 		      Queue().add(q);
