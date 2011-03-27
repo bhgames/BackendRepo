@@ -207,6 +207,307 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 	}
 	
 	public void setValues() {
+		if(name.equals("Archaeologist")){
+			hp = 30;
+			attackDamage=15;
+			attackType=1; //physical
+			armor=0;
+			armorType=4; //civilian
+			speed=50;
+			cargo=0;
+			expmod=1;
+		} else if(name.equals("Pillager")) {
+			/*
+			 * HP: 50
+				Attack Damage: 25
+				Attack Type: Physical
+				Armor Level: 15
+				Armor Type: Light
+				Speed: 60
+				Cargo: 200
+			 */
+			hp = 50;
+			attackDamage=25;
+			attackType=1; //physical
+			armor=15;
+			armorType=1; //light
+			speed=60;
+			cargo=200;
+			expmod=1;
+		} else if(name.equals("Panzerfaust")) {
+			/*
+			 * HP: 75
+				Attack Damage: 20
+				Attack Type: Electrical
+				Armor Level: 10
+				Armor Type: Light
+				Speed: 50
+				Cargo: 20
+			 */
+			hp = 75;
+			attackDamage=20;
+			attackType=3; //electric
+			armor=10;
+			armorType=1; //light
+			speed=50;
+			cargo=20;
+			expmod=1;
+
+		}else if(name.equals("Vanguard")) {
+			/*
+			 *HP: 50
+				Attack Damage: 20
+				Attack Type: Explosive
+				Armor Level: 10
+				Armor Type: Light
+				Speed: 20
+				Cargo: 50
+			 */
+			hp = 50;
+			attackDamage=20;
+			attackType=2; //explosive
+			armor=10;
+			armorType=1; //light
+			speed=20;
+			cargo=50;
+			expmod=1;
+
+		}else if(name.equals("Seeker")) {
+			/*
+			 *HP: 150
+				Attack Damage: 390
+				Attack Type: Physical
+				Armor Level: 100
+				Armor Type: Heavy
+				Speed: 200
+				Cargo: 400 
+			 */
+			hp = 150;
+			attackDamage=390;
+			attackType=1; //physical
+			armor=100;
+			armorType=2; //heavy
+			speed=200;
+			cargo=400;
+			expmod=14;
+		}else if(name.equals("Damascus")) {
+			/*
+			HP: 150
+			Attack Damage: 390
+			Attack Type: Electrical
+			Armor Level: 100
+			Armor Type: Heavy
+			Speed: 150
+			Cargo: 250
+			 */
+			hp = 150;
+			attackDamage=390;
+			attackType=3; //electric
+			armor=100;
+			armorType=2; //heavy
+			speed=150;
+			cargo=250;
+			expmod=14;
+
+		}else if(name.equals("Wolverine")) {
+			/*
+			HP: 200
+			Attack Damage: 390
+			Attack Type: Explosive
+			Armor Level: 100
+			Armor Type: Heavy
+			Speed: 100
+			Cargo: 100
+			 */
+			hp = 200;
+			attackDamage=390;
+			attackType=2; //explosive
+			armor=100;
+			armorType=2; //heavy
+			speed=100;
+			cargo=100;
+			expmod=17;
+
+		}else if(name.equals("Punisher")) {
+			/*
+			HP: 700
+			Attack Damage: 1430
+			Attack Type: Physical
+			Armor Level: 300
+			Armor Type: Heavy
+			Speed: 500
+			Cargo: 1000
+			 */
+			hp = 700;
+			attackDamage=1430;
+			attackType=1; //physical
+			armor=300;
+			armorType=2; //heavy
+			speed=500;
+			cargo=1000;
+			expmod=55;
+
+		}else if(name.equals("Dreadnaught")) {
+			/*
+			HP: 700
+			Attack Damage: 1430
+			Attack Type: Electrical
+			Armor Level: 300
+			Armor Type: Heavy
+			Speed: 300
+			Cargo: 600
+			 */
+			hp = 700;
+			attackDamage=1430;
+			attackType=3; //electrical
+			armor=300;
+			armorType=2; //heavy
+			speed=300;
+			cargo=600;
+			expmod=55;
+
+		}
+		else if(name.equals("Colossus")) {
+			/*
+			HP: 900
+			Attack Damage: 1430
+			Attack Type: Explosive
+			Armor Level: 200
+			Armor Type: Heavy
+			Speed: 250
+			Cargo: 400
+
+			 */
+			hp = 900;
+			attackDamage=1430;
+			attackType=2; //explosive
+			armor=200;
+			armorType=2; //heavy
+			speed=250;
+			cargo=400;
+			expmod=61;
+
+		}else if(name.equals("LA-513 Gunship")) {
+			/*
+			HP: 50
+			Attack Damage: 75
+			Attack Type: Physical
+			Armor Level: 10
+			Armor Type: Light
+			Speed: 500
+			Cargo: 0
+
+			 */
+			hp = 50;
+			attackDamage=75;
+			attackType=1; //physical
+			armor=10;
+			armorType=1; //light
+			speed=500;
+			cargo=0;
+			expmod=1;
+
+		}else if(name.equals("LA-616 Thunderbolt")) {
+			/*
+			HP: 50
+			Attack Damage: 75
+			Attack Type: Electrical
+			Armor Level: 10
+			Armor Type: Light
+			Speed: 500
+			Cargo: 0
+
+			 */
+			hp = 50;
+			attackDamage=75;
+			attackType=3; //electrical
+			armor=10;
+			armorType=1; //light
+			speed=500;
+			cargo=0;
+			expmod=1;
+
+		}else if(name.equals("LA-293 Blastmaster")) {
+			/*
+			HP: 50
+			Attack Damage: 75
+			Attack Type: Explosive
+			Armor Level: 10
+			Armor Type: Light
+			Speed: 500
+			Cargo: 0
+
+			 */
+			hp = 50;
+			attackDamage=75;
+			attackType=2; //explosive
+			armor=10;
+			armorType=1; //light
+			speed=500;
+			cargo=0;
+			expmod=1;
+
+		}else if(name.equals("HA-44 Monolith")) {
+			/*
+			HP: 75
+			Attack Damage: 50
+			Attack Type: Physical
+			Armor Level: 25
+			Armor Type: Heavy
+			Speed: 300
+			Cargo: 0
+
+			 */
+			hp = 75;
+			attackDamage=50;
+			attackType=1; //physical
+			armor=25;
+			armorType=2; //heavy
+			speed=300;
+			cargo=0;
+			expmod=1;
+
+		}else if(name.equals("HA-18 Halcyon")) {
+			/*
+			HP: 75
+			Attack Damage: 50
+			Attack Type: Electrical
+			Armor Level: 25
+			Armor Type: Heavy
+			Speed: 300
+			Cargo: 0
+
+			 */
+			hp = 75;
+			attackDamage=50;
+			attackType=3; //electrical
+			armor=25;
+			armorType=2; //heavy
+			speed=300;
+			cargo=0;
+			expmod=1;
+
+		}else if(name.equals("HA-69 Hades")) {
+			/*
+			HP: 75
+			Attack Damage: 50
+			Attack Type: Explosive
+			Armor Level: 25
+			Armor Type: Heavy
+			Speed: 300
+			Cargo: 0
+
+			 */
+			hp = 75;
+			attackDamage=50;
+			attackType=2; //explosive
+			armor=25;
+			armorType=2; //heavy
+			speed=300;
+			cargo=0;
+			expmod=1;
+
+		}
 		
 		
 	}

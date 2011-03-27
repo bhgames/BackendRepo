@@ -1302,12 +1302,58 @@ public class Player  {
 	public void setAu(AttackUnit hau) {
 		int i = 0;
 		ArrayList<AttackUnit> au = getAu();
-		AttackUnit a;
+		AttackUnit a; boolean set=false;
 		while(i<au.size()) {
 			a = au.get(i);
-			if(a.getSlot()==hau.getSlot()) au.set(i,hau);
+			if(a.getSlot()==hau.getSlot()){
+				au.set(i,hau);
+			}
 			i++;
 		}
+	}
+	
+	synchronized public void addAu(AttackUnit au) {
+		au.setSlot(getAu().size());
+		try {
+			UberStatement stmt = con.createStatement();
+			stmt.execute("insert into attackunit(name,pid,slot) values ('"+au.getName()+"',"+ID+","+au.getSlot());
+			stmt.close();
+			getAu().add(au);
+			
+			for(Town t: towns()) {
+				
+				for(Building b: t.bldg()) {
+					
+					int oldFortArray[] = b.getFortArray();
+					int newFort[] = new int[oldFortArray.length+1];
+					
+					int i = 0;
+					while(i<oldFortArray.length) {
+						newFort[i]=oldFortArray[i];
+						i++;
+					}
+					b.setFortArray(newFort);
+				}
+				
+				ArrayList<AttackUnit> newTAU = new ArrayList<AttackUnit>();
+				int i = 0;
+				while(i<t.getAu().size()) {
+					if(i==au.getSlot()) {
+						newTAU.add(au.returnCopy());
+					}	// still have to add the old au at i, which is probably a support unit, after we add this one to it's correct slot!
+						newTAU.add(t.getAu().get(i));
+
+					i++;
+				}
+				t.setAu(newTAU);
+				
+			}
+			
+			save();
+		} catch(SQLException exc) {
+			exc.printStackTrace();
+		}
+		
 	}
 	public void saveAu(AttackUnit hau) {
 		
@@ -2623,6 +2669,34 @@ public class Player  {
 		}
 		return n;
 		
+	}
+
+
+	public Building findBuilding(int bid) {
+		// TODO Auto-generated method stub
+		for(Town t: towns()) {
+			
+			for(Building b: t.bldg()) {
+				
+				if(b.bid==bid){
+					return b;
+				}
+			}
+		}
+		return null;
+	}
+	public Town findTownWithBuilding(int bid) {
+		// TODO Auto-generated method stub
+		for(Town t: towns()) {
+			
+			for(Building b: t.bldg()) {
+				
+				if(b.bid==bid){
+					return t;
+				}
+			}
+		}
+		return null;
 	}
 }
 

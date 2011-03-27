@@ -10,7 +10,7 @@ public class UserBuilding {
 	  private int lvl; private long cap; private int lotNum; private long cost[] = new long[5];
 	private int ticksToFinish, ticksToFinishTotal; private int peopleInside; // used to determine time to level up/build.
 private int bid;
-private int refuelTicks;
+private int refuelTicks; private int fortArray[];
 //private	int ticksPerUnit[] = new int[6]; // for combat units ONLY.
 //private	int ticksLeftPerUnit[] = new int[6]; // for combat units ONLY.
 private UserQueueItem[] Queue;
@@ -31,7 +31,7 @@ private static int baseResourceAmt = 1000;
 		long cap, long[] cost, boolean deconstruct, int lotNum,
 		int lvl, int lvlUps, int numLeftToBuild,
 		int peopleInside, int ticksLeft, int ticksPerPerson,
-		int ticksToFinish, int ticksToFinishTotal, String type, int refuelTicks) {
+		int ticksToFinish, int ticksToFinishTotal, String type, int refuelTicks, int[] fortArray) {
 	
 	Queue = queue;
 	this.bid = bid;
@@ -40,6 +40,7 @@ private static int baseResourceAmt = 1000;
 	this.cost = cost;
 	this.deconstruct = deconstruct;
 	this.lotNum = lotNum;
+	this.fortArray=fortArray;
 	this.lvl = lvl;
 	this.lvlUps = lvlUps;
 	this.refuelTicks=refuelTicks;
@@ -416,5 +417,14 @@ private static int baseResourceAmt = 1000;
 			
 			
 		}
+	}
+	/**
+	 * Returns an array representing how much of each unit type is protected by this fortification,
+	 * if this building is indeed a fortification.
+	 * 
+	 * If it isn't, then it just returns an array of zeroes.
+	 */
+	public int[] getFortArray() {
+		return fortArray;
 	}
 }

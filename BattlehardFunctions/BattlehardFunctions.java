@@ -3978,13 +3978,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					 }
 					 a = AU.get(saved);
 					 Building myaf = holdT.findBuilding(bid);
-					 if(a.getExpmod()==AttackUnit.soldierExpMod&&!myaf.getType().equals("Arms Factory")) {
+					 if(a.getType()==1&&!myaf.getType().equals("Arms Factory")) {
 						 setError("This is not an Arms Factory!");
 						 
-					 }else if((a.getExpmod()==AttackUnit.tankExpMod||a.getExpmod()==AttackUnit.juggerExpMod)&&!myaf.getType().equals("Manufacturing Plant")) {
+					 }else if((a.getType()==2||a.getType()==3)&&!myaf.getType().equals("Manufacturing Plant")) {
 						 setError("This is not an Manufacturing Plant!");
 						 
-					 }else if((a.getExpmod()==20)&&!myaf.getType().equals("Airstrip")) {
+					 }else if((a.getType()==4)&&!myaf.getType().equals("Airstrip")) {
 						 setError("This is not an Airstrip!");
 						 
 					 }
@@ -4392,13 +4392,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 if(prog) keep = true;
 		 prog=false;
 		 boolean haveIt = false;
-		 if(AU.getExpmod()==AttackUnit.soldierExpMod) {
+		 if(AU.getType()==1) {
 			 haveIt = haveBldg(townName,"Arms Factory");
 		 }
-		 else if(AU.getExpmod()==AttackUnit.tankExpMod||AU.getExpmod()==AttackUnit.juggerExpMod) {
+		 else if(AU.getType()==2||AU.getType()==3) {
 			 haveIt = haveBldg(townName,"Manufacturing Plant");
 
-		 } else if(AU.getExpmod()==20) {
+		 } else if(AU.getType()==4) {
 			 haveIt = haveBldg(townName, "Airstrip");
 		 }
 		  
@@ -8500,200 +8500,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 		while(i<array.length) {
 		
-			/*
-			 * We only want a town tech to be visible every 3rd round, but what if they don't choose it?
-			 * Then if you only have one town, you can only get one when it's greater than or equal to 3.
-			 * At two, greater than or equal to 6. etc.
-			 */
-			
-		/*	int j = 0;
-			while(j<array.length) {
-				if(array[i].equals(array[j])&&i!=j) {
-					setError("Cannot research the same thing twice in one breakthrough!");
-					return false;
-				}
-				j++;
-			}
-			*/
-		/*	if(array[i].equals("townTech")&&(p.brkthrus-p.brkups)<((3*p.towns().size()+4))) {
-				// at 7 it takes you 1.6 days to get that.
-				error = "You cannot research your " + (p.towns().size()+1) + "(st/th) town until you've gotten at least " + 
-				(4+3*p.towns().size()) + " breakthroughs!";
-				return false;
-			} else *//*if(array[i].startsWith("soldierPic")) {
-				// nearly instantaneous.
-					int num = Integer.parseInt(array[i].substring(array[i].indexOf("c")+1,array[i].length()));
-					
-					 if((p.getBrkthrus()-p.getBrkups()+1)<(num*3)) {
-						setError("You cannot get this upgrade until your " + (num*3) + "th breakthrough.");
-						return false;
-						// so you can get these skins at 15,18, and 21.
-					}
-				
-			}else if((array[i].equals("tankTech")||array[i].startsWith("tankPic"))&&(p.getBrkthrus()-p.getBrkups()+1)<20) {
-				// 	20 days to get this.
-				
-				if(array[i].startsWith("tankPic")) {
-					int num = Integer.parseInt(array[i].substring(array[i].indexOf("c")+1,array[i].length()));
-					if((p.getBrkthrus()-p.getBrkups()+1)<(20+num*3)) {
-						setError("You cannot get this upgrade until your " + (20+num*3) + "th breakthrough.");
-						return false;
-						// so you can get these skins at 15,18, and 21.
-					}
-				}
-				else {
-				setError("You cannot research tanks until you've gotten at least " + 
-					20 + " breakthroughs!");
-					return false;
-				}
-				}
-			else if((array[i].equals("juggerTech")||array[i].startsWith("juggerPic"))&&(p.getBrkthrus()-p.getBrkups()+1)<30) {
-			
-				// 40 days
-				
-				if(array[i].startsWith("juggerPic")) {
-					int num = Integer.parseInt(array[i].substring(array[i].indexOf("c")+1,array[i].length()));
-					if((p.getBrkthrus()-p.getBrkups()+1)<(30+num*3)) {
-						setError("You cannot get this upgrade until your " + (30+num*3) + "th breakthrough.");
-						return false;
-						// so you can get these skins at 15,18, and 21.
-					}
-				}
-				else {
-				setError("You cannot research juggernaughts until you've gotten at least " + 
-				30 + " breakthroughs!");
-				}
-				return false;
-			}else if((array[i].equals("bomberTech")||array[i].startsWith("bomberPic"))&&(p.getBrkthrus()-p.getBrkups()+1)<35) {
-				// 74 days. (ALL WITHOUT SCHOLARS!)
-				
-				if(array[i].startsWith("bomberPic")) {
-					int num = Integer.parseInt(array[i].substring(array[i].indexOf("c")+1,array[i].length()));
-					if((p.getBrkthrus()-p.getBrkups()+1)<(35+num*3)) {
-						setError("You cannot get this upgrade until your " + (35+num*3) + "th breakthrough.");
-						return false;
-						// so you can get these skins at 15,18, and 21.
-					}
-				} else {
-					
-				setError("You cannot research bombers until you've gotten at least " + 
-				35 + " breakthroughs!");
-				return false;
-				}
-			}/*else if(array[i].equals("unitLotTech")) {
-				// nearly instantaneous.
-				if((p.brkthrus-p.brkups+1)<(3+p.aLotTech*3)) {
-					error = "You cannot get this slot until your " + (3+p.aLotTech*3) + "th breakthrough.";
-					return false;
-				}
-			}*/
-			
-			
-			// test to see if it's already happened.
-		/*	if(array[i].equals("soldierTech")&&(p.isSoldierTech())) {
-				setError("You cannot research this if you already have it!");
-				return false;
-			}else if(array[i].equals("tankTech")&&(p.isTankTech()||p.towns().size()<2)) {
-				setError("You cannot research this if you already have it or have less than two towns!");
-				
-					return false;
-				}
-			else if(array[i].equals("juggerTech")&&(p.isJuggerTech()||p.towns().size()<3)) {
-				setError("You cannot research this if you already have it or have less than three towns!");
-
-				return false;
-			}else if(array[i].equals("bomberTech")&&(p.isBomberTech()||p.towns().size()<4)) {
-				setError("You cannot research this if you already have it or have less than four towns!");
-
-				return false;
-			} else if(array[i].startsWith("weap")) {
-				try {
-					int num = Integer.parseInt(array[i].substring(array[i].indexOf("p")+1,array[i].length()));
-					if(num<0||num>20) {
-						setError("Invalid weapon number!");
-						
-						return false;
-					} else if(p.getWeap()[num]) {
-						setError("You have already researched this weapon!");
-						return false;
-					}
-					
-					
-				} catch(NumberFormatException exc) { 
-					setError("Invalid research.");
-					return false;
-				}
-			} else if(array[i].startsWith("soldierPic")) {
-				try {
-					int num = Integer.parseInt(array[i].substring(array[i].indexOf("c")+1,array[i].length()));
-					if(num<0||num>9) {
-						setError("Invalid pic number!");
-						
-						return false;
-					} else if(p.getSoldierPicTech()[num]) {
-						setError("You have already researched this pic!");
-						return false;
-					}
-					
-					
-				} catch(NumberFormatException exc) { 
-					setError("Invalid research.");
-				return false;}
-			}else if(array[i].startsWith("tankPic")) {
-				try {
-					int num = Integer.parseInt(array[i].substring(array[i].indexOf("c")+1,array[i].length()));
-					if(num<0||num>9) {
-						setError("Invalid pic number!");
-						
-						return false;
-					} else if(p.getTankPicTech()[num]) {
-						setError("You have already researched this pic!");
-						return false;
-					}
-					
-					
-				} catch(NumberFormatException exc) { 
-					setError("Invalid research.");
-				return false;}
-			}else if(array[i].startsWith("juggerPic")) {
-				try {
-					int num = Integer.parseInt(array[i].substring(array[i].indexOf("c")+1,array[i].length()));
-					if(num<0||num>9) {
-						setError("Invalid pic number!");
-						
-						return false;
-					} else if(p.getJuggerPicTech()[num]) {
-						setError("You have already researched this pic!");
-						return false;
-					}
-					
-					
-				} catch(NumberFormatException exc) { 
-					setError("Invalid research.");
-				return false;}
-			}else if(array[i].startsWith("bomberPic")) {
-				try {
-					int num = Integer.parseInt(array[i].substring(array[i].indexOf("c")+1,array[i].length()));
-					if(num<0||num>5) {
-						setError("Invalid pic number!");
-						
-						return false;
-					} else if(p.getBomberPicTech()[num]) {
-						setError("You have already researched this pic!");
-						return false;
-					}
-					
-					
-				} catch(NumberFormatException exc) { 
-					setError("Invalid research.");
-				return false;}
-			} else if(array[i].startsWith("lotTech")) {
-				/*
-				if((p.getBrkthrus()-p.getBrkups()+1)<((p.getLotTech()-9)*3)) {
-					setError("You cannot get this slot until your " + ((p.getLotTech()-9)*3) + "th breakthrough.");
-					return false;
-				}
-			}*/
+		
 		
 			if(array[i].equals("lotTech")) {
 				if(!free&&hypoTotal<GodGenerator.buildingLotTechPrice*((p.getLotTech()-8)+1)) {
@@ -9815,10 +9622,47 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		toRet = new UserSR[1];
 		return toRet;
 	}
-		/**
-		 * UI Implemented.
-		 * This method returns the array of all UserWeapon objects.
-		 */
+	/**
+	 * UI Implemented.
+	 * Lets you set up the amount of soldiers/tanks you want fortified by a fortification.
+	 * 
+	 * @param auNumbers - an array of integers representing the desired number of each of your unit types you wish to be protected by
+	 * this fortification
+	 * @param bid - the unique building id of the Fortification.
+	 * @return
+	 */
+	public boolean setFortification(int auNumbers[], int bid) {
+		if(prog&&!p.isBuildingAPI()) {
+			setError("You do not have the  Building API!");
+			return false;
+		}
+		Building b = p.findBuilding(bid);
+		Town t = p.findTownWithBuilding(bid);
+		if(!b.getType().equals("Fortification")) {
+			setError("This is not a Fortification!");
+			return false;
+		}
+		if(auNumbers.length!=p.getAu().size()) {
+			setError("This array is the correct length! There must be one entry for every Attack Unit you can build!");
+		}
+		int i = 0;
+		int max = b.getLvl()*2;
+		int desired=0;
+		while(i<auNumbers.length) {
+			desired+=auNumbers.length;
+			i++;
+		}
+		
+		if(desired<max) {
+			b.setFortArray(auNumbers);
+			return true;
+		} else {
+			setError("You do not have enough room in this Fortification!");
+			return false;
+
+		}
+		
+	}
 	/**
 	 * UI Implemented.
 	 * Returns an array of all the different building types in the game,
@@ -9872,7 +9716,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,
 			actb.getLvlUps(),actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
 			Building.getTicksPerPerson(totalEngineers,engEffect,p.getEngTech(),ppl,lvl,actb.getType()),
-			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getEngTech(),actb.getType()),name,actb.getRefuelTicks());
+			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getEngTech(),actb.getType()),name,actb.getRefuelTicks(),actb.getFortArray());
 		
 
 		/*
@@ -9969,7 +9813,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,
 			actb.getLvlUps(),actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
 			Building.getTicksPerPerson(totalEngineers,engEffect,p.getEngTech(),ppl,lvl,actb.getType()),
-			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getEngTech(),actb.getType()),name,actb.getRefuelTicks()));
+			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getEngTech(),actb.getType()),name,actb.getRefuelTicks(),actb.getFortArray()));
 			}
 		 i++;
 		}
@@ -10047,7 +9891,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,
 			actb.getLvlUps(),actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
 			Building.getTicksPerPerson(totalEngineers,engEffect,p.getEngTech(),ppl,lvl,actb.getType()),
-			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getEngTech(),actb.getType()),name,actb.getRefuelTicks()));
+			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getEngTech(),actb.getType()),name,actb.getRefuelTicks(),actb.getFortArray()));
 			}
 		 i++;
 		}

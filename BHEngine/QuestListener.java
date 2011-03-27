@@ -798,9 +798,9 @@ public abstract class QuestListener extends Player {
 				try {
 			stmt.execute("start transaction;");
 		//	stmt.execute("update player set chg = 1 where pid = " + ID);
-		
-			  stmt.execute("insert into town (pid,townName,x,y,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,au1,au2,au3,au4,au5,au6) values (" + ID  +",\"" + townName+ "\","
-    				  +x+","+(y)+",0,0,0,0,1," + resEffects[0] + "," + resEffects[1] + "," + resEffects[2] + "," + resEffects[3] + "," + resEffects[4] + ",0,0,0,0,0,0)");
+			int newSizes[] = new int[0];
+			  stmt.execute("insert into town (pid,townName,x,y,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,auSizes) values (" + ID  +",\"" + townName+ "\","
+    				  +x+","+(y)+",0,0,0,0,1," + resEffects[0] + "," + resEffects[1] + "," + resEffects[2] + "," + resEffects[3] + "," + resEffects[4] + ","+PlayerScript.toJSONString(newSizes)+")");
     		  rs = stmt.executeQuery("select tid from town where x = " + (x) + " and y = " + (y) + ";");
     		  rs.next();
     		   tid = rs.getInt(1);

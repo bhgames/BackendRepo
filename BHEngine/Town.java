@@ -390,9 +390,9 @@ public class Town {
 		      while(!transacted) {
 		    	  try {
 		      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
-
-			stmt.executeUpdate("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct) values ('" + type + "'," + lotNum + "," + lvl +"," +
-					"0" + ",0,0,0," + townID + ","+lvlUp+",false);");
+		      int newSizes[] = new int[getPlayer().getAu().size()];
+			stmt.executeUpdate("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,fortArray) values ('" + type + "'," + lotNum + "," + lvl +"," +
+					"0" + ",0,0,0," + townID + ","+lvlUp+",false,"+PlayerScript.toJSONString(newSizes)+");");
 			
 			int bid = 0;
 			int timesTried=0;

@@ -622,6 +622,16 @@ public class PlayerScript implements Runnable {
         		 toRet+= b.changeBombTarget(num1,num2,num3);
         	 
         		 
+        		 }else if(holdCmd.equals("bf.setFortification")) {
+            		 //number[], number
+        			
+        				 int array1[] = decodeStringIntoIntArray(holdPart.substring(0,holdPart.indexOf("]")+1));
+        				 holdPart = holdPart.substring(holdPart.indexOf("]")+2,holdPart.length());
+        				 int num2 = Integer.parseInt(holdPart.substring(0,holdPart.length()));
+                	
+                		 toRet+= b.setFortification(array1,num2);
+            			
+        			 
         		 }else if(holdCmd.equals("bf.recall")) {
             		 //number, number, number or number or number[], number, number, number
         			 int numCommas = commaCount(holdPart);

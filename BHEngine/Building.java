@@ -20,6 +20,7 @@ public class Building {
 	private boolean mineBldg;
 	private int refuelTicks;
 	private boolean nukeMode;
+	private int fortArray[];
 	private String type;
 	private int lvl;
 	private boolean deconstruct;
@@ -52,7 +53,7 @@ public static int baseResourceAmt = 2000;
 		return new Building(bid,God);
 	}
 	
-	public void setBuildingValues(String type, int lotNum, int bldglvl, int ticksToFinish, int people, int pplbldging, int ticksLeft, int lvlUps, boolean deconstruct, int bid, int refuelTicks,boolean nukeMode,int bunkerMode) {
+	public void setBuildingValues(String type, int lotNum, int bldglvl, int ticksToFinish, int people, int pplbldging, int ticksLeft, int lvlUps, boolean deconstruct, int bid, int refuelTicks,boolean nukeMode,int bunkerMode, String fortArrayStr) {
 		setLvl(bldglvl); this.ticksToFinish=ticksToFinish; peopleInside = people; numLeftToBuild = pplbldging;
 		this.nukeMode=nukeMode;
 		this.bid=bid;
@@ -62,6 +63,7 @@ public static int baseResourceAmt = 2000;
 		this.refuelTicks=refuelTicks;
 		this.bunkerMode=bunkerMode;
 		this.type=type;
+		setFortArray(PlayerScript.decodeStringIntoIntArray(fortArrayStr));
 	}
 	public Building(int bid,GodGenerator God) {
 		
@@ -77,9 +79,10 @@ public static int baseResourceAmt = 2000;
 			
 				while(brs.next()) {
 		
+					String fortArrayStr = brs.getString(16);
 					
 					  setBuildingValues(brs.getString(1), brs.getInt(2), brs.getInt(3), brs.getInt(4), brs.getInt(5), 
-							brs.getInt(6),brs.getInt(7),brs.getInt(9),brs.getBoolean(10),bid,brs.getInt(14),brs.getBoolean(15),brs.getInt(12));
+							brs.getInt(6),brs.getInt(7),brs.getInt(9),brs.getBoolean(10),bid,brs.getInt(14),brs.getBoolean(15),brs.getInt(12),fortArrayStr);
 					
 					 
 					 
@@ -612,7 +615,7 @@ public static int baseResourceAmt = 2000;
 		 UberStatement stmt = con.createStatement();
  			   update = "update bldg set name = '" + type + "', lvl = " + getLvl() + ", lvling = " +
  		  ticksToFinish + ", ppl = " + peopleInside + ", pplbuild = " + numLeftToBuild + ", pplticks = " +
- 		  ticksLeft + ", lvlUp = " + lvlUps + ", deconstruct = " + deconstruct + ", bunkerMode = " + bunkerMode +", refuelTicks = " + refuelTicks+", nukeMode = " + nukeMode 
+ 		  ticksLeft + ", fortArray = '"+PlayerScript.toJSONString(fortArray) + "', lvlUp = " + lvlUps + ", deconstruct = " + deconstruct + ", bunkerMode = " + bunkerMode +", refuelTicks = " + refuelTicks+", nukeMode = " + nukeMode 
  		  + " where bid = " + bid + ";";
  	
  			  
@@ -1373,5 +1376,19 @@ public static int baseResourceAmt = 2000;
 
 	public boolean isNukeMode() {
 		return nukeMode;
+	}
+
+
+
+
+	public void setFortArray(int fortArray[]) {
+		this.fortArray = fortArray;
+	}
+
+
+
+
+	public int[] getFortArray() {
+		return fortArray;
 	}
 }
