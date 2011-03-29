@@ -195,9 +195,9 @@ public static int days = 5;
 	public static int getUnitTicks(int howMany, Town t) {
 		Player p = t.getPlayer();
 		double engEffect = p.God.Maelstrom.getEngineerEffect(t.getX(),t.getY());
-		int engTech = p.getEngTech();
+		int engTech = p.getArchitecture();
 		int totalEngineers = t.getTotalEngineers();
-		totalEngineers=(int) Math.round(((double) totalEngineers) *(1+engEffect+.05*(engTech-1))+1);
+		totalEngineers=(int) Math.round(((double) totalEngineers) *(1+engEffect+.05*(engTech))+1);
 		UserBuilding b[] = p.getPs().b.getUserBuildings(t.townID,"Manufacturing Plant");
 		int totalNumLev = 0;
 		for(UserBuilding bldg:b) {

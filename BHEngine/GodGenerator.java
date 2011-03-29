@@ -4613,30 +4613,32 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	public static double zeppelinHeight = .3;
 	
 	public static int digScholarRequirement=10;
-	public static int buildingSlotTechPrice=10; // how much it costs to buy this research.
-	public static int buildingLotTechPrice=20;
-	public static int buildingStabilityTechPrice=5;
-	public static int commsCenterTechPrice=5;
+	public static int constructionResearchPrice=10; // how much it costs to buy this research.
+	public static int infrastructureTechPrice=20;
+	public static int structuralIntegrityPrice=5;
 	public static int townTechPrice=200;
-	public static int civEfficiencyPrice=5;
-	public static int afTechPrice=5;
-	public static int bunkerTechPrice=5;
-	public static int stealthTechPrice=10;
+	public static int civEfficiencyPrice=25;
+	public static int bloodMetalPlatingPrice=75;
+	public static int advancedFortificationsPrice=5;
+	public static int bodyArmorPrice=50;
 	public static int scoutTechPrice=10;
-	public static int supportTechPrice=5;
-	public static int aLotTechPrice=20;
-	public static int soldierTechPrice=50;
-	public static int tankTechPrice=100;
-	public static int juggerTechPrice=200;
-	public static int bomberTechPrice=400;
-	public static int troopPushPrice=100;
-	public static int zeppelinTechPrice=800;
-	public static int missileSiloTechPrice=400;
-	public static int recyclingCenterTechPrice=100;
-	public static int metalRefTechPrice=200;
-	public static int timberRefTechPrice=200;
-	public static int manMatRefTechPrice=200;
-	public static int foodRefTechPrice=200;
+	public static int personalShieldsPrice=1000;
+	public static int hydraulicAssistorsPrice=500;
+	public static int thrustVectoringPrice=600;
+	public static int airshipTechPrice=2000;
+	public static int clockworkAugmentsPrice=300;
+	public static int soldierPrice=100;
+	public static int tankPrice=100;
+	public static int golemPrice=100;
+	public static int airPrice=100;
+	public static int firearmResearchPrice=50;
+	public static int ordinanceResearchPrice=50;
+	public static int teslaTechPrice=50;
+	public static int bloodMetalArmorPrice=750;
+
+
+
+
 	
 	public static int digAPITechPrice = 400;
 	
@@ -4669,7 +4671,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 
 	public static int traderCarryAmount=300;
 	public static int traderSpeed = 100; 
-	public static int lotTechLimit=18; // how many lots you can have maximum.
+	public static int infrastructureTechLimit=18; // how many lots you can have maximum.
 	public static int tradeDistance = 20;
 	public static int maxMessageLimit=100;
 	public static int stockMarketTime=(int) Math.round(tradeDistance*10/(traderSpeed*speedadjust));
@@ -6291,45 +6293,10 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				i++;
 			}*/
 			
-					boolean weap[] = new boolean[21];
-			i = 1;
-			while(i<21) {
-				weap[i]=false; 
-				i++;
-			}
-			weap[0]=true;
-			
-		    boolean soldierPicTech[] = new boolean[10];
-		    
-		    i = 0;
-		    while(i<soldierPicTech.length) {
-		    	soldierPicTech[i]=true;
-		    	i++;
-		    }
-		    boolean tankPicTech[] = new boolean[10];
-		    i = 0;
-		    while(i<tankPicTech.length) {
-		    	tankPicTech[i]=true;
-		    	i++;
-		    }
-		    boolean juggerPicTech[] = new boolean[10];
-		    i = 0;
-		    while(i<juggerPicTech.length) {
-		    	juggerPicTech[i]=true;
-		    	i++;
-		    }
-		    boolean bomberPicTech[] = new boolean[5];
-		    i = 0;
-		    while(i<bomberPicTech.length) {
-		    	bomberPicTech[i]=true;
-		    	i++;
-		    }		    
+				
+		      
 		
 	    	
-	    	p.setBomberPicTech(bomberPicTech);
-	    	p.setTankPicTech(tankPicTech);
-	    	p.setSoldierPicTech(soldierPicTech);
-	    	p.setJuggerPicTech(juggerPicTech);
 	    //	p.setWeap(weap);
 			
 	    	p.setRevTimer((int) Math.round(( (double) 52*7*24*3600)/((double) GodGenerator.gameClockFactor)));
@@ -6381,7 +6348,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				ps.b.completeResearches(toRes); // give them a default template.
 				ps.b.createCombatUnit(0,"Shock Trooper"); } else*/ if(p.getVersion().equals("new")) {
 					p.getPs().b.joinQuest("NQ1");
-					p.setKnowledge(p.getKnowledge()+soldierTechPrice);
+					p.setKnowledge(p.getKnowledge()+soldierPrice);
 					String toRes[] = {"ShockTrooper"};
 					ps.b.completeResearches(toRes); // give them a default template.
 				}
@@ -6499,7 +6466,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		double Sd = (1+.25*t2p.getScoutTech());
 		double CSL = t2p.getPs().b.getCSL(t2.townID);
 		double SSL = CSL/t2p.towns().size();
-		CSL*=(1-((double) t2p.getStealthTech()+1.0)/20.0);
+		CSL*=(1-((double) t2p.getScoutTech()+1.0)/20.0);
 		if(CSL<=0) CSL=1;
 		SSL*=(1-((double) t1p.getScoutTech()+1.0)/20.0);
 		if(SSL<=0) SSL=1;
@@ -7058,7 +7025,10 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			y++;
 		}
 		
-		maxSize*=.1*t2p.getSupportTech(); // so if supportTech = 5, can hold .5*size of pop.
+		//maxSize*=.1*t2p.getSupportTech(); // so if supportTech = 5, can hold .5*size of pop.
+		
+		maxSize=99999999; // nooo limit in steampunk wars, it used to be different, the comment above and below are from older versions.
+		// left in case you want to go back.
 		
 		// now maxSize is  almost ready. We'll use it to deduct from when we stock units in the new town,
 		// to keep a tally of how much we can do. All that remains
@@ -7130,7 +7100,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			k++;
 		}
 		
-		if(numOtherForeignPlayers>=t2p.getSupportTech()&&t2p.ID!=5) maxSize=0; 
+	//	if(numOtherForeignPlayers>=t2p.getSupportTech()&&t2p.ID!=5) maxSize=0; 
 		// numOtherForeignPlayers will never be > than but just in case.
 		// setting maxSize = 0 ensures no units moved.
 	}
@@ -8080,7 +8050,7 @@ public boolean checkForGenocides(Town t) {
 		UserBuilding t2bldg[] = t2p.getPs().b.getUserBuildings(t2.townID,"all");
 		while(j<t2bldg.length) {
 			 b = t2bldg[j];
-			if(b.getType().equals("Command Center"))  bunkerSize+=Math.round(.33*.05*t2p.getBunkerTech()*getPeople(b.getLvl(),3,4,totalUnitPrice));
+			if(b.getType().equals("Command Center"))  bunkerSize+=Math.round(.33*.05*t2p.getAdvancedFortifications()*getPeople(b.getLvl(),3,4,totalUnitPrice));
 		//	else if(b.type.equals("Bunker")&&b.bunkerMode==1&&b.getLvl()>25) bunkerSize+=Math.exp(25)+(b.getLvl()-25)*Math.exp(25);
 			
 			j++;
@@ -8118,7 +8088,6 @@ public boolean checkForGenocides(Town t) {
 			if(b.getPeopleInside()>0) {
 				
 				int weap[] = new int[1];
-				weap[0]=t2p.getCivWeapChoice(); // These are the guys being attacked.
 				 Civ = new AttackUnit("Civilian", b.getLotNum(),b.getType());
 				Civ.setSize((int) Math.round(((double) b.getPeopleInside())*(1-civvybunkerfrac)));
 		//		System.out.println("People being removed are " + ((int) Math.round(((double) b.getPeopleInside())*(1-civvybunkerfrac))));
@@ -8155,8 +8124,6 @@ public boolean checkForGenocides(Town t) {
 
 		if(actattack.getDigAmt()>0) { // This is the IF IT'S A DIG block.
 
-			int weap[] = new int[1];
-			weap[0]=t1p.getCivWeapChoice(); // These are the guys being attacked.
 			AttackUnit Civ = new AttackUnit("Archaeologist", -2, "Institute");
 			Civ.setName("Scholar");
 			Civ.setSize(actattack.getDigAmt());
@@ -8166,8 +8133,6 @@ public boolean checkForGenocides(Town t) {
 		}
 		if(t2.getDigAmt()>0) {
 			// THIS IS IF YOU'RE AT AN ID TOWN AND THERE IS A DIG THERE. THEN WE ADD THEIR UNITS TOO. GOD DAMNIT I HATE BOOKKEEPING.
-			int weap[] = new int[1];
-			weap[0]=(t2.getPlayer().God.findTown(t2.getDigTownID()).getPlayer()).getCivWeapChoice(); // These are the guys being attacked.
 			AttackUnit Civ = new AttackUnit("Archaeologist", -2, "Institute");
 			Civ.setName("Scholar");
 			Civ.setSize(t2.getDigAmt());
@@ -8229,9 +8194,9 @@ public boolean checkForGenocides(Town t) {
 				double expTerm2 = Math.exp(-(currentExpAdvSizeDef+1)/(CSLHere));
 				double expTerm1 = Math.exp(-(currentExpAdvSizeOff+1)/(CSLHere));
 
-				if(expTerm1<(.035*t1p.getStealthTech())) {
+				if(expTerm1<(.035*t1p.getScoutTech())) {
 			
-					expTerm1=.035*t1p.getStealthTech();
+					expTerm1=.035*t1p.getScoutTech();
 
 				}
 				try {
@@ -8239,9 +8204,9 @@ public boolean checkForGenocides(Town t) {
 				} catch(Exception exc) { exc.printStackTrace(); System.out.println("CSL skin effect had trouble, combat saved though.");}
 					combatHeader +=" Accounting for how much cover there was, the offense received a " + (100-Math.round(expTerm1*100)) + "% decrement to their attributes,";
 				
-				if(expTerm2<(.035*t2p.getStealthTech())) {
+				if(expTerm2<(.035*t2p.getScoutTech())) {
 			
-					expTerm2=.035*t2p.getStealthTech();
+					expTerm2=.035*t2p.getScoutTech();
 				}
 				try {
 					expTerm2=AttackUnit.getNewCSL(t2au, expTerm2);
@@ -8254,14 +8219,7 @@ public boolean checkForGenocides(Town t) {
 				 j=0;
 				 bunkerSize=0; // getting the total number of soldiers the bunkers that are in mode 0 can hold.
 			
-				while(j<t2bldg.length) {
-					 b = t2bldg[j];
-					if(b.getType().equals("Fortification"))  bunkerSize+=Math.round(.33*.05*t2p.getBunkerTech()*getPeople(b.getLvl(),totalPoppedUnits,4,totalUnitPrice/t2p.towns().size())); // because units price decrease with town size
-
-					//else if(b.type.equals("Bunker")&&b.bunkerMode==0&&b.getLvl()>25) bunkerSize+=Math.exp(25)+(b.getLvl()-25)*Math.exp(25);
-					
-					j++;
-				}
+				
 				j=0; int totalPoppedUnitsOff=0;
 				ArrayList<AttackUnit> t1pau = t1p.getAu();
 				while(j<t1pau.size()) {
@@ -8950,9 +8908,9 @@ public boolean checkForGenocides(Town t) {
 				
 				if(bp>150) bp=150; // max bp you can get from single attack.
 
-				double togain = (percentlossdiff*.05*t1p.getAfTech()*100);
+				double togain = (percentlossdiff*.05*1*100);
 				if(togain>100) togain=100;
-				if(togain<=0) togain = .025*t1p.getAfTech()*100;
+				if(togain<=0) togain = .025*1*100;
 				
 				if(!genocide)
 					combatHeader+=	" This means a " + Math.round(togain) + "% take of max cargo capturable in this raid.";
@@ -10221,7 +10179,7 @@ public boolean checkForGenocides(Town t) {
 			//	+ " after: " +((long) ( (double) (1 + .1*(ts.getTown1().player.tradeTech-1)+ ts.getTown1().player.God.Maelstrom.getTraderEffect(ts.getTown1().x,ts.getTown1().y))*traderCarryAmount*t1Traders*(t1Traders+1)/2)));
 
 		
-		long totalresource =(long)((double)(1 + .05*(t1.getPlayer().getTradeTech()-1)+ t1.getPlayer().God.Maelstrom.getTraderEffect(t1.getX(),t1.getY()))*traderCarryAmount*t1Traders*(t1Traders+1)/2.0);
+		long totalresource =(long)((double)(1 + t1.getPlayer().God.Maelstrom.getTraderEffect(t1.getX(),t1.getY()))*traderCarryAmount*t1Traders*(t1Traders+1)/2.0);
 		//tradeTech starts at 1 so we subtract one...max is ten.
 
 
@@ -10257,7 +10215,7 @@ public boolean checkForGenocides(Town t) {
 					}
 				
 				// need double on this to ensure that we don't lose small degrees of freedom.
-				long othertotalresource =(long) ((double)(1 + .05*(t2.getPlayer().getTradeTech()-1)+t2.getPlayer().God.Maelstrom.getTraderEffect(t2.getX(),t2.getY()))*traderCarryAmount*t2Traders*(t2Traders+1)/2.0);
+				long othertotalresource =(long) ((double)(1 +t2.getPlayer().God.Maelstrom.getTraderEffect(t2.getX(),t2.getY()))*traderCarryAmount*t2Traders*(t2Traders+1)/2.0);
 				//tradeTech starts at 1 so we subtract one...max is ten.
 
 				if(othertotalresource<ts.getOthermetal()) return false;
@@ -10650,9 +10608,9 @@ public boolean checkForGenocides(Town t) {
 		
 		 i = 0; //long overflow = 0;
 		
-				double modifier = percentlossdiff*.05*r.getTown1().getPlayer().getAfTech();
+				double modifier = percentlossdiff*.05*1;
 				if(modifier>1) modifier=1;
-				if(modifier<=0) modifier = .025*r.getTown1().getPlayer().getAfTech();
+				if(modifier<=0) modifier = .025*1;
 				long res[];
 				if(!debris)
 				 res = t.getRes();
@@ -10771,7 +10729,7 @@ public boolean checkForGenocides(Town t) {
 		
 		while(j<bldg.length) {
 			 b = bldg[j];
-			if(b.getType().equals("Fortification"))  bunkerSize+=Math.round(.33*.05*t2p.getBunkerTech()*getPeople(b.getLvl(),3,4,totalUnitPrice/t2p.towns().size()));
+			if(b.getType().equals("Command Center"))  bunkerSize+=Math.round(.33*.05*t2p.getAdvancedFortifications()*getPeople(b.getLvl(),3,4,totalUnitPrice/t2p.towns().size()));
 			j++;
 		}
 		j=0;
@@ -10819,7 +10777,7 @@ public boolean checkForGenocides(Town t) {
 		
 		if(r!=null&&r.bombTarget().equals("Fortification")) mult = 4.0; // if it's a bunker, we make it tougher.
 		while(i<bnr.length) {
-			bnr[i]+=(int) Math.round(((double) bnr[i])*.05*(((double) t2p.getStabilityTech())-1.0)*mult); // add stability tech.
+			bnr[i]+=(int) Math.round(((double) bnr[i])*.05*(((double) t2p.getStructuralIntegrity()))*mult); // add stability tech.
 			i++;
 		}
 		int strengthdiluter = 999999;
@@ -11280,10 +11238,10 @@ public boolean checkForGenocides(Town t) {
 				 b = bldgserver.get(u);
 			
 					 
-				 if(b.getTicksToFinishTotal()==0) b.modifyTicksLevel(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getX()),holdTown.getPlayer().getEngTech());
+				 if(b.getTicksToFinishTotal()==0) b.modifyTicksLevel(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getX()),holdTown.getPlayer().getArchitecture());
 				 // if we just loaded, then ticksToFinishTotal isn't set and must be.
 				if(b.getTicksToFinish()<b.getTicksToFinishTotal()&&b.getTicksToFinish()!=-1) {
-					b.modifyTicksLevel(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getEngTech()); b.setTicksToFinish(b.getTicksToFinish()+1); 
+					b.modifyTicksLevel(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getArchitecture()); b.setTicksToFinish(b.getTicksToFinish()+1); 
 					} 
 				else if(b.getTicksToFinish()>=b.getTicksToFinishTotal()&&b.getLvlUps()>0) {
 					//UserRaid theRaid =getUserRaid(holdAttack.raidID);
@@ -11319,7 +11277,7 @@ public boolean checkForGenocides(Town t) {
 				}
 				else if(b.getLvlUps()>0){ 
 					b.setLvl(b.getLvl()+1);
-					b.levelUp(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getEngTech());
+					b.levelUp(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getArchitecture());
 			
 				}
 				
@@ -11327,7 +11285,7 @@ public boolean checkForGenocides(Town t) {
 				}
 				
 				if(b.getNumLeftToBuild()>0) {
-					 if(b.getTicksPerPerson()==0) b.modifyPeopleTicks(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getEngTech());
+					 if(b.getTicksPerPerson()==0) b.modifyPeopleTicks(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getArchitecture());
 					 // if we just loaded, then ticksPerPerson isn't set and must be.
 					if(b.getTicksLeft()>=b.getTicksPerPerson()) {
 						b.setNumLeftToBuild(b.getNumLeftToBuild()-1);
@@ -11336,7 +11294,7 @@ public boolean checkForGenocides(Town t) {
 				
 					
 
-					} else {b.modifyPeopleTicks(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getEngTech()); b.setTicksLeft(b.getTicksLeft()+1); }
+					} else {b.modifyPeopleTicks(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getArchitecture()); b.setTicksLeft(b.getTicksLeft()+1); }
 					
 				}
 				if(b.getType().equals("Arms Factory")||

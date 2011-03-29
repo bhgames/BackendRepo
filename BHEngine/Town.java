@@ -548,7 +548,7 @@ public class Town {
 			 Building actb = findBuilding(bid);
 
 		 if(holdBldg.getLvlUps()==0) {
-		actb.levelUp(getTotalEngineers(),getPlayer().God.Maelstrom.getEngineerEffect(getX(),getY()),getPlayer().getEngTech());
+		actb.levelUp(getTotalEngineers(),getPlayer().God.Maelstrom.getEngineerEffect(getX(),getY()),getPlayer().getArchitecture());
 		actb.setLvlUps(holdBldg.getLvlUps() + 1);
 			
 		}
@@ -596,7 +596,7 @@ public class Town {
 	 					public static int daysOfStoragePerAirshipPlatform = 4;
 				 */
 					 // if we just loaded, then ticksPerPerson isn't set and must be. If we don't cap may not work for Airstrips!
-					if(b.getTicksPerPerson()==0) b.modifyPeopleTicks(getTotalEngineers(),cloudFactor,getPlayer().getEngTech());
+					if(b.getTicksPerPerson()==0) b.modifyPeopleTicks(getTotalEngineers(),cloudFactor,getPlayer().getArchitecture());
 
 					if(b.getTicksLeft()>=b.getTicksPerPerson()) {
 						
@@ -642,7 +642,7 @@ public class Town {
 					 * 	 public static int ticksPerFuelPointBase =(int) Math.round((3600.0*24.0/((double) GodGenerator.gameClockFactor*10)));
 		 					public static int daysOfStoragePerAirshipPlatform = 4;
 					 */
-						int realTicks =b.getAirshipTicks(getTotalEngineers(),cloudFactor,getPlayer().getEngTech());
+						int realTicks =b.getAirshipTicks(getTotalEngineers(),cloudFactor,getPlayer().getArchitecture());
 					//	System.out.println("Ticking through refuel tick " + b.getRefuelTicks() + " of " + realTicks);
 
 						realTicks/=refillSpeed; // You can refill four times as fast as you gain fuel.
@@ -1024,9 +1024,7 @@ public class Town {
 
 	
 	
-	public int getStealth() {
-		return getPlayer().getStealth();
-	}
+	
 	/* public void changeUnitAmount(AttackUnit aunit, int amount) {
 		// If you want to subtract this amount from the AttackUnit sitting at base.
 		// Say you have 5 soldier types sitting at base and three come back. Then this adds
@@ -1667,7 +1665,7 @@ public class Town {
 			int i = 0;
 			ResultSet rs; 
 			Player p =getPlayer();
-			int lotTech = p.getLotTech();
+			int lotTech = p.getInfrastructureTech();
 			while(i<lotTech) {
 				rs =stmt.executeQuery("select count(*) from bldg where tid = " + townID + " and slot = " + i);
 				int counter = 0;
@@ -2962,7 +2960,7 @@ public class Town {
 					if(b.getType().equals("Communications Center")) {
 						int x = 0;
 						while(x<resCaps.length-1) {
-							resCaps[x]+=(long) Math.round(curr.taxRate*((double) Building.getCap(b.getLvl(),true)*(1+.05*(pl.getCommsCenterTech()-1))));
+							resCaps[x]+=(long) Math.round(curr.taxRate*((double) Building.getCap(b.getLvl(),true)));
 							x++;
 						}
 					}

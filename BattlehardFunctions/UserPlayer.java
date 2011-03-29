@@ -8,10 +8,9 @@ public class UserPlayer {
 	private String username;
 	private int ID;
 	boolean isLeague=false;
-	private int brkthrus = 0;
+	private int ordinanceResearch = 0;
 	private int capitaltid=-1;
 	private int bp;
-	private int commsCenterTech;
 	public int playedTicks=0;
 	private int premiumTimer=0;
 	private int ubTimer=0;
@@ -21,37 +20,30 @@ public class UserPlayer {
 	private int scoutTech;
 	private int totalBPEarned=0;
 	private int knowledge;	
-	private boolean zeppTech,missileSiloTech,recyclingTech,metalRefTech,timberRefTech,manMatRefTech,foodRefTech;
-	private boolean attackAPI, advancedAttackAPI, tradingAPI,advancedTradingAPI,smAPI,researchAPI,buildingAPI,advancedBuildingAPI,messagingAPI,zeppelinAPI,completeAnalyticAPI,nukeAPI,worldMapAPI;
+	private boolean airshipTech,clockworkAugments;
+	private boolean attackAPI, advancedAttackAPI, tradingAPI,advancedTradingAPI,smAPI,researchAPI,buildingAPI,advancedBuildingAPI,messagingAPI,zeppelinAPI,completeAnalyticAPI,nukeAPI,worldMapAPI,digAPI;
 
 	private int foodTimer=0;
 	private int feroTimer=0;
-	private int brkups = 0; // not to be confused with lvlUps, this is increased every time
-	//a  breakthrough occurs, and is decreased whenever you use one and make four researches.
-	// You do not queue up breakthroughs like buildings, you are always using it. So uh...sorry
-	// if it's confusing!
+	private int teslaTech = 0; 
 	private int scholTicks = 0;
-	private int afTech;
+	private int bloodMetalPlating;
 	private int scholTicksTotal;
-	private int stealthTech; private int buildingSlotTech;
+	private int bodyArmor; private int constructionResearch;
 	private int totalScholars=0,totalPopulation=0;
-	private int lotTech = 18;	 private int aLotTech;
-	private boolean soldierTech;
-	private boolean tankTech;
-	private boolean juggerTech;
-	private boolean bomberTech;
-	private boolean soldierPicTech[],tankPicTech[],juggerPicTech[],bomberPicTech[];
-	private int tradeTech=1; // MAX IS TEN! Well, doesn't have to be...
-	private int bunkerTech=1;
-	private int stabilityTech = 1;
-	private boolean weap[];
+	private int infrastructureTech = 18;	
+	private boolean personalShields;
+	private boolean hydraulicAssistors;
+	private boolean thrustVectoring;
+	private boolean advancedFortifications=false;
+	private int structuralIntegrity = 1;
 	private UserAttackUnit[] au; // To keep a private player-held list of home aus.
-	private int supportTech;
-	private int civWeapChoice = 0; // default value.
+	private int firearmResearch = 0; // default value.
 	private String league;
 	private int revTimer;
 	private int townTech;
-	private int engTech,scholTech;
+	private int architecture,clockworkComputers;
+	private boolean bloodMetalArmor;
 	private String email;
 	// the playerside.
 	// current player read goes metal, timber, mm, food, stealthTech, totalPop,alotTech,soldierTech,tank,jugger,weaps...I think.
@@ -59,27 +51,26 @@ public class UserPlayer {
 	private UserTown[] towns;
 	
 	
-	public UserPlayer(int id, int lotTech,
-			int afTech, UserAttackUnit[] au, boolean[] bomberPicTech,
-			boolean bomberTech, int knowledge, int buildingSlotTech,
-			int bunkerTech, int civWeapChoice, int engTech, boolean isLeague,
-			boolean[] juggerPicTech, boolean juggerTech, String league,
-			 int scholTech, int scholTicks, int scholTicksTotal,
-			boolean[] soldierPicTech, boolean soldierTech, int stabilityTech,
-			int stealthTech, int supportTech,
-			boolean[] tankPicTech, boolean tankTech, 
+	public UserPlayer(int id, int infrastructureTech,
+			int bloodMetalPlating, UserAttackUnit[] au, 
+			boolean thrustVectoring, int knowledge, int constructionResearch,
+			boolean advancedFortifications, int firearmResearch, int architecture, boolean isLeague,
+			 boolean hydraulicAssistors, String league,
+			 int clockworkComputers, int scholTicks, int scholTicksTotal,
+			int structuralIntegrity,
+			int bodyArmor,
+			boolean personalShields, 
 			int totalPopulation, int totalScholars, int townTech,
-			UserTown[] towns, int tradeTech, String username,
-			boolean[] weap,int capitaltid, int bp, int commsCenterTech, int playedTicks, int premiumTimer,
+			UserTown[] towns, String username,
+			int capitaltid, int bp, int playedTicks, int premiumTimer,
 			int ubTimer, int mineTimer, int feroTimer, int timberTimer, int manMatTimer, int foodTimer, int revTimer, int totalBPEarned, String email,
-			boolean zeppTech, boolean missileSiloTech, boolean recyclingTech, boolean metalRefTech, boolean timberRefTech, boolean manMatRefTech,
-			boolean foodRefTech, boolean attackAPI, boolean advancedAttackAPI, boolean tradingAPI, boolean advancedTradingAPI,
+			boolean airshipTech, boolean clockworkAugments, boolean attackAPI, boolean advancedAttackAPI, boolean tradingAPI, boolean advancedTradingAPI,
 			boolean smAPI, boolean researchAPI, boolean buildingAPI, boolean advancedBuildingAPI, boolean messagingAPI,
-			boolean zeppelinAPI, boolean completeAnalyticAPI, boolean nukeAPI, boolean worldMapAPI, int scoutTech, int aLotTech) {
+			boolean zeppelinAPI, boolean completeAnalyticAPI, boolean nukeAPI, boolean worldMapAPI, boolean digAPI, int scoutTech, boolean bloodMetalArmor) {
 
 		this.bp=bp;
 		this.scoutTech=scoutTech;
-		this.commsCenterTech=commsCenterTech;
+		this.bloodMetalArmor=(bloodMetalArmor);
 		this.timberTimer=timberTimer; this.manMatTimer=manMatTimer; this.foodTimer=foodTimer;
 		this.playedTicks=playedTicks;
 		this.premiumTimer=premiumTimer;
@@ -92,45 +83,80 @@ public class UserPlayer {
 		this.worldMapAPI=worldMapAPI;
 		this.ubTimer=ubTimer; this.mineTimer=mineTimer; this.feroTimer=feroTimer;
 		this.revTimer=revTimer;
-		this.zeppTech=zeppTech; this.missileSiloTech=missileSiloTech;
-		this.recyclingTech=recyclingTech;this.metalRefTech=metalRefTech;
-		this.timberRefTech=timberRefTech;this.manMatRefTech=manMatRefTech;this.foodRefTech=foodRefTech;
+		this.airshipTech=airshipTech; 
+		this.clockworkAugments=clockworkAugments;
 		this.capitaltid=capitaltid;
 		this.totalBPEarned=totalBPEarned;
 		this.email=email;
 		ID = id;
-		this.aLotTech = aLotTech;
-		this.afTech = afTech;
+		this.bloodMetalPlating = bloodMetalPlating;
 		this.au = au;
-		this.bomberPicTech = bomberPicTech;
-		this.bomberTech = bomberTech;
+		this.thrustVectoring = thrustVectoring;
 		this.knowledge=knowledge;
-		this.buildingSlotTech = buildingSlotTech;
-		this.bunkerTech = bunkerTech;
-		this.civWeapChoice = civWeapChoice;
-		this.engTech = engTech;
+		this.constructionResearch = constructionResearch;
+		this.advancedFortifications = advancedFortifications;
+		this.firearmResearch = firearmResearch;
+		this.architecture = architecture;
 		this.isLeague = isLeague;
-		this.juggerPicTech = juggerPicTech;
-		this.juggerTech = juggerTech;
+		this.hydraulicAssistors = hydraulicAssistors;
 		this.league = league;
-		this.lotTech=lotTech;
-		this.scholTech = scholTech;
+		this.infrastructureTech = (infrastructureTech);
+		this.clockworkComputers = clockworkComputers;
 		this.scholTicks = scholTicks;
 		this.scholTicksTotal = scholTicksTotal;
-		this.soldierPicTech = soldierPicTech;
-		this.soldierTech = soldierTech;
-		this.stabilityTech = stabilityTech;
-		this.stealthTech = stealthTech;
-		this.supportTech = supportTech;
-		this.tankPicTech = tankPicTech;
-		this.tankTech = tankTech;
+		this.structuralIntegrity = structuralIntegrity;
+		this.bodyArmor = bodyArmor;
+		this.personalShields = personalShields;
 		this.totalPopulation = totalPopulation;
 		this.totalScholars = totalScholars;
 		this.townTech = townTech;
 		this.towns = towns;
-		this.tradeTech = tradeTech;
 		this.username = username;
-		this.weap = weap;
+	}
+	public int getOrdinanceResearch() {
+		return ordinanceResearch;
+	}
+	public boolean isAirshipTech() {
+		return airshipTech;
+	}
+	public boolean isClockworkAugments() {
+		return clockworkAugments;
+	}
+	public int getTeslaTech() {
+		return teslaTech;
+	}
+	public int getBloodMetalPlating() {
+		return bloodMetalPlating;
+	}
+	public int getBodyArmor() {
+		return bodyArmor;
+	}
+	public int getConstructionResearch() {
+		return constructionResearch;
+	}
+	public boolean isPersonalShields() {
+		return personalShields;
+	}
+	public boolean isHydraulicAssistors() {
+		return hydraulicAssistors;
+	}
+	public boolean isThrustVectoring() {
+		return thrustVectoring;
+	}
+	public boolean getAdvancedFortifications() {
+		return advancedFortifications;
+	}
+	public int getStructuralIntegrity() {
+		return structuralIntegrity;
+	}
+	public int getFirearmResearch() {
+		return firearmResearch;
+	}
+	public int getArchitecture() {
+		return architecture;
+	}
+	public int getClockworkComputers() {
+		return clockworkComputers;
 	}
 	public String getUsername() {
 		return username;
@@ -147,12 +173,7 @@ public class UserPlayer {
 	public boolean isLeague() {
 		return isLeague;
 	}
-	public int getBrkthrus() {
-		return brkthrus;
-	}
-	public int getBrkups() {
-		return brkups;
-	}
+
 	public int getAutopilotTimer() {
 		return revTimer;
 	}
@@ -178,24 +199,15 @@ public class UserPlayer {
 	public int getTotalBPEarned() {
 		return totalBPEarned;
 	}
-	public int getAfTech() {
-		return afTech;
-	}
+	
 	public int getScholTicksTotal() {
 		return scholTicksTotal;
 	}
-	public int getStealthTech() {
-		return stealthTech;
-	}
-	public int getBuildingSlotTech() {
-		return buildingSlotTech;
-	}
+	
 	public int getTotalScholars() {
 		return totalScholars;
 	}
-	public int getCommsCenterTech() {
-		return commsCenterTech;
-	}
+
 	public int getPlayedTicks() {
 		return playedTicks;
 	}
@@ -217,12 +229,7 @@ public class UserPlayer {
 	public int getTotalPopulation() {
 		return totalPopulation;
 	}
-	public int getLotTech() {
-		return lotTech;
-	}
-	public int getALotTech() {
-		return aLotTech;
-	}
+	
 	public int getCapitaltid() {
 		return capitaltid;
 	}
@@ -232,70 +239,15 @@ public class UserPlayer {
 	public int getPremiumTimer() {
 		return premiumTimer;
 	}
-	public boolean isZeppTech() {
-		return zeppTech;
-	}
-	public boolean isMissileSiloTech() {
-		return missileSiloTech;
-	}
-	public boolean isRecyclingTech() {
-		return recyclingTech;
-	}
-	public boolean isMetalRefTech() {
-		return metalRefTech;
-	}
-	public boolean isTimberRefTech() {
-		return timberRefTech;
-	}
-	public boolean isManMatRefTech() {
-		return manMatRefTech;
-	}
-	public boolean isFoodRefTech() {
-		return foodRefTech;
-	}
+	
 	public int getRevTimer() {
 		return revTimer;
 	}
-	public boolean isSoldierTech() {
-		return soldierTech;
-	}
-	public boolean isTankTech() {
-		return tankTech;
-	}
+	
 	public int getCapitalTID() {
 		return capitaltid;
 	}
-	public boolean isJuggerTech() {
-		return juggerTech;
-	}
-	public boolean isBomberTech() {
-		return bomberTech;
-	}
-	public boolean[] getSoldierPicTech() {
-		return soldierPicTech;
-	}
-	public boolean[] getTankPicTech() {
-		return tankPicTech;
-	}
-	public boolean[] getJuggerPicTech() {
-		return juggerPicTech;
-	}
-	public boolean[] getBomberPicTech() {
-		return bomberPicTech;
-	}
-
-	public int getTradeTech() {
-		return tradeTech;
-	}
-	public int getBunkerTech() {
-		return bunkerTech;
-	}
-	public int getStabilityTech() {
-		return stabilityTech;
-	}
-	public boolean[] getWeap() {
-		return weap;
-	}
+	
 	public UserAttackUnit[] getAu() {
 		return au;
 	}
@@ -335,31 +287,31 @@ public class UserPlayer {
 	public boolean isNukeAPI() {
 		return nukeAPI;
 	}
-	public int getSupportTech() {
-		return supportTech;
-	}
-	public int getCivWeapChoice() {
-		return civWeapChoice;
-	}
+	
 	public String getLeague() {
 		return league;
 	}
 	public int getTownTech() {
 		return townTech;
 	}
-	public int getEngTech() {
-		return engTech;
-	}
-	public int getScholTech() {
-		return scholTech;
-	}
+	
 	public UserTown[] getTowns() {
 		return towns;
 	}
-	public void setScoutTech(int scoutTech) {
-		this.scoutTech = scoutTech;
-	}
+
 	public int getScoutTech() {
 		return scoutTech;
+	}
+	
+	public boolean isDigAPI() {
+		return digAPI;
+	}
+	
+	public int getInfrastructureTech() {
+		return infrastructureTech;
+	}
+
+	public boolean isBloodMetalArmor() {
+		return bloodMetalArmor;
 	}
 }

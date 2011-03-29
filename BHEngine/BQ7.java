@@ -43,7 +43,7 @@ public class BQ7 extends QuestListener {
 
 	@Override
 	public void iterateQuest(int times, int pid) {
-		Player p = findPlayer(pid);
+		/*Player p = findPlayer(pid); WILL NO LONGER COMPILE.
 		int i = 0;
 		
 		int capitaltid = p.getCapitaltid();
@@ -78,7 +78,7 @@ public class BQ7 extends QuestListener {
 					}
 				}
 			}
-		
+		*/
 
 	}
 

@@ -483,7 +483,7 @@ public class Maelstrom implements Runnable {
 			int x = c.centerx; int y = c.centery;
 			// If you want the cloud to be visible as soon as it's edge hits the radius, add the size to it,
 			// then the radius is autoextended to fit the center IF the edge has touched.
-			if((Math.sqrt(Math.pow(x-t1x,2)+Math.pow(y-t1y,2))<=(c.size+(10+aggregate*3*(1+.05*(t1.getPlayer().getCommsCenterTech()-1)))))) {
+			if((Math.sqrt(Math.pow(x-t1x,2)+Math.pow(y-t1y,2))<=(c.size+(10+aggregate*3*(1))))) {
 				boolean foundAny=false,found=false;
 				
 				// foundAny*!found = don't show town

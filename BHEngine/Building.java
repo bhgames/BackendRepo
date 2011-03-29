@@ -409,7 +409,7 @@ public static int baseResourceAmt = 2000;
 		// 
 	//	t = 345600*(number)*Exp(1-townEngineers/capForLevelAtBuildingLevel)/(BuildingCap^2)
 		if(type.equals("Airstrip"))  return getAirshipTicks(totalEngineers,cloudFactor,engTech,blvl);
-		totalEngineers=(int) Math.round(((double) totalEngineers) *(1+cloudFactor+.05*(engTech-1))+1);
+		totalEngineers=(int) Math.round(((double) totalEngineers) *(1+cloudFactor+.05*(engTech))+1);
 		double totalTicks = getTicksForLevelingAtLevel(totalEngineers,blvl,cloudFactor,engTech,type); // Already is in GameClockFactors.
 		
 		double chgdays=(int) Math.round(((double) QueueItem.days)*((double) blvl-2)/(((double) Town.maxBldgLvl)/6.0));
@@ -492,7 +492,7 @@ public static int baseResourceAmt = 2000;
 	//	double eng = Math.pow((totalEngineers*(1+cloudFactor+.05*(engTech-1))+1),2);
 	//	eng = Math.log(eng);
 	//	eng = Math.pow(eng,2.5);
-		totalEngineers=(int) Math.round(((double) totalEngineers) *(1+cloudFactor+.05*(engTech-1))+1);
+		totalEngineers=(int) Math.round(((double) totalEngineers) *(1+cloudFactor+.05*(engTech))+1);
 		double totalEngEffect = 1-(((double) totalEngineers))*.01125;
 		if(totalEngEffect<.1) totalEngEffect=.1;
 		
@@ -511,7 +511,7 @@ public static int baseResourceAmt = 2000;
 		double base = (int) Math.round(nextLevelBase/6.0);
 		double expFactor = base*5;
 	//	double eng = Math.pow((totalEngineers*(1+cloudFactor+.05*(engTech-1))+1),2);
-		totalEngineers=(int) Math.round(((double) totalEngineers) *(1+cloudFactor+.05*(engTech-1))+1);
+		totalEngineers=(int) Math.round(((double) totalEngineers) *(1+cloudFactor+.05*(engTech))+1);
 		double totalEngEffect = 1-(((double) totalEngineers))*.01125;
 		if(totalEngEffect<.1) totalEngEffect=.1;
 		//eng = Math.log(eng);
@@ -649,7 +649,7 @@ public static int baseResourceAmt = 2000;
 	}
 
 	public static int getAirshipTicks(int totalEngineers, double cloudFactor, int engTech, int blvl) {
-		double eng=(int) Math.round(((double) totalEngineers) *(1+cloudFactor+.05*(engTech-1))+1);
+		double eng=(int) Math.round(((double) totalEngineers) *(1+cloudFactor+.05*(engTech))+1);
 		double exp =Math.exp(1-eng/getCap(blvl,false))/Math.exp(1);
 	//	System.out.println("eng is " + eng + " exp is " + exp + " total engineers is " +totalEngineers + " engTech is "+ engTech + " cloudFactor is " + cloudFactor);
 

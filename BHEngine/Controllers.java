@@ -998,8 +998,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			} else if(!p.isLeague()&&p.getLeague()!=null) {
 				j.key("league_pid").value(p.getLeague().ID);
 			}
-			j.key("civWeapChoice")
-			.value(p.getCivWeapChoice())
+			j
 			.key("capitaltid")
 			.value(p.getCapitaltid())
 			.key("gameClockFactor")
@@ -1007,6 +1006,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			.key("research").object()
 		//	.key("brkthrus")
 		//	.value(p.getBrkthrus())
+			.key("firearmResearch")
+			.value(p.getFirearmResearch())
 			.key("attackAPI")
 			.value(p.isAttackAPI())
 			.key("advancedAttackAPI")
@@ -1039,20 +1040,10 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			.value(p.flicker)
 			.key("tPushes")
 			.value(p.getTPushes())
-			.key("zeppTech")
-			.value(p.isZeppTech())
-			.key("missileSiloTech")
-			.value(p.isMissileSiloTech())
-			.key("recyclingTech")
-			.value(p.isRecyclingTech())
-			.key("metalRefTech")
-			.value(p.isMetalRefTech())
-			.key("timberRefTech")
-			.value(p.isTimberRefTech())
-			.key("manMatRefTech")
-			.value(p.isManMatRefTech())
-			.key("foodRefTech")
-			.value(p.isFoodRefTech())
+			.key("airshipTech")
+			.value(p.isAirshipTech())
+			.key("clockworkAugments")
+			.value(p.isClockworkAugments())
 			.key("autoblastable");
 			if(p.getRevTimer()==0)
 				j.value(true);
@@ -1099,109 +1090,38 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			.value(p.getRevTimer())
 			.key("scholTicksTotal")
 			.value(p.getScholTicksTotal())
-			.key("lotTech")
-			.value(p.getLotTech())
-			.key("stealthTech")
-			.value(p.getStealthTech())
+			.key("infrastructureTech")
+			.value(p.getInfrastructureTech())
+			.key("bodyArmor")
+			.value(p.getBodyArmor())
 			.key("scoutTech")
 			.value(p.getScoutTech())
-			.key("aLotTech")
-			.value(p.getALotTech())
-			.key("soldierTech")
-			.value(p.isSoldierTech())
-			.key("tankTech")
-			.value(p.isTankTech())
-			.key("juggerTech")
-			.value(p.isJuggerTech())
-			.key("bomberTech")
-			.value(p.isBomberTech())
-			.key("weap").array();
-			 int i = 0;
-			while(i<p.getWeap().length) {
-				j.value(p.getWeap()[i]);
-				i++;
-			}
-			j.endArray()
-			.key("supportTech")
-			.value(p.getSupportTech())
+			.key("personalShields")
+			.value(p.isPersonalShields())
+			.key("hydraulicAssistors")
+			.value(p.isHydraulicAssistors())
+			.key("thrustVectoring")
+			.value(p.isThrustVectoring())
 			.key("townTech")
 			.value(p.getTownTech())
-			.key("engTech")
-			.value(p.getEngTech())
-			.key("tradeTech")
-			.value(p.getTradeTech())
-			.key("scholTech")
-			.value(p.getScholTech())
-			.key("commsCenterTech")
-			.value(p.getCommsCenterTech())
-			.key("buildingSlotTech")
-			.value(p.getBuildingSlotTech())
-			.key("stabilityTech")
-			.value(p.getStabilityTech())
-			.key("bunkerTech")
-			.value(p.getBunkerTech())
-			.key("afTech")
-			.value(p.getAfTech())
-			.key("soldierPicTech").array();
-			i = 0;
-			boolean[] pictech = p.getSoldierPicTech();
-			while(i<pictech.length) {
-				j.value(pictech[i]);
-				i++;
-			}
-			j.endArray()
-			.key("tankPicTech").array();
-			i = 0;
-			pictech = p.getTankPicTech();
-			while(i<pictech.length) {
-				j.value(pictech[i]);
-				i++;
-			}
-			j.endArray()
-			.key("juggerPicTech").array();
-			i = 0;
-			pictech = p.getJuggerPicTech();
-			while(i<pictech.length) {
-				j.value(pictech[i]);
-				i++;
-			}
-			j.endArray()
-			.key("bomberPicTech").array();
-			i = 0;
-			pictech = p.getBomberPicTech();
-			while(i<pictech.length) {
-				j.value(pictech[i]);
-				i++;
-			}
-			AttackUnit aunit;
-			j.endArray()
+			.key("architecture")
+			.value(p.getArchitecture())
+			.key("clockworkComputers")
+			.value(p.getClockworkComputers())
+			.key("constructionResearch")
+			.value(p.getConstructionResearch())
+			.key("structuralIntegrity")
+			.value(p.getStructuralIntegrity())
+			.key("advancedFortifications")
+			.value(p.getAdvancedFortifications())
+			.key("bloodMetalPlating")
+			.value(p.getBloodMetalPlating())
+			
 			.endObject();
 
-			j.key("AUTemplates").array();
-					 i = 0;
-					 ArrayList<AttackUnit> paut = p.getAUTemplates();
-					while(i<paut.size()) {
-						try {
-						aunit = paut.get(i);
-						//	public AttackUnit(String name, double conc, double armor, double cargo, double speed, int slot, int popSize, int weap[], int graphicNum) {
-						j.object()
-						.key("name").value(aunit.getName())
-				//		.key("conc").value(aunit.getConcealment())
-						.key("armor").value(aunit.getArmor())
-						.key("cargo").value(aunit.getCargo())
-						.key("speed").value(aunit.getSpeed())
-						.key("slot").value(aunit.getSlot())
-						.key("attackDamage").value(aunit.getAttackDamage())
-						.key("attackType").value(aunit.getAttackType())
-						.key("armorType").value(aunit.getArmorType())
-						.key("type").value(aunit.getType())
-						.endObject();
-						} catch(Exception exc) { exc.printStackTrace(); System.out.println("Player load saved."); }
-
-						i++;
-					}
-			j.endArray() // should I put in AUs here?
-			.key("AU").array();
+			int i = 0;
+			AttackUnit aunit;
+			j.key("AU").array();
 					 i = 0;
 					 ArrayList<AttackUnit> pau = p.getAu();
 					while(i<pau.size()) {
@@ -1399,7 +1319,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			   			int y = 0; int totalTime = 0;
 			   			
 			   			while(y<=je) {
-			   			 totalTime += Building.getTicksForLevelingAtLevel(t.getTotalEngineers(),b.getLvl()+y,p.God.Maelstrom.getEngineerEffect(t.getX(),t.getY()),p.getEngTech(),b.getType());
+			   			 totalTime += Building.getTicksForLevelingAtLevel(t.getTotalEngineers(),b.getLvl()+y,p.God.Maelstrom.getEngineerEffect(t.getX(),t.getY()),p.getArchitecture(),b.getType());
 			   			y++;
 			   			}
 			   			

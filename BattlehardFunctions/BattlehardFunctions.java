@@ -335,7 +335,7 @@ public class BattlehardFunctions {
 			while(i<towns.size()) {
 				int x = towns.get(i).getX(); y = towns.get(i).getY();
 			
-				if((Math.sqrt(Math.pow(x-t1x,2)+Math.pow(y-t1y,2))<=((10+aggregate*3*(1+.05*(p.getCommsCenterTech()-1)))))) {
+				if((Math.sqrt(Math.pow(x-t1x,2)+Math.pow(y-t1y,2))<=((10+aggregate*3*(1))))) {
 					boolean foundAny=false,found=false;
 					if(towns.get(i).getPlayer().isQuest()) {
 						
@@ -1259,18 +1259,18 @@ public class BattlehardFunctions {
 		long otherm=0,othert=0,othermm=0,otherf=0;
 		switch(whichresource) {
 		case 0:
-			otherm=g.Trader.getExchangeResource(toIndex,whichresource,resource,t1.getPlayer().getTradeTech(),t1.getX(),t1.getY());
+			otherm=g.Trader.getExchangeResource(toIndex,whichresource,resource,1,t1.getX(),t1.getY());
 			break;
 		case 1:
-			othert=g.Trader.getExchangeResource(toIndex,whichresource,resource,t1.getPlayer().getTradeTech(),t1.getX(),t1.getY());
+			othert=g.Trader.getExchangeResource(toIndex,whichresource,resource,1,t1.getX(),t1.getY());
 			
 			break;
 		case 2:
-			othermm=g.Trader.getExchangeResource(toIndex,whichresource,resource,t1.getPlayer().getTradeTech(),t1.getX(),t1.getY());
+			othermm=g.Trader.getExchangeResource(toIndex,whichresource,resource,1,t1.getX(),t1.getY());
 
 			break;
 		case 3:
-			otherf=g.Trader.getExchangeResource(toIndex,whichresource,resource,t1.getPlayer().getTradeTech(),t1.getX(),t1.getY());
+			otherf=g.Trader.getExchangeResource(toIndex,whichresource,resource,1,t1.getX(),t1.getY());
 
 			break;
 		default: return false;
@@ -1497,7 +1497,7 @@ public class BattlehardFunctions {
 			setError("Invalid tid!");
 			return -1;
 		}
-		long f = (long)((double) (1 + .05*(p.getTradeTech()-1) + p.God.Maelstrom.getTraderEffect(town1.getX(),town1.getY()))*GodGenerator.traderCarryAmount);
+		long f = (long)((double) (1  + p.God.Maelstrom.getTraderEffect(town1.getX(),town1.getY()))*GodGenerator.traderCarryAmount);
 		long r = resource;
 		int t1Required = (int) Math.ceil((-1+Math.sqrt(1+8*r/f))/2);
 		if(t1Required==0) t1Required=1;
@@ -2369,171 +2369,8 @@ public class BattlehardFunctions {
 
 			return toRet;
 		}
-		/**
-		 * @deprecated
-		 * UI Implemented.
-		 * Returns a string that tells you what the fortification
-		 * is capable of doing, exactly what is displayed on the menu of the UI.
-		 * If you want a more data-analysis friendly version, check out
-		 * getBunkerEffect().
-		 * depending on it's mode. 
-		 * @param lotNum
-		 * @param townID
-		 * @return
-		 */
-		public String getBunkerEffectToString(int lotNum, int townID) {
-			if(prog&&!p.isAdvancedAttackAPI()) {
-				setError("You do not have the Advanced Attack API!");
-				return null;
-			}
-			int i = 0; int j = 0; int k =0;
-			int totalPoppedUnits=0;
-			while(i<p.getAu().size()) {
-				if(!p.getAu().get(i).equals("locked")&&!p.getAu().get(i).equals("empty"))totalPoppedUnits++;
-				i++;
-			}
-			i=0;
-			Town t = g.findTown(townID); if(t.getPlayer().ID!=p.ID) return null;
-			int lvl = 0;
-
 	
-		
-			double bunkerSize=0;double civvyBunkerSize=0; long resSize=0;
-			UserBuilding currBldg=null;
-			j=0;
-			int bunkerMode=0;
-			boolean keep = false;
-			if(prog) keep=true;
-			prog=false;
 
-			UserBuilding[] bldg = getUserBuildings(townID,"Fortification");
-			if(keep) prog = true;
-			while(j<bldg.length) {
-				currBldg = bldg[j];
-			//	if(currBldg.getLotNum()==lotNum) bunkerMode = currBldg.getBunkerMode();
-			
-			
-					bunkerSize+=Math.round(.33*.05*p.getBunkerTech()*GodGenerator.getPeople(currBldg.getLvl(),totalPoppedUnits,4,GodGenerator.totalUnitPrice/p.towns().size()));
-					civvyBunkerSize+=Math.round(.33*.05*p.getBunkerTech()*GodGenerator.getPeople(currBldg.getLvl(),3,4,GodGenerator.totalUnitPrice));
-					resSize+=(long) Math.round(.33*.05*((double) p.getBunkerTech()) *((double) Building.resourceAmt)*Math.pow(currBldg.getLvl()+2,2));
-
-					
-				
-		
-				j++;
-			}
-			 keep = false;
-			if(prog) keep=true;
-			prog=false;
-
-			UserAttackUnit au[] = getUserAttackUnits(townID);
-			if(keep) prog = true;
-			String toRet="";
-			
-				
-				 i = 0;
-				int currentExpAdvSizeDef=0;
-				while(i<au.length) {
-				
-					currentExpAdvSizeDef+=au[i].getSize()*au[i].getExpmod();
-					i++;
-				}
-				double armysizefrac=0,bunkerfrac=0;
-				if(currentExpAdvSizeDef!=0){
-				 armysizefrac=bunkerSize/currentExpAdvSizeDef;
-				}
-				else
-					toRet+= "No army in this town to protect.  <br /><br />";
-				if(armysizefrac>1) armysizefrac=1;
-				double percentprotection = .05*p.getBunkerTech()*armysizefrac*100;
-				
-				if(percentprotection>100)  toRet+= "Gives complete protection to your combat units in this town. "+((int) Math.round(percentprotection-100))
-						+ "% more army can be protected by your defense fortifications.  <br /><br />";
-				else toRet+= "Your defense fortifications give " + ((int) Math.round(percentprotection)) + "% protection to your combat units in this town. <br /><br />";
-
-				long pop = t.getPop();
-				//		double civvybunkerfrac=((double) bunkerSize)/((double) pop);
-
-				double civvybunkerfrac=(civvyBunkerSize/((double) pop))*100;
-				if(civvybunkerfrac>100) toRet+= "Your fortifications protect all of your civilian units from bombing and siege attacks. " + 
-						(((int)civvyBunkerSize)-pop) + " more civilians can be protected by your fortifications. <br /><br />";
-
-				else toRet+= "Your fortifications protect " + (int) civvybunkerfrac + "% ("+ (int) civvyBunkerSize + " civilians) of your civilians from bombing/siege attacks.  <br /><br />";
-
-
-				toRet+= "Your fortifications protect " + resSize + " of each resource.";
-
-			return toRet;
-		}
-		/**
-		 * @deprecated
-		 * UI Implemented.
-		 * 0 is combat mode, 1 is VIP mode, and 2 is resource cache mode. This method changes
-		 * the bunker in the lot number specified in the town with the name given to the bunkerMode
-		 * supplied.
-		 */
-	public boolean changeBunkerMode(int lotNum, String townName, int bunkerMode) {
-		if(prog&&!p.isAttackAPI()) {
-			setError("You do not have the Attack API!");
-			return false;
-		}
-		// 0 is Combat mode
-		// 1 is VIP mode
-		// 2 is resource storage mode.
-		Town t = g.findTown(townName,p);
-			
-				if(!checkMP(t.townID)) return false;
-				int bid = 0;
-			/*	try {
-					UberStatement stmt = g.con.createStatement();
-					ResultSet rs = stmt.executeQuery("select bid from bldg where tid = " + t.townID + " and slot = "+ lotNum);
-					if(rs.next()) bid = rs.getInt(1);
-					rs.close();
-					stmt.close();
-				} catch(SQLException exc) { exc.printStackTrace(); }*/
-				
-				int i =0;
-				ArrayList<Building> bldg = t.bldg();
-				while(i<bldg.size()) {
-					if(bldg.get(i).getLotNum()==lotNum) {bid = bldg.get(i).bid; break; }
-					i++;
-				}
-				if(bid==0) {
-					setError("Invalid building lot!");
-					return false;
-				}
-				Building b = t.findBuilding(bid);
-				// this is if we find the building...
-				if( b.resetBunkerMode(bunkerMode)) {
-				
-				
-				return true; }
-		
-		
-		return false;
-	}
-	/**
-	 * @deprecated
-	 * UI Implemented.
-	 * 0 is combat mode, 1 is VIP mode, and 2 is resource cache mode. This method changes
-	 * the fortification in the lot number specified in the town with the ID given to the bunkerMode
-	 * supplied. This no longer does anything.
-	 */
-private boolean changeBunkerMode(int lotNum, int tid, int bunkerMode) {
-	if(prog&&!p.isAttackAPI()) {
-		setError("You do not have the Attack API!");
-		return false;
-	}
-	// 0 is Combat mode
-	// 1 is VIP mode
-	// 2 is resource storage mode.
-	
-	Town t = g.findTown(tid);
-	if(t.getPlayer().ID!=p.ID) return false;
-	
-	return changeBunkerMode(lotNum,t.getTownName(),bunkerMode);
-	
-}
 
 
 /**
@@ -3446,7 +3283,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			if(bldg.get(i).getLotNum()==lotNum) {bid = bldg.get(i).bid; }
 			i++;
 		}
-	if(slotsSpent>=p.getBuildingSlotTech()) {
+	if(slotsSpent>=p.getConstructionResearch()) {
 		setError("Need more building slots! Research them.");
 		return false; // simple. effective.
 	}
@@ -3570,9 +3407,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}	else	if(unit.equals("Messenger")) {
 			// retrieving costs...
 			
-					if(!b.getType().equals("Communications Center")) return false;
+					if(!b.getType().equals("Command Center")) return false;
 					// if this is the building and it's not a cy, get out.
-					if(b.getType().equals("Communications Center")&&(b.getPeopleInside()+b.getNumLeftToBuild()+number)>b.getCap()) return false;
+					if(b.getType().equals("Command Center")&&(b.getPeopleInside()+b.getNumLeftToBuild()+number)>b.getCap()) return false;
 					// if this is a building and we're above cap, get out.		
 				
 			
@@ -4786,7 +4623,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			 /*
 				try {
 					UberStatement stmt = g.con.createStatement();
-					ResultSet rs = stmt.executeQuery("select sum(lvl) from bldg where tid = " + t1.townID + " and name = 'Communications Center';");
+					ResultSet rs = stmt.executeQuery("select sum(lvl) from bldg where tid = " + t1.townID + " and name = 'Command Center';");
 					if(rs.next()) aggregate = rs.getInt(1);
 					rs.close();
 					stmt.close();
@@ -4794,15 +4631,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 			 ArrayList<Building> b = t1.bldg();
 							 while(z<b.size()) {
-								 if(b.get(z).getType().equals("Communications Center"))
+								 if(b.get(z).getType().equals("Command Center"))
 								 aggregate+=b.get(z).getLvl();
 								 z++;
 							 }
 			 
 				aggregate+=2;
 			 double distance = Math.sqrt((x-t1x)*(x-t1x) + (y-t1y)*(y-t1y));
-			 if(distance>aggregate*3*(1+.05*(p.getCommsCenterTech()-1))) {
-				 setError(" You can only invade " + ((aggregate*3)*(1+.05*(p.getCommsCenterTech()-1))) + " spaces out. Level up your comms center.");
+			 if(distance>aggregate*3*(1)) {
+				 setError(" You can only invade " + ((aggregate*3)*(1)) + " spaces out. Level up your comms center.");
 
 				 return false;
 			 }
@@ -5145,7 +4982,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			/*
 				try {
 					UberStatement stmt = g.con.createStatement();
-					ResultSet rs = stmt.executeQuery("select sum(lvl) from bldg where tid = " + t1.townID + " and name = 'Communications Center';");
+					ResultSet rs = stmt.executeQuery("select sum(lvl) from bldg where tid = " + t1.townID + " and name = 'Command Center';");
 					if(rs.next()) aggregate = rs.getInt(1);
 					rs.close();
 					stmt.close();
@@ -5153,15 +4990,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			*/
 			 ArrayList<Building> b = t1.bldg();
 			 while(z<b.size()) {
-				 if(b.get(z).getType().equals("Communications Center"))
+				 if(b.get(z).getType().equals("Command Center"))
 				 aggregate+=b.get(z).getLvl();
 				 z++;
 			 }
 				aggregate+=2;
 				
 			 double distance = Math.sqrt((x-t1x)*(x-t1x) + (y-t1y)*(y-t1y));
-			 if(distance>aggregate*3*(1+.05*(p.getCommsCenterTech()-1))) {
-				 setError(" You can only invade " + ((aggregate*3)*(1+.05*(p.getCommsCenterTech()-1))) + " spaces out. Level up your comms center.");
+			 if(distance>aggregate*3*(1)) {
+				 setError(" You can only invade " + ((aggregate*3)*(1)) + " spaces out. Level up your comms center.");
 
 				 return false;
 			 }
@@ -5429,7 +5266,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		int t1x = town1.getX(); int t1y = town1.getY();
 		int t2x = town2.getX(); int t2y = town2.getY();
 
-		double factor = 1-.05*(t1p.getTradeTech()-1)-(t1p.God.Maelstrom.getTraderEffect(t1x,t1y));
+		double factor = 1-(t1p.God.Maelstrom.getTraderEffect(t1x,t1y));
 		//System.out.println("Time before: " +(int) Math.round(((double) GodGenerator.stockMarketTime*(1-.1*(town1.player.tradeTech-1)))) + " factor after: " + (int) Math.round(((double) GodGenerator.stockMarketTime*(factor))) );
 		if(factor<.01) factor = .01;
 		int ticksToHit=0;
@@ -6219,7 +6056,6 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * Command Center
 	 * Arms Factory
 	 * Institute
-	 * Communications Center
 	 * Trade Center
 	 * Fortification
 	 * Metal Warehouse/Lumber Yard/Crystal Repository/Granary
@@ -6258,7 +6094,6 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * Arms Factory
 	 * Command Center
 	 * Institute
-	 * Communications Center
 	 * Trade Center
 	 * Fortification
 	 * Metal/Timber/Manufactured Materials/Granary
@@ -6296,7 +6131,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		  }		
 		  
 		  if(!type.equals("Arms Factory")&&!type.equals("Manufacturing Plant")&&!type.equals("Command Center")&&
-				  !type.equals("Institute")&&!type.equals("Communications Center")&&!type.equals("Trade Center")&&
+				  !type.equals("Institute")&&!type.equals("Trade Center")&&
 				  !type.equals("Fortification")&&!type.equals("Metal Warehouse")&&!type.equals("Lumber Yard")&&
 				  !type.equals("Crystal Repository")&&!type.equals("Granary")
 				  &&!type.equals("Airstrip")&&!type.equals("Missile Silo")&&!type.equals("Recycling Center")
@@ -6311,7 +6146,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		Town holdT; Building b;
 		holdT = g.findTown(town,p);
 		
-		  if((type.equals("Airstrip")&&!p.isZeppTech())&&haveBldg("Command Center",10,holdT.townID)
+		  if((type.equals("Airstrip")&&!p.isAirshipTech())&&haveBldg("Command Center",10,holdT.townID)
 				  &&haveBldg("Arms Factory",10,holdT.townID)&&haveBldg("Manufacturing Plant",5,holdT.townID)
 				  ) {
 			  setError("You do not satisfy the building requirements for this yet!");
@@ -6399,14 +6234,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				i++;
 			}
 			
-			int actualLotTech=p.getLotTech();
+			int actualLotTech=p.getInfrastructureTech();
 			if(p.getCapitaltid()==holdT.townID) actualLotTech+=4;
 			if(actualLotTech>GodGenerator.lotTechLimit) actualLotTech=GodGenerator.lotTechLimit;
 			if(lotNum>actualLotTech) {
 				setError("Outside your lot tech!");
 				return false;
 			}
-			if(slotsSpent>=p.getBuildingSlotTech()) return false; // simple. effective.
+			if(slotsSpent>=p.getConstructionResearch()) return false; // simple. effective.
 			
 			
 			int hqs=0;
@@ -6573,7 +6408,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			
 			
-		if(slotsSpent>=p.getBuildingSlotTech()) return false; // simple. effective.
+		if(slotsSpent>=p.getConstructionResearch()) return false; // simple. effective.
 		
 				double additive;
 				 // So now we have the bldg(). Now, do we have the resources?
@@ -6719,7 +6554,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			}
 			
 		
-	if(slotsSpent>=p.getBuildingSlotTech()) {
+	if(slotsSpent>=p.getConstructionResearch()) {
 		error = "Not enough building slots!";
 		return false; // simple. effective.
 	}
@@ -6765,7 +6600,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			i++;
 		}
 		if(b==null) return 0;
-		return Building.getTicksForLevelingAtLevel(t.getTotalEngineers(), lvl,g.Maelstrom.getEngineerEffect(t.getX(),t.getY()),p.getEngTech(),b.getType());
+		return Building.getTicksForLevelingAtLevel(t.getTotalEngineers(), lvl,g.Maelstrom.getEngineerEffect(t.getX(),t.getY()),p.getArchitecture(),b.getType());
 			
 	}
 		/**
@@ -6798,7 +6633,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			if(bid==0) { setError("No building on this lot!"); return -1; }
 			Building b= t.findBuilding(bid);
-			return b.getTicksForLeveling(t.getTotalEngineers(),g.Maelstrom.getEngineerEffect(t.getX(),t.getY()),p.getEngTech());
+			return b.getTicksForLeveling(t.getTotalEngineers(),g.Maelstrom.getEngineerEffect(t.getX(),t.getY()),p.getArchitecture());
 			
 	}
 		/**
@@ -6844,7 +6679,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		if(b==null) { setError("No building on this lot!"); return -1; }
 		
-		return b.getTicksPerPerson(t.getTotalEngineers(),g.Maelstrom.getEngineerEffect(t.getX(),t.getY()),p.getEngTech(),ppl,lvl,b.getType());
+		return b.getTicksPerPerson(t.getTotalEngineers(),g.Maelstrom.getEngineerEffect(t.getX(),t.getY()),p.getArchitecture(),ppl,lvl,b.getType());
 			
 	}
 	/**
@@ -7036,7 +6871,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						// built.
 						Building actb = holdT.findBuilding(bid);
 						actb.addUnit(number);
-						actb.modifyPeopleTicks(holdT.getTotalEngineers(),holdT.getPlayer().God.Maelstrom.getEngineerEffect(holdT.getX(),holdT.getY()),p.getEngTech());
+						actb.modifyPeopleTicks(holdT.getTotalEngineers(),holdT.getPlayer().God.Maelstrom.getEngineerEffect(holdT.getX(),holdT.getY()),p.getArchitecture());
 						
 						return true;
 					} else return false;
@@ -7364,7 +7199,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						// built.
 						
 						b.addUnit(number);
-						b.modifyPeopleTicks(holdT.getTotalEngineers(),holdT.getPlayer().God.Maelstrom.getEngineerEffect(holdT.getX(),holdT.getY()),holdT.getPlayer().getEngTech());
+						b.modifyPeopleTicks(holdT.getTotalEngineers(),holdT.getPlayer().God.Maelstrom.getEngineerEffect(holdT.getX(),holdT.getY()),holdT.getPlayer().getArchitecture());
 
 						 notifyViewer();
 						return true;
@@ -8502,27 +8337,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		
 		
-			if(array[i].equals("lotTech")) {
-				if(!free&&hypoTotal<GodGenerator.buildingLotTechPrice*((p.getLotTech()-8)+1)) {
+			if(array[i].equals("infrastructureTech")) {
+				if(!free&&hypoTotal<GodGenerator.infrastructureTechPrice*((p.getInfrastructureTech()-8)+1)) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.buildingLotTechPrice*((p.getLotTech()-8)+1);
-				if(p.getLotTech()>=GodGenerator.lotTechLimit) {
+				} else hypoTotal-=GodGenerator.infrastructureTechPrice*((p.getInfrastructureTech()-8)+1);
+				if(p.getInfrastructureTech()>=GodGenerator.infrastructureTechLimit) {
 					setError("You cannot research any further in this field.");
 					return false;
 
 				} 
-			} else if(array[i].equals("stealthTech")) {
-				if(!free&&hypoTotal<GodGenerator.stealthTechPrice*(p.getStealthTech()+1)) {
-					setError("You do not have enough KP for this research.");
-					return false;
-				} else hypoTotal-=GodGenerator.stealthTechPrice*(p.getStealthTech()+1);
-				if(p.getStealthTech()>=20) {
-					setError("You cannot research any further in this field.");
-					return false;
-
-				}
-				
 			} else if(array[i].equals("scoutTech")) {
 				if(!free&&hypoTotal<GodGenerator.scoutTechPrice*(p.getScoutTech()+1)) {
 					setError("You do not have enough KP for this research.");
@@ -8533,35 +8357,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					return false;
 
 				}
-			} else if(array[i].equals("commsCenterTech")) {
-				if(!free&&hypoTotal<GodGenerator.commsCenterTechPrice*(p.getCommsCenterTech()+1)) {
-					setError("You do not have enough KP for this research.");
-					return false;
-				} else hypoTotal-=GodGenerator.commsCenterTechPrice*(p.getCommsCenterTech()+1);
-				if(p.getCommsCenterTech()>=20) {
-					setError("You cannot research any further in this field.");
-					return false;
-
-				}
-			}else if(array[i].equals("unitLotTech")) {
-				if(!free&&hypoTotal<GodGenerator.aLotTechPrice*(p.getALotTech())) {
-					setError("You do not have enough KP for this research.");
-					return false;
-				} else hypoTotal-=GodGenerator.aLotTechPrice*(p.getALotTech());
-				if(p.getALotTech()>=6) {
-					setError("You cannot research any further in this field.");
-					return false;
-				} 
-			}else if(array[i].equals("ShockTrooper")||array[i].equals("Pillager")||array[i].equals("Vanguard")) {
+			} else if(array[i].equals("ShockTrooper")||array[i].equals("Pillager")||array[i].equals("Vanguard")) {
 				int k = 0;
-				
-				while(k<p.getAUTemplates().size()) {
-					if(p.getAUTemplates().get(k).getName().equals(array[i]))  {
-						setError("You already have this unit template!");
-						return false;
-					}
-					k++;
-				}
+			
 				if(!free&&hypoTotal<GodGenerator.soldierTechPrice) {
 					setError("You do not have enough KP for this research.");
 					return false;
@@ -8621,7 +8419,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 			}else if(array[i].equals("zeppTech")) {
 				
-					if(p.isZeppTech())  {
+					if(p.isAirshipTech())  {
 						setError("You already have this technology!");
 						return false;
 					}
@@ -8630,29 +8428,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					setError("You do not have enough KP for this research.");
 					return false;
 				} else hypoTotal-=GodGenerator.zeppelinTechPrice;
-			}else if(array[i].equals("missileSiloTech")) {
-				
-				if(p.isMissileSiloTech())  {
-					setError("You already have this technology!");
-					return false;
-				}
-			
-			if(!free&&hypoTotal<GodGenerator.missileSiloTechPrice) {
-				setError("You do not have enough KP for this research.");
-				return false;
-			} else hypoTotal-=GodGenerator.missileSiloTechPrice;
-		}else if(array[i].equals("recyclingTech")) {
-			
-			if(p.isRecyclingTech())  {
-				setError("You already have this technology!");
-				return false;
-			}
-		
-		if(!free&&hypoTotal<GodGenerator.recyclingCenterTechPrice) {
-			setError("You do not have enough KP for this research.");
-			return false;
-		} else hypoTotal-=GodGenerator.recyclingCenterTechPrice;
-		}else if(array[i].equals("attackAPI")) {
+			}else if(array[i].equals("attackAPI")) {
 			
 			if(p.isAttackAPI())  {
 				setError("You already have this technology!");
@@ -8812,101 +8588,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("You do not have enough KP for this research.");
 			return false;
 		} else hypoTotal-=GodGenerator.worldMapAPITechPrice;
-		}else if(array[i].equals("metalRefTech")) {
-				
-				if(p.isMetalRefTech())  {
-					setError("You already have this technology!");
-					return false;
-				}
-			
-			if(!free&&hypoTotal<GodGenerator.metalRefTechPrice) {
-				setError("You do not have enough KP for this research.");
-				return false;
-			} else hypoTotal-=GodGenerator.metalRefTechPrice;
-		}	else if(array[i].equals("timberRefTech")) {
-			
-			if(p.isTimberRefTech())  {
-				setError("You already have this technology!");
-				return false;
-			}
-		
-		if(!free&&hypoTotal<GodGenerator.timberRefTechPrice) {
-			setError("You do not have enough KP for this research.");
-			return false;
-		} else hypoTotal-=GodGenerator.timberRefTechPrice;
-			}else if(array[i].equals("manMatRefTech")) {
-				
-				if(p.isManMatRefTech())  {
-					setError("You already have this technology!");
-					return false;
-				}
-			
-			if(!free&&hypoTotal<GodGenerator.manMatRefTechPrice) {
-				setError("You do not have enough KP for this research.");
-				return false;
-			} else hypoTotal-=GodGenerator.manMatRefTechPrice;
-		}			else if(array[i].equals("foodRefTech")) {
-			
-			if(p.isFoodRefTech())  {
-				setError("You already have this technology!");
-				return false;
-			}
-		
-		if(!free&&hypoTotal<GodGenerator.foodRefTechPrice) {
-			setError("You do not have enough KP for this research.");
-			return false;
-		} else hypoTotal-=GodGenerator.foodRefTechPrice;
-	}		else if(array[i].equals("troopPush")) {
-				/*
-				 * Troop push is special. You push out a days' worth of whatever
-				 * troop slot you've chosen in every AF in every town you own.
-				 * You're essentially giving up a research to get a one off troop
-				 * push.
-				 */
-				/*
-				 * So we need to find the ticks required to sort of hotwire in the
-				 * slot.
-				 */
-				int ie = 0;int popped=0;
-				while(ie<p.getAu().size()) {
-					if(!p.getAu().get(ie).getName().equals("empty")&&!p.getAu().get(ie).getName().equals("locked"))
-						popped++;
-					ie++;
-				}
-				if(popped==0) {
-					setError("You cannot do a troop push without troops to push!");
-					return false;
-				}
-				if(!free&&hypoTotal<GodGenerator.troopPushPrice*(p.getTPushes())) {
-					setError("You do not have enough KP for this research.");
-					return false;
-				} else hypoTotal-=GodGenerator.troopPushPrice*(p.getTPushes());
-				/*if(24*3600-1800*(p.getTPushes())<=0) {
-					setError("You can no longer use the troopPush.");
-					return false;
-				}*/
-
-				
-				
-			}/*else if(array[i].equals("bunkerUp")) {
-				
-				
-			}
-			else if(array[i].startsWith("weap")) {
-				int num = Integer.parseInt(array[i].substring(array[i].indexOf("p")+1,array[i].length()));
-				
-				}else if(array[i].startsWith("soldierPic")) {
-				
-			}else if(array[i].startsWith("tankPic")) {
-				
-
-			}else if(array[i].startsWith("juggerPic")) {
-				
-
-			}else if(array[i].startsWith("bomberPic")) {
-				
-
-			}*/else if(array[i].equals("supportTech")) {
+		}	else if(array[i].equals("supportTech")) {
 				if(!free&&hypoTotal<GodGenerator.supportTechPrice*(p.getSupportTech()+1)) {
 					setError("You do not have enough KP for this research.");
 					return false;
@@ -8927,11 +8609,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					return false;
 				} else hypoTotal-=GodGenerator.townTechPrice*Math.pow(2,(p.getTownTech()-1));
 			}else if(array[i].equals("engineerTech")) {
-				if(!free&&hypoTotal<GodGenerator.civEfficiencyPrice*(p.getEngTech()+1)) {
+				if(!free&&hypoTotal<GodGenerator.civEfficiencyPrice*(p.getArchitecture()+1)) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.civEfficiencyPrice*(p.getEngTech()+1);
-				if(p.getEngTech()>=20) {
+				} else hypoTotal-=GodGenerator.civEfficiencyPrice*(p.getArchitecture()+1);
+				if(p.getArchitecture()>=20) {
 					setError("You can not research any further in this field.");
 					return false;
 				}
@@ -8947,11 +8629,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				} 
 
 			}else if(array[i].equals("buildingSlotTech")) {
-				if(!free&&hypoTotal<GodGenerator.buildingSlotTechPrice*(p.getBuildingSlotTech()+1)) {
+				if(!free&&hypoTotal<GodGenerator.buildingSlotTechPrice*(p.getConstructionResearch()+1)) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.buildingSlotTechPrice*(p.getBuildingSlotTech()+1);
-				if(p.getBuildingSlotTech()>=10) {
+				} else hypoTotal-=GodGenerator.buildingSlotTechPrice*(p.getConstructionResearch()+1);
+				if(p.getConstructionResearch()>=10) {
 					setError("You can not research any further in this field.");
 					return false;
 				} 
@@ -9063,67 +8745,18 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		if(canCompleteResearches(array,free)) {// if it's free... then this'll return true depending.
 		while(i<array.length) {
 			
-			/*
-			 * Techs:
-	Lot Tech
-	Stealth
-	attack lot tech
-	4 unit techs
-	IMPLEMENTATION REQUIRED
-	Troop push
-	Bunker level up
-	IMPLEMENTATION END
-	21 weapon techs
-	Support tech
-	Town tech
-	3 Civilian Efficiencies
-	Building Slot Tech
-	Building Stability Tech(not implemented, I don't think)
-	bunker tech
-	Bomber Tech---no
-	Trade Tech
-	Pic techs[35]
-	Put tanks,j, b, at 20,30,35
-			 */
+
 			
 			
-			
-			if(array[i].equals("lotTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.buildingLotTechPrice*((p.getLotTech()-8)+1));
-				 p.setLotTech(p.getLotTech() + 1);
-			} else if(array[i].equals("stealthTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.stealthTechPrice*(p.getStealthTech()+1));
-				 p.setStealthTech(p.getStealthTech() + 1);
-			}else if(array[i].equals("scoutTech")) {
+			if(array[i].equals("infrastructureTech")) {
+				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.buildingLotTechPrice*((p.getInfrastructureTech()-8)+1));
+				 p.setInfrastructureTech(p.getInfrastructureTech() + 1);
+			} else if(array[i].equals("scoutTech")) {
 				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.scoutTechPrice*(p.getScoutTech()+1));
 				 p.setScoutTech(p.getScoutTech() + 1);
-			}else if(array[i].equals("unitLotTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.aLotTechPrice*(p.getALotTech()));
-
-					int lotTech = p.getALotTech();
-
-					p.setALotTech(lotTech + 1);
-
-				
-			}/*else if(array[i].equals("Hades")) {
-				//	private boolean canCreateUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
-				//  1. Hades (30,30,11,29,'18,') (holding The H.I.V.E.) with Conqueror Upgrade
-
-				int weap[] = {18};
-				if(canCreateUnitTemplate("Hades",4,30,30,11,29,weap,0)) {
-					createUnitTemplate("Hades",4,30,30,11,29,weap,0);
-					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.bomberTechPrice);
-
-				}	
-			} */else if(array[i].equals("zeppTech")) { 
+			}else if(array[i].equals("airshipTech")) { 
 				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.zeppelinTechPrice);
 				p.setZeppTech(true);
-			}else if(array[i].equals("missileSiloTech")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.missileSiloTechPrice);
-				p.setMissileSiloTech(true);
-			}else if(array[i].equals("recyclingTech")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.recyclingCenterTechPrice);
-				p.setRecyclingTech(true);
 			}else if(array[i].equals("attackAPI")) { 
 				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.attackAPITechPrice);
 				p.setAttackAPI(true);
@@ -9179,139 +8812,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.foodRefTechPrice);
 				p.setFoodRefTech(true);
 			}
-			else if(array[i].equals("troopPush")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.troopPushPrice*(p.getTPushes())); // no +1 so first is free.
-
-				/*
-				 * Troop push is special. You push out a days' worth of whatever
-				 * troop slot you've chosen in every AF in every town you own.
-				 * You're essentially giving up a research to get a one off troop
-				 * push.
-				 */
-				
-				/*
-				 * So we need to find the ticks required to sort of hotwire in the
-				 * slot.
-				 */
-				int j = 0;  // for the six sizes...
-			int x = 0; int divider=0;
-			ArrayList<AttackUnit> pau = p.getAu();
-			while(x<pau.size()) {
-				if(!pau.get(x).getName().equals("locked")&&!pau.get(x).getName().equals("empty")) divider++;
-				x++; // so if you have more slots you don't get more units.
-			}
-			ArrayList<Town> towns = p.towns();
-			double avgLevel=0;
-			 int k = 0;
-			 int highLvl=0;
-			while(k<towns.size()) {
-				avgLevel+=(int) Math.round(((double) p.God.getAverageLevel(towns.get(k)) )/ ((double) towns.size()));
-				 x = 0;
-				while(x<towns.get(k).bldg().size()) {
-					if(towns.get(k).bldg().get(x).getLvl()>highLvl) highLvl=towns.get(k).bldg().get(x).getLvl();
-					x++;
-				}
-				k++;
-			}
-			double percdifflvl = ((double) (highLvl-avgLevel))/100;
-			
-			double engAvgLevel = (int) Math.round(((double) (1.0-percdifflvl)*((double) avgLevel) + percdifflvl*((double) highLvl)));
-			t = g.findTown(p.getCapitaltid());
-			double days=(int) Math.round(((double) QueueItem.days)*((double) engAvgLevel-2)/(((double) Town.maxBldgLvl)/6.0));
-			if(days>QueueItem.days) days =QueueItem.days;	
-			if(days<=0) days=(int) Math.round(((double) QueueItem.days)*((double) 1)/(((double) Town.maxBldgLvl)/6.0));
-		
-			double ticks = days*24*3600/GodGenerator.gameClockFactor;
-			
-			int je = 0;
-			for(;;) {
-				System.out.println("Ticks for " + je + " is "+QueueItem.getUnitTicksForMany(je,t.getTotalEngineers(),t) + " and we've got a ticks allowable total of " + ticks);
-				if(ticks-QueueItem.getUnitTicksForMany(je,t.getTotalEngineers(),t)<=0) {
-					break;
-				}
-				je++;
-			}
-			ArrayList<AttackUnit> au;
-			double amt = je;
-			
-
-				while(j<p.towns().size()) {
-					t = p.towns().get(j);
-
-					if(t.townID==p.getCapitaltid()) {
-					
-						double num[] = new double[6];
-						
-						x=0;
-							while(x<pau.size()) {
-							if(!pau.get(x).getName().equals("locked")&&!pau.get(x).getName().equals("empty")) {
-								if(pau.get(x).getType()>0)
-							num[x]+= ((double) amt)/*(1-((double) p.getBrkups())/48.0)*//((double) divider*pau.get(x).getExpmod());   // ((double) QueueItem.days*(24*3600-1800*(p.brkthrus-p.brkups+1)))/((double) GodGenerator.gameClockFactor*(QueueItem.getUnitTicks(pau.get(x).getPopSize(),t.getTotalEngineers(),t)*divider));
-							if(num[x]<0) {
-								setError("Somehow you've gone past the troop Push limit and gotten away with it. Please contact support.");
-								return false;
-							}
-						//	System.out.println(b.bid + " contributes  " + [x]+ " of au " + p.getAu().get(x).name + " in town " + t.townName);
-							}
-							x++;	
-							}
-						
-						
-						// now we add them to the town!
-						
-							x = 0;
-							au = t.getAu();
-							synchronized(au) {
-							while(x<au.size()) {
-								System.out.println(num[x] + " is being made.");
-								t.setSize(x,
-										au.get(x).getSize() + ((int) Math.round(num[x])));
-								x++;
-							}
-						
-							}
-					}
-					j++;
-				}
-				p.setTPushes(p.getTPushes()+1);
-				
-			}/*else if(array[i].equals("bunkerUp")) {
-			int	j = 0;  // for the six sizes...
-				while(j<p.towns().size()) {
-					t = p.towns().get(j);
-					int k = 0;
-					while(k<t.bldg().size()) {
-						b=t.bldg().get(k);
-						if(b.type.equals("Bunker")) {
-							synchronized(b) {
-								if(b.lvl<30)
-								b.lvl++;
-								
-							}
-						}
-						
-						k++;
-					}
-					j++;
-				}
-				
-			}*//*else if(array[i].startsWith("weap")) {
-				
-				int num = Integer.parseInt(array[i].substring(array[i].indexOf("p")+1,array[i].length()));
-				p.getWeap()[num]=true;
-			}else if(array[i].startsWith("soldierPic")) {
-				int num = Integer.parseInt(array[i].substring(array[i].indexOf("c")+1,array[i].length()));
-				p.getSoldierPicTech()[num]=true;
-			}else if(array[i].startsWith("tankPic")) {
-				int num = Integer.parseInt(array[i].substring(array[i].indexOf("c")+1,array[i].length()));
-				p.getTankPicTech()[num]=true;
-			}else if(array[i].startsWith("juggerPic")) {
-				int num = Integer.parseInt(array[i].substring(array[i].indexOf("c")+1,array[i].length()));
-				p.getJuggerPicTech()[num]=true;
-			}else if(array[i].startsWith("bomberPic")) {
-				int num = Integer.parseInt(array[i].substring(array[i].indexOf("c")+1,array[i].length()));
-				p.getBomberPicTech()[num]=true;
-			}*/else if(array[i].equals("supportTech")) {
+			else if(array[i].equals("supportTech")) {
 				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.supportTechPrice*(p.getSupportTech()+1));
 
 				 p.setSupportTech(p.getSupportTech() + 1);
@@ -9320,17 +8821,17 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 				p.setTownTech(p.getTownTech() + 1);
 			}else if(array[i].equals("engineerTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.civEfficiencyPrice*(p.getEngTech()+1));
+				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.civEfficiencyPrice*(p.getArchitecture()+1));
 
-				 p.setEngTech(p.getEngTech() + 1);
+				 p.setEngTech(p.getArchitecture() + 1);
 			}else if(array[i].equals("scholarTech")) {
 				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.civEfficiencyPrice*(p.getScholTech()+1));
 
 				p.setScholTech(p.getScholTech() + 1);
 			}else if(array[i].equals("buildingSlotTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.buildingSlotTechPrice*(p.getBuildingSlotTech()+1));
+				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.buildingSlotTechPrice*(p.getConstructionResearch()+1));
 
-				p.setBuildingSlotTech(p.getBuildingSlotTech() + 1);
+				p.setBuildingSlotTech(p.getConstructionResearch() + 1);
 			}else if(array[i].equals("buildingStabilityTech")) {
 				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.buildingStabilityTechPrice*(p.getStabilityTech()+1));
 
@@ -9339,18 +8840,6 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.bunkerTechPrice*(p.getBunkerTech()+1));
 
 				p.setBunkerTech(p.getBunkerTech() + 1);
-			}else if(array[i].equals("afTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.afTechPrice*(p.getAfTech()+1));
-
-				p.setAfTech(p.getAfTech() + 1);
-			}else if(array[i].equals("commsCenterTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.commsCenterTechPrice*(p.getCommsCenterTech()+1));
-
-				p.setCommsCenterTech(p.getCommsCenterTech() + 1);
-			}else if(array[i].equals("tradeTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.civEfficiencyPrice*(p.getTradeTech()+1));
-
-				p.setTradeTech(p.getTradeTech() + 1);
 			} else {
 				setError("Invalid research!");
 				return false;
@@ -9715,8 +9204,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 b = new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),Building.getCap(lvl,mineBldg),
 			Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,
 			actb.getLvlUps(),actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
-			Building.getTicksPerPerson(totalEngineers,engEffect,p.getEngTech(),ppl,lvl,actb.getType()),
-			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getEngTech(),actb.getType()),name,actb.getRefuelTicks(),actb.getFortArray());
+			Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
+			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),name,actb.getRefuelTicks(),actb.getFortArray());
 		
 
 		/*
@@ -9746,8 +9235,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			 b = new UserBuilding(getUserQueueItems(bid),bid,rs.getInt(2),Building.getCap(lvl,mineBldg),
 				Building.getCost(name),rs.getBoolean(4),rs.getInt(5),lvl,
 				rs.getInt(7),rs.getInt(8),ppl,rs.getInt(10),
-				Building.getTicksPerPerson(totalEngineers,engEffect,p.getEngTech(),ppl,lvl),
-				rs.getInt(11),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getEngTech()),name);
+				Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl),
+				rs.getInt(11),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture()),name);
 			}
 
 		rs.close(); stmt.close();
@@ -9812,8 +9301,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 tses.add(new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),Building.getCap(lvl,mineBldg),
 			Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,
 			actb.getLvlUps(),actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
-			Building.getTicksPerPerson(totalEngineers,engEffect,p.getEngTech(),ppl,lvl,actb.getType()),
-			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getEngTech(),actb.getType()),name,actb.getRefuelTicks(),actb.getFortArray()));
+			Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
+			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),name,actb.getRefuelTicks(),actb.getFortArray()));
 			}
 		 i++;
 		}
@@ -9837,8 +9326,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			tses.add(new UserBuilding(getUserQueueItems(bid),bid,rs.getInt(2),Building.getCap(lvl,mineBldg),
 					Building.getCost(name),rs.getBoolean(4),rs.getInt(5),lvl,
 					rs.getInt(7),rs.getInt(8),rs.getInt(9),rs.getInt(10),
-					Building.getTicksPerPerson(totalEngineers,engEffect,p.getEngTech(),ppl,lvl),
-					rs.getInt(11),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getEngTech()),name));
+					Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl),
+					rs.getInt(11),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture()),name));
 		
 			}
 			
@@ -9890,8 +9379,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 tses.add(new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),Building.getCap(lvl,mineBldg),
 			Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,
 			actb.getLvlUps(),actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
-			Building.getTicksPerPerson(totalEngineers,engEffect,p.getEngTech(),ppl,lvl,actb.getType()),
-			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getEngTech(),actb.getType()),name,actb.getRefuelTicks(),actb.getFortArray()));
+			Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
+			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),name,actb.getRefuelTicks(),actb.getFortArray()));
 			}
 		 i++;
 		}
@@ -9919,8 +9408,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			tses.add(new UserBuilding(getUserQueueItems(bid),bid,rs.getInt(2),Building.getCap(lvl,mineBldg),
 					Building.getCost(name),rs.getBoolean(4),rs.getInt(5),lvl,
 					rs.getInt(7),rs.getInt(8),rs.getInt(9),rs.getInt(10),
-					Building.getTicksPerPerson(totalEngineers,engEffect,p.getEngTech(),ppl,lvl),
-					rs.getInt(11),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getEngTech()),name));
+					Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl),
+					rs.getInt(11),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture()),name));
 		
 			}
 			
@@ -10329,7 +9818,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			prog=false;
 
 		
-			UserBuilding b[] = getUserBuildings(t.townID,"Communications Center");
+			UserBuilding b[] = getUserBuildings(t.townID,"Command Center");
 			if(keep) prog = true;
 			while(i<b.length) {
 				aggregate+=b[i].getLvl();
@@ -10337,7 +9826,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			}
 			
 			
-			int percmult = (int) Math.round(aggregate*(1+.05*(p.getCommsCenterTech()-1)));
+			int percmult = (int) Math.round(aggregate);
 			if(percmult<3) percmult=3;
 		// new formula has got to take the percmult and do it instead by tiles instead. So each level up should increase us past a 3x3 block.
 		
@@ -10737,14 +10226,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		int y = 0; int aggregate=0;
 		Town t = t1; Trade r;
 
-		UserBuilding b[] = getUserBuildings(t.townID,"Communications Center");
+		UserBuilding b[] = getUserBuildings(t.townID,"Command Center");
 		while(i<b.length) {
 			aggregate+=b[i].getLvl();
 			i++;
 		}
 		
 		
-		int percmult = (int) Math.round(aggregate*(1+.05*(p.getCommsCenterTech()-1)));
+		int percmult = (int) Math.round(aggregate*(1));
 		if(percmult<3) percmult=3;
 		Town myTown = t1;
 		int rightBorder = t.getX()+percmult; // my box.
@@ -11254,52 +10743,22 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 		UserTown[] t = getUserTowns();
 		UserAttackUnit au[] = getUserAttackUnits();
-		boolean weap[] = new boolean[p.getWeap().length];
-		int k = 0;
-		if(!checkMP()) return null;
-		while(k<p.getWeap().length) {
-			weap[k]=p.getWeap()[k]; // protect the values!
-			k++;
-		}
-		boolean soldierPicTech[] = new boolean[p.getSoldierPicTech().length];
-		boolean tankPicTech[] = new boolean[p.getTankPicTech().length];
-		boolean juggerPicTech[] = new boolean[p.getJuggerPicTech().length];
-		boolean bomberPicTech[] = new boolean[p.getBomberPicTech().length];
-		k = 0;
-		while(k<p.getSoldierPicTech().length) {
-			soldierPicTech[k]=p.getSoldierPicTech()[k]; // protect the values!
-			k++;
-		}
-		k = 0;
-		while(k<p.getTankPicTech().length) {
-			tankPicTech[k]=p.getTankPicTech()[k]; // protect the values!
-			k++;
-		}
-		k = 0;
-		while(k<p.getJuggerPicTech().length) {
-			juggerPicTech[k]=p.getJuggerPicTech()[k]; // protect the values!
-			k++;
-		}
-		k = 0;
-		while(k<p.getBomberPicTech().length) {
-			bomberPicTech[k]=p.getBomberPicTech()[k]; // protect the values!
-			k++;
-		}
+
 		
 		String leagueName = null;
 		if(p.getLeague()!=null) leagueName=p.getLeague().getUsername();
-		return new UserPlayer(p.ID,p.getLotTech(),p.getAfTech(),au,bomberPicTech,
-				p.isBomberTech(),p.getKnowledge(),p.getBuildingSlotTech(),
-				p.getBunkerTech(),p.getCivWeapChoice(),p.getEngTech(),p.isLeague(),juggerPicTech,
-				p.isJuggerTech(),leagueName,p.getScholTech(),p.getScholTicks(),p.getScholTicksTotal(),
-				soldierPicTech,p.isSoldierTech(),p.getStabilityTech(),p.getStealthTech(),p.getSupportTech(),
-				tankPicTech,p.isTankTech(),p.getTotalPopulation(),p.getTotalScholars(),p.getTownTech(),
-				t,p.getTradeTech(),p.getUsername(),weap,p.getCapitaltid(),p.getBp(),p.getCommsCenterTech(),p.getPlayedTicks(),p.getPremiumTimer(),
-				p.getUbTimer(),p.getMineTimer(),p.getFeroTimer(),p.getTimberTimer(),p.getMmTimer(),p.getFTimer(),p.getRevTimer(),p.getTotalBPEarned(),p.getEmail(),p.isZeppTech(),
-				p.isMissileSiloTech(),p.isRecyclingTech(),p.isMetalRefTech(),p.isTimberRefTech(),p.isManMatRefTech(),p.isFoodRefTech(),
+		return new UserPlayer(p.ID,p.getInfrastructureTech(),p.getBloodMetalPlating(),au,
+				p.isThrustVectoring(),p.getKnowledge(),p.getConstructionResearch(),
+				p.getAdvancedFortifications(),p.getFirearmResearch(),p.getArchitecture(),p.isLeague(),
+				p.isHydraulicAssistors(),leagueName,p.getClockworkComputers(),p.getScholTicks(),p.getScholTicksTotal(),
+				p.getStructuralIntegrity(),p.getBodyArmor(),
+				p.isPersonalShields(),p.getTotalPopulation(),p.getTotalScholars(),p.getTownTech(),
+				t,p.getUsername(),p.getCapitaltid(),p.getBp(),p.getPlayedTicks(),p.getPremiumTimer(),
+				p.getUbTimer(),p.getMineTimer(),p.getFeroTimer(),p.getTimberTimer(),p.getMmTimer(),p.getFTimer(),p.getRevTimer(),p.getTotalBPEarned(),p.getEmail(),p.isAirshipTech(),
+				p.isClockworkAugments(),
 				p.isAttackAPI(),p.isAdvancedAttackAPI(),p.isTradingAPI(),p.isAdvancedTradingAPI(),p.isSmAPI(),p.isResearchAPI(),
 				p.isBuildingAPI(),p.isAdvancedBuildingAPI(),p.isMessagingAPI(),p.isZeppelinAPI(),p.isCompleteAnalyticAPI(),
-				p.isNukeAPI(),p.isWorldMapAPI(),p.getScoutTech(),p.getALotTech());
+				p.isNukeAPI(),p.isWorldMapAPI(),p.isdigAPI(),p.getScoutTech(),p.getBloodMetalArmor());
 
 		
 	}
@@ -11339,7 +10798,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			while(j<4) {
 				//public long getExchangeResource(int toIndex, int fromIndex, long toResource, int tradeTech,int x, int y) {
 
-				toRet[i][j]=((float) g.Trader.getExchangeResource(i,j,1000,p.getTradeTech(),t.getX(),t.getY()))/1000;
+				toRet[i][j]=((float) g.Trader.getExchangeResource(i,j,1000,1,t.getX(),t.getY()))/1000;
 				// so we auto divide by 1000, so we send in and may get anywhere from 100 to 10000 and we divide
 				// by 1000 to get .1 or 10, respectively, and we know that we get 10 of j resource for
 				// one of i resource if we get back 10000.
@@ -11657,7 +11116,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				return false;
 			}
 			
-			int other=(int) g.Trader.getExchangeResource(whichres,whichexcres,res,t.getPlayer().getTradeTech(),t.getX(),t.getY());
+			int other=(int) g.Trader.getExchangeResource(whichres,whichexcres,res,1,t.getX(),t.getY());
 			
 			synchronized(t.getRes()) {
 				t.getRes()[whichres]-=res;

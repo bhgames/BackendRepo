@@ -46,7 +46,7 @@ public class Player  {
 	private int mineTimer=0;
 	private int feroTimer=0;
 	private int timberTimer=0;
-	private boolean zeppTech,missileSiloTech,recyclingTech,metalRefTech,timberRefTech,manMatRefTech,foodRefTech;
+	private boolean airshipTech,clockworkAugments;
 	private String email;
 	private int mmTimer=0;
 	private int fTimer=0;
@@ -57,12 +57,10 @@ public class Player  {
 	private League  league=null;
 	
 	public GodGenerator God;
-	private int scholTicks,scholTicksTotal,aLotTech,capitaltid,commsCenterTech,lotTech,townTech,civWeapChoice,knowledge,scout,supportTech,engTech,scoutTech,tradeTech,scholTech,buildingSlotTech,stabilityTech,bunkerTech,afTech,totalScholars,totalPopulation;
-	private boolean supportstaff,soldierTech,tankTech,juggerTech,bomberTech,isQuest=false;
-	private boolean[] weapTech,soldierPicTech,tankPicTech,juggerPicTech,bomberPicTech;
+	private int bodyArmor,teslaTech,ordinanceResearch,scholTicks,scholTicksTotal,capitaltid,infrastructureTech,townTech,firearmResearch,knowledge,architecture,scoutTech,clockworkComputers,constructionResearch,structuralIntegrity,bloodMetalPlating,totalScholars,totalPopulation;
+	private boolean supportstaff,personalShields,hydraulicAssistors,thrustVectoring,advancedFortifications,bloodMetalArmor,isQuest=false;
 	private ArrayList<QuestListener> activeQuests;
-	private int stealth;
-	private ArrayList<AttackUnit> au, AUTemplates;
+	private ArrayList<AttackUnit> au;
 	private ArrayList<Town> towns;
 	private String username,password;
 	/*
@@ -92,7 +90,7 @@ public class Player  {
 		   rs.next();
 		   username = rs.getString(2);
 	       password = rs.getString(26);
-	       stealth = rs.getInt(3);
+	       bodyArmor = rs.getInt(3);
 	       playedTicks=rs.getInt(45);
 	       owedTicks = rs.getInt(82);
 	       version = rs.getString(81);
@@ -130,21 +128,21 @@ public class Player  {
 	       email = rs.getString(56);
 	       totalScholars = rs.getInt(5);
 	       totalPopulation = rs.getInt(7);
-	       aLotTech = rs.getInt(8);
+	       //aLotTech = rs.getInt(8);
 	       last_auto_blast = rs.getInt(59);
 	       revTimer = rs.getInt(54);
 	       supportstaff = rs.getBoolean(28);
-	       zeppTech = rs.getBoolean(61);
-	       missileSiloTech = rs.getBoolean(62);
-	       recyclingTech = rs.getBoolean(63);
-	       metalRefTech = rs.getBoolean(64);
-	       timberRefTech = rs.getBoolean(65);
-	       manMatRefTech = rs.getBoolean(66);
-	       foodRefTech = rs.getBoolean(67);
+	       airshipTech = rs.getBoolean(61);
+	     //  missileSiloTech = rs.getBoolean(62);
+	     //  recyclingTech = rs.getBoolean(63);
+	       clockworkAugments = rs.getBoolean(64);
+	       advancedFortifications = rs.getBoolean(65);
+	       bloodMetalArmor = rs.getBoolean(66);
+	    //   foodRefTech = rs.getBoolean(67);
 
-	       soldierTech = rs.getBoolean(9);
-	       setTankTech(rs.getBoolean(10));
-	       juggerTech = rs.getBoolean(11);
+	     //  soldierTech = rs.getBoolean(9);
+	       personalShields=(rs.getBoolean(10));
+	       hydraulicAssistors = rs.getBoolean(11);
 	       scoutTech=rs.getInt(40);
 	       premiumTimer = rs.getInt(47);
 	       ubTimer = rs.getInt(48);
@@ -155,65 +153,27 @@ public class Player  {
 	       mmTimer = rs.getInt(52);
 	       fTimer = rs.getInt(53);
 	       bp = rs.getInt(46);
-	       String holdThis = rs.getString(12); // weaps stuff.
-	       buildingSlotTech = rs.getInt(13);
-	       civWeapChoice = rs.getInt(17);
-	       bomberTech = rs.getBoolean(18);
-	       supportTech = rs.getInt(19);
+	       constructionResearch = rs.getInt(13);
+	       firearmResearch = rs.getInt(17);
+	       thrustVectoring = rs.getBoolean(18);
+	      // supportTech = rs.getInt(19);
 	       townTech = rs.getInt(20);
-	       bunkerTech=rs.getInt(21);
-	       stabilityTech = rs.getInt(30);
-	       afTech = rs.getInt(38);
+	       //advancedFortifications=rs.getInt(21);
+	       structuralIntegrity = rs.getInt(30);
+	       bloodMetalPlating = rs.getInt(38);
 	       scholTicks = rs.getInt(31);
-	   //    brkthrus = rs.getInt(32);
-	 //      brkups = rs.getInt(33);
-	       lotTech = rs.getInt(34);
-	       engTech = rs.getInt(35);
-	       scholTech = rs.getInt(36);
-	       tradeTech = rs.getInt(27);
-	       commsCenterTech = rs.getInt(43);
+	       ordinanceResearch=(rs.getInt(32));
+	       teslaTech=(rs.getInt(33));
+	       infrastructureTech = rs.getInt(34);
+	       architecture = rs.getInt(35);
+	       clockworkComputers = rs.getInt(36);
+	   //    tradeTech = rs.getInt(27);
+	   //   commsCenterTech = rs.getInt(43);
 	       capitaltid = rs.getInt(39);
 	       
 	       pushLog = rs.getString(42);
 	      // need to break apart weaptech into an array.
-	      int weapc = 0;  boolean[] weaps = new boolean[21];
-	      soldierPicTech = new boolean[10];
-	      tankPicTech = new boolean[10];
-	      juggerPicTech = new boolean[10];
-	      bomberPicTech = new boolean[5];
-
-			while(weapc<21) {
-
-				if(Integer.parseInt(holdThis.substring(0,holdThis.indexOf(",")))==1) weaps[weapc] = true; else weaps[weapc] = false;
-				 holdThis = holdThis.substring(holdThis.indexOf(",")+1,holdThis.length());
-
-				weapc++;
-			}
-			
-			weapTech=weaps;
-			weapc=0;
-			
-			holdThis = rs.getString(22);//soldier string
-			String holdThis1=rs.getString(23);//tank
-			String holdThis2=rs.getString(24);//juggernaught
-			String holdThis3=rs.getString(25);//bomber
-
-			while(weapc<10) {
-
-				if(Integer.parseInt(holdThis.substring(0,holdThis.indexOf(",")))==1) soldierPicTech[weapc] = true; else soldierPicTech[weapc] = false;
-				 holdThis = holdThis.substring(holdThis.indexOf(",")+1,holdThis.length());
-
-				if(Integer.parseInt(holdThis1.substring(0,holdThis1.indexOf(",")))==1) tankPicTech[weapc] = true; else tankPicTech[weapc] = false;
-					 holdThis1 = holdThis1.substring(holdThis1.indexOf(",")+1,holdThis1.length());
-					 
-				if(Integer.parseInt(holdThis2.substring(0,holdThis2.indexOf(",")))==1) juggerPicTech[weapc] = true; else juggerPicTech[weapc] = false;
-						 holdThis2 = holdThis2.substring(holdThis2.indexOf(",")+1,holdThis2.length());
-
-				if(weapc<5) { // special for bombers
-				if(Integer.parseInt(holdThis3.substring(0,holdThis3.indexOf(",")))==1) bomberPicTech[weapc] = true; else bomberPicTech[weapc] = false;
-							 holdThis3 = holdThis3.substring(holdThis3.indexOf(",")+1,holdThis3.length()); }
-				weapc++;
-			}
+	  
 			rs.close();
 
 			au = getMemAu(); 
@@ -301,7 +261,7 @@ public class Player  {
 		double nextLevelBase = 24*3600/GodGenerator.gameClockFactor;
 		double base = (int) Math.round(nextLevelBase/6.0);
 		double expFactor = base*5;
-		double schol = (totalScholars*(1+cloudFactor+.05*(getScholTech()-1))+1);
+		double schol = (totalScholars*(1+cloudFactor+.05*(getClockworkComputers()))+1);
 		return (int) Math.round( ((double) nextLevelBase)/(schol)); // So if one scholar, 1pt/day. If 10, then 100/day.
 	//	schol = Math.log(schol);
 		//schol = Math.pow(schol,2.5);
@@ -368,88 +328,11 @@ public class Player  {
 		
 	}
 	
-	
-	public int returnUnitLots() {
-		return getALotTech();
-	}
-	
-	public boolean[] getWeapTech() {
-		return getWeap();
-	}
-	
-	
-	
-	
-	public boolean getUnitTech(int num) {
-		if(num==1) return isSoldierTech();
-		if(num==2) return isTankTech();
-		if(num==3) return isJuggerTech();
-		if(num==4) return isBomberTech();
-		return false;
-	}
-	public boolean getWeapTech(int num) {
-		return getWeap()[num];
-	}
 
-	public void synchronizeWithPlayer(Player p) {
-		/*
-		 * public String username;---
-	public int ID;---
-	public String password;----
-	boolean isLeague=false;----
-	public PlayerScript ps;---nnot needed----
-	public int stealthTech;----- public int buildingSlotTech;----
-	int knowledge;----
-	public int totalScholars=0,---- totalMessengers=0,---- totalPopulation=0;-----
-	int lotTech = 18;----	boolean godHere = true;---- int aLotTech;---
-	boolean soldierTech,----tankTech,----juggerTech,---bomberTech;----
-	public boolean soldierPicTech[],---tankPicTech[],---juggerPicTech[],---bomberPicTech[];----
-	public ArrayList<AttackUnit> AUTemplates;----
-	public int tradeTech=1; ----// MAX IS TEN! Well, doesn't have to be...
-	public int bunkerTech=1;-----
-	boolean weap[];----
-	Connection con;---not needed---
-	boolean synchronize = false;---
-	boolean killmyself = false;----
-	public ArrayList<AttackUnit> au; ----// To keep a private player-held list of home aus.
-	int supportTech;-----
-	public int civWeapChoice = 0;---- // default value.
-	public League league;----
-	public int townTech;-----
-	boolean supportstaff;-----
-	public boolean callSync = false;
-		 */
-		
-		this.setCivWeapChoice(p.getCivWeapChoice());
-		this.setTotalScholars(p.getTotalScholars());
-		this.setBuildingSlotTech(p.getBuildingSlotTech());
-		this.setTotalPopulation(p.getTotalPopulation());
-		this.setStealthTech(p.getStealthTech());
-		this.setLotTech(p.getLotTech());
-		this.setTownTech(p.getTownTech());
-		this.setSupportstaff(p.getSupportstaff());
-		 this.ID=p.ID; this.setUsername(p.getUsername());
-	//	 this.setKnowledge(p.getKnowledge());
-		 this.setALotTech(p.getALotTech());
-		 this.setSoldierTech(p.isSoldierTech()); this.setTankTech(p.isTankTech()); this.setJuggerTech(p.isJuggerTech()); this.setWeap(p.getWeap());
-		 //this.au=p.getAu();
-		// this.setAUTemplates(p.getAUTemplates());
-		 this.setTradeTech(p.getTradeTech());
-		 this.setPassword(p.getPassword());
-		 this.setBomberTech(p.isBomberTech());
-		 this.setSoldierPicTech(p.getSoldierPicTech());
-		 this.setTankPicTech(p.getTankPicTech());
-		 this.setJuggerPicTech(p.getJuggerPicTech());
-		 this.setBomberPicTech(p.getBomberPicTech());
-		 this.setBunkerTech(p.getBunkerTech());
-		 this.setSupportTech(p.getSupportTech());
-		int i = 0;
-	/*	do {
-			towns.get(i).addPlayer(this);
-			i++;
-		} while(i<towns.size());*/
-		synchronize=false; // because we're done synchronizing!
-	} 
+	
+
+	
+
 	public void saveAndIterate(int number) {
 	
 		UberStatement stmt=null;
@@ -733,17 +616,17 @@ public class Player  {
 	       totalTimePlayed = rs.getLong(85);
 	       
 	       setPassword(rs.getString(26));
-	       setStealthTech(rs.getInt(3));
+	       bodyArmor=(rs.getInt(3));
 	      // setKnowledge(rs.getInt(4));
 	       setTotalScholars(rs.getInt(5));
 		     setScoutTech(rs.getInt(40));
-		       zeppTech = rs.getBoolean(61);
-		       missileSiloTech = rs.getBoolean(62);
-		       recyclingTech = rs.getBoolean(63);
-		       metalRefTech = rs.getBoolean(64);
-		       timberRefTech = rs.getBoolean(65);
-		       manMatRefTech = rs.getBoolean(66);
-		       foodRefTech = rs.getBoolean(67);
+		       airshipTech = rs.getBoolean(61);
+		      // missileSiloTech = rs.getBoolean(62);
+		      // recyclingTech = rs.getBoolean(63);
+		       clockworkAugments = rs.getBoolean(64);
+		       advancedFortifications = rs.getBoolean(65);
+		      bloodMetalArmor = rs.getBoolean(66);
+		      // foodRefTech = rs.getBoolean(67);
 		       attackAPI = rs.getBoolean(68);
 		       advancedAttackAPI = rs.getBoolean(69);
 		       tradingAPI = rs.getBoolean(70);
@@ -759,22 +642,20 @@ public class Player  {
 		       worldMapAPI = rs.getBoolean(80);
 
 		     setRevTimer(rs.getInt(54));
-	       setStabilityTech(rs.getInt(30));
-	       setTotalPopulation(rs.getInt(7));
-	       setALotTech(rs.getInt(8));
+	       structuralIntegrity = (rs.getInt(30));
+	      // setALotTech(rs.getInt(8));
 	       setTotalBPEarned(rs.getInt(55));
 	       knowledge = rs.getInt(4);
 
 	       setSupportstaff(rs.getBoolean(28));
-	       setSoldierTech(rs.getBoolean(9));
-	       setTankTech(rs.getBoolean(10));
-	       setAfTech(rs.getInt(38));
-	       setJuggerTech(rs.getBoolean(11));
-	       holdThis = rs.getString(12); // weaps stuff.
-	       setBuildingSlotTech(rs.getInt(13));
-	       setCivWeapChoice(rs.getInt(17));
-	       setBomberTech(rs.getBoolean(18));
-	       setSupportTech(rs.getInt(19));
+	   //    setSoldierTech(rs.getBoolean(9));
+	       personalShields=(rs.getBoolean(10));
+	       bloodMetalPlating=(rs.getInt(38));
+	       hydraulicAssistors=(rs.getBoolean(11));
+	       constructionResearch=(rs.getInt(13));
+	       firearmResearch=(rs.getInt(17));
+	       thrustVectoring=(rs.getBoolean(18));
+	      // setSupportTech(rs.getInt(19));
 	       premiumTimer = rs.getInt(47);
 	       bp = rs.getInt(46);
 	       ubTimer = rs.getInt(48);
@@ -785,111 +666,22 @@ public class Player  {
 	       fTimer = rs.getInt(53);
 	       last_login=rs.getTimestamp(41);
 	       setTownTech(rs.getInt(20));
-	       setBunkerTech(rs.getInt(21));
-		       setStabilityTech(rs.getInt(30));
+	       //advancedFortifications=(rs.getInt(21));
 		       setScholTicks(rs.getInt(31));
-		    //   setBrkthrus(rs.getInt(32));
-		     //  setBrkups(rs.getInt(33));
-		       setLotTech(rs.getInt(34));
-		       setEngTech(rs.getInt(35));
-		       setScholTech(rs.getInt(36));
+		      ordinanceResearch=(rs.getInt(32));
+		       teslaTech=(rs.getInt(33));
+		       infrastructureTech=(rs.getInt(34));
+		       architecture=(rs.getInt(35));
+		       clockworkComputers=(rs.getInt(36));
 		       playedTicks=rs.getInt(45);
-	       setTradeTech(rs.getInt(27));
+	 //      setTradeTech(rs.getInt(27));
 	        setCapitaltid(rs.getInt(39));
 	      // need to break apart weaptech into an array.
-	      int weapc = 0;   weaps = new boolean[21];
-	      setSoldierPicTech(new boolean[10]);
-	      setTankPicTech(new boolean[10]);
-	      setJuggerPicTech(new boolean[10]);
-	      setBomberPicTech(new boolean[5]);
-
-			while(weapc<21) {
-
-				if(Integer.parseInt(holdThis.substring(0,holdThis.indexOf(",")))==1) weaps[weapc] = true; else weaps[weapc] = false;
-				 holdThis = holdThis.substring(holdThis.indexOf(",")+1,holdThis.length());
-
-				weapc++;
-			}
-			
-			this.setWeap(weaps); //this.weap is a boolean array of weap techs,
-			// we use a local form here for AUs, I think.
-			weapc=0;
-			
-			holdThis = rs.getString(22);//soldier string
-			 holdThis1=rs.getString(23);//tank
-			 holdThis2=rs.getString(24);//juggernaught
-			 holdThis3=rs.getString(25);//bomber
-
-			while(weapc<10) {
-
-				if(Integer.parseInt(holdThis.substring(0,holdThis.indexOf(",")))==1) getSoldierPicTech()[weapc] = true; else getSoldierPicTech()[weapc] = false;
-				 holdThis = holdThis.substring(holdThis.indexOf(",")+1,holdThis.length());
-
-				if(Integer.parseInt(holdThis1.substring(0,holdThis1.indexOf(",")))==1) getTankPicTech()[weapc] = true; else getTankPicTech()[weapc] = false;
-					 holdThis1 = holdThis1.substring(holdThis1.indexOf(",")+1,holdThis1.length());
-					 
-				if(Integer.parseInt(holdThis2.substring(0,holdThis2.indexOf(",")))==1) getJuggerPicTech()[weapc] = true; else getJuggerPicTech()[weapc] = false;
-						 holdThis2 = holdThis2.substring(holdThis2.indexOf(",")+1,holdThis2.length());
-
-				if(weapc<5) { // special for bombers
-				if(Integer.parseInt(holdThis3.substring(0,holdThis3.indexOf(",")))==1) getBomberPicTech()[weapc] = true; else getBomberPicTech()[weapc] = false;
-							 holdThis3 = holdThis3.substring(holdThis3.indexOf(",")+1,holdThis3.length()); }
-				weapc++;
-			}
-
+	    
 
 			// now for each player we must retrieve au data...
-			
-			 aus = con.createStatement();
-			 aurs = aus.executeQuery("select * from attackunit where pid = " + ID); // should find six units.
-
-
-			 au = new ArrayList<AttackUnit>();
-
-			
-			while(aurs.next()) {
-				int type = aurs.getInt(8);
-				int popSize = 0;
-				switch(type) {
-				case 1: 
-					popSize=1;
-					break;
-				case 2:
-					popSize=5;
-					break;
-				case 3:
-					popSize=10;
-					break;
-				case 4:
-					popSize=20;
-					break;
-				}
-				  weapons = aurs.getString(9); // weaps getting time...which weapons are equipped?
-				if(weapons==null) weapons="";
-			       weapc = 0; 
-			        holdPart = weapons;
-			       while(!holdPart.equals("")) {
-			    	   holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
-			    	   weapc++;
-			       }
-			       
-			     weapforau = new int[weapc]; 
-			       
-			       weapc=0;
-					while(weapc<weapforau.length) {
-
-						weapforau[weapc]=Integer.parseInt(weapons.substring(0,weapons.indexOf(",")));
-						
-						weapons = weapons.substring(weapons.indexOf(",")+1,weapons.length());
-
-						weapc++;
-					}
-				
-				
-				au.add(new AttackUnit(aurs.getString(1), aurs.getInt(3)));
-			}
-			
-			aurs.close();aus.close(); 
+			au = null;
+			getAu();
 			
 			 
 			// time to get town stuff.
@@ -1040,56 +832,16 @@ public class Player  {
 		    	  // the save limit and he logs in, putting him in line for a save,
 		    	  // but the server shuts down without him. Then he loses stuff, loses
 		    	  // that he should even be saved for a bit. But this is always true.
-		   int co = 0;
-	       String weapStr = "";
-	       boolean weap[] = getWeapTech();
-	      while(co<weap.length) {
-	    	  if(weap[co]) weapStr+="1,";
-	    	  else weapStr+="0,";
-	    	  
-	    	  co++;
-	      }
-	      co=0;
-	    String  soldierPicStr="";
-	      while(co<soldierPicTech.length) {
-	    	  if(soldierPicTech[co]) soldierPicStr+="1,";
-	    	  else soldierPicStr+="0,";
-	    	  
-	    	  co++;
-	      }
-	      co=0;
-	     String tankPicStr="";
-	      while(co<tankPicTech.length) {
-	    	  if(tankPicTech[co]) tankPicStr+="1,";
-	    	  else tankPicStr+="0,";
-	    	  
-	    	  co++;
-	      }
-	      co=0;
-	     String juggerPicStr="";
-	      while(co<juggerPicTech.length) {
-	    	  if(juggerPicTech[co]) juggerPicStr+="1,";
-	    	  else juggerPicStr+="0,";
-	    	  
-	    	  co++;
-	      }
-	      co=0;
-	     String bomberPicStr="";
-	      while(co<bomberPicTech.length) {
-	    	  if(bomberPicTech[co]) bomberPicStr+="1,";
-	    	  else bomberPicStr+="0,";
-	    	  
-	    	  co++;
-	      }
-	     String  updatePlayer = "update player set stealth = " + stealth + ", totalscho = " + totalScholars + ", totalpop = " + totalPopulation + ", alotTech = " + aLotTech + ", soldTech = " + soldierTech + ", tankTech = " + tankTech + 
-	    		  ", juggerTech = " + juggerTech +  ", bomberTech = " + bomberTech + ", afTech = " + afTech + ", bunkerTech = " + bunkerTech + ", weapontech = '" + weapStr+"', buildingSlotTech = " + buildingSlotTech + ", civWeap = " + civWeapChoice +
-	    		   ", townTech = " + townTech +  ", tradeTech = " + tradeTech +", suppTech = " + supportTech +   ", soldierPicTech = '" + soldierPicStr + "', tankPicTech = '" + tankPicStr
-	    		   + "', juggerPicTech = '" + juggerPicStr + "', bomberPicTech = '" + bomberPicStr + "', supportstaff = " + supportstaff + ", tradeTech = " + tradeTech +", lotTech = " + lotTech + ", stabilityTech = " + stabilityTech + 
+
+	     String  updatePlayer = "update player set bodyArmor = " + bodyArmor +", personalShields = " + personalShields + 
+	    		  ", hydraulicAssistors = " + hydraulicAssistors +  ", thrustVectoring = " + thrustVectoring + ", bloodMetalPlating = " + bloodMetalPlating +", bloodMetalArmor = " + bloodMetalArmor+ ", advancedFortifications = " + advancedFortifications + ", constructionResearch = " + constructionResearch + ", firearmResearch = " + firearmResearch +
+	    		   ", townTech = " + townTech 
+	    		   +", supportstaff = " + supportstaff +", infrastructureTech = " + infrastructureTech + ", structuralIntegrity = " + structuralIntegrity + 
 	    		   ", scholTicks = " + scholTicks + ", playedTicks = " + playedTicks +", bp = " + bp + ", premiumTimer = " + premiumTimer+ ", ubTimer = " + ubTimer + ", mineTimer = " + mineTimer + ", feroTimer = " + feroTimer +
-	    		   ", timberTimer = "  + timberTimer + ", mmTimer = " + mmTimer + ", fTimer = " + fTimer + ", knowledge = " + knowledge +/* KNOWLEDGE WAS BRKTHRUS ", brkups = " + brkups +*/", engTech = " + engTech + ", scholTech = " + scholTech  +", commsCenterTech = " + commsCenterTech + ", capitaltid = " + capitaltid 
+	    		   ", timberTimer = "  + timberTimer + ", mmTimer = " + mmTimer + ", fTimer = " + fTimer + ", knowledge = " + knowledge +", architecture = " + architecture + ", clockworkComputers = " + clockworkComputers + ", capitaltid = " + capitaltid 
 	    		   +", revTimer = " + revTimer +", totalBPEarned = " + totalBPEarned +", flicker = '" + flicker + "', fuid = " + fuid + ", totalTimePlayed = " + totalTimePlayed + ", numLogins = " + numLogins + ", last_login = '" + (last_login).toString() + "', last_session = '" + (last_session).toString() 
-	    		   	+"', last_auto_blast =" + last_auto_blast + ",tPushes = "+tPushes+", zeppTech = " + zeppTech + ", recycTech = " + recyclingTech + ", nukeTech = " + missileSiloTech + ", metalRefTech = " + metalRefTech
-	    		   	+ ", timberRefTech = " + timberRefTech + ", manMatRefTech = " + manMatRefTech + ", foodRefTech = " + foodRefTech +", attackAPI = " + attackAPI +
+	    		   	+"', last_auto_blast =" + last_auto_blast + ",tPushes = "+tPushes+", airshipTech = " + airshipTech + ", clockworkAugments = " + clockworkAugments
+	    		   	+", attackAPI = " + attackAPI +
 	    		   	", advancedAttackAPI = " + advancedAttackAPI+", digAPI = " + digAPI + ", tradingAPI = " + tradingAPI + ", advancedTradingAPI = " + advancedTradingAPI + ", smAPI = " + smAPI + ", researchAPI = " + researchAPI + 
 	    		   	", buildingAPI = " + buildingAPI + ", advancedBuildingAPI = " + advancedBuildingAPI + ", messagingAPI = " + messagingAPI + ", zeppelinAPI = " + zeppelinAPI + 
 	    		   	", completeAnalyticAPI = " + completeAnalyticAPI +", version = '" + version + "', nukeAPI = " + nukeAPI +", worldMapAPI = " + worldMapAPI +", owedTicks = " + owedTicks+ ", email ='"+ email +"', pushLog = \"" + pushLog + "\", password = '" + password +  "' where pid = " + ID + ";";
@@ -1098,9 +850,9 @@ public class Player  {
 	      // First, let's get and write to au. I'm not sure if querying first is more labor intensive than just writing. Let's not
 	      // worry just yet!
 	      
-	      co = 0;
+	      int co = 0;
 
-	      String[] updateAU = new String[6];
+	      String[] updateAU = new String[getAu().size()];
 	      AttackUnit hau;
 	      String weapons;
 	      try {
@@ -1114,9 +866,7 @@ public class Player  {
 	    		  
 	    	  }
 	    	  int type=hau.getType();
-	    	  updateAU[co] = "update attackunit set name = \"" + hau.getName() + "\", slot = " + hau.getSlot() + ", conc = " + hau.getArmorType() + 
-	    	  ", armor = " + hau.getArmor() + ", cargo = " + hau.getCargo() + ", speed = " + hau.getSpeed() + ", type = " +type + ", weapons = '" +
-	    	  weapons + "' where pid = " + ID +" and slot = "+  hau.getSlot() + ";";
+	    	  updateAU[co] = "update attackunit set name = \"" + hau.getName() + "\", slot = " + hau.getSlot() +" where pid = " + ID +" and slot = "+  hau.getSlot() + ";";
 
 	    	  stmt.executeUpdate(updateAU[co]);
 	    	  co++;
@@ -1154,9 +904,7 @@ public class Player  {
 	      
 		
 	
-	public int getStealth() {
-		return getStealthTech();
-	}
+	
 	/*public boolean isLoggedIn() {
 		if()
 	}*/
@@ -1480,12 +1228,6 @@ public class Player  {
 	public int getMemCommsCenterTech() {
 		return getInt("commsCenterTech");
 	}
-	public void setCommsCenterTech(int commsCenterTech) {
-		this.commsCenterTech=commsCenterTech;
-	}
-	public int getCommsCenterTech() {
-		return commsCenterTech;
-	}
 	
 	
 	
@@ -1561,132 +1303,44 @@ public class Player  {
 	}
 
 
-	public boolean isZeppTech() {
-		return zeppTech;
+	public boolean isAirshipTech() {
+		return airshipTech;
 	}
 
 
-	public void setZeppTech(boolean zeppTech) {
-		this.zeppTech = zeppTech;
+	public void setAirshipTech(boolean airshipTech) {
+		this.airshipTech = airshipTech;
 	}
 
 
-	public boolean isMissileSiloTech() {
-		return missileSiloTech;
+
+	
+
+	public boolean isClockworkAugments() {
+		return clockworkAugments;
 	}
 
 
-	public void setMissileSiloTech(boolean missileSiloTech) {
-		this.missileSiloTech = missileSiloTech;
+	public void setClockworkAugments(boolean clockworkAugments) {
+		this.clockworkAugments = clockworkAugments;
 	}
 
 
-	public boolean isRecyclingTech() {
-		return recyclingTech;
-	}
 
 
-	public void setRecyclingTech(boolean recyclingTech) {
-		this.recyclingTech = recyclingTech;
-	}
-
-
-	public boolean isMetalRefTech() {
-		return metalRefTech;
-	}
-
-
-	public void setMetalRefTech(boolean metalRefTech) {
-		this.metalRefTech = metalRefTech;
-	}
-
-
-	public boolean isTimberRefTech() {
-		return timberRefTech;
-	}
-
-
-	public void setTimberRefTech(boolean timberRefTech) {
-		this.timberRefTech = timberRefTech;
-	}
-
-
-	public boolean isManMatRefTech() {
-		return manMatRefTech;
-	}
-
-
-	public void setManMatRefTech(boolean manMatRefTech) {
-		this.manMatRefTech = manMatRefTech;
-	}
-
-
-	public boolean isFoodRefTech() {
-		return foodRefTech;
-	}
-
-
-	public void setFoodRefTech(boolean foodRefTech) {
-		this.foodRefTech = foodRefTech;
-	}
 
 
 	public int getCapitaltid() {
 		return capitaltid;
 	}
-	public void setMemWeap(boolean weap[]) {
-		   
-	      int co = 0;
-	      String  weapStr = "";
-	  
-	      while(co<weap.length) {
-	    	  if(weap[co]) weapStr+="1,";
-	    	  else weapStr+="0,";
-	    	  
-	    	  co++;
-	      }	
-	      
-	      setString("weaponTech",weapStr);
-	      
-	}
-	public void setWeap(boolean[] weap) {
-		this.weapTech=weap;
-	}
-	public boolean[] getMemWeap() {
-	      int weapc = 0; boolean[] weaps = new boolean[21];
-	      String holdThis = getString("weaponTech");
-			while(weapc<21) {
-
-				if(Integer.parseInt(holdThis.substring(0,holdThis.indexOf(",")))==1) weaps[weapc] = true; else weaps[weapc] = false;
-				 holdThis = holdThis.substring(holdThis.indexOf(",")+1,holdThis.length());
-
-				weapc++;
-			}
-			
-			return weaps;
-			
-	}
-	public boolean[] getWeap() {
-		return weapTech;
-	}
-	public void setMemALotTech(int aLotTech) {
-		setInt("alotTech",aLotTech);
-	}
-	public int getMemALotTech() {
-		return getInt("alotTech");
-	}
-	public void setALotTech(int aLotTech) {
-		this.aLotTech=aLotTech;
-	}
-	public int getALotTech() {
-		return aLotTech;
-	}
 	
-	/**
+	
+	
+	/*
 	 * If 0, will add. If 1, will delete. If 2, will edit.
 	 * @param hau
 	 * @param addDelEdit
-	 */
+	 
 	
 	public void setAUTemplate(AttackUnit hau) {
 		int i = 0;
@@ -1695,7 +1349,7 @@ public class Player  {
 			if(AUTemplates.get(i).getName().equals(hau.getName())) AUTemplates.set(i,hau);
 			i++;
 		}
-	}/*
+	}*//*
 	public ArrayList<AttackUnit> getMemAUTemplates() {
 		 ArrayList<AttackUnit> AUTemplates = new ArrayList<AttackUnit>();
 
@@ -1759,9 +1413,7 @@ public class Player  {
 			return AUTemplates;
 		}
 	*/
-	public ArrayList<AttackUnit> getAUTemplates() {
-		return AUTemplates;
-	}
+
 	public void setMemTownTech(int townTech) {
 		setInt("townTech",townTech);
 	}
@@ -1774,42 +1426,25 @@ public class Player  {
 	public int getTownTech() {
 		return townTech;
 	}
-	public void setMemCivWeapChoice(int civWeapChoice) {
-		setInt("civWeap",civWeapChoice);
+	public void setMemFirearmResearch(int firearmResearch) {
+		setInt("firearmResearch",firearmResearch);
 	}
-	public int getMemCivWeapChoice() {
-		return getInt("civWeap");
+	public int getMemFirearmResearch() {
+		return getInt("firearmResearch");
 	}
-	public void setCivWeapChoice(int civWeapChoice) {
-		this.civWeapChoice=civWeapChoice;
+	public void setFirearmResearch(int firearmResearch) {
+		this.firearmResearch=firearmResearch;
 	}
-	public int getCivWeapChoice() {
-		return civWeapChoice;
+	public int getFirearmResearch() {
+		return firearmResearch;
 	}
-	public void setMemBrkthrus(int brkthrus) {
-		setInt("brkthru",brkthrus);
+	public void setMemOrdinanceResearch(int ordinanceResearch) {
+		setInt("ordinanceResearch",ordinanceResearch);
 	}
-	public int getMemBrkthrus() {
-		return getInt("brkthru");
+	public int getMemOrdinanceResearch() {
+		return getInt("ordinanceResearch");
 	}
-	/*public void setBrkthrus(int brkthrus) {
-		this.brkthrus=brkthrus;
-	}
-	public int getBrkthrus() {
-		return brkthrus;
-	}
-	public void setMemBrkups(int brkups) {
-		setInt("brkups",brkups);
-	}
-	public int getMemBrkups() {
-		return getInt("brkups");
-	}
-	public void setBrkups(int brkups) {
-		this.brkups=brkups;
-	}
-	public int getBrkups() {
-		return brkups;
-	}*/
+	
 	public void setMemScholTicks(int scholTicks) {
 		setInt("scholTicks",scholTicks);
 	}
@@ -1826,29 +1461,29 @@ public class Player  {
 	public int getScholTicksTotal() {
 		return scholTicksTotal;
 	}
-	public void setMemLotTech(int lotTech) {
-		setInt("lotTech",lotTech);
+	public void setMemInfrastructureTech(int infrastructureTech) {
+		setInt("infrastructureTech",infrastructureTech);
 	}
-	public int getMemLotTech() {
-		return getInt("lotTech");
+	public int getMemInfrastructureTech() {
+		return getInt("infrastructureTech");
 	}
-	public void setLotTech(int lotTech) {
-		this.lotTech=lotTech;
+	public void setInfrastructureTech(int infrastructureTech) {
+		this.infrastructureTech=infrastructureTech;
 	}
-	public int getLotTech() {
-		return lotTech;
+	public int getInfrastructureTech() {
+		return infrastructureTech;
 	}
-	public void setMemStealthTech(int stealthTech) {
-		setInt("stealth",stealthTech);
+	public void setMemBodyArmor(int bodyArmor) {
+		setInt("bodyArmor",bodyArmor);
 	}
-	public int getMemStealthTech() {
-		return getInt("stealth");
+	public int getMemBodyArmor() {
+		return getInt("bodyArmor");
 	}
-	public void setStealthTech(int stealthTech) {
-		this.stealth=stealthTech;
+	public void setBodyArmor(int bodyArmor) {
+		this.bodyArmor=bodyArmor;
 	}
-	public int getStealthTech() {
-		return stealth;
+	public int getBodyArmor() {
+		return bodyArmor;
 	}
 	public void setMemScoutTech(int scoutTech) {
 		setInt("scoutTech",scoutTech);
@@ -1862,47 +1497,31 @@ public class Player  {
 	public int getScoutTech() {
 		return scoutTech;
 	}
-	public void setMemSoldierTech(boolean soldierTech) {
-		setBoolean("soldTech",soldierTech);
+
+	public void setMemPersonalShields(boolean personalShields) {
+		setBoolean("personalShields",personalShields);
 	}
-	public boolean isMemSoldierTech() {
-		return getBoolean("soldTech");
+	public boolean isMemPersonalShields() {
+		return getBoolean("personalShields");
 	}
-	public void setSoldierTech(boolean soldierTech) {
-		this.soldierTech=soldierTech;
+	public void setMemHydraulicAssistors(boolean hydraulicAssistors) {
+		setBoolean("hydraulicAssistors",hydraulicAssistors);
 	}
-	public boolean isSoldierTech() {
-		return soldierTech;
+	public boolean isMemHydraulicAssistors() {
+		return getBoolean("hydraulicAssistors");
 	}
-	public void setMemTankTech(boolean tankTech) {
-		setBoolean("tankTech",tankTech);
+	public void setMemThrustVectoring(boolean thrustVectoring) {
+		setBoolean("thrustVectoring",thrustVectoring);
 	}
-	public boolean isMemTankTech() {
-		return getBoolean("tankTech");
+	public boolean isMemThrustVectoring() {
+		return getBoolean("thrustVectoring");
 	}
-	public void setMemJuggerTech(boolean juggerTech) {
-		setBoolean("juggerTech",juggerTech);
+
+	public void setMemArchitecture(int architecture) {
+		setInt("architecture",architecture);
 	}
-	public boolean isMemJuggerTech() {
-		return getBoolean("juggerTech");
-	}
-	public void setMemBomberTech(boolean bomberTech) {
-		setBoolean("bomberTech",bomberTech);
-	}
-	public boolean isMemBomberTech() {
-		return getBoolean("bomberTech");
-	}
-	public void setMemSupportTech(int supportTech) {
-		setInt("suppTech",supportTech);
-	}
-	public int getMemSupportTech() {
-		return getInt("suppTech");
-	}
-	public void setMemEngTech(int engTech) {
-		setInt("engTech",engTech);
-	}
-	public int getMemEngTech() {
-		return getInt("engTech");
+	public int getMemArchitecture() {
+		return getInt("architecture");
 	}
 	public void setMemTradeTech(int tradeTech) {
 		setInt("tradeTech",tradeTech);
@@ -2236,11 +1855,11 @@ public class Player  {
 		} catch(SQLException exc) { exc.printStackTrace(); }
 		return toRet;
 	}
-	public void setTankTech(boolean tankTech) {
-		this.tankTech = tankTech;
+	public void setPersonalShields(boolean personalShields) {
+		this.personalShields = personalShields;
 	}
-	public boolean isTankTech() {
-		return tankTech;
+	public boolean isPersonalShields() {
+		return personalShields;
 	}
 	public int getID() {
 		return ID;
@@ -2278,59 +1897,48 @@ public class Player  {
 	public void setSynchronize(boolean synchronize) {
 		this.synchronize = synchronize;
 	}
-	public int getScout() {
-		return scout;
+	
+	public int getArchitecture() {
+		return architecture;
 	}
-	public void setScout(int scout) {
-		this.scout = scout;
+	public void setArchitecture(int architecture) {
+		this.architecture = architecture;
 	}
-	public int getSupportTech() {
-		return supportTech;
+	
+	public int getClockworkComputers() {
+		return clockworkComputers;
 	}
-	public void setSupportTech(int supportTech) {
-		this.supportTech = supportTech;
+	public void setClockworkComputers(int clockworkComputers) {
+		this.clockworkComputers = clockworkComputers;
 	}
-	public int getEngTech() {
-		return engTech;
+	public int getConstructionResearch() {
+		return constructionResearch;
 	}
-	public void setEngTech(int engTech) {
-		this.engTech = engTech;
+	public void setConstructionResearch(int constructionResearch) {
+		this.constructionResearch = constructionResearch;
 	}
-	public int getTradeTech() {
-		return tradeTech;
+	public int getStructuralIntegrity() {
+		return structuralIntegrity;
 	}
-	public void setTradeTech(int tradeTech) {
-		this.tradeTech = tradeTech;
+	public void setStructuralIntegrity(int structuralIntegrity) {
+		this.structuralIntegrity = structuralIntegrity;
 	}
-	public int getScholTech() {
-		return scholTech;
+	public boolean getAdvancedFortifications() {
+		return advancedFortifications;
 	}
-	public void setScholTech(int scholTech) {
-		this.scholTech = scholTech;
+	public void setAdvancedFortifications(boolean advancedFortifications) {
+		this.advancedFortifications = advancedFortifications;
+	}public boolean getBloodMetalArmor() {
+		return bloodMetalArmor;
 	}
-	public int getBuildingSlotTech() {
-		return buildingSlotTech;
+	public void setBloodMetalArmor(boolean bloodMetalArmor) {
+		this.bloodMetalArmor = bloodMetalArmor;
 	}
-	public void setBuildingSlotTech(int buildingSlotTech) {
-		this.buildingSlotTech = buildingSlotTech;
+	public int getBloodMetalPlating() {
+		return bloodMetalPlating;
 	}
-	public int getStabilityTech() {
-		return stabilityTech;
-	}
-	public void setStabilityTech(int stabilityTech) {
-		this.stabilityTech = stabilityTech;
-	}
-	public int getBunkerTech() {
-		return bunkerTech;
-	}
-	public void setBunkerTech(int bunkerTech) {
-		this.bunkerTech = bunkerTech;
-	}
-	public int getAfTech() {
-		return afTech;
-	}
-	public void setAfTech(int afTech) {
-		this.afTech = afTech;
+	public void setBloodMetalPlating(int bloodMetalPlating) {
+		this.bloodMetalPlating = bloodMetalPlating;
 	}
 	public int getTotalScholars() {
 		return totalScholars;
@@ -2344,42 +1952,19 @@ public class Player  {
 	public void setTotalPopulation(int totalPopulation) {
 		this.totalPopulation = totalPopulation;
 	}
-	public boolean isJuggerTech() {
-		return juggerTech;
+	public boolean isHydraulicAssistors() {
+		return hydraulicAssistors;
 	}
-	public void setJuggerTech(boolean juggerTech) {
-		this.juggerTech = juggerTech;
+	public void setHydraulicAssistors(boolean hydraulicAssistors) {
+		this.hydraulicAssistors = hydraulicAssistors;
 	}
-	public boolean isBomberTech() {
-		return bomberTech;
+	public boolean isThrustVectoring() {
+		return thrustVectoring;
 	}
-	public void setBomberTech(boolean bomberTech) {
-		this.bomberTech = bomberTech;
+	public void setThrustVectoring(boolean thrustVectoring) {
+		this.thrustVectoring = thrustVectoring;
 	}
-	public boolean[] getSoldierPicTech() {
-		return soldierPicTech;
-	}
-	public void setSoldierPicTech(boolean[] soldierPicTech) {
-		this.soldierPicTech = soldierPicTech;
-	}
-	public boolean[] getTankPicTech() {
-		return tankPicTech;
-	}
-	public void setTankPicTech(boolean[] tankPicTech) {
-		this.tankPicTech = tankPicTech;
-	}
-	public boolean[] getJuggerPicTech() {
-		return juggerPicTech;
-	}
-	public void setJuggerPicTech(boolean[] juggerPicTech) {
-		this.juggerPicTech = juggerPicTech;
-	}
-	public boolean[] getBomberPicTech() {
-		return bomberPicTech;
-	}
-	public void setBomberPicTech(boolean[] bomberPicTech) {
-		this.bomberPicTech = bomberPicTech;
-	}
+	
 	public ArrayList<QuestListener> getActiveQuests() {
 		if(activeQuests==null) {
 			ArrayList<QuestListener> aq = God.getAllActiveQuests();
@@ -2453,18 +2038,11 @@ public class Player  {
 	public void setScholTicksTotal(int scholTicksTotal) {
 		this.scholTicksTotal = scholTicksTotal;
 	}
-	public void setWeapTech(boolean[] weapTech) {
-		this.weapTech = weapTech;
-	}
-	public void setStealth(int stealth) {
-		this.stealth = stealth;
-	}
+	
 	public void setAu(ArrayList<AttackUnit> au) {
 		this.au = au;
 	}
-	public void setAUTemplates(ArrayList<AttackUnit> templates) {
-		AUTemplates = templates;
-	}
+
 
 
 
@@ -2697,6 +2275,28 @@ public class Player  {
 			}
 		}
 		return null;
+	}
+
+
+	public void setOrdinanceResearch(int ordinanceResearch) {
+		this.ordinanceResearch = ordinanceResearch;
+	}
+
+
+	public int getOrdinanceResearch() {
+		return ordinanceResearch;
+	}
+
+
+	
+
+	public void setTeslaTech(int teslaTech) {
+		this.teslaTech = teslaTech;
+	}
+
+
+	public int getTeslaTech() {
+		return teslaTech;
 	}
 }
 
