@@ -48,7 +48,7 @@ tier1=100,tier2=200,tier3=400,tier4=100;
  * @param a
  * @return
  */
-	public double getArmorModifier(AttackUnit a) {
+	public double getArmorModifier(AttackUnit a, Player p) {
 		/*
 		 * Attack Type(1 Physical 2 Explosive 3 Electric)
 
@@ -367,7 +367,7 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			expmod=55;
 
 		}
-		else if(name.equals("Colossus")) {
+		else if(name.equals("Collossus")) {
 			/*
 			HP: 900
 			Attack Damage: 1430

@@ -8336,98 +8336,127 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		while(i<array.length) {
 		
 		
-		
+		//20*2(level-8)/2 KP
 			if(array[i].equals("infrastructureTech")) {
-				if(!free&&hypoTotal<GodGenerator.infrastructureTechPrice*((p.getInfrastructureTech()-8)+1)) {
+				if(!free&&hypoTotal<GodGenerator.infrastructureTechPrice*Math.pow(2,(p.getInfrastructureTech()-8)/2)) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.infrastructureTechPrice*((p.getInfrastructureTech()-8)+1);
+				} else hypoTotal-=GodGenerator.infrastructureTechPrice*Math.pow(2,(p.getInfrastructureTech()-8)/2);
 				if(p.getInfrastructureTech()>=GodGenerator.infrastructureTechLimit) {
 					setError("You cannot research any further in this field.");
 					return false;
 
 				} 
 			} else if(array[i].equals("scoutTech")) {
-				if(!free&&hypoTotal<GodGenerator.scoutTechPrice*(p.getScoutTech()+1)) {
+				if(!free&&hypoTotal<GodGenerator.scoutTechPrice*Math.pow(2,(p.getScoutTech()/2))) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.scoutTechPrice*(p.getScoutTech()+1);
+				} else hypoTotal-=GodGenerator.scoutTechPrice*Math.pow(2,(p.getScoutTech()/2));
 				if(p.getScoutTech()>=20) {
 					setError("You cannot research any further in this field.");
 					return false;
 
-				}
-			} else if(array[i].equals("ShockTrooper")||array[i].equals("Pillager")||array[i].equals("Vanguard")) {
+				}//50*2unlocked_soldiers KP
+			} else if(array[i].equals("Panzerfaust")||array[i].equals("Pillager")||array[i].equals("Vanguard")) {
 				int k = 0;
-			
-				if(!free&&hypoTotal<GodGenerator.soldierTechPrice) {
+				for(AttackUnit a:p.getAu()) {
+					if(a.getType()==1) k++;
+					if(a.getName().equals(array[i])){
+						setError("You already have this unit!");
+						return false;
+					}
+				}
+				if(!free&&hypoTotal<GodGenerator.soldierPrice*Math.pow(2,k)) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.soldierTechPrice;
+				} else hypoTotal-=GodGenerator.soldierPrice*Math.pow(2,k);
 			}else if(array[i].equals("Wolverine")||array[i].equals("Seeker")||array[i].equals("Damascus")) {
 				int k = 0;
+				for(AttackUnit a:p.getAu()) {
+					if(a.getType()==2) k++;
+					if(a.getName().equals(array[i])){
+						setError("You already have this unit!");
+						return false;
+					}
+				}
 				if(p.towns().size()<2) {
 					setError("You need at least 2 towns to research tanks!");
 				}
 
-				while(k<p.getAUTemplates().size()) {
-					if(p.getAUTemplates().get(k).getName().equals(array[i]))  {
-						setError("You already have this unit template!");
-						return false;
-					}
-					k++;
-				}
-				if(!free&&hypoTotal<GodGenerator.tankTechPrice) {
+			
+				if(!free&&hypoTotal<GodGenerator.tankPrice*Math.pow(2,k)) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.tankTechPrice;
+				} else hypoTotal-=GodGenerator.tankPrice*Math.pow(2,k);
 
 			}else if(array[i].equals("Punisher")||array[i].equals("Dreadnaught")||array[i].equals("Collossus")) {
 				int k = 0;
-				if(p.towns().size()<3) {
-					setError("You need at least 3 towns to research juggernaughts!");
-				}
-				while(k<p.getAUTemplates().size()) {
-					if(p.getAUTemplates().get(k).getName().equals(array[i]))  {
-						setError("You already have this unit template!");
+				for(AttackUnit a:p.getAu()) {
+					if(a.getType()==3) k++;
+					if(a.getName().equals(array[i])){
+						setError("You already have this unit!");
 						return false;
 					}
-					k++;
+				}				if(p.towns().size()<3) {
+					setError("You need at least 3 towns to research juggernaughts!");
 				}
-				if(!free&&hypoTotal<GodGenerator.juggerTechPrice) {
+				
+				if(!free&&hypoTotal<GodGenerator.golemPrice*Math.pow(2,k)) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.juggerTechPrice;
+				} else hypoTotal-=GodGenerator.golemPrice*Math.pow(2,k);
 
-			}else if(array[i].equals("Hades")) {
+			}else if(array[i].equals("Gunship")||array[i].equals("Thunderbolt")
+					||array[i].equals("Blastmaster")){
 				int k = 0;
+				for(AttackUnit a:p.getAu()) {
+					if(a.getType()==4&&
+							(a.getName().equals("Gunship")||a.getName().equals("Blastmaster")||a.getName().equals("Thunderbolt"))) k++;
+					if(a.getName().equals(array[i])){
+						setError("You already have this unit!");
+						return false;
+					}
+				}			
 				if(p.towns().size()<4) {
 					setError("You need at least 4 towns to research bombers!");
 				}
-				while(k<p.getAUTemplates().size()) {
-					if(p.getAUTemplates().get(k).getName().equals(array[i]))  {
-						setError("You already have this unit template!");
-						return false;
-					}
-					k++;
-				}
 				
-				if(!free&&hypoTotal<GodGenerator.bomberTechPrice) {
+				if(!free&&hypoTotal<GodGenerator.airPrice*Math.pow(2,k)) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.bomberTechPrice;
+				} else hypoTotal-=GodGenerator.airPrice*Math.pow(2,k);
 
-			}else if(array[i].equals("zeppTech")) {
+			}else if(array[i].equals("Monolith")
+					||array[i].equals("Halcyon")||array[i].equals("Hades")){
+				int k = 0;
+				for(AttackUnit a:p.getAu()) {
+					if(a.getType()==4&&
+							(a.getName().equals("Monolith")||a.getName().equals("Halcyon")||a.getName().equals("Hades"))) k++;	
+					if(a.getName().equals(array[i])){
+						setError("You already have this unit!");
+						return false;
+					}
+				}			
+				if(p.towns().size()<4) {
+					setError("You need at least 4 towns to research bombers!");
+				}
+				
+				if(!free&&hypoTotal<GodGenerator.airPrice*Math.pow(2,k)) {
+					setError("You do not have enough KP for this research.");
+					return false;
+				} else hypoTotal-=GodGenerator.airPrice*Math.pow(2,k);
+
+			}else if(array[i].equals("airshipTech")) {
 				
 					if(p.isAirshipTech())  {
 						setError("You already have this technology!");
 						return false;
 					}
 				
-				if(!free&&hypoTotal<GodGenerator.zeppelinTechPrice) {
+				if(!free&&hypoTotal<GodGenerator.airshipTechPrice) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.zeppelinTechPrice;
+				} else hypoTotal-=GodGenerator.airshipTechPrice;
 			}else if(array[i].equals("attackAPI")) {
 			
 			if(p.isAttackAPI())  {
@@ -8588,17 +8617,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("You do not have enough KP for this research.");
 			return false;
 		} else hypoTotal-=GodGenerator.worldMapAPITechPrice;
-		}	else if(array[i].equals("supportTech")) {
-				if(!free&&hypoTotal<GodGenerator.supportTechPrice*(p.getSupportTech()+1)) {
-					setError("You do not have enough KP for this research.");
-					return false;
-				} else hypoTotal-=GodGenerator.supportTechPrice*(p.getSupportTech()+1);
-				if(p.getSupportTech()>=10) {
-					setError("You can not research any further in this field.");
-					return false;
-				} 
-
-			}else if(array[i].equals("townTech")) {
+		}	else if(array[i].equals("townTech")) {
 	
 				// we know that we want xn+1 = 2*xn = 2*(2xn-1) = 2*2*2xn-2 = 2^n*x0.
 				// can we calculate 2*xn? well...we know x0 is 200. 
@@ -8608,77 +8627,147 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					setError("You do not have enough KP for this research.");
 					return false;
 				} else hypoTotal-=GodGenerator.townTechPrice*Math.pow(2,(p.getTownTech()-1));
-			}else if(array[i].equals("engineerTech")) {
-				if(!free&&hypoTotal<GodGenerator.civEfficiencyPrice*(p.getArchitecture()+1)) {
+			}else if(array[i].equals("architecture")) {
+				if(!free&&hypoTotal<GodGenerator.civEfficiencyPrice*Math.pow(2,(p.getArchitecture()/2))) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.civEfficiencyPrice*(p.getArchitecture()+1);
+				} else hypoTotal-=GodGenerator.civEfficiencyPrice*Math.pow(2,(p.getArchitecture()/2));
 				if(p.getArchitecture()>=20) {
 					setError("You can not research any further in this field.");
 					return false;
 				}
 
-			}else if(array[i].equals("scholarTech")) {
-				if(!free&&hypoTotal<GodGenerator.civEfficiencyPrice*(p.getScholTech()+1)) {
+			}else if(array[i].equals("clockworkComputers")) {
+				if(!free&&hypoTotal<GodGenerator.civEfficiencyPrice*Math.pow(2,(p.getClockworkComputers()/2))) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.civEfficiencyPrice*(p.getScholTech()+1);
-				if(p.getScholTech()>=20) {
+				} else hypoTotal-=GodGenerator.civEfficiencyPrice*Math.pow(2,(p.getClockworkComputers()/2));
+				if(p.getClockworkComputers()>=20) {
 					setError("You can not research any further in this field.");
 					return false;
 				} 
 
-			}else if(array[i].equals("buildingSlotTech")) {
-				if(!free&&hypoTotal<GodGenerator.buildingSlotTechPrice*(p.getConstructionResearch()+1)) {
+			}else if(array[i].equals("constructionResearch")) {
+				if(!free&&hypoTotal<GodGenerator.constructionResearchPrice*Math.pow(2,(p.getConstructionResearch()/2))) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.buildingSlotTechPrice*(p.getConstructionResearch()+1);
+				} else hypoTotal-=GodGenerator.constructionResearchPrice*Math.pow(2,(p.getConstructionResearch()/2));
 				if(p.getConstructionResearch()>=10) {
 					setError("You can not research any further in this field.");
 					return false;
 				} 
 
-			}else if(array[i].equals("buildingStabilityTech")) {
-				if(!free&&hypoTotal<GodGenerator.buildingStabilityTechPrice*(p.getStabilityTech()+1)) {
+			}else if(array[i].equals("structuralIntegrity")) {
+				if(!free&&hypoTotal<GodGenerator.structuralIntegrityPrice*Math.pow(2,(p.getStructuralIntegrity()/2))) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.buildingStabilityTechPrice*(p.getStabilityTech()+1);
-				if(p.getStabilityTech()>=10) {
+				} else hypoTotal-=GodGenerator.structuralIntegrityPrice*Math.pow(2,(p.getStructuralIntegrity()/2));
+				if(p.getStructuralIntegrity()>=10) {
 					setError("You can not research any further in this field.");
 					return false;
 				}  			
 
-			}else if(array[i].equals("bunkerTech")) {
-				if(!free&&hypoTotal<GodGenerator.bunkerTechPrice*(p.getBunkerTech()+1)) {
+			}else if(array[i].equals("bloodMetalPlating")) {
+				if(!free&&hypoTotal<GodGenerator.bloodMetalPlatingPrice*Math.pow(2,(p.getBloodMetalPlating()/2))) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.bunkerTechPrice*(p.getBunkerTech()+1);
-				if(p.getBunkerTech()>=10) {
-					setError("You can not research any further in this field.");
-					return false;
-				}  		
-
-			}else if(array[i].equals("afTech")) {
-				if(!free&&hypoTotal<GodGenerator.afTechPrice*(p.getAfTech()+1)) {
-					setError("You do not have enough KP for this research.");
-					return false;
-				} else hypoTotal-=GodGenerator.afTechPrice*(p.getAfTech()+1);
-				if(p.getAfTech()>=10) {
+				} else hypoTotal-=GodGenerator.bloodMetalPlatingPrice*Math.pow(2,(p.getBloodMetalPlating()/2));
+				if(p.getBloodMetalPlating()>=20) {
 					setError("You can not research any further in this field.");
 					return false;
 				} 
 
-			}else if(array[i].equals("tradeTech")) {
-				if(!free&&hypoTotal<GodGenerator.civEfficiencyPrice*(p.getTradeTech()+1)) {
+			} else if(array[i].equals("firearmResearch")) {
+				if(!free&&hypoTotal<GodGenerator.firearmResearchPrice*Math.pow(2,(p.getFirearmResearch()/2))) {
 					setError("You do not have enough KP for this research.");
 					return false;
-				} else hypoTotal-=GodGenerator.civEfficiencyPrice*(p.getTradeTech()+1);
-				if(p.getTradeTech()>=20) {
+				} else hypoTotal-=GodGenerator.firearmResearchPrice*Math.pow(2,(p.getFirearmResearch()/2));
+				if(p.getFirearmResearch()>=20) {
 					setError("You can not research any further in this field.");
 					return false;
-				}
+				} 
 
-			} else {
+			}else if(array[i].equals("ordinanceResearch")) {
+				if(!free&&hypoTotal<GodGenerator.ordinanceResearchPrice*Math.pow(2,(p.getOrdinanceResearch()/2))) {
+					setError("You do not have enough KP for this research.");
+					return false;
+				} else hypoTotal-=GodGenerator.ordinanceResearchPrice*Math.pow(2,(p.getOrdinanceResearch()/2));
+				if(p.getOrdinanceResearch()>=20) {
+					setError("You can not research any further in this field.");
+					return false;
+				} 
+
+			}else if(array[i].equals("teslaTech")) {
+				if(!free&&hypoTotal<GodGenerator.teslaTechPrice*Math.pow(2,(p.getTeslaTech()/2))) {
+					setError("You do not have enough KP for this research.");
+					return false;
+				} else hypoTotal-=GodGenerator.teslaTechPrice*Math.pow(2,(p.getTeslaTech()/2));
+				if(p.getTeslaTech()>=20) {
+					setError("You can not research any further in this field.");
+					return false;
+				} 
+
+			}else if(array[i].equals("bodyArmor")) {
+				if(!free&&hypoTotal<GodGenerator.bodyArmorPrice*Math.pow(2,(p.getBodyArmor()/2))) {
+					setError("You do not have enough KP for this research.");
+					return false;
+				} else hypoTotal-=GodGenerator.bodyArmorPrice*Math.pow(2,(p.getBodyArmor()/2));
+				if(p.getBodyArmor()>=20) {
+					setError("You can not research any further in this field.");
+					return false;
+				} 
+
+			}else if(array[i].equals("bloodMetalArmor")) {
+				if(!free&&hypoTotal<GodGenerator.bloodMetalArmorPrice) {
+					setError("You do not have enough KP for this research.");
+					return false;
+				} else hypoTotal-=GodGenerator.bloodMetalArmorPrice;
+				if(p.getBloodMetalArmor()) {
+					setError("You can not research any further in this field.");
+					return false;
+				} 
+
+			}else if(array[i].equals("personalShields")) {
+				if(!free&&hypoTotal<GodGenerator.personalShieldsPrice) {
+					setError("You do not have enough KP for this research.");
+					return false;
+				} else hypoTotal-=GodGenerator.personalShieldsPrice;
+				if(p.isPersonalShields()) {
+					setError("You can not research any further in this field.");
+					return false;
+				} 
+
+			}else if(array[i].equals("thrustVectoring")) {
+				if(!free&&hypoTotal<GodGenerator.thrustVectoringPrice) {
+					setError("You do not have enough KP for this research.");
+					return false;
+				} else hypoTotal-=GodGenerator.thrustVectoringPrice;
+				if(p.isThrustVectoring()) {
+					setError("You can not research any further in this field.");
+					return false;
+				} 
+
+			}else if(array[i].equals("hydraulicAssistors")) {
+				if(!free&&hypoTotal<GodGenerator.hydraulicAssistorsPrice) {
+					setError("You do not have enough KP for this research.");
+					return false;
+				} else hypoTotal-=GodGenerator.hydraulicAssistorsPrice;
+				if(p.isHydraulicAssistors()) {
+					setError("You can not research any further in this field.");
+					return false;
+				} 
+
+			}else if(array[i].equals("clockworkAugments")) {
+				if(!free&&hypoTotal<GodGenerator.clockworkAugmentsPrice) {
+					setError("You do not have enough KP for this research.");
+					return false;
+				} else hypoTotal-=GodGenerator.clockworkAugmentsPrice;
+				if(p.isClockworkAugments()) {
+					setError("You can not research any further in this field.");
+					return false;
+				} 
+
+			}else {
 				setError("Invalid research!");
 				return false;
 			}
@@ -8749,14 +8838,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			
 			if(array[i].equals("infrastructureTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.buildingLotTechPrice*((p.getInfrastructureTech()-8)+1));
+				if(!free) p.setKnowledge((int) (p.getKnowledge()- GodGenerator.infrastructureTechPrice*(Math.pow(2,(p.getInfrastructureTech()-8)/2))));
 				 p.setInfrastructureTech(p.getInfrastructureTech() + 1);
 			} else if(array[i].equals("scoutTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.scoutTechPrice*(p.getScoutTech()+1));
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.scoutTechPrice*(Math.pow(2,p.getScoutTech()/2))));
 				 p.setScoutTech(p.getScoutTech() + 1);
 			}else if(array[i].equals("airshipTech")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.zeppelinTechPrice);
-				p.setZeppTech(true);
+				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.airshipTechPrice);
+				p.setAirshipTech(true);
 			}else if(array[i].equals("attackAPI")) { 
 				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.attackAPITechPrice);
 				p.setAttackAPI(true);
@@ -8799,48 +8888,120 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			}else if(array[i].equals("worldMapAPI")) { 
 				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.worldMapAPITechPrice);
 				p.setWorldMapAPI(true);
-			}else if(array[i].equals("metalRefTech")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.metalRefTechPrice);
-				p.setMetalRefTech(true);
-			}else if(array[i].equals("timberRefTech")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.timberRefTechPrice);
-				p.setTimberRefTech(true);
-			}else if(array[i].equals("manMatRefTech")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.manMatRefTechPrice);
-				p.setManMatRefTech(true);
-			}else if(array[i].equals("foodRefTech")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.foodRefTechPrice);
-				p.setFoodRefTech(true);
+			}else if(array[i].equals("clockworkAugments")) { 
+				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.clockworkAugmentsPrice);
+				p.setClockworkAugments(true);
+			}else if(array[i].equals("advancedFortifications")) { 
+				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedFortificationsPrice);
+				p.setAdvancedFortifications(true);
 			}
-			else if(array[i].equals("supportTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.supportTechPrice*(p.getSupportTech()+1));
-
-				 p.setSupportTech(p.getSupportTech() + 1);
-			}else if(array[i].equals("townTech")) {
+			else if(array[i].equals("townTech")) {
 				if(!free) p.setKnowledge(p.getKnowledge()-(int) Math.round(GodGenerator.townTechPrice*Math.pow(2,(p.getTownTech()-1))));
 
 				p.setTownTech(p.getTownTech() + 1);
-			}else if(array[i].equals("engineerTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.civEfficiencyPrice*(p.getArchitecture()+1));
+			}else if(array[i].equals("architecture")) {
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.civEfficiencyPrice*Math.pow(2,(p.getArchitecture()/2))));
 
-				 p.setEngTech(p.getArchitecture() + 1);
-			}else if(array[i].equals("scholarTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.civEfficiencyPrice*(p.getScholTech()+1));
+				 p.setArchitecture(p.getArchitecture() + 1);
+			}else if(array[i].equals("clockworkComputers")) {
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.civEfficiencyPrice*Math.pow(2,(p.getClockworkComputers()/2))));
 
-				p.setScholTech(p.getScholTech() + 1);
-			}else if(array[i].equals("buildingSlotTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.buildingSlotTechPrice*(p.getConstructionResearch()+1));
+				p.setArchitecture(p.getArchitecture() + 1);
+			}else if(array[i].equals("constructionResearch")) {
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.constructionResearchPrice*Math.pow(2,(p.getConstructionResearch()/2))));
 
-				p.setBuildingSlotTech(p.getConstructionResearch() + 1);
-			}else if(array[i].equals("buildingStabilityTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.buildingStabilityTechPrice*(p.getStabilityTech()+1));
+				p.setConstructionResearch(p.getConstructionResearch() + 1);
+			}else if(array[i].equals("structuralIntegrity")) {
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.structuralIntegrityPrice*Math.pow(2,(p.getStructuralIntegrity()/2))));
 
-				p.setStabilityTech(p.getStabilityTech() + 1);
-			}else if(array[i].equals("bunkerTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.bunkerTechPrice*(p.getBunkerTech()+1));
+				p.setStructuralIntegrity(p.getStructuralIntegrity() + 1);
+			}else if(array[i].equals("firearmResearch")) {
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.firearmResearchPrice*Math.pow(2,(p.getFirearmResearch()/2))));
 
-				p.setBunkerTech(p.getBunkerTech() + 1);
-			} else {
+				p.setFirearmResearch(p.getFirearmResearch() + 1);
+			}else if(array[i].equals("ordinanceResearch")) {
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.ordinanceResearchPrice*Math.pow(2,(p.getOrdinanceResearch()/2))));
+
+				p.setOrdinanceResearch(p.getOrdinanceResearch() + 1);
+			}else if(array[i].equals("teslaTech")) {
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.teslaTechPrice*Math.pow(2,(p.getTeslaTech()/2))));
+
+				p.setTeslaTech(p.getTeslaTech() + 1);
+			}else if(array[i].equals("bloodMetalPlating")) {
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.bloodMetalPlatingPrice*Math.pow(2,(p.getBloodMetalPlating()/2))));
+
+				p.setBloodMetalPlating(p.getBloodMetalPlating() + 1);
+			}else if(array[i].equals("bodyArmor")) {
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.bodyArmorPrice*Math.pow(2,(p.getBodyArmor()/2))));
+
+				p.setBodyArmor(p.getBodyArmor() + 1);
+			}else if(array[i].equals("bloodMetalArmor")) {
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.bloodMetalArmorPrice));
+
+				p.setBloodMetalArmor(true);
+			}else if(array[i].equals("personalShields")) {
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.personalShieldsPrice));
+
+				p.setPersonalShields(true);
+			}else if(array[i].equals("thrustVectoring")) {
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.thrustVectoringPrice));
+
+				p.setThrustVectoring(true);
+			}else if(array[i].equals("hydraulicAssistors")) {
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.hydraulicAssistorsPrice));
+
+				p.setHydraulicAssistors(true);
+			}else if(array[i].equals("Panzerfaust")||array[i].equals("Pillager")||array[i].equals("Vanguard")) {
+				int k = 0;
+				for(AttackUnit a: p.getAu()) {
+					
+					if(a.getType()==1) k++;
+				}
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.soldierPrice*Math.pow(2,k)));
+
+				p.addAu(new AttackUnit(array[i],0));
+			}else if(array[i].equals("Seeker")||array[i].equals("Damascus")||array[i].equals("Wolverine")) {
+				int k = 0;
+				for(AttackUnit a: p.getAu()) {
+					
+					if(a.getType()==2) k++;
+				}
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.tankPrice*Math.pow(2,k)));
+
+				p.addAu(new AttackUnit(array[i],0));
+			}else if(array[i].equals("Punisher")||array[i].equals("Dreadnaught")||array[i].equals("Collossus")) {
+				int k = 0;
+				for(AttackUnit a: p.getAu()) {
+					
+					if(a.getType()==3) k++;
+				}
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.golemPrice*Math.pow(2,k)));
+
+				p.addAu(new AttackUnit(array[i],0));
+			}else if(array[i].equals("Gunship")||array[i].equals("Thunderbolt")||array[i].equals("Blastmaster")
+					) {
+				int k = 0;
+				for(AttackUnit a: p.getAu()) {
+					
+					if(a.getType()==4&&
+							(a.getName().equals("Gunship")||a.getName().equals("Blastmaster")||a.getName().equals("Thunderbolt"))) k++;
+					
+				}
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.airPrice*Math.pow(2,k)));
+
+				p.addAu(new AttackUnit(array[i],0));
+			}else if(array[i].equals("Monolith")||array[i].equals("Halcyon")||array[i].equals("Hades")) {
+				int k = 0;
+				for(AttackUnit a: p.getAu()) {
+					
+					if(a.getType()==4&&
+							(a.getName().equals("Monolith")||a.getName().equals("Halcyon")||a.getName().equals("Hades"))) k++;
+					
+				}
+				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.airPrice*Math.pow(2,k)));
+
+				p.addAu(new AttackUnit(array[i],0));
+			}else {
 				setError("Invalid research!");
 				return false;
 			}

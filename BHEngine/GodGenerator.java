@@ -4615,22 +4615,22 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	public static int digScholarRequirement=10;
 	public static int constructionResearchPrice=10; // how much it costs to buy this research.
 	public static int infrastructureTechPrice=20;
-	public static int structuralIntegrityPrice=5;
+	public static int structuralIntegrityPrice=10;
 	public static int townTechPrice=200;
 	public static int civEfficiencyPrice=25;
 	public static int bloodMetalPlatingPrice=75;
-	public static int advancedFortificationsPrice=5;
+	public static int advancedFortificationsPrice=1000;
 	public static int bodyArmorPrice=50;
-	public static int scoutTechPrice=10;
+	public static int scoutTechPrice=25;
 	public static int personalShieldsPrice=1000;
 	public static int hydraulicAssistorsPrice=500;
 	public static int thrustVectoringPrice=600;
 	public static int airshipTechPrice=2000;
 	public static int clockworkAugmentsPrice=300;
-	public static int soldierPrice=100;
-	public static int tankPrice=100;
-	public static int golemPrice=100;
-	public static int airPrice=100;
+	public static int soldierPrice=50;
+	public static int tankPrice=150;
+	public static int golemPrice=450;
+	public static int airPrice=250;
 	public static int firearmResearchPrice=50;
 	public static int ordinanceResearchPrice=50;
 	public static int teslaTechPrice=50;
@@ -8385,8 +8385,9 @@ public boolean checkForGenocides(Town t) {
 							 // so no use keeping track of that - we keep track of lost HP and then subtract it from the total at the end
 							 // and figure out how many deaths that means. Armor, though, is a conserved value - like Master Chief's shields, it
 							 // can get knocked down over successive rounds.
-							 
-							 double HPChange = weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off))*maxfrac*differentialfrac*fero*fortSummation;
+							 Player thePlayer=t2p;
+							 if(off.getSupport()>0) thePlayer = off.getOriginalPlayer();
+							 double HPChange = weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off, thePlayer))*maxfrac*differentialfrac*fero*fortSummation;
 							 if(stopAirFight&&offensiveWonAirBattle&&airUnitsPresent) HPChange*=airBattleAdvantage;
 							 if(holdArmorDef[k]>0) 
 								 holdArmorDef[k] -= HPChange;
@@ -8424,8 +8425,9 @@ public boolean checkForGenocides(Town t) {
 								
 								 double fero =1;
 								 if(t2p.getFeroTimer()>0) fero=1.1;
-								 
-								 double HPChange = weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off))*maxfrac*differentialfrac*fero;
+								 Player thePlayer=t2p;
+								 if(off.getSupport()>0) thePlayer = off.getOriginalPlayer();
+								 double HPChange = weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off,thePlayer))*maxfrac*differentialfrac*fero;
 								 if(stopAirFight&&!offensiveWonAirBattle&&airUnitsPresent) HPChange*=airBattleAdvantage;
 								 if(holdArmorOff[k]>0)
 									holdArmorOff[k] -= HPChange;
