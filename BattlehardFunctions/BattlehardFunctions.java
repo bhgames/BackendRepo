@@ -4538,7 +4538,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			 if(holdNumbers[k]>0) zeroes=false; // needs to be after the size-mod if overflowing.
 			if(holdNumbers[k]<0) negatives = true; // No less than zero crap..
 			 // Simple as cake.
-			holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getSpeed());
+			holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getTrueSpeed(t1.getPlayer()));
 			totalsize+=holdNumbers[k]*hau.getExpmod();
 			
 			k++;
@@ -4872,7 +4872,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			 if(holdNumbers[k]>0) zeroes=false; // needs to be after the size-mod if overflowing.
 			if(holdNumbers[k]<0) negatives = true; // No less than zero crap..
 			 // Simple as cake.
-			holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getSpeed());
+			holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getTrueSpeed(t1.getPlayer()));
 			totalsize+=holdNumbers[k]*hau.getExpmod();
 			
 			k++;
@@ -5300,7 +5300,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		ArrayList<AttackUnit> au = t.getAu();
 		while(k<holdNumbers.length) {
 			hau = au.get(k);
-			 holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getSpeed());
+			 holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getTrueSpeed(t.getPlayer()));
 			 totalsize+=(holdNumbers[k]*hau.getExpmod());
 			k++;
 		}
@@ -5601,7 +5601,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			do {
 				 g = au.get(c);
 			//	if(g.size>0&&g.speed<lowSpeed) lowSpeed=g.speed;
-				lowSpeed+=(g.getSize()*g.getExpmod()*g.getSpeed());
+				lowSpeed+=(g.getSize()*g.getExpmod()*g.getTrueSpeed(t.getPlayer()));
 				totalsize+=(g.getSize()*g.getExpmod());
 				 c++;
 			} while(c<au.size());
@@ -5946,7 +5946,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					 while(g<au.size()) {
 						  hau = au.get(g);
 							//if(hau.speed < holdLowSpeed && hau.size>0)   holdLowSpeed = hau.speed;
-						  holdLowSpeed+=(hau.getSize()*hau.getExpmod()*hau.getSpeed());
+						  holdLowSpeed+=(hau.getSize()*hau.getExpmod()*hau.getTrueSpeed(t.getPlayer()));
 						  totalsize+=hau.getSize()*hau.getExpmod();
 						  g++; 
 					 }
@@ -6236,7 +6236,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			int actualLotTech=p.getInfrastructureTech();
 			if(p.getCapitaltid()==holdT.townID) actualLotTech+=4;
-			if(actualLotTech>GodGenerator.lotTechLimit) actualLotTech=GodGenerator.lotTechLimit;
+			if(actualLotTech>GodGenerator.infrastructureTechLimit) actualLotTech=GodGenerator.infrastructureTechLimit;
 			if(lotNum>actualLotTech) {
 				setError("Outside your lot tech!");
 				return false;
@@ -12145,7 +12145,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						while(i<p.towns().size()) {
 							t = p.towns().get(i);
 							 j =0;
-							while(j<GodGenerator.lotTechLimit) {
+							while(j<GodGenerator.infrastructureTechLimit) {
 								//	public boolean canBuild(String type, int lotNum, int tid) {
 
 								int k = 0; boolean lotTaken=false;

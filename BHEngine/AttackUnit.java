@@ -48,7 +48,8 @@ tier1=100,tier2=200,tier3=400,tier4=100;
  * @param a
  * @return
  */
-	public double getArmorModifier(AttackUnit a, Player p) {
+	public double getArmorModifier(AttackUnit a, Player asP, Player myP) {
+		
 		/*
 		 * Attack Type(1 Physical 2 Explosive 3 Electric)
 
@@ -84,16 +85,26 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 		switch(armorType) {
 			case 1:
 				// light
+
 				switch(damType) {
 					case 1:
 						//physical
+						
+						mod *=(1+.025*asP.getFirearmResearch());
 						break;
 					case 2:
 						//explosive
+						if(myP.getBloodMetalArmor()) mod*=1.5;
+
+						mod *=(1+.025*asP.getOrdinanceResearch());
 						mod*=2;
 						break;
 					case 3:
 						//electric
+						if(myP.getBloodMetalArmor()) mod*=.75;
+
+						mod *=(1+.025*asP.getTeslaTech());
+
 						mod*=.5;
 						break;
 				}
@@ -103,13 +114,22 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 				switch(damType) {
 				case 1:
 					//physical
+					mod *=(1+.025*asP.getFirearmResearch());
+
 					break;
 				case 2:
 					//explosive
+					if(myP.isPersonalShields()) mod*=.75;
+
+					mod *=(1+.025*asP.getOrdinanceResearch());
+
 					mod*=.5;
 					break;
 				case 3:
 					//electric
+					if(myP.isPersonalShields()) mod*=1.5;
+
+					mod *=(1+.025*asP.getTeslaTech());
 					mod*=2;
 					break;
 			}
@@ -119,13 +139,19 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 				switch(damType) {
 				case 1:
 					//physical
+					mod *=(1+.025*asP.getFirearmResearch());
+
 					mod*=.25;
 					break;
 				case 2:
 					//explosive
+					mod *=(1+.025*asP.getOrdinanceResearch());
+
 					break;
 				case 3:
 					//electric
+					mod *=(1+.025*asP.getTeslaTech());
+
 					mod*=.25;
 					break;
 			}
@@ -135,12 +161,18 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 				switch(damType) {
 				case 1:
 					//physical
+					mod *=(1+.025*asP.getFirearmResearch());
+
 					break;
 				case 2:
 					//explosive
+					mod *=(1+.025*asP.getOrdinanceResearch());
+
 					mod*=2;
 					break;
 				case 3:
+					mod *=(1+.025*asP.getTeslaTech());
+
 					//electric
 					break;
 			}
@@ -844,8 +876,15 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 		this.speed = speed;
 		return speed;
 	}
-
 	public double getSpeed() {
+		return speed;
+	}
+	public double getTrueSpeed(Player myP) { // only used now for eta calculations...
+		if(support>0) myP = getOriginalPlayer();
+		if((getType()==3&&myP.isHydraulicAssistors())
+				||(getType()==4&&myP.isThrustVectoring()))
+			return speed*1.5;
+		else
 		return speed;
 	}
 
@@ -924,7 +963,27 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 		return armor;
 	}
 
+	public double getTrueArmor(Player p) {
+		double mod  =1;
+		switch((int) getArmorType()) {
+		case 1:
+			//light
+			mod*=(1+.025*p.getBodyArmor());
 
+			break;
+		case 2:
+			//heavy
+			mod*=(1+.025*p.getBloodMetalPlating());
+			break;
+		case 3:
+			//building
+			break;
+		case 4:
+			//civilian
+			break;
+		}
+		return armor;
+	}
 
 	public void setOriginalSlot(int originalSlot) {
 		this.originalSlot = originalSlot;

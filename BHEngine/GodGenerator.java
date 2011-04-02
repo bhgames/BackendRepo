@@ -6676,7 +6676,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			while(c<t1au.size()) {
 				 g = t1au.get(c);
 			//	if(g.size>0&&g.speed<lowSpeed) lowSpeed=g.speed;
-				lowSpeed+=(g.getSize()*g.getExpmod()*g.getSpeed());
+				lowSpeed+=(g.getSize()*g.getExpmod()*g.getTrueSpeed(t1p));
 				totalsize+=(g.getSize()*g.getExpmod());
 				 c++;
 			} 
@@ -6764,7 +6764,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			do {
 				 g = au.get(c);
 			//	if(g.size>0&&g.speed<lowSpeed) lowSpeed=g.speed;
-				lowSpeed+=(g.getSize()*g.getExpmod()*g.getSpeed());
+				lowSpeed+=(g.getSize()*g.getExpmod()*g.getTrueSpeed(holdAttack.getTown1().getPlayer()));
 				totalsize+=(g.getSize()*g.getExpmod());
 				 c++;
 			} while(c<au.size());
@@ -7339,7 +7339,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			do {
 				 g = t1au.get(c);
 			//	if(g.size>0&&g.speed<lowSpeed) lowSpeed=g.speed;
-				lowSpeed+=(g.getSize()*g.getExpmod()*g.getSpeed());
+				lowSpeed+=(g.getSize()*g.getExpmod()*g.getTrueSpeed(t1p));
 				totalsize+=(g.getSize()*g.getExpmod());
 				 c++;
 			} while(c<t1au.size());
@@ -7597,7 +7597,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		while(c<t1au.size()) {
 			 g = t1au.get(c);
 		//	if(g.size>0&&g.speed<lowSpeed) lowSpeed=g.speed;
-			lowSpeed+=(g.getSize()*g.getExpmod()*g.getSpeed());
+			lowSpeed+=(g.getSize()*g.getExpmod()*g.getTrueSpeed(t1p));
 			totalsize+=(g.getSize()*g.getExpmod());
 			 c++;
 		}
@@ -8050,7 +8050,7 @@ public boolean checkForGenocides(Town t) {
 		UserBuilding t2bldg[] = t2p.getPs().b.getUserBuildings(t2.townID,"all");
 		while(j<t2bldg.length) {
 			 b = t2bldg[j];
-			if(b.getType().equals("Command Center"))  bunkerSize+=Math.round(.33*.05*t2p.getAdvancedFortifications()*getPeople(b.getLvl(),3,4,totalUnitPrice));
+			if(b.getType().equals("Command Center"))  bunkerSize+=Math.round(.33*.05*t2p.isAdvancedFortifications()*getPeople(b.getLvl(),3,4,totalUnitPrice));
 		//	else if(b.type.equals("Bunker")&&b.bunkerMode==1&&b.getLvl()>25) bunkerSize+=Math.exp(25)+(b.getLvl()-25)*Math.exp(25);
 			
 			j++;
@@ -8256,18 +8256,20 @@ public boolean checkForGenocides(Town t) {
 		
 				double holdArmorDef[] = new double[t2au.size()]; // you need to make it the size that
 				double holdArmorOff[] = new double[t1au.size()];
-				j=0;
+				j=0;Player theP;
 				for(AttackUnit a:t1au) {
-					
-					holdArmorOff[j]=a.getSize()*a.getArmor();
+					if(a.getSupport()==0) theP=t1p;
+					else theP=a.getOriginalPlayer();
+					holdArmorOff[j]=a.getSize()*a.getTrueArmor(theP);
 					j++;
 					         
 				}
 
 				j=0;
 				for(AttackUnit a:t2au) {
-					
-					holdArmorDef[j]=a.getSize()*a.getArmor(); // limited amount of armor in a battle.
+					if(a.getSupport()==0) theP=t2p;
+					else theP=a.getOriginalPlayer();
+					holdArmorDef[j]=a.getSize()*a.getTrueArmor(theP); // limited amount of armor in a battle.
 					j++;
 					         
 				}
@@ -8385,9 +8387,11 @@ public boolean checkForGenocides(Town t) {
 							 // so no use keeping track of that - we keep track of lost HP and then subtract it from the total at the end
 							 // and figure out how many deaths that means. Armor, though, is a conserved value - like Master Chief's shields, it
 							 // can get knocked down over successive rounds.
-							 Player thePlayer=t2p;
-							 if(off.getSupport()>0) thePlayer = off.getOriginalPlayer();
-							 double HPChange = weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off, thePlayer))*maxfrac*differentialfrac*fero*fortSummation;
+							 Player attacker=t1p;
+							 if(off.getSupport()>0) attacker = off.getOriginalPlayer();
+							 Player defender = t2p;
+							 if(def.getSupport()>0) defender = def.getOriginalPlayer();
+							 double HPChange = weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off, attacker,defender))*maxfrac*differentialfrac*fero*fortSummation;
 							 if(stopAirFight&&offensiveWonAirBattle&&airUnitsPresent) HPChange*=airBattleAdvantage;
 							 if(holdArmorDef[k]>0) 
 								 holdArmorDef[k] -= HPChange;
@@ -8425,9 +8429,11 @@ public boolean checkForGenocides(Town t) {
 								
 								 double fero =1;
 								 if(t2p.getFeroTimer()>0) fero=1.1;
-								 Player thePlayer=t2p;
-								 if(off.getSupport()>0) thePlayer = off.getOriginalPlayer();
-								 double HPChange = weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off,thePlayer))*maxfrac*differentialfrac*fero;
+								 Player attacker=t2p;
+								 if(off.getSupport()>0) attacker = off.getOriginalPlayer();
+								 Player defender = t1p;
+								 if(def.getSupport()>0) defender = def.getOriginalPlayer();
+								 double HPChange = weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off,attacker,defender))*maxfrac*differentialfrac*fero;
 								 if(stopAirFight&&!offensiveWonAirBattle&&airUnitsPresent) HPChange*=airBattleAdvantage;
 								 if(holdArmorOff[k]>0)
 									holdArmorOff[k] -= HPChange;
@@ -8933,7 +8939,7 @@ public boolean checkForGenocides(Town t) {
 				do {
 					 g = t1au.get(c);
 				//	if(g.size>0&&g.speed<lowSpeed) lowSpeed=g.speed;
-					lowSpeed+=(g.getSize()*g.getExpmod()*g.getSpeed());
+					lowSpeed+=(g.getSize()*g.getExpmod()*g.getTrueSpeed(t1p));
 					totalsize+=(g.getSize()*g.getExpmod());
 					 c++;
 				} while(c<t1au.size());

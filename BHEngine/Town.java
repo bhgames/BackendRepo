@@ -2310,7 +2310,7 @@ public class Town {
 					 g = retAU.get(c);
 				
 						//if(g.size>0&&g.speed<lowSpeed) lowSpeed=g.speed;
-						lowSpeed+=(g.getSize()*g.getExpmod()*g.getSpeed());
+						lowSpeed+=(g.getSize()*g.getExpmod()*g.getTrueSpeed(getPlayer()));
 						totalsize+=g.getSize()*g.getExpmod();
 					c++;
 				} while(c<retAU.size());
@@ -2459,7 +2459,7 @@ public class Town {
 					 g = r.getAu().get(c);
 				
 						//if(g.size>0&&g.speed<lowSpeed) lowSpeed=g.speed;
-						lowSpeed+=(g.getSize()*g.getExpmod()*g.getSpeed());
+						lowSpeed+=(g.getSize()*g.getExpmod()*g.getTrueSpeed(getPlayer()));
 						totalsize+=g.getSize()*g.getExpmod();
 					c++;
 				} while(c<r.getAu().size());
