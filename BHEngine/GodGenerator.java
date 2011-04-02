@@ -10229,7 +10229,6 @@ public boolean checkForGenocides(Town t) {
 					// Now this is a return raid.
 				//	System.out.println("Returning...");
 					int c = 0;
-					r.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturnedCatch",holdAttack);
 						AU = r.getAu(); tAU = t1.getAu();
 					do {
 						 au = AU.get(c);
@@ -10276,10 +10275,12 @@ public boolean checkForGenocides(Town t) {
 							j++;
 						}
 					}
+
 					// alright new units added. Need to add resources too when they get added on.
 					r.deleteMe(); // Get it out of memory now.
 						
-					
+					r.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturnedCatch",holdAttack);
+
 				}
 				else {
 					

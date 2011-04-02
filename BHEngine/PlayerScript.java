@@ -2437,7 +2437,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 		long before = currTime.getTime();
 		t.start();
 		try {
-			t.join(60000);
+			t.join(60000*5);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -2445,7 +2445,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 		t.stop();
 		currTime = new Date();
 		long afterTime = currTime.getTime();
-		if(afterTime-before>=60000) {
+		if(afterTime-before>=60000*5) {
 				b.sendYourself("Your " + methodName + " method took " + (afterTime-before) + " ms. This is greater than 60s, the limit. Please make your code more efficient.","Gigabyte is Cutting You");
 
 		}
