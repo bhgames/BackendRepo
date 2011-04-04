@@ -156,7 +156,7 @@ public class BQ3 extends QuestListener {
 			t.addBuilding("Headquarters",4,1,0);
 			int auAmts[] = {10,0,0,0,0,0};
 			PlayerScript ps = getPs();
-			System.out.println(ps.b.attack(t.townID,theirT.getX(),theirT.getY(),auAmts,"attack",0,"noname") +":"+ps.b.getError());
+			System.out.println(ps.b.attack(t.townID,theirT.getX(),theirT.getY(),auAmts,"attack",null,"noname") +":"+ps.b.getError());
 			
 			int i = 0;
 			ArrayList<Raid> as = t.attackServer();

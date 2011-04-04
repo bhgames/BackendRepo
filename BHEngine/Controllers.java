@@ -1252,28 +1252,17 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 						.key("name").value(a.getName())
 						.key("size").value(a.getSize())
 						.key("support").value(a.getSupport())
-						.key("conc").value(a.getConcealment())
+						.key("armorType").value(a.getArmorType())
 						.key("armor").value(a.getArmor())
 						.key("cargo").value(a.getCargo())
 						.key("speed").value(a.getSpeed())
 						.key("slot").value(a.getSlot())
-						.key("firepower").value(a.getFirepower())
-						.key("ammo").value(a.getAmmo())
-						.key("accuracy").value(a.getAccuracy())
-						.key("popSize").value(a.getPopSize())
+						.key("attackDamage").value(a.getAttackDamage())
+						.key("attackType").value(a.getAttackType())
 						.key("originalPlayerID")
 						.value(a.getOriginalPlayerID())
 						.key("originalTID")
 						.value(a.getOriginalTID())
-						.key("weap").array();
-					
-						int z = 0;
-						while(z<a.getWeap().length) {
-							j.value(a.getWeap()[z]);
-							z++;
-						}
-						j.endArray()
-						.key("graphicNum").value(a.getGraphicNum())
 						.endObject();
 						}
 						} catch(Exception exc) { exc.printStackTrace(); System.out.println("Town load of supportau saved at " + towns[k].getTownID() + " with supportunit from " + a.getOriginalPlayer() + " of slot " + a.getOriginalSlot()); }

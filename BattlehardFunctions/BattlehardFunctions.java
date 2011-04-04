@@ -4020,14 +4020,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					//	int originalTID,
 					//	int support, String originalPlayer) {
 						sau.add(new UserAttackUnit(a.getName(),a.getSlot(),a.getOriginalPlayer().ID,a.getOriginalSlot(),
-								a.getOriginalTID(),a.getSupport(),a.getOriginalPlayer().getUsername()));
+								a.getOriginalTID(),a.getSupport(),a.getOriginalPlayer().getUsername(),0,a.getSize()));
 					
 				}
 				k++;
 			}
 			if(t.getDigTownID()==tid) { // if it's a dig, we add civilains.
 				
-				sau.add(new UserAttackUnit("Civilian",0,t.getPlayer().ID,0,t.getDigTownID(),1,t.getPlayer().getUsername()));
+				sau.add(new UserAttackUnit("Archaeologist",0,t.getPlayer().ID,0,t.getDigTownID(),1,t.getPlayer().getUsername(),0,t.getDigAmt()));
 			}
 			
 			
@@ -4432,21 +4432,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * debris
 	 * dig(this type can only be sent if you also have the dig api!)
 
-	 * Target designations:
-	 * 0: Bomb all targets(random decision).(This can get Fortifications.)
-	 * 1: Bomb warehouses
-	 * 2: Bomb Arms Factories
-	 * 3: Bomb Command Center
-	 * 4: Bomb Trade Centers
-	 * 5: Bomb Institutes.
-	 * 6: Bomb Communications Centers.
-	 * 7: Bomb Command Centers.
-	 * 9: Bomb Airstrips
-	 * 10: Bomb Missile Silos
-	 * 11: Bomb Recycling Centers
-	 * 12: Bomb Metal Refineries, Sawmills, Crystal Refinerys, and Hydroponics Bays 
+		 For the target string array, just send in an array of building names, like {"Command Center", "Storage Yard"},
+		 and your bombing mission will focus on buildings of that type.
 	 */
-	public boolean canSendAttack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, int target, String name) {
+	public boolean canSendAttack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target, String name) {
 		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")&&!QuestListener.partOfQuest(p,"BQ8")) {
 			setError("You do not have the Attack API!");
 			return false;
@@ -4476,21 +4465,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 * debris
 		 * dig(this type can only be sent if you also have the dig api!)
 		 * 
-		 * Target designations:
-		 * 0: Bomb all targets(random decision).(This can get Fortifications.)
-		 * 1: Bomb warehouses
-		 * 2: Bomb Arms Factories
-		 * 3: Bomb Command Center
-		 * 4: Bomb Trade Centers
-		 * 5: Bomb Institutes.
-		 * 6: Bomb Communications Centers.
-		 * 7: Bomb Command Centers. 
-		 * 9: Bomb Airstrips
-		 * 10: Bomb Missile Silos
-		 * 11: Bomb Recycling Centers
-		 * 12: Bomb Metal Refineries, Sawmills, Crystal Refinerys, and Hydroponics Bays
+		 For the target string array, just send in an array of building names, like {"Command Center", "Storage Yard"},
+		 and your bombing mission will focus on buildings of that type.
 			 */
-	public boolean canSendAttack(String yourTownName, int enemyx, int enemyy, int auAmts[], String attackType, int target,String name) {
+	public boolean canSendAttack(String yourTownName, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
 		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")&&!QuestListener.partOfQuest(p,"BQ8")) {
 			setError("You do not have the Attack API!");
 			return false;
@@ -4756,27 +4734,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * debris
 	 * dig(this type can only be sent if you also have the dig api!)
 	 *
-	 *Target designations: 
-	 * 0: Bomb all targets(random decision).(This can get Fortifications.)
-	 * 1: Bomb warehouses
-	 * 2: Bomb Arms Factories
-	 * 3: Bomb Command Center
-	 * 4: Bomb Trade Centers
-	 * 5: Bomb Institutes.
-	 * 6: Bomb Communications Centers.
-	 * 7: Bomb Command Centers.
-	 * 8: Bomb Fortifications
-	 * 9: Bomb Airstrips
-	 * 10: Bomb Missile Silos
-	 * 11: Bomb Recycling Centers
-	 * 12: Bomb Metal Refineries, Sawmills, Crystal Refinerys, and Hydroponics Bays
+		 For the target string array, just send in an array of building names, like {"Command Center", "Storage Yard"},
+		 and your bombing mission will focus on buildings of that type.
 	 */
-	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, int target,String name) {
+	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
 		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")&&!QuestListener.partOfQuest(p,"BQ8")) {
 			setError("You do not have the Attack API!");
 			return false;
 		}
-		pushLog("attack(" +yourTownID+","+enemyx+","+  enemyy +","+  PlayerScript.toJSONString(auAmts) +","+  attackType+","+  target+","+ name+");" );
+		pushLog("attack(" +yourTownID+","+enemyx+","+  enemyy +","+  PlayerScript.toJSONString(auAmts) +","+  attackType+","+  PlayerScript.toJSONString(target)+","+ name+");" );
 		Town t = g.findTown(yourTownID);
 		if(t.getPlayer().ID!=p.ID) return false;
 		return attack(t.getTownName(),  enemyx,  enemyy,  auAmts,  attackType,  target,name);
@@ -4810,29 +4776,20 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 * dig(this type can only be sent if you also have the dig api!)
 		 * 
 		 * 
-		 *Target designations: 
-		 * 0: Bomb all targets(random decision).(This can get Fortifications.)
-		 * 1: Bomb warehouses
-		 * 2: Bomb Arms Factories
-		 * 3: Bomb Command Center
-		 * 4: Bomb Trade Centers
-		 * 5: Bomb Institutes.
-		 * 6: Bomb Communications Centers.
-		 * 7: Bomb Command Centers.
-		 * 9: Bomb Airstrips
-		 * 10: Bomb Missile Silos
-		 * 11: Bomb Recycling Centers
-		 * 12: Bomb Metal Refineries, Sawmills, Crystal Refinerys, and Hydroponics Bays	
+		 For the target string array, just send in an array of building names, like {"Command Center", "Storage Yard"},
+		 and your bombing mission will focus on buildings of that type.
 		 * 	 */
-	public boolean attack(String yourTownName, int enemyx, int enemyy, int auAmts[], String attackType, int target,String name) {
+	public boolean attack(String yourTownName, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
 		// So if you are part of RQ3-5 or BQ8, you should get through no matter what.
 		// Get through = RQ3 + RQ4 + RQ5 + BQ8. Then not getting through is ! that,
 		// 
+		
+		if(target==null) target = new String[0];
 		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")&&!QuestListener.partOfQuest(p,"BQ8")) {
 			setError("You do not have the Attack API!");
 			return false;
 		}
-		pushLog("attack(" +yourTownName+","+enemyx+","+  enemyy +","+  PlayerScript.toJSONString(auAmts) +","+  attackType+","+  target+","+ name+");" );
+		pushLog("attack(" +yourTownName+","+enemyx+","+  enemyy +","+  PlayerScript.toJSONString(auAmts) +","+  attackType+","+  PlayerScript.toJSONString(target)+","+ name+");" );
 	
 		int holdNumbers[] = auAmts; // Should only have six types of unit, therefore
 		// attack method can be easily overloaded by making it so you can do
@@ -5330,19 +5287,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 * 6: Bomb Communications Centers.
 		 * 7: Bomb Command Centers.
 		 */
-	public boolean changeBombTarget(int raidID, int newTarget, int yourTownID) {
+	public boolean changeBombTarget(int raidID, String newTarget[], int yourTownID) {
 		if(prog&&!p.isAttackAPI()) {
 			setError("You do not have the Attack API!");
 			return false;
 		}
-		/*
-		 * We force them to use town Name so we minimize search times.
-		 */
-		if(newTarget<0||newTarget>7) return false;
-		
-		// if newTarget is less than 0, the minimum amount, or greater
-		// than 7, the max amount, return false.
-		// If it's 0-7, it'll be alright.
+	
 		int i = 0; boolean found = false;
 		
 		
@@ -5359,17 +5309,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		Raid actr = new Raid(raidID,g);
 		if(found&&r!=null) {//double protection with r!=null part.
-			/*
-			 * 0: Bomb all targets(random decision).(This can get Fortifications.)
-			 * 1: Bomb warehouses
-			 * 2: Bomb Arms Factories
-			 * 3: Bomb Command Center
-			 * 4: Bomb Trade Centers
-			 * 5: Bomb Institutes.
-			 * 6: Bomb Communications Centers.
-			 * 7: Bomb Command Centers.
-			 * 
-			 */
+			
 			if(r.raidOver()) return false; // no need for a raid that's over!
 			if(!r.bomb()) return false; // non-bombing missions not allowed!
 			actr.setBombTarget(newTarget);
@@ -8959,7 +8899,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				}
 				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.soldierPrice*Math.pow(2,k)));
 
-				p.addAu(new AttackUnit(array[i],0));
+				p.addAu(new AttackUnit(array[i],0,0));
 			}else if(array[i].equals("Seeker")||array[i].equals("Damascus")||array[i].equals("Wolverine")) {
 				int k = 0;
 				for(AttackUnit a: p.getAu()) {
@@ -8968,7 +8908,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				}
 				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.tankPrice*Math.pow(2,k)));
 
-				p.addAu(new AttackUnit(array[i],0));
+				p.addAu(new AttackUnit(array[i],0,0));
 			}else if(array[i].equals("Punisher")||array[i].equals("Dreadnaught")||array[i].equals("Collossus")) {
 				int k = 0;
 				for(AttackUnit a: p.getAu()) {
@@ -8977,7 +8917,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				}
 				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.golemPrice*Math.pow(2,k)));
 
-				p.addAu(new AttackUnit(array[i],0));
+				p.addAu(new AttackUnit(array[i],0,0));
 			}else if(array[i].equals("Gunship")||array[i].equals("Thunderbolt")||array[i].equals("Blastmaster")
 					) {
 				int k = 0;
@@ -8989,7 +8929,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				}
 				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.airPrice*Math.pow(2,k)));
 
-				p.addAu(new AttackUnit(array[i],0));
+				p.addAu(new AttackUnit(array[i],0,0));
 			}else if(array[i].equals("Monolith")||array[i].equals("Halcyon")||array[i].equals("Hades")) {
 				int k = 0;
 				for(AttackUnit a: p.getAu()) {
@@ -9000,7 +8940,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				}
 				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.airPrice*Math.pow(2,k)));
 
-				p.addAu(new AttackUnit(array[i],0));
+				p.addAu(new AttackUnit(array[i],0,0));
 			}else {
 				setError("Invalid research!");
 				return false;
@@ -9297,9 +9237,25 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 		int i = 0;
 		int max = b.getLvl()*2;
+		if(p.getAdvancedFortifications()) max+=b.getLvl()*1;
+		
 		int desired=0;
 		while(i<auNumbers.length) {
-			desired+=auNumbers.length;
+			desired+=auNumbers.length*t.getAu().get(i).getExpmod();
+			// so if the type is not 1 or it is 2 and not advanced fortifications, break.
+			// break = !1 + 2*!adv
+			// which means not break = 1*!(2*!adv)=1*(!2+adv)
+			// or to say, if it's 1 and not 2 or if it's 1
+			if(t.getAu().get(i).getType()!=1) {
+				if((t.getAu().get(i).getType()==2&&p.getAdvancedFortifications())) {
+					// this guy is okay.
+				} else {
+					// break out! BREAK OUT!
+					setError("You cannot host this unit type in a fortification!");
+					return false;
+				}
+						
+			}
 			i++;
 		}
 		
@@ -10661,12 +10617,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						/*
 						 * public UserAttackUnit(String name, int slot, int originalPlayerID, int originalSlot,
 		int originalTID,
-		int support, String originalPlayer) {
+		int support, String originalPlayer, int lvl,int size)
 						 */
-					toRet[j] = new UserAttackUnit(b.getName(),b.getSlot(),p.ID,b.getSlot(),tid,0,p.getUsername());
+					toRet[j] = new UserAttackUnit(b.getName(),b.getSlot(),p.ID,b.getSlot(),tid,0,p.getUsername(),0,b.getSize());
 					else
 						toRet[j] = new UserAttackUnit(b.getName(),b.getSlot(),b.getOriginalPlayer().ID,b.getOriginalSlot(),b.getOriginalTID(),b.getSupport(),
-								b.getOriginalPlayer().getUsername());
+								b.getOriginalPlayer().getUsername(),0,b.getSize());
 					j++;
 				}
 				setError("noerror");
@@ -10740,7 +10696,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			Player original = b.getOriginalPlayer();
 			if(original==null) original=p;
 		
-			toRet[j] = new UserAttackUnit(b.getName(),b.getSlot(),p.ID,b.getSlot(),0,0,p.getUsername());
+			toRet[j] = new UserAttackUnit(b.getName(),b.getSlot(),p.ID,b.getSlot(),0,0,p.getUsername(),0,b.getSize());
 	
 			j++;
 		}

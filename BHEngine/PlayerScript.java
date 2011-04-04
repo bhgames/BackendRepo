@@ -615,11 +615,11 @@ public class PlayerScript implements Runnable {
         		 
         		 
         		 }else if(holdCmd.equals("bf.changeBombTarget")) {
-        		 //number, number, number
+        		 //number, String[], number
         		 int num1 = Integer.parseInt(holdPart.substring(0,holdPart.indexOf(",")));
-        		 int num2 = Integer.parseInt(holdPart.substring(holdPart.indexOf(",")+1,holdPart.lastIndexOf(",")));
-        		 int num3 = Integer.parseInt(holdPart.substring(holdPart.lastIndexOf(",")+1,holdPart.length()));
-        		 toRet+= b.changeBombTarget(num1,num2,num3);
+        		 String str2[] = decodeStringIntoStringArray(holdPart.substring(holdPart.indexOf(",")+1,holdPart.indexOf("]")+1));
+        		 int num3 = Integer.parseInt(holdPart.substring(holdPart.indexOf("]")+2,holdPart.length()));
+        		 toRet+= b.changeBombTarget(num1,str2,num3);
         	 
         		 
         		 }else if(holdCmd.equals("bf.setFortification")) {
@@ -802,25 +802,26 @@ public class PlayerScript implements Runnable {
         		 
         		// System.out.println(numCommas);
         		 //System.out.println("I am in here.");
+        		 String str6[]=null;
         		 if(numCommas<player.God.findTown(num1).getAu().size()+5)
-        		  int6 =  Integer.parseInt(holdPartUse);
+        		   str6 =  decodeStringIntoStringArray(holdPartUse);
         		 else {
         		//	 System.out.println("I got in here.");
-        		int6 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
-        		str7 = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
+        		 str6 = decodeStringIntoStringArray(holdPartUse.substring(0,holdPartUse.indexOf("],")+1));
+        		str7 = holdPartUse.substring(holdPartUse.indexOf("],")+2,holdPartUse.length());
         		 }
         		 
         		
         		 if(holdCmd.equals("bf.attack"))
         			 if(str7==null)
-        		 toRet+=""+b.attack(num1,int2,int3,intArr4,str5,int6,"noname");
-        			 else   toRet+=""+b.attack(num1,int2,int3,intArr4,str5,int6,str7);
+        		 toRet+=""+b.attack(num1,int2,int3,intArr4,str5,str6,"noname");
+        			 else   toRet+=""+b.attack(num1,int2,int3,intArr4,str5,str6,str7);
 
         		 else
         			 if(str7==null)
-            	toRet+=""+b.canSendAttack(num1,int2,int3,intArr4,str5,int6,"noname");
+            	toRet+=""+b.canSendAttack(num1,int2,int3,intArr4,str5,str6,"noname");
         			 else
-        				toRet+=""+b.canSendAttack(num1,int2,int3,intArr4,str5,int6,str7);
+        				toRet+=""+b.canSendAttack(num1,int2,int3,intArr4,str5,str6,str7);
  
     		 } catch(Exception exc) {
     			 exc.printStackTrace();
@@ -830,7 +831,6 @@ public class PlayerScript implements Runnable {
     		 holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
     		 int int3 = Integer.parseInt(holdPart.substring(0,holdPart.indexOf(",")));
     		 holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
-    		 System.out.println("Trying to read " + holdPart.substring(0,holdPart.indexOf("],")+1));
 
     		 int intArr4[] = decodeStringIntoIntArray(holdPart.substring(0,holdPart.indexOf("],")));
     		/* int i = 0;
@@ -842,12 +842,12 @@ public class PlayerScript implements Runnable {
  			holdPart=holdPart.substring(holdPart.indexOf("],")+2,holdPart.length());
     		 String str5 = holdPart.substring(0,holdPart.indexOf(","));
     		 holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
-    		 int int6 =  Integer.parseInt(holdPart);
+    		 String str6[] = decodeStringIntoStringArray(holdPart);
     		
     		 if(holdCmd.equals("bf.attack"))
-    		 toRet+=""+b.attack(str1,int2,int3,intArr4,str5,int6,"noname");
+    		 toRet+=""+b.attack(str1,int2,int3,intArr4,str5,str6,"noname");
     		 else
-        	toRet+=""+b.canSendAttack(str1,int2,int3,intArr4,str5,int6,"noname");
+        	toRet+=""+b.canSendAttack(str1,int2,int3,intArr4,str5,str6,"noname");
     		 }
 
     		 
@@ -1720,8 +1720,12 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 .value(raid.totalTicks())
     			 .key("debris")
     			 .value(raid.isDebris())
-    			 .key("bombTarget")
-    			 .value(raid.bombTarget())
+    			 .key("bombTargets")
+    			 .array();
+    			 for(String bombs:raid.bombTargets()) {
+    				 str.value(bombs);
+    			 }
+    			 str.endArray()
     			 .key("allClear")
     			 .value(raid.allClear());
     			 
@@ -3189,7 +3193,7 @@ try {
 			
 			return "internal_parser_error";
 	}
-	public String toJSONString(String array[]) {
+	public static String toJSONString(String array[]) {
 		JSONStringer arrayWriter=new JSONStringer();
 		if(array==null) return "false";
 		 try {

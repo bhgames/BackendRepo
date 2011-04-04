@@ -27,7 +27,7 @@ public class Raid {
 	}
 	GodGenerator God;
 	
-	private boolean Bomb; private int bombTarget=0; private int scout = 0;
+	private boolean Bomb; private String[] bombTarget; private int scout = 0;
 	private int support = 0; // do not confuse with au's support, this lets us know this raid is actually a support run.
 	private int totalTicks=0;private String name;
 	private int genoRounds=0;
@@ -218,7 +218,8 @@ public class Raid {
 					rrs.getBoolean(8), rrs.getInt(9),rrs.getInt(10),rrs.getInt(11),rrs.getInt(12),rrs.getBoolean(7), rrs.getBoolean(19),rrs.getBoolean(23),rrs.getInt(25),rrs.getString(26),rrs.getInt(27),rrs.getBoolean(28),rrs.getInt(29)); // this one has no sql addition!
 			getAu();
 					
-			if(rrs.getBoolean(19)) bombTarget=rrs.getInt(20);
+			if(rrs.getBoolean(19)) bombTarget=PlayerScript.decodeStringIntoStringArray(rrs.getString(20));
+			else bombTarget = new String[0];
 			if(rrs.getInt(21)==1&&!rrs.getBoolean(7)) makeSupportRun();
 			else if(rrs.getInt(21)==2&&!rrs.getBoolean(7)) makeOffSupportRun();
 
@@ -475,10 +476,10 @@ public class Raid {
 	public void setBomb(boolean bomb) {
 		Bomb = bomb;
 	}
-	public int getBombTarget() {
+	public String[] getBombTarget() {
 		return bombTarget;
 	}
-	public void setBombTarget(int bombTarget) {
+	public void setBombTarget(String[] bombTarget) {
 		this.bombTarget = bombTarget;
 	}
 	public int getScout() {
@@ -801,7 +802,7 @@ public class Raid {
    		   update = "update raid set distance = " + distance + ", ticksToHit = " + ticksToHit + ", genocide = " +
    		  Genocide + ", raidOver = " + raidOver + ", allClear = " + allClear + ", m = "+  metal + ", t = " + 
    		  timber + ", mm = " + manmat + ", f = " + food +  "auSizes='"+ PlayerScript.toJSONString(getAu()) +"', bomb = " + Bomb
-	    	  + ", bombtarget = " + bombTarget + ", support = " + support + ", scout = " + scout+ ", invade = " + invade + ", resupplyID = " +
+	    	  + ", bombtarget = '" + PlayerScript.toJSONString(bombTarget) + "', support = " + support + ", scout = " + scout+ ", invade = " + invade + ", resupplyID = " +
 	    	  resupplyID + ", totalTicks = " + totalTicks + " where rid = " + raidID +";";
    		  } catch(IndexOutOfBoundsException exc) {
    			  exc.printStackTrace();

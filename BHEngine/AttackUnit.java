@@ -37,11 +37,18 @@ private	String name;
 private	int slot; // Which slot this unit is stored in.
 private	int lotNum; // For the civilians.
 private	String civType = "None";
+private int lvl;
 public static int soldierHP=100,tankHP=500,juggerHP=1000,bomberHP=4000,civilianHP=75,
 soldierExpMod=1,tankExpMod=10,juggerExpMod=40,bomberExpMod=20,civilianExpMod=1, soldierPop=1,
 tankPop=5,juggerPop=10,bomberPop=20,civilianPop=1,soldierPoints=400,tankPoints=800,juggerPoints=1600,bomberPoints=200,
 tier1=100,tier2=200,tier3=400,tier4=100;
 
+
+public int getLvl() {
+	return lvl;
+}public void setLvl(int lvl) {
+	this.lvl=lvl;
+}
 /**
  * Returns the modifier to the damage dealt based on this unit's armor type and the other unit's damage type.
  * Returns 1.25, for instance, if you want 25% more damage.
@@ -234,11 +241,10 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 		return armorType;
 	}
 	public static void setValues(UserAttackUnit a) {
-		
-		
-	}
-	
-	public void setValues() {
+		String name = a.getName();
+		int lvl = a.getLvl();
+		int hp=0,attackDamage=0,attackType=1;
+		double armor=0,armorType=0,speed=0,cargo=0,expmod=1,type=0;
 		if(name.equals("Archaeologist")){
 			hp = 30;
 			attackDamage=15;
@@ -248,6 +254,7 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			speed=50;
 			cargo=0;
 			expmod=1;
+			type=1;
 		} else if(name.equals("Pillager")) {
 			/*
 			 * HP: 50
@@ -266,6 +273,8 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			speed=60;
 			cargo=200;
 			expmod=1;
+			type=1;
+
 		} else if(name.equals("Panzerfaust")) {
 			/*
 			 * HP: 75
@@ -284,6 +293,8 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			speed=50;
 			cargo=20;
 			expmod=1;
+			type=1;
+
 
 		}else if(name.equals("Vanguard")) {
 			/*
@@ -303,6 +314,8 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			speed=20;
 			cargo=50;
 			expmod=1;
+			type=1;
+
 
 		}else if(name.equals("Seeker")) {
 			/*
@@ -322,6 +335,8 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			speed=200;
 			cargo=400;
 			expmod=14;
+			type=2;
+
 		}else if(name.equals("Damascus")) {
 			/*
 			HP: 150
@@ -340,6 +355,7 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			speed=150;
 			cargo=250;
 			expmod=14;
+			type=2;
 
 		}else if(name.equals("Wolverine")) {
 			/*
@@ -359,6 +375,7 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			speed=100;
 			cargo=100;
 			expmod=17;
+			type=2;
 
 		}else if(name.equals("Punisher")) {
 			/*
@@ -378,6 +395,7 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			speed=500;
 			cargo=1000;
 			expmod=55;
+			type=3;
 
 		}else if(name.equals("Dreadnaught")) {
 			/*
@@ -397,6 +415,7 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			speed=300;
 			cargo=600;
 			expmod=55;
+			type=3;
 
 		}
 		else if(name.equals("Collossus")) {
@@ -418,6 +437,7 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			speed=250;
 			cargo=400;
 			expmod=61;
+			type=3;
 
 		}else if(name.equals("LA-513 Gunship")) {
 			/*
@@ -438,6 +458,7 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			speed=500;
 			cargo=0;
 			expmod=1;
+			type=4;
 
 		}else if(name.equals("LA-616 Thunderbolt")) {
 			/*
@@ -458,6 +479,7 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			speed=500;
 			cargo=0;
 			expmod=1;
+			type=4;
 
 		}else if(name.equals("LA-293 Blastmaster")) {
 			/*
@@ -478,6 +500,7 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			speed=500;
 			cargo=0;
 			expmod=1;
+			type=4;
 
 		}else if(name.equals("HA-44 Monolith")) {
 			/*
@@ -498,6 +521,7 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			speed=300;
 			cargo=0;
 			expmod=1;
+			type=4;
 
 		}else if(name.equals("HA-18 Halcyon")) {
 			/*
@@ -518,6 +542,7 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			speed=300;
 			cargo=0;
 			expmod=1;
+			type=4;
 
 		}else if(name.equals("HA-69 Hades")) {
 			/*
@@ -538,9 +563,406 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			speed=300;
 			cargo=0;
 			expmod=1;
+			type=4;
+
+		}else if(name.equals("Command Center")||
+				name.equals("Fortification")||
+				name.equals("Metal Mine")||
+				name.equals("Timber Field")||
+				name.equals("Crystal Mine")||
+				name.equals("Farm")||
+				name.equals("Resource Cache")) {
+			
+			hp = 1500*lvl;
+			attackDamage=0;
+			attackType=0; //none
+			//Armor : (1500*lvl*hardMod)+(1500*lvl*stabMod)
+			armor=1500*lvl*1;
+			armorType=3; //building
+			speed=0;
+			cargo=0;
+			expmod=1; // in comparison to other buildings, all the same size.
+			type=5; // type 5 is buildings.
+
+		}else {
+			
+			hp = 1500*lvl;
+			attackDamage=0;
+			attackType=0; //none
+			armor=0;
+			armorType=3; //building
+			speed=0;
+			cargo=0;
+			expmod=1; // in comparison to other buildings, all the same size.
+			type=5; // type 5 is buildings.
 
 		}
+		a.setHp(hp);
+		a.setAttackDamage(attackDamage);
+		a.setAttackType(attackType);
+		a.setArmor(armor);
+		a.setArmorType(armorType);
+		a.setSpeed(speed);
+		a.setCargo(cargo);
+		a.setExpmod(expmod);
+		a.setType(type);
+
 		
+	}
+	
+	public void setValues() {
+		if(name.equals("Archaeologist")){
+			hp = 30;
+			attackDamage=15;
+			attackType=1; //physical
+			armor=0;
+			armorType=4; //civilian
+			speed=50;
+			cargo=0;
+			expmod=1;
+			type=1;
+		} else if(name.equals("Pillager")) {
+			/*
+			 * HP: 50
+				Attack Damage: 25
+				Attack Type: Physical
+				Armor Level: 15
+				Armor Type: Light
+				Speed: 60
+				Cargo: 200
+			 */
+			hp = 50;
+			attackDamage=25;
+			attackType=1; //physical
+			armor=15;
+			armorType=1; //light
+			speed=60;
+			cargo=200;
+			expmod=1;
+			type=1;
+
+		} else if(name.equals("Panzerfaust")) {
+			/*
+			 * HP: 75
+				Attack Damage: 20
+				Attack Type: Electrical
+				Armor Level: 10
+				Armor Type: Light
+				Speed: 50
+				Cargo: 20
+			 */
+			hp = 75;
+			attackDamage=20;
+			attackType=3; //electric
+			armor=10;
+			armorType=1; //light
+			speed=50;
+			cargo=20;
+			expmod=1;
+			type=1;
+
+
+		}else if(name.equals("Vanguard")) {
+			/*
+			 *HP: 50
+				Attack Damage: 20
+				Attack Type: Explosive
+				Armor Level: 10
+				Armor Type: Light
+				Speed: 20
+				Cargo: 50
+			 */
+			hp = 50;
+			attackDamage=20;
+			attackType=2; //explosive
+			armor=10;
+			armorType=1; //light
+			speed=20;
+			cargo=50;
+			expmod=1;
+			type=1;
+
+
+		}else if(name.equals("Seeker")) {
+			/*
+			 *HP: 150
+				Attack Damage: 390
+				Attack Type: Physical
+				Armor Level: 100
+				Armor Type: Heavy
+				Speed: 200
+				Cargo: 400 
+			 */
+			hp = 150;
+			attackDamage=390;
+			attackType=1; //physical
+			armor=100;
+			armorType=2; //heavy
+			speed=200;
+			cargo=400;
+			expmod=14;
+			type=2;
+
+		}else if(name.equals("Damascus")) {
+			/*
+			HP: 150
+			Attack Damage: 390
+			Attack Type: Electrical
+			Armor Level: 100
+			Armor Type: Heavy
+			Speed: 150
+			Cargo: 250
+			 */
+			hp = 150;
+			attackDamage=390;
+			attackType=3; //electric
+			armor=100;
+			armorType=2; //heavy
+			speed=150;
+			cargo=250;
+			expmod=14;
+			type=2;
+
+		}else if(name.equals("Wolverine")) {
+			/*
+			HP: 200
+			Attack Damage: 390
+			Attack Type: Explosive
+			Armor Level: 100
+			Armor Type: Heavy
+			Speed: 100
+			Cargo: 100
+			 */
+			hp = 200;
+			attackDamage=390;
+			attackType=2; //explosive
+			armor=100;
+			armorType=2; //heavy
+			speed=100;
+			cargo=100;
+			expmod=17;
+			type=2;
+
+		}else if(name.equals("Punisher")) {
+			/*
+			HP: 700
+			Attack Damage: 1430
+			Attack Type: Physical
+			Armor Level: 300
+			Armor Type: Heavy
+			Speed: 500
+			Cargo: 1000
+			 */
+			hp = 700;
+			attackDamage=1430;
+			attackType=1; //physical
+			armor=300;
+			armorType=2; //heavy
+			speed=500;
+			cargo=1000;
+			expmod=55;
+			type=3;
+
+		}else if(name.equals("Dreadnaught")) {
+			/*
+			HP: 700
+			Attack Damage: 1430
+			Attack Type: Electrical
+			Armor Level: 300
+			Armor Type: Heavy
+			Speed: 300
+			Cargo: 600
+			 */
+			hp = 700;
+			attackDamage=1430;
+			attackType=3; //electrical
+			armor=300;
+			armorType=2; //heavy
+			speed=300;
+			cargo=600;
+			expmod=55;
+			type=3;
+
+		}
+		else if(name.equals("Collossus")) {
+			/*
+			HP: 900
+			Attack Damage: 1430
+			Attack Type: Explosive
+			Armor Level: 200
+			Armor Type: Heavy
+			Speed: 250
+			Cargo: 400
+
+			 */
+			hp = 900;
+			attackDamage=1430;
+			attackType=2; //explosive
+			armor=200;
+			armorType=2; //heavy
+			speed=250;
+			cargo=400;
+			expmod=61;
+			type=3;
+
+		}else if(name.equals("LA-513 Gunship")) {
+			/*
+			HP: 50
+			Attack Damage: 75
+			Attack Type: Physical
+			Armor Level: 10
+			Armor Type: Light
+			Speed: 500
+			Cargo: 0
+
+			 */
+			hp = 50;
+			attackDamage=75;
+			attackType=1; //physical
+			armor=10;
+			armorType=1; //light
+			speed=500;
+			cargo=0;
+			expmod=1;
+			type=4;
+
+		}else if(name.equals("LA-616 Thunderbolt")) {
+			/*
+			HP: 50
+			Attack Damage: 75
+			Attack Type: Electrical
+			Armor Level: 10
+			Armor Type: Light
+			Speed: 500
+			Cargo: 0
+
+			 */
+			hp = 50;
+			attackDamage=75;
+			attackType=3; //electrical
+			armor=10;
+			armorType=1; //light
+			speed=500;
+			cargo=0;
+			expmod=1;
+			type=4;
+
+		}else if(name.equals("LA-293 Blastmaster")) {
+			/*
+			HP: 50
+			Attack Damage: 75
+			Attack Type: Explosive
+			Armor Level: 10
+			Armor Type: Light
+			Speed: 500
+			Cargo: 0
+
+			 */
+			hp = 50;
+			attackDamage=75;
+			attackType=2; //explosive
+			armor=10;
+			armorType=1; //light
+			speed=500;
+			cargo=0;
+			expmod=1;
+			type=4;
+
+		}else if(name.equals("HA-44 Monolith")) {
+			/*
+			HP: 75
+			Attack Damage: 50
+			Attack Type: Physical
+			Armor Level: 25
+			Armor Type: Heavy
+			Speed: 300
+			Cargo: 0
+
+			 */
+			hp = 75;
+			attackDamage=50;
+			attackType=1; //physical
+			armor=25;
+			armorType=2; //heavy
+			speed=300;
+			cargo=0;
+			expmod=1;
+			type=4;
+
+		}else if(name.equals("HA-18 Halcyon")) {
+			/*
+			HP: 75
+			Attack Damage: 50
+			Attack Type: Electrical
+			Armor Level: 25
+			Armor Type: Heavy
+			Speed: 300
+			Cargo: 0
+
+			 */
+			hp = 75;
+			attackDamage=50;
+			attackType=3; //electrical
+			armor=25;
+			armorType=2; //heavy
+			speed=300;
+			cargo=0;
+			expmod=1;
+			type=4;
+
+		}else if(name.equals("HA-69 Hades")) {
+			/*
+			HP: 75
+			Attack Damage: 50
+			Attack Type: Explosive
+			Armor Level: 25
+			Armor Type: Heavy
+			Speed: 300
+			Cargo: 0
+
+			 */
+			hp = 75;
+			attackDamage=50;
+			attackType=2; //explosive
+			armor=25;
+			armorType=2; //heavy
+			speed=300;
+			cargo=0;
+			expmod=1;
+			type=4;
+
+		}else if(name.equals("Command Center")||
+				name.equals("Fortification")||
+				name.equals("Metal Mine")||
+				name.equals("Timber Field")||
+				name.equals("Crystal Mine")||
+				name.equals("Farm")||
+				name.equals("Resource Cache")) {
+			
+			hp = 1500*lvl;
+			attackDamage=0;
+			attackType=0; //none
+			//Armor : (1500*lvl*hardMod)+(1500*lvl*stabMod)
+			armor=1500*lvl*1;
+			armorType=3; //building
+			speed=0;
+			cargo=0;
+			expmod=1; // in comparison to other buildings, all the same size.
+			type=5; // type 5 is buildings.
+
+		}else {
+			
+			hp = 1500*lvl;
+			attackDamage=0;
+			attackType=0; //none
+			armor=0;
+			armorType=3; //building
+			speed=0;
+			cargo=0;
+			expmod=1; // in comparison to other buildings, all the same size.
+			type=5; // type 5 is buildings.
+
+		}
 		
 	}
 
@@ -646,11 +1068,12 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 		setOriginalPlayer(p);
 		
 	}
-	public AttackUnit(String name, int slot) { // why is this here?
+	public AttackUnit(String name, int slot, int lvl) { // why is this here?
 	//	if(name.equals("locked")) { setConcealment(this.setArmor(this.setCargo(this.setSpeed(1)))); } else {
 		
 	
 		this.setName(name);
+		this.lvl=lvl;
 		setValues();
 		this.setSlot(slot); 
 	}
@@ -672,7 +1095,7 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 	}
 	public AttackUnit returnCopy() {
 	
-		AttackUnit copy = new AttackUnit(getName(), getSlot());
+		AttackUnit copy = new AttackUnit(getName(), getSlot(),lvl);
 		if(getSupport()==1) copy.makeSupportUnit(getOriginalSlot(),getOriginalPlayer(),getOriginalTID());
 		else if(getSupport()==2) copy.makeOffSupportUnit(getOriginalSlot(),getOriginalPlayer(),getOriginalTID());
 		// so it'll copy support units correctly!
@@ -884,6 +1307,7 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 		if((getType()==3&&myP.isHydraulicAssistors())
 				||(getType()==4&&myP.isThrustVectoring()))
 			return speed*1.5;
+		else if(getType()==1&&myP.isClockworkAugments()) return speed*1.25;
 		else
 		return speed;
 	}
@@ -935,6 +1359,12 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 	public double getHp() {
 		return hp;
 	}
+	public double getTrueHp(Player p) {
+		if(support!=0) p=getOriginalPlayer();
+		if(getType()==1&&p.isClockworkAugments()) return hp*1.25;
+		else
+		return hp;
+	}
 
 	public void setSupport(int support) {
 		this.support = support;
@@ -976,6 +1406,7 @@ tier1=100,tier2=200,tier3=400,tier4=100;
 			mod*=(1+.025*p.getBloodMetalPlating());
 			break;
 		case 3:
+			mod*=(1+.025*p.getStructuralIntegrity());
 			//building
 			break;
 		case 4:

@@ -9,7 +9,7 @@ public class UserRaid {
 	private double distance; private long res[];
 	private int raidID;
 	private int tid1,tid2;
-	private String targName;
+	private String[] bombTargets;
 	private boolean debris;
 	private int genoRounds=0;
 	private int digAmt = 0;
@@ -17,7 +17,7 @@ public class UserRaid {
 	private boolean bomb;
 	private boolean allClear = false;
 	private int totalTicks=0;
-	public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
+	public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, String[] bombTarget,
 			int tid1,int tid2,String name, int genoRounds, boolean bomb, boolean debris, int digAmt) {
 		this.town1=town1;this.town2=town2; this.x1=x1;this.y1=y1;
 		this.genoRounds=genoRounds;
@@ -30,6 +30,7 @@ public class UserRaid {
 		this.raidOver=raidOver; this.ticksToHit=ticksToHit;
 		this.distance=distance;
 		this.debris=debris;
+		this.bombTargets=bombTarget;
 		 res = new long[4];
 		res[0]=m;
 		res[1]=t;
@@ -38,42 +39,7 @@ public class UserRaid {
 		
 		this.raidID=raidID;
 		this.allClear=allClear;
-		 targName = "all";
-		switch(bombTarget) {
-		case 0:
-			break;
-		case 1:
-			targName = "Warehouse";
-			break;
-		case 2:
-			targName = "Arms Factory";
-			break;
-		case 3:
-			targName = "Headquarters";
-			break;
-		case 4:
-			targName = "Trade Center";
-			break;
-		case 5:
-			targName = "Institute";
-			break;
-		case 6:
-			targName = "Communications Center";
-			break;
-		case 7:
-			targName = "Construction Yard";
-			break;
-		case 8:
-			targName = "Bunker";
-		case 9:
-			targName= "Airship Platform";
-		case 10:
-			targName = "Missile Silo";
-		case 11:
-			targName = "Recycling Center";
-		case 12:
-			targName = "Refinery";
-		}
+		 
 	}
 	/**
 	 * Returns the resources in a long array carried by this raid at the moment.
@@ -156,14 +122,8 @@ public class UserRaid {
 		return totalTicks;
 	}
 	
-	public String bombTarget() {
-		// so if it's strafe or glass,
-		// then we show it, so we don't want to show it
-		// if (strafe+glass)' = (not(strafe)not(glass))
-		if(!raidType.equals("glass")&&!raidType.equals("strafe")) return "N/A";
-		
-		// otherwise we return the pre-determined target name.
-		return targName;
+	public String[] bombTargets() {
+		return bombTargets;
 	}
 	/**
 	 * In a genocide/glassing run, this variable being true or "All Clear" means that
@@ -198,5 +158,11 @@ public class UserRaid {
 	}
 	public int getDigAmt() {
 		return digAmt;
+	}
+	public void setBombTargets(String[] bombTargets) {
+		this.bombTargets = bombTargets;
+	}
+	public String[] getBombTargets() {
+		return bombTargets;
 	}
 }

@@ -4,184 +4,135 @@ import BHEngine.AttackUnit;
 
 
 public class UserAttackUnit {
-private	double concealment, armor, cargo, speed;
-	
-	// Weapons are hardcoded into attack unit data as double arrays to save
-	// processing time. There are a limited amount of weapons.
 
-
-private int graphicNum;
-private	double firepower=0, ammo=0, accuracy=0;
-private int support=0; private int originalSlot, originalTID; // for support aus...do not confuse support w/ raid's support,
-//this let's us know this is a foreign unit.
-// say which town to put this in as a slot for!
-
-private int originalPlayerID; // Reference to original player if in slot so that I can easily access it.
-private int expmod = 0;
-private double hp = 0;
-private	int weap[];
-volatile private	int size; // Optional, can be set if you want AttackUnit to store the number
-	// of this type in a raid/attack. This class can also be used to simply
-	// describe a general unit type also.
-private	String name; private int popSize; 
-private	int slot; // Which slot this unit is stored in.
-private	int lotNum; // For the civilians.
-private	String civType = "None";
-private static int soldierHP=100,tankHP=500,juggerHP=1000,bomberHP=4000,civilianHP=75,
-soldierExpMod=1,tankExpMod=10,juggerExpMod=40,bomberExpMod=20,civilianExpMod=1, soldierPop=1,
-tankPop=5,juggerPop=10,bomberPop=20,civilianPop=1,soldierPoints=400,tankPoints=800,juggerPoints=1600,bomberPoints=200,
-tier1=100,tier2=200,tier3=400,tier4=100;
 private String originalPlayer;
-public UserAttackUnit(String name, int slot, int originalPlayerID, int originalSlot,
-		int originalTID,
-		int support, String originalPlayer) {
-	this.originalPlayer=originalPlayer;
-	
-	this.originalPlayerID = originalPlayerID;
-	this.originalSlot = originalSlot;
-	this.originalTID = originalTID;
-
-	this.slot = slot;
-	this.support = support;
-	this.name=name;
-	AttackUnit.setValues(this);
-}
-public String getOriginalPlayer() {
-	return originalPlayer;
-}
-public double getConcealment() {
-	return concealment;
-}
-public double getArmor() {
-	return armor;
-}
-public double getCargo() {
-	return cargo;
-}
-public double getSpeed() {
-	return speed;
-}
-
-public int getGraphicNum() {
-	return graphicNum;
-}
-public double getFirepower() {
-	return firepower;
-}
-public double getAmmo() {
-	return ammo;
-}
-public double getAccuracy() {
-	return accuracy;
-}
-public int getSupport() {
-	return support;
-}
-public int getOriginalSlot() {
-	return originalSlot;
-}
-public int getOriginalTID() {
-	return originalTID;
-}
+private int hp=0,attackDamage=0,attackType=1,originalPlayerID,originalTID,originalSlot,slot,support,lvl,size;
+private double armor=0,armorType=0,speed=0,cargo=0,expmod=1,type=0;
 
 public int getOriginalPlayerID() {
 	return originalPlayerID;
 }
-public int getExpmod() {
-	return expmod;
+public void setOriginalPlayerID(int originalPlayerID) {
+	this.originalPlayerID = originalPlayerID;
 }
-public double getHp() {
+public String getOriginalPlayer() {
+	return originalPlayer;
+}
+public void setOriginalPlayer(String originalPlayer) {
+	this.originalPlayer = originalPlayer;
+}
+public int getHp() {
 	return hp;
 }
-public int[] getWeap() {
-	return weap;
+public void setHp(int hp) {
+	this.hp = hp;
 }
-public int getSize() {
-	return size;
+public int getAttackDamage() {
+	return attackDamage;
+}
+public void setAttackDamage(int attackDamage) {
+	this.attackDamage = attackDamage;
+}
+public int getAttackType() {
+	return attackType;
+}
+public void setAttackType(int attackType) {
+	this.attackType = attackType;
+}
+public double getArmor() {
+	return armor;
+}
+public void setArmor(double armor) {
+	this.armor = armor;
+}
+public double getArmorType() {
+	return armorType;
+}
+public void setArmorType(double armorType) {
+	this.armorType = armorType;
+}
+public double getSpeed() {
+	return speed;
+}
+public void setSpeed(double speed) {
+	this.speed = speed;
+}
+public double getCargo() {
+	return cargo;
+}
+public void setCargo(double cargo) {
+	this.cargo = cargo;
+}
+public double getExpmod() {
+	return expmod;
+}
+public void setExpmod(double expmod) {
+	this.expmod = expmod;
+}
+public double getType() {
+	return type;
+}
+public void setType(double type) {
+	this.type = type;
 }
 public String getName() {
 	return name;
 }
-public int getPopSize() {
-	return popSize;
+public void setName(String name) {
+	this.name = name;
+}
+private String name;
+public UserAttackUnit(String name, int slot, int originalPlayerID, int originalSlot,
+		int originalTID,
+		int support, String originalPlayer, int lvl,int size) {
+	this.originalPlayer=originalPlayer;
+	
+	this.originalPlayerID = originalPlayerID;
+	this.setOriginalSlot(originalSlot);
+	this.setOriginalTID(originalTID);
+	this.setLvl(lvl);
+	this.size=size;
+	this.setSlot(slot);
+	this.setSupport(support);
+	this.name=name;
+	AttackUnit.setValues(this);
+}
+public void setLvl(int lvl) {
+	this.lvl = lvl;
+}
+public int getLvl() {
+	return lvl;
+}
+public void setOriginalSlot(int originalSlot) {
+	this.originalSlot = originalSlot;
+}
+public int getOriginalSlot() {
+	return originalSlot;
+}
+public void setOriginalTID(int originalTID) {
+	this.originalTID = originalTID;
+}
+public int getOriginalTID() {
+	return originalTID;
+}
+public void setSlot(int slot) {
+	this.slot = slot;
 }
 public int getSlot() {
 	return slot;
 }
-public int getLotNum() {
-	return lotNum;
+public void setSupport(int support) {
+	this.support = support;
 }
-public String getCivType() {
-	return civType;
+public int getSupport() {
+	return support;
 }
-public static int getSoldierHP() {
-	return soldierHP;
+public void setSize(int size) {
+	this.size = size;
 }
-public static int getTankHP() {
-	return tankHP;
+public int getSize() {
+	return size;
 }
-public static int getJuggerHP() {
-	return juggerHP;
-}
-public static int getBomberHP() {
-	return bomberHP;
-}
-public static int getCivilianHP() {
-	return civilianHP;
-}
-public static int getSoldierExpMod() {
-	return soldierExpMod;
-}
-public static int getTankExpMod() {
-	return tankExpMod;
-}
-public static int getJuggerExpMod() {
-	return juggerExpMod;
-}
-public static int getBomberExpMod() {
-	return bomberExpMod;
-}
-public static int getCivilianExpMod() {
-	return civilianExpMod;
-}
-public static int getSoldierPop() {
-	return soldierPop;
-}
-public static int getTankPop() {
-	return tankPop;
-}
-public static int getJuggerPop() {
-	return juggerPop;
-}
-public static int getBomberPop() {
-	return bomberPop;
-}
-public static int getCivilianPop() {
-	return civilianPop;
-}
-public static int getSoldierPoints() {
-	return soldierPoints;
-}
-public static int getTankPoints() {
-	return tankPoints;
-}
-public static int getJuggerPoints() {
-	return juggerPoints;
-}
-public static int getBomberPoints() {
-	return bomberPoints;
-}
-public static int getTier1() {
-	return tier1;
-}
-public static int getTier2() {
-	return tier2;
-}
-public static int getTier3() {
-	return tier3;
-}
-public static int getTier4() {
-	return tier4;
-}
+
 
 }

@@ -1141,7 +1141,7 @@ public class Player  {
 		while(aurs.next()) {
 			
 			
-			au.add(new AttackUnit(aurs.getString(1), aurs.getInt(3)));
+			au.add(new AttackUnit(aurs.getString(1), aurs.getInt(3),0));
 		}
 		
 		aurs.close();aus.close(); 

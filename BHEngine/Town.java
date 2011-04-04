@@ -149,7 +149,7 @@ public class Town {
 						weapc++;
 					}
 				
-				 sAU = new AttackUnit(aurs.getString(1), aurs.getInt(3));
+				 sAU = new AttackUnit(aurs.getString(1), aurs.getInt(3),0);
 				sAU.setSize(auSizes[i]);
 				i++; // so auSizes gets incremented every time.
 				if(saurs.getInt(6)==1) sAU.makeSupportUnit(forTownSlot,foreignP,originalTID);
@@ -719,7 +719,7 @@ public class Town {
 							i++;
 						}
 						synchronized(attackServer()) {
-						getPlayer().getPs().b.attack(townID,getX(),getY(),auAmts,"attack",0,"noname");
+						getPlayer().getPs().b.attack(townID,getX(),getY(),auAmts,"attack",null,"noname");
 						getPlayer().God.combatLogicBlock(attackServer().get(attackServer().size()-1),""); // EARLY CALL
 						// FOR THE LATEST RAID JUST ADDED!
 						}
@@ -2740,6 +2740,13 @@ public class Town {
 		} catch(SQLException exc) { exc.printStackTrace(); }
 		
 		return tres;*/
+	}
+	public Building findBuildingByLot(int lotNum) {
+		for(Building b: bldg()) {
+			
+			if(b.getLotNum()==lotNum) return b;
+		}
+		return null;
 	}
 	public Raid findRaid(int rid) {
 		int i =0;
