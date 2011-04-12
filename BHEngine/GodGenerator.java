@@ -4811,7 +4811,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	res.setContentType("text/html");
 
 	PrintWriter out = res.getWriter();
-	if(serverLoaded) 
+	if(serverLoaded||req.getParameter("reqtype").equals("restartServer")) 
 	if(req.getParameter("reqtype").equals("world_map")) {
 		Router.loadWorldMap(req,out);
 	} else if(req.getParameter("reqtype").equals("forgotPass")) {
@@ -4881,7 +4881,6 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	} else if(req.getParameter("reqtype").equals("sendTestEmail")) {
 		Router.sendTestEmail(req,out);
 	}  else	if(req.getParameter("reqtype").equals("compileProgram")) {
-		System.out.println("Compiling now.");
 		Router.compileProgram(req,out);
 	} 
 	else {
@@ -6141,7 +6140,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		int i = 0;
 		if(password==null) password = "4p5v3sxQ";
 		ArrayList<Player> players = getPlayers();
-		System.out.println("Playersize " + players.size());
+		//System.out.println("Playersize " + players.size());
 		while(i<players.size()) {
 			if(players.get(i).getUsername().equals(username)) {
 				return null; // player username already exists! 
@@ -6189,7 +6188,6 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 
 			} else
 			rs.close();*/
-			
 			stmt.executeUpdate("start transaction;");
 			if(okayToMakeNewAccount) {
 				
@@ -6216,13 +6214,13 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			
 			if(numPlayers==0) {
 				if(okayToMakeNewAccount)
-			stmt.executeUpdate("insert into player (username,password,stealth,knowledge,totalscho,totalmess,totalpop,alotTech,soldTech,tankTech,juggerTech,weaponTech,buildingSlotTech,instructions,outputchannel,poutputchannel,civWeap,bomberTech,suppTech,townTech,bunkerTech,tradeTech,lotTech,accessCode,afTech,email,fuid) " +
-					"values (\"" + username + "\",md5(\"" + password + "\"),1,0,0,0,1,1,1,1,1,\"1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,\",2,\"null\",\"null\",\"null\",0,1,1,1,1,1,8,'" + code + "',1,'"+email+"',"+fuid+")");
+			stmt.executeUpdate("insert into player (username,password,scoutTech,knowledge,personalShields,hydraulicAssistors,constructionResearch,firearmResearch,thrustVectoring,townTech,infrastructureTech,bloodMetalPlating,email,fuid) " +
+					"values (\"" + username + "\",md5(\"" + password + "\"),0,0,0,0,2,0,0,1,8,0,'"+email+"',"+fuid+")");
 			//		"values (\"" + username + "\",\"" + password + "\",3,0,0,0,1,5,1,1,1,\"1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,\",3,\"null\",\"null\",\"null\",0,1,3,2,3,1,18,'" + code + "',3)");
 			
 				else  // the not okay to make new account version got it's password from an already encrypted password in users!
-					stmt.executeUpdate("insert into player (username,password,stealth,knowledge,totalscho,totalmess,totalpop,alotTech,soldTech,tankTech,juggerTech,weaponTech,buildingSlotTech,instructions,outputchannel,poutputchannel,civWeap,bomberTech,suppTech,townTech,bunkerTech,tradeTech,lotTech,accessCode,afTech,email,fuid) " +
-							"values (\"" + username + "\",\"" + password + "\",1,0,0,0,1,1,1,1,1,\"1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,\",2,\"null\",\"null\",\"null\",0,1,1,1,1,1,8,'" + code + "',1,'"+email+"',"+fuid+")");
+					stmt.executeUpdate("insert into player (username,password,scoutTech,knowledge,personalShields,hydraulicAssistors,constructionResearch,firearmResearch,thrustVectoring,townTech,infrastructureTech,bloodMetalPlating,email,fuid) " +
+							"values (\"" + username + "\",\"" + password + "\",0,0,0,0,2,0,0,1,8,0,'"+email+"',"+fuid+")");
 			
 			}
 					// once the player is made, then we move on.
@@ -6278,27 +6276,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			
 			p.setVersion("new");
 				
-			
-			int weapons[] = new int[0];
-			//	t.addUnitType(new AttackUnit("empty",0,0,0,0,i,0,weapons,0));
-		/*		p.setAu(new AttackUnit("empty",0,0,0,0,i,0,weapons,0)); 
-			i=1;
-			while(i<6) {
-
-				//	public AttackUnit(String name, double conc, double armor, double cargo, double speed, int slot, int popSize, int weap[]) {
-
-			
-			//	t.addUnitType(new AttackUnit("locked",0,0,0,0,i,0,weapons,0));
-				p.setAu(new AttackUnit("locked",0,0,0,0,i,0,weapons,0)); // for the player.
-				i++;
-			}*/
-			
-				
-		      
 		
-	    	
-	    //	p.setWeap(weap);
-			
 	    	p.setRevTimer((int) Math.round(( (double) 52*7*24*3600)/((double) GodGenerator.gameClockFactor)));
 	    	p.setBp(p.getBp()+100);
 
@@ -6336,17 +6314,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 					p.getPs().b.joinQuest("AQ"+k);
 					k++;
 				}
-				if(fuid==0)
-				p.getPs().b.joinQuest("ConnectWithFacebook");
-				
-		    /*	if(p.getVersion().equals("original")) {
-				p.getPs().b.joinQuest("BQ1"); // must be after capitalcity and after cwf
-				int weapArrayNew[] = new int[2]; weapArrayNew[0]=0; weapArrayNew[1]=0;
-
-				p.setKnowledge(p.getKnowledge()+soldierTechPrice);
-				String toRes[] = {"ShockTrooper"};
-				ps.b.completeResearches(toRes); // give them a default template.
-				ps.b.createCombatUnit(0,"Shock Trooper"); } else*/ if(p.getVersion().equals("new")) {
+				if(p.getVersion().equals("new")) {
 					p.getPs().b.joinQuest("NQ1");
 					p.setKnowledge(p.getKnowledge()+soldierPrice);
 					String toRes[] = {"ShockTrooper"};
@@ -6358,24 +6326,10 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			p.setInternalClock(gameClock);
 			stmt.close(); 
 	
-		/*	ps.b.sendYourself("Hello, and welcome to the game! <br /> <br /> A.I. Wars is a new kind of strategy game. Our competitors'" +
-					" insist on banning any player who uses JavaScript frontend bots to play for them and assist them. We on the other hand encourage it by providing you with a backend" +
-					" Java A.I. that is fully programmable in all game-related tasks, called Eve, a Revelations class A.I. You can write programs that drive your game even when you're not online, which is something" +
-					" the JavaScript bots could never do.<br /> <br /> You have been given an Autopilot membership for free for one week in order to finish the beginner quests, which teach you how to play and how to program. You cannot use Eve without an Autopilot membership." +
-					" <br /><br />We are also the first game to have a player-driven storyline campaign. Choose your side:<br /> <br />" +
-					" The Eagle Empire - Strict and strong with a promise of unwavering military protection for it's citizen states, the Eagles carry a heavy tax rate and a big stick.<br /> <br />" +
-					" The Crimson Shadows - Made up of independent rebel and mercenary states, this ragtag group of nations is led by a mysterious leader known only as Azel. Sporting next to no tax rate, and no hand-holding, this organization is ruthlessly" +
-					" hunted and outlawed by the Eagle Empire since the terrorist bombings on Eagle Prime.<br /> <br />" +
-					"Of course, you can create your own league too. Reach a large enough size, and you will become part of the official storyline, like the Eagle Empire and the Crimson Shadows! <br /> <br /> Apply to one of these leagues " +
-					" after you have completed the beginner quests. You will need a Communications Center. <br /> <br /> To begin the beginner quests, press the cube icon on the center of the left sidebar, then hit the BQ1 link in the center frame to get started. When you complete Quest Objectives, the Quest " +
-					"will not update from in progress to completed unless you use Menu > Refresh or refresh the page, so do both of those before notifying us of a glitch in Quest completion.","Welcome to A.I. Wars Beta!");*/
 			if(type==2) {
 				p.save(); // Seeing as this player is about to die and be reloaded as a quest, best to save it first!
 			}
-			 //weapArrayNew = new int[4]; 
-			 //weapArrayNew[0]=0; weapArrayNew[1]=0;
-			 //weapArrayNew[2]=0; weapArrayNew[3]=0;
-			//p.ps.b.createUnitTemplate("Wolfram Tank",2,100,100,100,100,weapArrayNew,0); // give them a default template.
+	
 			return p;
 			} catch(MySQLTransactionRollbackException exc) { } 
 			}
@@ -11181,7 +11135,7 @@ public boolean checkForGenocides(Town t) {
 					rs.close();
 					int newUnits[] = new int[0];
 					  stmt.execute("insert into town (pid,townName,x,y,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,auSizes) values (" + p.ID  +",'CapitalCity',"
-		    				  +(x+count)+","+(y+count)+",0,0,0,0,1," + 0 + "," + 0 + "," + 0+ "," + 0+ "," +0 + ","+PlayerScript.toJSONString(newUnits)+")");
+		    				  +(x+count)+","+(y+count)+",0,0,0,0,1," + 0 + "," + 0 + "," + 0+ "," + 0+ "," +0 + ",'"+PlayerScript.toJSONString(newUnits)+"')");
 					   rs = stmt.executeQuery("select tid from town where x = " + (x+count) + " and y = " + (y+count) + ";");
 		    		  rs.next();
 		    		   tid = rs.getInt(1);
@@ -12157,7 +12111,16 @@ public boolean checkForGenocides(Town t) {
 		} catch(SQLException exc) {exc.printStackTrace();}
 
 	}
-
+	public String randomTownName(){
+		 String[] nameList1 = {"Jiggly","Flappy","Sagging","Running","Shooting","Exploding","Doucheing","Shit Eating", "Annoying", "Wiggly", "Angry", "Depressed", "Happy", "Jubilent"};
+		 String[] nameList2 = {"Vomit", "Testicles","Scotum","Vagina","Thundercunt","Tits","Nipples", "Boobies", "Penis","Errection","Ass Cheaks","Hair Ball", "Goblin", "Rodent", "Crabs", "Aids"};
+		 double random = Math.random()*(nameList1.length-1);
+		       int randomNum = (int) Math.round(random);
+		 double random2 = Math.random()*(nameList2.length-1);
+		       int randomNum2 = (int) Math.round(random2);
+		 return nameList1[randomNum] + " " + nameList2[randomNum2];
+		  
+		 }
 	public boolean makeCity(int x, int y, double currGaussian[], boolean taken[]) throws SQLException {
 		
 		int i = 0; boolean found = false;
@@ -12221,8 +12184,8 @@ public boolean checkForGenocides(Town t) {
 		  }
 		 
 		  int newSizes[] = new int[0];
-		  stmt.execute("insert into town (pid,townName,x,y,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,auSizes) values (5,\"Town" + (x+xmod) + "-" + (y+ymod) + "\","
-				  +(x+xmod)+","+(y+ymod)+",0,0,0,0,1," + resEffects[0] + "," + resEffects[1] + "," + resEffects[2] + "," + resEffects[3] + "," + resEffects[4] + ","+PlayerScript.toJSONString(newSizes)+")");
+		  stmt.execute("insert into town (pid,townName,x,y,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,auSizes) values (5,\"" + randomTownName()+/*"Town" + (x+xmod) + "-" + (y+ymod) +*/ "\","
+				  +(x+xmod)+","+(y+ymod)+",0,0,0,0,1," + resEffects[0] + "," + resEffects[1] + "," + resEffects[2] + "," + resEffects[3] + "," + resEffects[4] + ",'"+PlayerScript.toJSONString(newSizes)+"')");
 		  rs = stmt.executeQuery("select tid from town where x = " + (x+xmod) + " and y = " + (y+ymod) + ";");
 		  rs.next();
 		  int tid = rs.getInt(1);

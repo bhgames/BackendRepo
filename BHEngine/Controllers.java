@@ -79,16 +79,17 @@ public class Controllers {
 						ie++;
 					}
 					j.value(0).
-					endArray()
-					.key("debris").array();
+					endArray();
+					if(r.get("debris")!=null) {
+					j.key("debris").array();
 					 ie = 0;
 					while(ie<4) {
 						j.value(((long[]) r.get("debris"))[ie]);
 						ie++;
 					}
 					j.value(0).
-					endArray()
-		        .key("x")
+					endArray();}
+		        j.key("x")
 		        .value((Integer) r.get("x"))
 		        .key("y")
 		        .value((Integer) r.get("y"))
@@ -1225,7 +1226,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					 i = 0;				
 					 au = t.getAu();
 
-					while(i<6) {
+					while(i<au.length) {
 						a = au[i];
 						try {
 						j.value(a.getSize()); // how to do support au?
@@ -1237,7 +1238,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					
 					.key("supportAU").array();
 					
-					 i = 6;
+					 i = 0;
 					while(i<au.length) {
 						a = au[i];
 						//	public AttackUnit(String name, double conc, double armor, double cargo, double speed, int slot, int popSize, int weap[], int graphicNum) {

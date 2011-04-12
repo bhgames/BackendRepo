@@ -771,6 +771,7 @@ public abstract class QuestListener extends Player {
 		 */
 		
 	}
+	
 	/**
 	 * Adds a town for this quest at the location specified, if possible. If pidsInvadableBy is 0, this town
 	 * is invadable by anybody.
@@ -780,7 +781,6 @@ public abstract class QuestListener extends Player {
 	 */
 	public int addTown(int x, int y, String townName, double resEffects[], int[] pidsInvadableBy, int[] pidsViewableBy) {
 		int tid=-1;
-
 		try {
 			UberStatement stmt = con.createStatement();
 			ResultSet rs = stmt.executeQuery("select count(*) from town where x = " + x + " and y = " + y);
@@ -800,7 +800,7 @@ public abstract class QuestListener extends Player {
 		//	stmt.execute("update player set chg = 1 where pid = " + ID);
 			int newSizes[] = new int[0];
 			  stmt.execute("insert into town (pid,townName,x,y,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,auSizes) values (" + ID  +",\"" + townName+ "\","
-    				  +x+","+(y)+",0,0,0,0,1," + resEffects[0] + "," + resEffects[1] + "," + resEffects[2] + "," + resEffects[3] + "," + resEffects[4] + ","+PlayerScript.toJSONString(newSizes)+")");
+    				  +x+","+(y)+",0,0,0,0,1," + resEffects[0] + "," + resEffects[1] + "," + resEffects[2] + "," + resEffects[3] + "," + resEffects[4] + ",'"+PlayerScript.toJSONString(newSizes)+"')");
     		  rs = stmt.executeQuery("select tid from town where x = " + (x) + " and y = " + (y) + ";");
     		  rs.next();
     		   tid = rs.getInt(1);

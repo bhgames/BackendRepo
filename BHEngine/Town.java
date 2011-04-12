@@ -392,7 +392,7 @@ public class Town {
 		      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
 		      int newSizes[] = new int[getPlayer().getAu().size()];
 			stmt.executeUpdate("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,fortArray) values ('" + type + "'," + lotNum + "," + lvl +"," +
-					"0" + ",0,0,0," + townID + ","+lvlUp+",false,"+PlayerScript.toJSONString(newSizes)+");");
+					"0" + ",0,0,0," + townID + ","+lvlUp+",false,'"+PlayerScript.toJSONString(newSizes)+"');");
 			
 			int bid = 0;
 			int timesTried=0;
@@ -1560,7 +1560,7 @@ public class Town {
     	  ArrayList<AttackUnit> au = getAu();
     	  String update = "update town set townName = '" + townName + "', x = " + x + ", y = " + y + 
 	    	  ", m = " + getRes()[0] + ", t = " + getRes()[1] + ", mm = " + getRes()[2] + ", f = " + getRes()[3] + ", pop = " + getRes()[4] +
-	    	  "auSizes = '"+PlayerScript.toJSONString(au)  +"', owedTicks = " + owedTicks+", zeppelin = " + zeppelin + ",  fuelcells = " + fuelCells + 
+	    	  ", auSizes = '"+PlayerScript.toJSONString(au)  +"', owedTicks = " + owedTicks+", zeppelin = " + zeppelin + ",  fuelcells = " + fuelCells + 
 	    	  ", ticksTillMove = " + ticksTillMove +", digTownID = " + digTownID +", msgSent = " +msgSent + ", digAmt = " + digAmt+  ", destX = " + destX +", destY = " + destY + ", probTimer =  " + probTimer + ", findTime = " + findTime + ", digCounter = " + digCounter 
 	    	  +", debm = " + getDebris()[0] + ", debt = " + getDebris()[1] + ", debmm = " + getDebris()[2] + ", debf = " + getDebris()[3] +" where tid = " + townID + ";";
 	    	  stmt.executeUpdate(update);
@@ -2306,14 +2306,14 @@ public class Town {
 			 double lowSpeed = 0;
 				double totalsize=0;
 				int c=0;
-				do {
+				while(c<retAU.size()) {
 					 g = retAU.get(c);
 				
 						//if(g.size>0&&g.speed<lowSpeed) lowSpeed=g.speed;
 						lowSpeed+=(g.getSize()*g.getExpmod()*g.getTrueSpeed(getPlayer()));
 						totalsize+=g.getSize()*g.getExpmod();
 					c++;
-				} while(c<retAU.size());
+				} 
 				if(totalsize>0) {
 				
 					//	public Raid(double distance, int ticksToHit, Town town1, Town town2, boolean Genocide, boolean Bomb, int support,boolean invade, String name) {
@@ -2717,9 +2717,7 @@ public class Town {
 
 		int i = 0;
 		while(i<bldg.size()) {
-			if(getPlayer().getUsername().contains("testman")) System.out.println("I want to be Putting a " + bldg.get(i).getType() + " on this bitch but it's lvlUps is " +bldg().get(i).getLvlUps());
-			if(bldg.get(i).getNumLeftToBuild()>0||bldg.get(i).getLvlUps()>0||bldg.get(i).Queue().size()>0) {tres.add(bldg.get(i));
-			if(getPlayer().getUsername().contains("testman")) System.out.println("Putting a " + bldg.get(i).getType() + " on this bitch.");}
+			if(bldg.get(i).getNumLeftToBuild()>0||bldg.get(i).getLvlUps()>0||bldg.get(i).Queue().size()>0) tres.add(bldg.get(i));
 			i++;
 		}
 		return tres;

@@ -208,7 +208,7 @@ public static int days = 5;
 		if(bldgEffect<.1) bldgEffect = .1;
 		double totalEngEffect = 1-(((double) totalEngineers))*.005625;
 		if(totalEngEffect<.1) totalEngEffect=.1;
-		
+
 		int totalTicks = (int) Math.round(howMany*baseBuildTime*totalEngEffect*bldgEffect);
 		if(totalTicks<1) totalTicks=1;
 		return totalTicks;

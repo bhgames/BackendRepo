@@ -358,9 +358,7 @@ public static int baseResourceAmt = 2000;
 		 * Right so you have numLeftToBuild, this is how many left to build,
 		 * it will be decreased by building server as ticksLeft decreases to 0.
 		 */
-		System.out.println("numLeftToBuild: " + getNumLeftToBuild());
 		setNumLeftToBuild(getNumLeftToBuild() + number);
-		System.out.println("numLeftToBuild after: " + getNumLeftToBuild());
 
 	} 
 	
@@ -639,6 +637,17 @@ public static int baseResourceAmt = 2000;
 		if(isMineBldg()) cap=(long) Math.ceil(resourceAmt*Math.pow(getLvl()+2,2));
 		else cap = (long) Math.ceil(Math.sqrt(6)*(getLvl()+1));
 		return cap;
+	}
+	public long getQueueCap() {
+		// only for military production facilities.
+		int cap = getLvl()*2;
+		if(cap>60) cap=60;
+		return getLvl()*2;
+		
+	}
+	public int getSlotCap() {
+		// only for mil. prod facilities.
+		return (int) Math.ceil(((double) getLvl())/3.0);
 	}
 	public long getAirshipCap(int realTicks) {
 		long cap = (int) Math.round( ((double) Town.daysOfStoragePerAirshipPlatform*24.0*3600.0)/((double) realTicks));

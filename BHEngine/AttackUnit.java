@@ -255,7 +255,7 @@ public int getLvl() {
 			cargo=0;
 			expmod=1;
 			type=1;
-		} else if(name.equals("Pillager")) {
+		} else if(name.equals("Pillager")||name.equals("Iddite")) {
 			/*
 			 * HP: 50
 				Attack Damage: 25
@@ -439,7 +439,7 @@ public int getLvl() {
 			expmod=61;
 			type=3;
 
-		}else if(name.equals("LA-513 Gunship")) {
+		}else if(name.contains("Gunship")) {
 			/*
 			HP: 50
 			Attack Damage: 75
@@ -450,6 +450,7 @@ public int getLvl() {
 			Cargo: 0
 
 			 */
+			name = "LA-513 Gunship";
 			hp = 50;
 			attackDamage=75;
 			attackType=1; //physical
@@ -460,7 +461,7 @@ public int getLvl() {
 			expmod=1;
 			type=4;
 
-		}else if(name.equals("LA-616 Thunderbolt")) {
+		}else if(name.contains("Thunderbolt")) {
 			/*
 			HP: 50
 			Attack Damage: 75
@@ -471,6 +472,7 @@ public int getLvl() {
 			Cargo: 0
 
 			 */
+			name = "LA-616 Thunderbolt";
 			hp = 50;
 			attackDamage=75;
 			attackType=3; //electrical
@@ -481,7 +483,7 @@ public int getLvl() {
 			expmod=1;
 			type=4;
 
-		}else if(name.equals("LA-293 Blastmaster")) {
+		}else if(name.contains("Blastmaster")) {
 			/*
 			HP: 50
 			Attack Damage: 75
@@ -492,6 +494,7 @@ public int getLvl() {
 			Cargo: 0
 
 			 */
+			name = "LA-293 Blastmaster";
 			hp = 50;
 			attackDamage=75;
 			attackType=2; //explosive
@@ -502,7 +505,7 @@ public int getLvl() {
 			expmod=1;
 			type=4;
 
-		}else if(name.equals("HA-44 Monolith")) {
+		}else if(name.contains("Monolith")) {
 			/*
 			HP: 75
 			Attack Damage: 50
@@ -513,6 +516,7 @@ public int getLvl() {
 			Cargo: 0
 
 			 */
+			name = "HA-44 Monolith";
 			hp = 75;
 			attackDamage=50;
 			attackType=1; //physical
@@ -523,7 +527,7 @@ public int getLvl() {
 			expmod=1;
 			type=4;
 
-		}else if(name.equals("HA-18 Halcyon")) {
+		}else if(name.contains("Halcyon")) {
 			/*
 			HP: 75
 			Attack Damage: 50
@@ -534,6 +538,7 @@ public int getLvl() {
 			Cargo: 0
 
 			 */
+			name="HA-18 Halcyon";
 			hp = 75;
 			attackDamage=50;
 			attackType=3; //electrical
@@ -544,7 +549,7 @@ public int getLvl() {
 			expmod=1;
 			type=4;
 
-		}else if(name.equals("HA-69 Hades")) {
+		}else if(name.contains("Hades")) {
 			/*
 			HP: 75
 			Attack Damage: 50
@@ -555,6 +560,7 @@ public int getLvl() {
 			Cargo: 0
 
 			 */
+			name = "HA-69 Hades";
 			hp = 75;
 			attackDamage=50;
 			attackType=2; //explosive
@@ -621,7 +627,7 @@ public int getLvl() {
 			cargo=0;
 			expmod=1;
 			type=1;
-		} else if(name.equals("Pillager")) {
+		} else if(name.equals("Pillager")||name.equals("Iddite")) {
 			/*
 			 * HP: 50
 				Attack Damage: 25
@@ -805,7 +811,7 @@ public int getLvl() {
 			expmod=61;
 			type=3;
 
-		}else if(name.equals("LA-513 Gunship")) {
+		}else if(name.contains("Gunship")) {
 			/*
 			HP: 50
 			Attack Damage: 75
@@ -816,6 +822,7 @@ public int getLvl() {
 			Cargo: 0
 
 			 */
+			name = "LA-513 Gunship";
 			hp = 50;
 			attackDamage=75;
 			attackType=1; //physical
@@ -826,7 +833,7 @@ public int getLvl() {
 			expmod=1;
 			type=4;
 
-		}else if(name.equals("LA-616 Thunderbolt")) {
+		}else if(name.contains("Thunderbolt")) {
 			/*
 			HP: 50
 			Attack Damage: 75
@@ -837,6 +844,7 @@ public int getLvl() {
 			Cargo: 0
 
 			 */
+			name = "LA-616 Thunderbolt";
 			hp = 50;
 			attackDamage=75;
 			attackType=3; //electrical
@@ -847,7 +855,7 @@ public int getLvl() {
 			expmod=1;
 			type=4;
 
-		}else if(name.equals("LA-293 Blastmaster")) {
+		}else if(name.contains("Blastmaster")) {
 			/*
 			HP: 50
 			Attack Damage: 75
@@ -858,6 +866,7 @@ public int getLvl() {
 			Cargo: 0
 
 			 */
+			name = "LA-293 Blastmaster";
 			hp = 50;
 			attackDamage=75;
 			attackType=2; //explosive
@@ -868,7 +877,7 @@ public int getLvl() {
 			expmod=1;
 			type=4;
 
-		}else if(name.equals("HA-44 Monolith")) {
+		}else if(name.contains("Monolith")) {
 			/*
 			HP: 75
 			Attack Damage: 50
@@ -879,6 +888,7 @@ public int getLvl() {
 			Cargo: 0
 
 			 */
+			name = "HA-44 Monolith";
 			hp = 75;
 			attackDamage=50;
 			attackType=1; //physical
@@ -889,7 +899,7 @@ public int getLvl() {
 			expmod=1;
 			type=4;
 
-		}else if(name.equals("HA-18 Halcyon")) {
+		}else if(name.contains("Halcyon")) {
 			/*
 			HP: 75
 			Attack Damage: 50
@@ -900,6 +910,7 @@ public int getLvl() {
 			Cargo: 0
 
 			 */
+			name="HA-18 Halcyon";
 			hp = 75;
 			attackDamage=50;
 			attackType=3; //electrical
@@ -910,7 +921,7 @@ public int getLvl() {
 			expmod=1;
 			type=4;
 
-		}else if(name.equals("HA-69 Hades")) {
+		}else if(name.contains("Hades")) {
 			/*
 			HP: 75
 			Attack Damage: 50
@@ -921,6 +932,7 @@ public int getLvl() {
 			Cargo: 0
 
 			 */
+			name = "HA-69 Hades";
 			hp = 75;
 			attackDamage=50;
 			attackType=2; //explosive

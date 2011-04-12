@@ -397,7 +397,7 @@ public class BattlehardFunctions {
 								 r.put("debris",towns.get(i).getDebris());
 							 else {
 								 long empty[] = new long[4];
-								 r.put("derbis",empty);
+								 r.put("debris",empty);
 							 }
 
 							 
@@ -2524,7 +2524,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		}
 		Town t = g.findTown(tid);
 		if(t.getPlayer().ID!=p.ID) return null;
-		return returnPrice(t.getTownName(),unitType,number);
+		return returnPrice(unitType,number,tid,false);
 		
 	}
 		/**
@@ -2534,6 +2534,26 @@ public long[] returnPrice(int lotNum, int tid) {
 		 * in the town of the townName given.
 		 */
 	public long[] returnPrice(String townName, String unitType, int number) {
+		
+		return returnPrice(unitType,number,g.findTown(townName,p).townID,false);
+	}
+	
+	/**
+	 * If minus is false, then it gets the price of the next number of soldiers.
+	 * If minus is true, it gets the price of the most recent number made. Example:
+	 * if Minus is false, and you have 100 soldiers, and you ask for the price of 5,
+	 * it gives you the price of the 101st,102nd,103rd,104th,105th soldier summed.
+	 * If minus is true, and you have 100 soldiers, and you ask for the price of 5,
+	 * it gives you the price of the 96th,97th,98th,99th,100th soldier prices summed.
+	 * 
+	 * @param unitType
+	 * @param number
+	 * @param tid
+	 * @param minus
+	 * @return
+	 */
+	public long[] returnPrice(String unitType, int number, int tid, boolean minus) {
+
 		if(prog&&!p.isAdvancedBuildingAPI()) {
 			setError("You do not have the Advanced Building API!");
 			return null;
@@ -2541,7 +2561,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		// LINKED TO RETURN AMOUTN OF UNITS FOR LEVELING
 		int i = 0; boolean found = false;
 		
-		Town holdT = g.findTown(townName,p);
+		Town holdT = g.findTown(tid);
 			
 		if(holdT.getPlayer().ID!=p.ID) return null;
 		
@@ -2565,7 +2585,10 @@ public long[] returnPrice(int lotNum, int tid) {
 					 }
 				  
 				  // n_new(n_new+1)/2 - n_old(n_old+1)/2 is the cost to build all those units.
+					 // now, if we want it from number units ago...then allCalled is allCalled-number. So the most
+					 // recent number.
 				 int allCalled = holdT.getTotalEngineers()+currentlyBuilding;
+				 if(minus) allCalled-=number;
 					int totalnumber=number+allCalled;
 					 double factor = totalnumber*(totalnumber+1)/2 - allCalled*(allCalled+1)/2;
 					 
@@ -2594,7 +2617,10 @@ public long[] returnPrice(int lotNum, int tid) {
 				 }
 				  // n_new(n_new+1)/2 - n_old(n_old+1)/2 is the cost to build all those units.
 				 int allCalled = holdT.getTotalTraders()+currentlyBuilding;
+				 if(minus) allCalled-=number;
+
 					int totalnumber=number+allCalled;
+					
 					 double factor = totalnumber*(totalnumber+1)/2 - allCalled*(allCalled+1)/2;
 						 cost[0] = (long) Math.round(15*factor);
 				 cost[1] = (long) Math.round(23*factor);
@@ -2625,6 +2651,8 @@ public long[] returnPrice(int lotNum, int tid) {
 					 
 					 // n_new(n_new+1)/2 - n_old(n_old+1)/2 is the cost to build all those units.
 					 int allCalled = currentlyBuilding;
+					 if(minus) allCalled-=number;
+
 						int totalnumber=number+allCalled;
 						 double factor = totalnumber*(totalnumber+1)/2 - allCalled*(allCalled+1)/2;
 				 cost[0] = (long) Math.round(13*factor);
@@ -2652,34 +2680,7 @@ public long[] returnPrice(int lotNum, int tid) {
 						 
 						 
 						 double multiplier=0;
-						 switch(AU.getType()) {
-						 case 1:
-							 multiplier=1*modifier;
-							// System.out.println("multiplier is: " + multiplier + " and p.towns().size is " + p.towns().size());
-							 break;
-						 case 2:
-							 multiplier=10*modifier; // so we want the price to
-							 // be that of six soldiers as a baseline, but the
-							 // six soldiers themselves have price increases for each
-							 // new soldier, so we factor that into the multiplier.
-							 // instead of 6x, which would be true if the soldier's price
-							 // for six was constant across the six, we do 
-							 // 6*(6+1)/2 to multiply the price by to get the base
-							 // price of one tank unit, which is then multiplied by
-							 // it's factor below to determine how much it costs relative
-							 // to other brothers of itself it may have in existence.
-							 
-							 // 1, 2*3/2 = 3, 
-							 // 
-							 break;
-						 case 3:
-							 multiplier=40*modifier;
-							 break;
-						 case 4:
-							 multiplier=20;
-							 break;
-						 }
-						 
+						 multiplier=AU.getExpmod()*modifier;
 						 
 						 //4 + .7
 						 
@@ -2710,6 +2711,7 @@ public long[] returnPrice(int lotNum, int tid) {
 								 k++;
 						 }
 						 int allCalled = totalPop+currentlyBuilding;
+						 if(minus) allCalled-=number;
 							int totalnumber=number+allCalled;
 							 double factor = multiplier*totalnumber*(multiplier*totalnumber+1)/2 - multiplier*allCalled*(multiplier*allCalled+1)/2;
 						 cost[0] = (long)Math.round(25*factor); // metal
@@ -2729,6 +2731,7 @@ public long[] returnPrice(int lotNum, int tid) {
 	
 		
 		
+	
 	}
 	/**
 	 * Returns a short description of the quest.
@@ -2796,7 +2799,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		return false;
 	}
 	/**
-	 * Returns true if there is a building of that type with that level.
+	 * Returns true if there is a building of that type with that level or greater.
 	 * @param type
 	 * @param lvl
 	 * @param townID
@@ -2828,7 +2831,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		ArrayList<Building> bldg = t.bldg();
 		int i = 0;
 		while(i<bldg.size()) {
-			if(bldg.get(i).getType().equals(type)&&bldg.get(i).getLvl()==lvl) { return true; }
+			if(bldg.get(i).getType().equals(type)&&bldg.get(i).getLvl()>=lvl) { return true; }
 			i++;
 		}
 		return false;
@@ -2932,33 +2935,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							//		 " numleft is " + q.returnNumLeft());
 						 double multiplier=0;
 						 double modifier=Math.pow(.75,q.getTownsAtTime());
-						 switch(AU.getType()) {
-						 case 1:
-							 multiplier=1*modifier;
-							// System.out.println("multiplier is: " + multiplier + " and p.towns().size is " + p.towns().size());
-							 break;
-						 case 2:
-							 multiplier=10*modifier; // so we want the price to
-							 // be that of six soldiers as a baseline, but the
-							 // six soldiers themselves have price increases for each
-							 // new soldier, so we factor that into the multiplier.
-							 // instead of 6x, which would be true if the soldier's price
-							 // for six was constant across the six, we do 
-							 // 6*(6+1)/2 to multiply the price by to get the base
-							 // price of one tank unit, which is then multiplied by
-							 // it's factor below to determine how much it costs relative
-							 // to other brothers of itself it may have in existence.
-							 
-							 // 1, 2*3/2 = 3, 
-							 // 
-							 break;
-						 case 3:
-							 multiplier=40*modifier;
-							 break;
-						 case 4:
-							 multiplier=20;
-							 break;
-						 }
+						multiplier=AU.getExpmod()*modifier;
 						 
 						 
 						 //4 + .7
@@ -3817,19 +3794,27 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					 Building myaf = holdT.findBuilding(bid);
 					 if(a.getType()==1&&!myaf.getType().equals("Arms Factory")) {
 						 setError("This is not an Arms Factory!");
+						 return false;
 						 
 					 }else if((a.getType()==2||a.getType()==3)&&!myaf.getType().equals("Manufacturing Plant")) {
 						 setError("This is not an Manufacturing Plant!");
+						 return false;
+
 						 
 					 }else if((a.getType()==4)&&!myaf.getType().equals("Airstrip")) {
 						 setError("This is not an Airstrip!");
+						 return false;
+
 						 
 					 }
-					 if(totalQueued+number*a.getExpmod()>thisAF.getCap()*popped) {
+					 if(totalQueued+number*a.getExpmod()>thisAF.getQueueCap()) {
 						 setError("Too many units queued already!");
 						 return false;
 					 }
-						 
+					if(queue.length>thisAF.getSlotCap()) {
+						setError("Too many slots used!");
+						return false;
+					}
 					 
 					 
 				 // need to formulate combat unit costs. Let's get the unit.
@@ -3858,30 +3843,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				 
 				 double multiplier=0;
 				 double modifier = Math.pow(.75,p.towns().size());
-				 switch(a.getType()) {
-				 case 1:
-					 multiplier=1*modifier;
-					 break;
-				 case 2:
-					 multiplier=10*modifier; // so we want the price to
-					 // be that of six soldiers as a baseline, but the
-					 // six soldiers themselves have price increases for each
-					 // new soldier, so we factor that into the multiplier.
-					 // instead of 6x, which would be true if the soldier's price
-					 // for six was constant across the six, we do 
-					 // 6*(6+1)/2 to multiply the price by to get the base
-					 // price of one tank unit, which is then multiplied by
-					 // it's factor below to determine how much it costs relative
-					 // to other brothers of itself it may have in existence.
-					 break;
-				 case 3:
-					 multiplier=40*modifier;
-					 break;
-				 case 4:
-					 multiplier=20;
-					 break;
-				 }
-				 
+				 multiplier=a.getExpmod()*modifier;
 				 
 				 //4 + .7
 				 
@@ -4142,9 +4104,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				t.setSize(i,a.getSize() - number);
 				//	public long[] returnPrice(String townName, String unitType, int number) {
 
-				long cost[] = returnPrice(a.getName(),number,t.townID);
+				long cost[] = returnPrice(a.getName(),number,t.townID,true);
 				if(a.getSize()<0) { t.setSize(i,0);
-					cost = returnPrice(a.getName(),oldSize,t.townID);
+					cost = returnPrice(a.getName(),oldSize,t.townID,true);
 				}
 				
 				if(a.getSize()>oldSize){ t.setSize(i,oldSize); 
@@ -4160,11 +4122,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				double totalperc = .0166*totallevel;
 				if(totalperc<.0) totalperc = 0;
 				if(totalperc>.5) totalperc=.5;
-				
 				int j = 0;
 				synchronized(t.getResBuff()) {
 					while(j<cost.length) { 
 						t.getResBuff()[j]+=cost[j]*totalperc;
+
 						j++;
 					}
 				}
@@ -4183,7 +4145,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * the number of the unit type(military only) described in the town designed
 	 * by town id if possible.
 	 */
-	public boolean buildCombatUnit(String type, int number,int tid) {
+	private boolean buildCombatUnit(String type, int number,int tid) {
 		if(prog&&!p.isBuildingAPI()) {
 			setError("You do not have the Building API!");
 			return false;
@@ -4202,7 +4164,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 * 
 		 * NOTE THAT THIS METHOD IS EXTREMELY LAGGY.
 		 */
-	public boolean buildCombatUnit(String townName, int number, String type) {
+	private boolean buildCombatUnit(String townName, int number, String type) {
 		
 		if(prog&&!p.isBuildingAPI()&&!QuestListener.partOfQuest(p,"RQ2")) {
 			setError("You do not have the Building API!");
@@ -4257,30 +4219,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				 
 				 double multiplier=0;
 				 double modifier = Math.pow(.75,p.towns().size());
-				 switch(AU.getType()) {
-				 case 1:
-					 multiplier=1*modifier;
-					 break;
-				 case 2:
-					 multiplier=10*modifier; // so we want the price to
-					 // be that of six soldiers as a baseline, but the
-					 // six soldiers themselves have price increases for each
-					 // new soldier, so we factor that into the multiplier.
-					 // instead of 6x, which would be true if the soldier's price
-					 // for six was constant across the six, we do 
-					 // 6*(6+1)/2 to multiply the price by to get the base
-					 // price of one tank unit, which is then multiplied by
-					 // it's factor below to determine how much it costs relative
-					 // to other brothers of itself it may have in existence.
-					 break;
-				 case 3:
-					 multiplier=40*modifier;
-					 break;
-				 case 4:
-					 multiplier=20;
-					 break;
-				 }
-				 
+				 multiplier=AU.getExpmod()*modifier;
 				 
 				 //4 + .7
 				 
@@ -4374,7 +4313,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							 k++;
 						 }
 						 a = theAU.get(saved);
-						 if(totalQueued+number*a.getExpmod()> b.getCap()*popped) {
+						 if(totalQueued+number*a.getExpmod()> b.getCap()) {
 							 setError("Too many units queued already!");
 							 return false;
 						 }
@@ -4397,6 +4336,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						return true;
 					} else return false;
 			 }
+			 setError("You are not using or do not have the proper building!");
 		
 		 return false;
 
@@ -6029,23 +5969,23 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * Returns true if you can build a building in the desired lotNum.(ie, if you have
 	 * the resources, open lot spot, and a few other requirements are met.)
 	 * 
-	 * @param type - Type of building, can be:
-	 * Command Center 
-	 * Arms Factory
+	 * @param type -  Type of building, can be:
 	 * Command Center
+	 * Arms Factory
 	 * Institute
 	 * Trade Center
 	 * Fortification
-	 * Metal/Timber/Manufactured Materials/Granary
-	 * 
-	 * (Can only build the below buildings with the proper researches.)
+	 * Metal Warehouse/Lumber Yard/Crystal Repository/Granary
 	 * Airstrip
-	 * Missile Silo
+	 * Manufacturing Plant
 	 * Recycling Center
-	 * Foundry
+	 * Resource Cache
 	 * Sawmill
+	 * Foundry
 	 * Crystal Refinery
 	 * Hydroponics Bay
+	 * Storage Yard
+	 * Missile Silo
 	 * 
 	 * @param lotNum Desired lot number for the building to be placed on.
 	 * @param town Name of the desired town for placement.
@@ -6076,7 +6016,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				  !type.equals("Crystal Repository")&&!type.equals("Granary")
 				  &&!type.equals("Airstrip")&&!type.equals("Missile Silo")&&!type.equals("Recycling Center")
 				  &&!type.equals("Foundry")&&!type.equals("Sawmill")&&!type.equals("Crystal Refinery")
-				  &&!type.equals("Hydroponics Bay")) {
+				  &&!type.equals("Hydroponics Bay") &&!type.equals("Storage Yard")&&!type.equals("Resource Cache")) {
 			  setError("Incorrect building type.");
 			  return false;
 		  }
@@ -6085,65 +6025,68 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		boolean found = false;
 		Town holdT; Building b;
 		holdT = g.findTown(town,p);
-		
+			boolean reqsMet=false;
 		  if((type.equals("Airstrip")&&!p.isAirshipTech())&&haveBldg("Command Center",10,holdT.townID)
 				  &&haveBldg("Arms Factory",10,holdT.townID)&&haveBldg("Manufacturing Plant",5,holdT.townID)
 				  ) {
-			  setError("You do not satisfy the building requirements for this yet!");
-			  return false;
+			  reqsMet=true;
 		  } else if((type.equals("Missile Silo"))&&haveBldg("Manufacturing Plant",15,holdT.townID)
 				  &&haveBldg("Institute",15,holdT.townID)) {
-			  setError("You do not satisfy the building requirements for this yet!");
-			  return false;
+			  reqsMet=true;
+
 		  }else if((type.equals("Recycling Center"))&&haveBldg("Command Center",10,holdT.townID)
 				  &&haveBldg("Institute",10,holdT.townID)&&haveBldg("Manufacturing Plant",10,holdT.townID)) {
-			  setError("You do not satisfy the building requirements for this yet!");
-			  return false;
+			  reqsMet=true;
+
 		  }else if((type.equals("Foundry")&&haveBldg("Metal Mine",15,holdT.townID))) {
-			  setError("You do not satisfy the building requirements for this yet!");
-			  return false;
+			  reqsMet=true;
+
 		  }else if((type.equals("Sawmill")&&haveBldg("Timber Field",15,holdT.townID))) {
-			  setError("You do not satisfy the building requirements for this yet!");
-			  return false;
+			  reqsMet=true;
+
 		  }else if((type.equals("Crystal Refinery")&&haveBldg("Crystal Mine",15,holdT.townID))) {
-			  setError("You do not satisfy the building requirements for this yet!");
-			  return false;
+			  reqsMet=true;
 		  }else if((type.equals("Hydroponics Bay")&&haveBldg("Farm",15,holdT.townID))) {
-			  setError("You do not satisfy the building requirements for this yet!");
-			  return false;
+			  reqsMet=true;
+
 		  }else if((type.equals("Fortification")&&haveBldg("Command Center",5,holdT.townID)
 				  &&haveBldg("Institute",5,holdT.townID)&&haveBldg("Arms Factory",5,holdT.townID))) {
-			  setError("You do not satisfy the building requirements for this yet!");
-			  return false;
+			  reqsMet=true;
+
 		  }else if((type.equals("Institute")&&haveBldg("Command Center",1,holdT.townID))) {
-			  setError("You do not satisfy the building requirements for this yet!");
-			  return false;
+			  reqsMet=true;
+
 		  }else if((type.equals("Manufacturing Plant")
 				  &&haveBldg("Institute",10,holdT.townID)&&haveBldg("Arms Factory",5,holdT.townID))) {
-			  setError("You do not satisfy the building requirements for this yet!");
-			  return false;
+			  reqsMet=true;
+
 		  }else if((type.equals("Resource Cache")&&haveBldg("Metal Warehouse",1,holdT.townID)
 				  &&haveBldg("Institute",3,holdT.townID)&&haveBldg("Lumber Yard",1,holdT.townID)
 				  &&haveBldg("Crystal Repository",1,holdT.townID)&&haveBldg("Granary",1,holdT.townID))) {
-			  setError("You do not satisfy the building requirements for this yet!");
-			  return false;
+			  reqsMet=true;
+
 		  }else if((type.equals("Storage Yard")&&haveBldg("Metal Warehouse",10,holdT.townID)
 				 &&haveBldg("Lumber Yard",10,holdT.townID)
 				  &&haveBldg("Crystal Repository",10,holdT.townID)&&haveBldg("Granary",10,holdT.townID))) {
-			  setError("You do not satisfy the building requirements for this yet!");
-			  return false;
+			  reqsMet=true;
+
 		  }else if((type.equals("Trade Center")&&haveBldg("Command Center",3,holdT.townID)
 				  &&haveBldg("Institute",1,holdT.townID))) {
-			  setError("You do not satisfy the building requirements for this yet!");
-			  return false;
+			  reqsMet=true;
+
 		  }else if((type.equals("Arms Factory")&&haveBldg("Command Center",1,holdT.townID)
 				  )) {
-			  setError("You do not satisfy the building requirements for this yet!");
-			  return false;
+			  reqsMet=true;
+
 		  }else if(  (type.equals("Metal Warehouse")||type.equals("Lumber Yard")
 				  ||type.equals("Crystal Repository")||type.equals("Granary"))
 				  &&haveBldg("Institute",1,holdT.townID)) {
-			  setError("You do not satisfy the building requirements for this yet!");
+			  reqsMet=true;
+
+		  }
+		  
+		  if(!reqsMet) {
+			  setError("You do not satisfy the requirements for this building yet!");
 			  return false;
 		  }
 		  
@@ -6321,7 +6264,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			bid = b.bid; deconstruct = b.isDeconstruct(); lvl = b.getLvl(); lvlUp = b.getLvlUps(); name = b.getType();
 			if(lvl+lvlUp+1>highLvl+2&&!b.getType().equals("Command Center")) {
-				setError("You cannot level a building greater than your highest command center level!");
+				setError("You cannot level a building greater than two levels above your highest command center level!");
 				return false;
 			}
 			if(b.getType().equals("Storage Yard")) {
@@ -6470,7 +6413,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			bid = b.bid; deconstruct = b.isDeconstruct(); lvl = b.getLvl(); lvlUp = b.getLvlUps(); name = b.getType();
 			if(lvl+lvlUp+1>highLvl+2&&!b.getType().equals("Command Center")) {
-				setError("You cannot level a building greater than your highest command center level!");
+				setError("You cannot level a building greater than two levels above your highest command center level!");
 				return false;
 			}
 			if(b.getType().equals("Storage Yard")) {
@@ -8321,6 +8264,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				}
 				if(p.towns().size()<2) {
 					setError("You need at least 2 towns to research tanks!");
+					return false;
 				}
 
 			
@@ -8338,7 +8282,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						return false;
 					}
 				}				if(p.towns().size()<3) {
-					setError("You need at least 3 towns to research juggernaughts!");
+					setError("You need at least 3 towns to research golems!");
+					return false;
+
 				}
 				
 				if(!free&&hypoTotal<GodGenerator.golemPrice*Math.pow(2,k)) {
@@ -8351,14 +8297,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				int k = 0;
 				for(AttackUnit a:p.getAu()) {
 					if(a.getType()==4&&
-							(a.getName().equals("Gunship")||a.getName().equals("Blastmaster")||a.getName().equals("Thunderbolt"))) k++;
-					if(a.getName().equals(array[i])){
+							(a.getName().contains("Gunship")||a.getName().contains("Blastmaster")||a.getName().contains("Thunderbolt"))) k++;
+					if(a.getName().contains(array[i])){
 						setError("You already have this unit!");
 						return false;
 					}
 				}			
 				if(p.towns().size()<4) {
-					setError("You need at least 4 towns to research bombers!");
+					setError("You need at least 4 towns to research air units!");
+					return false;
+
 				}
 				
 				if(!free&&hypoTotal<GodGenerator.airPrice*Math.pow(2,k)) {
@@ -8371,14 +8319,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				int k = 0;
 				for(AttackUnit a:p.getAu()) {
 					if(a.getType()==4&&
-							(a.getName().equals("Monolith")||a.getName().equals("Halcyon")||a.getName().equals("Hades"))) k++;	
-					if(a.getName().equals(array[i])){
+							(a.getName().contains("Monolith")||a.getName().contains("Halcyon")||a.getName().contains("Hades"))) k++;	
+					if(a.getName().contains(array[i])){
 						setError("You already have this unit!");
 						return false;
 					}
 				}			
 				if(p.towns().size()<4) {
-					setError("You need at least 4 towns to research bombers!");
+					setError("You need at least 4 towns to research air units!");
+					return false;
+
 				}
 				
 				if(!free&&hypoTotal<GodGenerator.airPrice*Math.pow(2,k)) {
@@ -10608,11 +10558,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					b = au.get(j);
 					
 					int k = 0;
-					int weap[] = new int[b.getWeap().length];
-					while(k<b.getWeap().length) {
-						weap[k]=b.getWeap()[k]; // protect the values!
-						k++;
-					}
+				
 					if(b.getSupport()==0) 
 						/*
 						 * public UserAttackUnit(String name, int slot, int originalPlayerID, int originalSlot,
@@ -10688,11 +10634,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			b =au.get(j);
 			
 			int k = 0;
-			int weap[] = new int[b.getWeap().length];
-			while(k<b.getWeap().length) {
-				weap[k]=b.getWeap()[k]; // protect the values!
-				k++;
-			}
+			
 			Player original = b.getOriginalPlayer();
 			if(original==null) original=p;
 		

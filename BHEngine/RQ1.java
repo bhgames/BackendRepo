@@ -13,9 +13,10 @@ public class RQ1 extends QuestListener {
 	@Override
 	public boolean checkPlayer(Player p) {
 		// TODO Auto-generated method stub
-		if(completedQuest(p,"BQBranchToRQ")) return true;
-		else
-		return false;
+	//	if(completedQuest(p,"BQBranchToRQ")) return true;
+	//	else
+	//	return false;
+		return true;
 	}
 
 	@Override
@@ -96,8 +97,10 @@ public class RQ1 extends QuestListener {
 	
 	public String getQuestDescription(int pid) {
 		Player p =God.getPlayer(pid);
-		if(completedQuest(p,"BQBranchToRQ")) return "Test out comms with your Revelations A.I.";
-		else return "Locked.";
+	//	if(completedQuest(p,"BQBranchToRQ")) return "Test out comms with your Revelations A.I.";
+	//	else return "Locked.";
+		
+		return "Test out comms with the Revelations A.I.";
 }
 
 }

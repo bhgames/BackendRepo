@@ -176,7 +176,7 @@ public class Player  {
 	  
 			rs.close();
 
-			au = getMemAu(); 
+			au = getAu(); 
 			try {
 			getAchievements();
 			} catch(Exception exc) { exc.printStackTrace(); System.out.println("No idea why this error happened, but player load saved."); } 
@@ -576,23 +576,8 @@ public class Player  {
 	}
 	synchronized public void synchronize() throws SQLException {
 		System.out.println("I am beginning to synchronize.");
-		Trade holdTrade; TradeSchedule holdTradeSchedule;
-		UberStatement aus,tus,bus,qus,sau,rus,rustown2,rustown22,lchk,mus;
-		ResultSet aurs,trs,brs,qrs,saurs,rrs,rrs2,rrs22,lchkRS,mrs;
-		String holdPart,weapons;
-		League league;
-		ArrayList<AttackUnit> aufortown,raidAU;
-		 
-		long cost[];
-		long res[],resInc[];
-		boolean weaps[];//soldierPicTech[],tankPicTech[],juggerPicTech[],bomberPicTech[];
-		int weapforau[],weap[];
-		double resEffects[];
-		AttackUnit ha,Civ,sAU,auHold;
-		Town t=null,Town1,town2Obj;
-		Building b; String holdThis,holdThis1,holdThis2,holdThis3;
-		Player foreignP;
-		Raid holdRaid;
+
+		Town t=null;
 		UberStatement stmt = con.createStatement();
 		ResultSet rs = stmt.executeQuery("select * from player where pid = " + ID);
 		rs.next();
@@ -683,11 +668,10 @@ public class Player  {
 			au = null;
 			getAu();
 			
-			 
 			// time to get town stuff.
-			 tus = con.createStatement();
+			UberStatement tus = con.createStatement();
 
-			 trs = tus.executeQuery("select * from town where pid = " + ID);
+			 ResultSet trs = tus.executeQuery("select * from town where pid = " + ID);
 			
 
 			// need to establish all.
@@ -698,16 +682,16 @@ public class Player  {
 			//	public Town(long res[], ArrayList<AttackUnit> au, int townID, String townName, int x, int y) {
 		int	i=0;
 			boolean found = false;
-			while(i<towns.size()) {
-				if(towns.get(i).townID==trs.getInt(1)) {
-					t=	towns.get(i);
+			while(i<towns().size()) {
+				if(towns().get(i).townID==trs.getInt(1)) {
+					t=	towns().get(i);
 					t.synchronize();
 					found=true;
 					break;
 				}
 				i++;
 			}
-			if(!found) towns.add(God.findTown(trs.getInt(1)));
+			if(!found) towns().add(God.findTown(trs.getInt(1)));
 			// means somebody added a new town. Town will take care of player switch.
 			}
 			trs.close(); tus.close();
@@ -854,18 +838,10 @@ public class Player  {
 
 	      String[] updateAU = new String[getAu().size()];
 	      AttackUnit hau;
-	      String weapons;
 	      try {
 	      while(co<getAu().size()) {
 	    	   hau = getAu().get(co);
-	    	   weapons="";
-	    	  int j = 0;
-	    	  while(j<hau.getWeap().length) { // this holds which weapon is what. And all that shizzit.
-	    		  weapons+=hau.getWeap()[j]+",";
-	    		  j++;
-	    		  
-	    	  }
-	    	  int type=hau.getType();
+	    	  
 	    	  updateAU[co] = "update attackunit set name = \"" + hau.getName() + "\", slot = " + hau.getSlot() +" where pid = " + ID +" and slot = "+  hau.getSlot() + ";";
 
 	    	  stmt.executeUpdate(updateAU[co]);
@@ -1064,7 +1040,7 @@ public class Player  {
 		au.setSlot(getAu().size());
 		try {
 			UberStatement stmt = con.createStatement();
-			stmt.execute("insert into attackunit(name,pid,slot) values ('"+au.getName()+"',"+ID+","+au.getSlot());
+			stmt.execute("insert into attackunit(name,pid,slot) values ('"+au.getName()+"',"+ID+","+au.getSlot() + ");");
 			stmt.close();
 			getAu().add(au);
 			
@@ -1085,11 +1061,18 @@ public class Player  {
 				
 				ArrayList<AttackUnit> newTAU = new ArrayList<AttackUnit>();
 				int i = 0;
-				while(i<t.getAu().size()) {
+				while(i<=t.getAu().size()) {
+					// t.getAu() has 3 aus, 0-2, then at i = 3, the new one will be added for a normal au array.
+					// if there are support au present, then this will also be added at 3, but then 
+					// the rest will get added normally, but their slot will be increased accordingly. 
 					if(i==au.getSlot()) {
 						newTAU.add(au.returnCopy());
 					}	// still have to add the old au at i, which is probably a support unit, after we add this one to it's correct slot!
+					if(i!=t.getAu().size())	{
+						if(i>au.getSlot())
+							t.getAu().get(i).setSlot(t.getAu().get(i).getSlot()+1); 
 						newTAU.add(t.getAu().get(i));
+					}
 
 					i++;
 				}
@@ -1126,30 +1109,27 @@ public class Player  {
 		 } catch(SQLException exc) { exc.printStackTrace(); } 
 	}
 	public ArrayList<AttackUnit> getAu() {
+		if(au==null) {
+			au = new ArrayList<AttackUnit>();
+
+			try{ 
+			UberStatement aus = con.createStatement();
+			 ResultSet aurs = aus.executeQuery("select * from attackunit where pid = " + ID); // should find six units.
+
+
+
+			while(aurs.next()) {
+				
+				
+				au.add(new AttackUnit(aurs.getString(1), aurs.getInt(3),0));
+			}
+			
+			aurs.close();aus.close(); 
+		} catch(SQLException exc) { exc.printStackTrace(); }
+		}
 		return au;
 	}
-	public ArrayList<AttackUnit> getMemAu() {
-		ArrayList<AttackUnit> au = new ArrayList<AttackUnit>();
-
-		try{ 
-		UberStatement aus = con.createStatement();
-		 ResultSet aurs = aus.executeQuery("select * from attackunit where pid = " + ID); // should find six units.
-
-
-
-		String weapons; int weapc = 0; String holdPart; int weapforau[];
-		while(aurs.next()) {
-			
-			
-			au.add(new AttackUnit(aurs.getString(1), aurs.getInt(3),0));
-		}
-		
-		aurs.close();aus.close(); 
-	} catch(SQLException exc) { exc.printStackTrace(); }
-	return au;
-
 	
-	}
 	
 	public ArrayList<Town> towns() {
 		if(towns==null) {
