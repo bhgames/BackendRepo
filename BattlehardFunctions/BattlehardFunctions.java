@@ -2334,7 +2334,64 @@ public class BattlehardFunctions {
 
 		
 		}*/
-		
+		/**
+		 * This is the combat sim. To use it, send in an array of names for the def and off. An example would be ["Pillager","Seeker"].
+		 * Then, make an integer array of the same size and send in the sizes of each unit. You can do the same with buildings in each town,
+		 * since buildings contribute to combat as well:
+		 * ["Command Center","Fortification", "Resource Cache", "Resource Cache"], and then you can send in the levels of each one.
+		 * 
+		 * The combat sim will spit out an SR into your SR box.
+		 */
+		public boolean combatSimulator(String offAUNames[], String defAUNames[], int offAUSizes[], int defAUSizes[], String offTownBuildings[], String defTownBuildings[],
+				int offTownBuildingLevels[], int defTownBuildingLevels[], String attackType, String[] target) {
+			
+			Town t1 = new Town(0,g);
+			Town t2 = new Town(0,g);
+			t2.townID=2;
+			t1.townID=1;
+			
+			Player p1 = new Player(0,g);
+			Player p2 = new Player(0,g);
+
+			p1.ID=1;
+			p2.ID =2;
+			ArrayList<Town> t1towns = new ArrayList<Town>();
+			ArrayList<Town> t2towns = new ArrayList<Town>();
+			t1towns.add(t1);
+			t2towns.add(t2);
+			int counter=0;
+			if(offTownBuildingLevels.length!=offTownBuildings.length) {
+				setError("Invalid town building arrays!");
+				return false;
+			}
+			if(defTownBuildingLevels.length!=defTownBuildings.length) {
+				setError("Invalid town building arrays!");
+				return false;
+			}
+			if(offAUNames.length!=offAUSizes.length) {
+				setError("Invalid AU arrays!");
+				return false;
+			}
+			if(defAUNames.length!=defAUSizes.length) {
+				setError("Invalid AU arrays!");
+				return false;
+			}
+			for(String bldg:offTownBuildings) {
+				t1.addBuilding(bldg,counter+4,offTownBuildingLevels[counter],0);
+				counter++;
+			}
+			counter=0;
+			for(String bldg:defTownBuildings) {
+				t1.addBuilding(bldg,counter+4,offTownBuildingLevels[counter],0);
+				counter++;
+			}
+			
+			p1.setTowns(t1towns);
+			p2.setTowns(t2towns);
+			
+			return false;
+			
+		}
 		/**
 		 * UI Implemented.
 		 * 

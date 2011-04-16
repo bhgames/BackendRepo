@@ -35,7 +35,7 @@ volatile private	int size; // Optional, can be set if you want AttackUnit to sto
 	// describe a general unit type also.
 private	String name; 
 private	int slot; // Which slot this unit is stored in.
-private	int lotNum; // For the civilians.
+private	int lotNum=-1; // For the civilians.
 private	String civType = "None";
 private int lvl;
 public static int soldierHP=100,tankHP=500,juggerHP=1000,bomberHP=4000,civilianHP=75,
@@ -245,7 +245,8 @@ public int getLvl() {
 		int lvl = a.getLvl();
 		int hp=0,attackDamage=0,attackType=1;
 		double armor=0,armorType=0,speed=0,cargo=0,expmod=1,type=0;
-		if(name.equals("Archaeologist")){
+		if(name.equals("Archaeologist")||
+				name.equals("Civilian")){
 			hp = 30;
 			attackDamage=15;
 			attackType=1; //physical
@@ -617,7 +618,8 @@ public int getLvl() {
 	}
 	
 	public void setValues() {
-		if(name.equals("Archaeologist")){
+		if(name.equals("Archaeologist")
+				||name.equals("Civilian")){
 			hp = 30;
 			attackDamage=15;
 			attackType=1; //physical

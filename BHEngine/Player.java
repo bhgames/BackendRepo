@@ -53,6 +53,7 @@ public class Player  {
 	private int totalBPEarned=0;
 	private int bp=0;
 	UberConnection con;
+	private boolean facsimile=false;
 	private boolean synchronize = false;
 	private League  league=null;
 	
@@ -83,6 +84,10 @@ public class Player  {
 		try {
 		   UberStatement stmt = God.con.createStatement();
 		   this.con=God.con;
+		   if(ID==0) {
+			   facsimile=true;
+			   ID = 5; // this means a test player, and we'll use Id as our example player for both sides.
+		   }
 		   this.ID=ID;
 		   this.God=God;
 		   ResultSet rs = stmt.executeQuery("select * from player where pid = " + ID);
@@ -175,12 +180,15 @@ public class Player  {
 	      // need to break apart weaptech into an array.
 	  
 			rs.close();
-
-			au = getAu(); 
-			try {
-			getAchievements();
-			} catch(Exception exc) { exc.printStackTrace(); System.out.println("No idea why this error happened, but player load saved."); } 
+			if(!facsimile) { // you must set them yourself if you are.
+				au = getAu(); 
+				try {
+				getAchievements();
+				} catch(Exception exc) { exc.printStackTrace(); System.out.println("No idea why this error happened, but player load saved."); } 
+			}
+			
 			ps = new PlayerScript(this);
+
 		} catch(SQLException exc) { exc.printStackTrace(); }
 
 	}
@@ -1109,7 +1117,7 @@ public class Player  {
 		 } catch(SQLException exc) { exc.printStackTrace(); } 
 	}
 	public ArrayList<AttackUnit> getAu() {
-		if(au==null) {
+		if(au==null&&!facsimile) {
 			au = new ArrayList<AttackUnit>();
 
 			try{ 
@@ -1132,7 +1140,7 @@ public class Player  {
 	
 	
 	public ArrayList<Town> towns() {
-		if(towns==null) {
+		if(towns==null&&!facsimile) {
 			towns = new ArrayList<Town>();
 		ArrayList<Town> totalTowns = God.getTowns();
 		try {

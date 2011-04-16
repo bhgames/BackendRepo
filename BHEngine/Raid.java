@@ -801,7 +801,7 @@ public class Raid {
    			
    		   update = "update raid set distance = " + distance + ", ticksToHit = " + ticksToHit + ", genocide = " +
    		  Genocide + ", raidOver = " + raidOver + ", allClear = " + allClear + ", m = "+  metal + ", t = " + 
-   		  timber + ", mm = " + manmat + ", f = " + food +  "auSizes='"+ PlayerScript.toJSONString(getAu()) +"', bomb = " + Bomb
+   		  timber + ", mm = " + manmat + ", f = " + food +  ", auSizes='"+ PlayerScript.toJSONString(getAu()) +"', bomb = " + Bomb
 	    	  + ", bombtarget = '" + PlayerScript.toJSONString(bombTarget) + "', support = " + support + ", scout = " + scout+ ", invade = " + invade + ", resupplyID = " +
 	    	  resupplyID + ", totalTicks = " + totalTicks + " where rid = " + raidID +";";
    		  } catch(IndexOutOfBoundsException exc) {
