@@ -8098,6 +8098,7 @@ public boolean checkForGenocides(Town t) {
 
 		if(holdAttack.bomb()&&holdAttack.bombTargets().length>0) {
 			System.out.println("Bomb is on and we have targets.");
+			AttackUnit bldgAU;
 			for(Building bl: t2.bldg()) {
 				
 				for(String targ:holdAttack.bombTargets()) {
@@ -8110,8 +8111,12 @@ public boolean checkForGenocides(Town t) {
 						}
 						
 						if(!alreadyThere) {
-							System.out.println("Adding the building "+ bl.getType() + " at " + bl.getLotNum());
-							t2au.add(new AttackUnit(bl.getType(),bl.getLotNum(),bl.getLvl()));
+							System.out.println("Adding the building "+ bl.getType() + " at " + bl.getLotNum() + " with level " +bl.getLvl());
+							bldgAU = new AttackUnit(bl.getType(),t2au.size(),bl.getLvl());
+							bldgAU.setLotNum(bl.getLotNum());
+							System.out.println("The au for " + bl.getType() + " has a lvl of " + bl.getLvl());
+							bldgAU.setSize(1);
+							t2au.add(bldgAU);
 							doBombingRun=true;
 						}
 					}
@@ -8334,9 +8339,10 @@ public boolean checkForGenocides(Town t) {
 						}
 					}
 					for(AttackUnit a:t2au) {
-						if((!stopAirFight&&a.getType()==4)||(stopAirFight&&a.getType()!=4)) {
+						if((!stopAirFight&&a.getType()==4)||(stopAirFight&&!startBombing&&a.getType()!=4&&a.getType()!=5)||(startBombing&&a.getType()==5)) {
 								System.out.println(a.getName() + " is contributing to defensive expmod this round.");
-								thisRoundExpAdvSizeDef+=a.getSize()*a.getExpmod();
+								if(!startBombing) thisRoundExpAdvSizeDef+=a.getSize()*a.getExpmod();
+								else thisRoundExpAdvSizeDef+=a.getSize()*a.getLvl();// we want numbers to represent relative levels.
 							}
 
 					}
@@ -8345,16 +8351,21 @@ public boolean checkForGenocides(Town t) {
 					while(k<t2au.size()) {
 						 def = t2au.get(k);
 						 double differentialfrac=0;
-						 if(thisRoundExpAdvSizeDef==0)
+						 if(thisRoundExpAdvSizeDef==0) {
 							 differentialfrac = ((double) def.getSize())*((double) def.getExpmod()); // so damage gets distributed to this
-						 else
-						 differentialfrac = ((double) def.getSize())*((double) def.getExpmod())/(((double) thisRoundExpAdvSizeDef)); // so damage gets distributed to this
-						// army component proportional to the size of which it makes up the enemy army, not just divided evenly
+						
+						 }else {
+							if(startBombing&&def.getType()==5) { // so diff frac for buildings is determined by it's level.
+								differentialfrac =  ((double) def.getSize())*((double) def.getLvl())/(((double) thisRoundExpAdvSizeDef));
+							}else
+								differentialfrac = ((double) def.getSize())*((double) def.getExpmod())/(((double) thisRoundExpAdvSizeDef)); // so damage gets distributed to this
+						 }
+						 // army component proportional to the size of which it makes up the enemy army, not just divided evenly
 						// by six if there are six components, say.
-						if((!stopAirFight&&(def.getType()==4||def.getType()==5))||(stopAirFight&&def.getType()!=4&&def.getType()!=5))
+					//	if((!stopAirFight&&(def.getType()==4||def.getType()==5))||(!startBombing&&stopAirFight&&def.getType()!=4&&def.getType()!=5)||(startBombing&&def.getType()==5))
 						while(j<t1au.size()) {
 							 off = t1au.get(j);
-							 if(((!startBombing&&!stopAirFight&&(off.getType()==4)&&(def.getType()==4))||
+								 if(((!startBombing&&!stopAirFight&&(off.getType()==4)&&(def.getType()==4))||
 										(!startBombing&&stopAirFight&&off.getType()!=4&&def.getType()!=4&&off.getType()!=5&&def.getType()!=5)
 										||(startBombing&&def.getType()==5)) &&
 										def.getSize()>0&&off.getSize()>0) {		
@@ -8440,7 +8451,7 @@ public boolean checkForGenocides(Town t) {
 							 if(off.getSupport()>0) attacker = off.getOriginalPlayer();
 							 Player defender = t2p;
 							 if(def.getSupport()>0) defender = def.getOriginalPlayer();
-							 double HPChange = weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off, attacker,defender))*differentialfrac*fero*fortSummation;
+							 double HPChange = off.getSize()*weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off, attacker,defender))*differentialfrac*fero*fortSummation;
 							 if(stopAirFight&&offensiveWonAirBattle&&airUnitsPresent){
 								 System.out.println("Air battle advantage is being applied to the offense.");
 								 HPChange*=airBattleAdvantage;
@@ -8473,7 +8484,7 @@ public boolean checkForGenocides(Town t) {
 						else
 						 differentialfrac = ((double) def.getSize())*((double) def.getExpmod())/(((double) thisRoundExpAdvSizeOff)); // so damage gets distributed to this
 						// use OFF here, def is a t1au unit, I just used def and off in reverse to keep the formula the same!
-						if((!stopAirFight&&def.getType()==4)||(stopAirFight&&def.getType()!=4))
+					//	if((!stopAirFight&&def.getType()==4)||(stopAirFight&&def.getType()!=4))
 						while(j<t2au.size()) {
 							//size*population*(acc/Cd)(fp/armor)(ammo/speed)
 							 off = t2au.get(j);
@@ -8497,7 +8508,7 @@ public boolean checkForGenocides(Town t) {
 								 if(off.getSupport()>0) attacker = off.getOriginalPlayer();
 								 Player defender = t1p;
 								 if(def.getSupport()>0) defender = def.getOriginalPlayer();
-								 double HPChange = weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off,attacker,defender))*differentialfrac*fero;
+								 double HPChange = off.getSize()*weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off,attacker,defender))*differentialfrac*fero;
 								 if(stopAirFight&&!offensiveWonAirBattle&&airUnitsPresent) {
 									 System.out.println("The air battle advantage is being applied to the defense, as in they got it..");
 									 HPChange*=airBattleAdvantage;
@@ -8619,7 +8630,7 @@ public boolean checkForGenocides(Town t) {
 						double holdOld = holdUnit.getSize();
 
 						if(holdUnit.getType()==5) {
-							System.out.println("Building getting checked out.");
+							System.out.println("Building getting checked out. It has lot num of " + holdUnit.getLotNum());
 							holdOld=holdUnit.getLvl();
 						}
 						if(t2au.get(k).getType()!=5) // no using exponential advantage on BUILDINGS. It would be really steep, since there are only like 15 of them.
@@ -8663,13 +8674,15 @@ public boolean checkForGenocides(Town t) {
 							
 						
 						} else {
+							
+							System.out.println(holdUnit.getName() + " is falling in here.");
 							// means this is a building unit! it has a lot number, but is a type 5, not a civvie unit, which has a lot but
 							// the lot can be -2 if it's a dig scholar or the lot of it's building. A civvie unit has type of 1, like a soldier,
 							// so the difference between the scholar in the institute and the institute is the type, which is 1 if scholar, 5 if
 							// the institute. If the scholar is on a dig, then his lot is -2, because he is in no building, and it's not -1 because
 							// -1 is used to detect non-civilian combat units.
 							if(holdUnit.getTrueHp(t2p)>0){
-								holdUnit.setLvl((int) Math.round(((double) holdHP)/(holdUnit.getTrueHp(t2p))));  // so we set lvl like we do size for units,
+								holdUnit.setLvl((int) Math.round(((double) holdHP*holdUnit.getLvl())/(holdUnit.getTrueHp(t2p))));  // so we set lvl like we do size for units,
 								// but size is always one with these buildings.
 								System.out.println("Level before on lotnum " + holdUnit.getLotNum() + " was " + holdOld + " level after is " + holdUnit.getLvl()
 										+ " because holdHP is " + holdHP + " and true HP is  "+ holdUnit.getTrueHp(t2p));
@@ -8677,6 +8690,7 @@ public boolean checkForGenocides(Town t) {
 								}
 								if(holdUnit.getLvl()<0) {
 									holdUnit.setSize(0); // so we know it's a dead building.
+									holdUnit.setLvl(0);
 								//	holdUnit.setSize(0); // in case they are zero.
 									System.out.println("Building is dead.");
 								}
@@ -8686,7 +8700,7 @@ public boolean checkForGenocides(Town t) {
 						defUnitsLost[k] +=(int) (holdOld-holdUnit.getLvl());
 							else
 						defUnitsLost[k] +=(int) (holdOld-holdUnit.getSize());
-						
+
 						if(holdUnit.getSupport()==0) {
 							try {
 							particularCost = t2p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t2.townID);
@@ -8740,7 +8754,7 @@ public boolean checkForGenocides(Town t) {
 							break;
 						}
 						
-						if(rounds==roundsLimit&&doBombingRun) {
+						if(rounds==roundsLimit&&doBombingRun&&!startBombing) {
 							System.out.println("Beginning bombing run.");
 							startBombing=true;
 							rounds=0; // this takes us from normal combat into a bomb mode, where only buildings take damage from offensive au.
@@ -8848,7 +8862,7 @@ public boolean checkForGenocides(Town t) {
 
 						k++;
 					}
-					k=0;
+					k=0; Building toDie;
 					while(k<t2au.size()) {
 						holdUnit = t2au.get(k);
 						expModDefAft+=(holdUnit.getSize())*holdUnit.getExpmod();
@@ -8856,6 +8870,9 @@ public boolean checkForGenocides(Town t) {
 
 						if(holdUnit.getLotNum()!=-1) { // we remove the civvie and bldg AFTER getting numUnitsRemaining, etc, or else it gets removed before we take data and
 							//it's all fucked up.
+							toDie = t2.findBuildingByLot(holdUnit.getLotNum());
+							if(holdUnit.getSize()==0&&!toDie.isResourceProducerBldg()) t2.killBuilding(toDie.bid);
+							else toDie.setLvl(holdUnit.getLvl());
 							t2au.remove(k);
 							k--;//remove the civilian unit, no further need for it.
 						}
@@ -8903,9 +8920,10 @@ public boolean checkForGenocides(Town t) {
 				double percentlossdiff=100; // we know that generally the beginning off must have at least 1, but the def may
 				// indeed have 0, in which case we do not want to do this with a 0/0 thing in there, so if it does,
 				// percentlossdif is already 100!
+				System.out.println("expModOffAft is " +expModOffAft + " starting was " + currentExpAdvSizeOff + " def aft is " + expModDefAft + " def starting was "+currentExpAdvSizeDef);
 				if(currentExpAdvSizeOff!=0&&currentExpAdvSizeDef!=0) {
-					 percentlossoff = 100*(((double) expModOffAft)/((double) currentExpAdvSizeOff));
-					 percentlossdef = 100*(((double) expModDefAft)/((double) currentExpAdvSizeDef));
+					 percentlossoff = 100-100*(((double) expModOffAft)/((double) currentExpAdvSizeOff));
+					 percentlossdef = 100-100*(((double) expModDefAft)/((double) currentExpAdvSizeDef));
 
 				 percentlossdiff=Math.round(percentlossdef-percentlossoff);
 				 
@@ -9450,7 +9468,7 @@ public boolean checkForGenocides(Town t) {
 				      int offbp=0,defbp=0;
 				      if(percentlossdiff<0) { defbp=bp; offbp=bp/2;} else {offbp=bp; defbp=bp/2;} // >-30 means that positive means incoming won,
 				      // so we know what to set!
-				     
+				     System.out.println("Perc loss diff is " + percentlossdiff + " keeping in mind that - means that defender lost less than off.");
 				      if(percentlossdiff>(-30))
 				      stmt.execute("insert into statreports (defender,invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,combatdata,combatheader,bp,premium,ax,ay,dx,dy,offTownName,defTownName,zeppText,debm,debt,debmm,debf,offdig,defdig,digMessage) values" +
 				      		"(false," + invade + "," + invsucc + "," + scout + "," + actattack.getMetal() + "," + actattack.getTimber() + "," +actattack.getManmat() + "," + actattack.getFood() +","

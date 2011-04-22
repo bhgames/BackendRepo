@@ -675,9 +675,16 @@ public static int baseResourceAmt = 2000;
 	public boolean isMineBldg() {
 		String type = getType();
 		if(type.equals("Metal Warehouse")||type.equals("Lumber Yard")
-				||type.equals("Manufactured Materials Warehouse")||type.equals("Granary")) return true;
+				||type.equals("Crystal Repository")||type.equals("Granary")) return true;
 		else return false;
 	}
+	public boolean isResourceProducerBldg() {
+		String type = getType();
+		if(type.equals("Metal Mine")||type.equals("Timber Field")
+				||type.equals("Crystal Mine")||type.equals("Farm")) return true;
+		else return false;
+	}
+
 	public static long[] getCost(String type) {
 		
 		long cost[] = new long[5];
