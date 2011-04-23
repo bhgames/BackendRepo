@@ -1085,7 +1085,11 @@ public class Player  {
 					i++;
 				}
 				t.setAu(newTAU);
-				
+				i=0;
+				while(i<t.getAu().size()) {
+					System.out.println(i + " has " + t.getAu().get(i).getName() + " with support of " + t.getAu().get(i).getSupport());
+					i++;
+				}
 			}
 			
 			save();

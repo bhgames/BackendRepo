@@ -5086,6 +5086,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, Town2, Genocide, Bomb,support,invade,name,debris,au,digAmt); // digAmt may not be the requirement,
 		// but it'll always be zero if dig isn't on!
 		if(Bomb) holdAttack.setBombTarget(target);
+		else holdAttack.setBombTarget(new String[0]);
 		if(scout==1) holdAttack.makeScoutRun(); // never going to be a bomb+scout run.
 		
 		
@@ -9185,13 +9186,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		    		boolean support = rs.getBoolean(15);
 		    		if(!support)
 		    		currSR.add(new UserSR(currSID,rs.getString(4),rs.getString(5),rs.getString(6),rs.getString(7),rs.getString(8),
-		    				rs.getString(9),rs.getString(38),rs.getString(39),rs.getBoolean(10),rs.getBoolean(11),bombResultBldg,rs.getString(14),bname,defender,rs.getInt(18),rs.getInt(19),
+		    				rs.getString(9),rs.getString(38),rs.getString(39),rs.getBoolean(10),rs.getBoolean(11),rs.getBoolean(51),defender,rs.getInt(18),rs.getInt(19),
 		    				rs.getInt(20),rs.getInt(21),rs.getInt(22),rs.getBoolean(23),rs.getBoolean(24),rs.getInt(25),rs.getBoolean(26),rs.getString(28),rs.getString(29),rs.getString(30),rs.getInt(31),rs.getBoolean(32),rs.getBoolean(33),rs.getInt(34),rs.getInt(35),rs.getInt(36),rs.getInt(37),rs.getString(40),
 		    				rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49),rs.getString(50)));
 		    		else { 
 		    			bname = new String[1]; bname[0]= "null";
 		    			UserSR SR = new UserSR(currSID,rs.getString(4),rs.getString(5),"","",rs.getString(8),"",rs.getString(38),rs.getString(39),
-			    				false,rs.getBoolean(11),"null","null",bname,defender,rs.getInt(18),rs.getInt(19),
+			    				false,rs.getBoolean(11),rs.getBoolean(51),defender,rs.getInt(18),rs.getInt(19),
 			    				rs.getInt(20),rs.getInt(21),rs.getInt(22),rs.getBoolean(23),rs.getBoolean(24),rs.getInt(25),rs.getBoolean(26),rs.getString(28),rs.getString(29),rs.getString(30),rs.getInt(31),rs.getBoolean(32),rs.getBoolean(33),rs.getInt(34),rs.getInt(35),rs.getInt(36),rs.getInt(37),rs.getString(40)
 			    				,rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49),rs.getString(50));
 		    			currSR.add(SR);
@@ -9230,7 +9231,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 */
 	public boolean setFortification(int auNumbers[], int bid) {
 		if(prog&&!p.isBuildingAPI()) {
-			setError("You do not have the  Building API!");
+			setError("You do not have the Building API!");
 			return false;
 		}
 		Building b = p.findBuilding(bid);
@@ -9241,6 +9242,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 		if(auNumbers.length!=p.getAu().size()) {
 			setError("This array is the correct length! There must be one entry for every Attack Unit you can build!");
+			return false;
 		}
 		int i = 0;
 		int max = b.getLvl()*2;
@@ -9248,12 +9250,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		int desired=0;
 		while(i<auNumbers.length) {
-			desired+=auNumbers.length*t.getAu().get(i).getExpmod();
+			desired+=auNumbers[i]*t.getAu().get(i).getExpmod();
 			// so if the type is not 1 or it is 2 and not advanced fortifications, break.
 			// break = !1 + 2*!adv
 			// which means not break = 1*!(2*!adv)=1*(!2+adv)
 			// or to say, if it's 1 and not 2 or if it's 1
-			if(t.getAu().get(i).getType()!=1) {
+			if(t.getAu().get(i).getType()!=1&&auNumbers[i]>0) {
 				if((t.getAu().get(i).getType()==2&&p.getAdvancedFortifications())) {
 					// this guy is okay.
 				} else {

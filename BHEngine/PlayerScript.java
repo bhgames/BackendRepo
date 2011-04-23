@@ -1409,6 +1409,14 @@ public class PlayerScript implements Runnable {
     				 k++;
     			 }
     			 str.endArray()
+    			 .key("bldgNames").array();
+    			 defNames = s.getBldgNames();
+    			  k = 0;
+    			 while(k<defNames.length) {
+    				 str.value(defNames[k]);
+    				 k++;
+    			 }
+    			 str.endArray()
     			 .key("support")
     			 .value(s.support)
     			 .key("zeppText")
@@ -1423,31 +1431,9 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 .value(s.genocide)
     			 .key("isDebris")
     			 .value(s.isDebris())
-    			 .key("lotNumBombed").array();
-    			 k = 0;
-    			 while(k<s.lotNum.length) {
-    				 str.value(s.lotNum[k]);
-    				 k++;
-    			 }
-    			 
-    			 str.endArray()
-    			 .key("oldlvl").array();
-    			 k = 0;
-    			 while(k<s.oldlvl.length) {
-    				 str.value(s.oldlvl[k]);
-    				 k++;
-    			 }
-    			 
-    			 str.endArray()
-    			 .key("btype").array();
-    			 k = 0;
-    			 while(k<s.btype.length) {
-    				 str.value(s.btype[k]);
-    				 k++;
-    			 }
-    			 
-    			 str.endArray()
-    			 .key("isDefender")
+    			 .key("bomb")
+    			 .value(s.bomb)
+       			 .key("isDefender")
     			 .value(s.defender)
     			 .key("scout")
     			 .value(s.scout)
@@ -1498,11 +1484,20 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     				 k++;
     			 }
     			 str.endArray()
+    			
     			 .key("defEnd").array();
     			 int defend[] = s.getDefEndArray();
     			  k = 0;
     			 while(k<defend.length) {
     				 str.value(defend[k]);
+    				 k++;
+    			 }
+    			 str.endArray()
+    			  .key("lvlArray").array();
+    			   defbeg = s.getLvlArray();
+    			  k = 0;
+    			 while(k<defbeg.length) {
+    				 str.value(defbeg[k]);
     				 k++;
     			 }
     			 str.endArray()

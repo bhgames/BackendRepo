@@ -8,13 +8,14 @@ import java.sql.Date;
 import java.util.ArrayList;
 
 import BHEngine.AttackUnit;
+import BHEngine.Building;
 import BHEngine.PlayerScript;
 public class UserSR {
 
 	/*
 	 * This holds all you need to know about a SR.
 	 */
-	public boolean read = false; ArrayList<String> offList, defList; String combatHeader;
+	public boolean read = false; ArrayList<String> offList, defList,bldgList,lvlList; String combatHeader;
 	String createdAt; String name;
 	private boolean blastable;
 	private int ax,ay,dx,dy;
@@ -23,11 +24,11 @@ public class UserSR {
 	private boolean nukeSucc;
 	private boolean nuke;
 	private boolean debris,offdig,defdig; private String digMessage;
-	String defNames, offNames, offst, offfi, defst, deffi, townOff,townDef,bombResultBldg[],bombResultPpl[]; public int sid; public boolean genocide=false; public boolean archived=false;
-public int lotNum[];public int oldlvl[]; public String btype[]; public boolean defender = false;public int scout;public int resupplyID=-1;
+	String defNames, offNames, offst, offfi, defst, deffi, townOff,townDef; public int sid; public boolean genocide=false,bomb=false; public boolean archived=false;
+	public boolean defender = false;public int scout;public int resupplyID=-1;
 public int bp; public boolean premium;
 	public int ppllost=0; public boolean support = false;public int m,t,mm,f; public boolean invade=false;public boolean invsucc=false;
-	public UserSR(int sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, String bombResultBldgText, String bombResultPplText, String btype[], boolean defender,int m,int t,int mm, int f, int scout, boolean invade, boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+	public UserSR(int sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
 			,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage) {
 		this.defNames = defNames; this.offNames=offNames; this.offst=offst; this.offfi = offfi;this.read=read;this.digMessage=digMessage;
 		this.defst = defst; this.deffi = deffi; this.townOff = townOff; this.townDef = townDef;
@@ -47,18 +48,14 @@ public int bp; public boolean premium;
 			this.archived=archived;
 			this.invade=invade; this.invsucc=invsucc;
 			// new instances are separated by +'s.
-			this.bombResultBldg = getStringArrayFromPluses(bombResultBldgText);
-			this.bombResultPpl = getStringArrayFromPluses(bombResultPplText);
-			
+	
 			this.m=m;this.t=t;this.mm=mm;this.f=f;
 			this.resupplyID=resupplyID;
 			this.ax=ax;this.ay=ay;this.dx=dx;this.dy=dy;
 		int i = 0;
-		lotNum = new int[bombResultBldg.length];
-		oldlvl = new int[bombResultBldg.length];
-		this.btype=btype;
+		this.bomb=bomb;
 		String holdPart;
-		while(i<this.bombResultBldg.length) {
+	/*	while(i<this.bombResultBldg.length) {
 			if(!bombResultBldg[i].equals("null")&&!bombResultBldg[i].equals("nobldg")&&!bombResultBldg[i].equals("vic")) {
 				 lotNum[i] = Integer.parseInt(bombResultBldg[i].substring(2,bombResultBldg[i].indexOf(".")));
 				 holdPart = bombResultBldg[i].substring(bombResultBldg[i].indexOf(".")+1,bombResultBldg[i].length());
@@ -70,8 +67,8 @@ public int bp; public boolean premium;
 			//b = b.returnCopy();
 			}
 			i++;
-		}
-		i = 0;
+		}*/
+		i = 0;/*
 		while(i<bombResultPpl.length) {
 			if(!bombResultPpl[i].equals("null")&&!bombResultPpl[i].equals("noppl")&&!bombResultPpl[i].equals("vic")) { // only want to print vic once, right?
 				// Might as well do arithmetic now and not over and over again later.
@@ -91,7 +88,7 @@ public int bp; public boolean premium;
 			ppllost+=totalkilled;
 			}
 			i++;
-		}
+		}*/
 	}
 	public String getCreatedDate() {
 		return createdAt;
@@ -152,6 +149,8 @@ public int bp; public boolean premium;
 		if(scout!=1) {
 
 			return getIntArray(offfi);
+			
+			
 			} else return new int[1];
 		
 	}
@@ -172,7 +171,15 @@ public int bp; public boolean premium;
 		if(scout!=1) {
 		
 			if(resupplyID==-1&&defst!=null) {
-				return getIntArray(defst);
+				int[] toR =  getIntArray(defst);
+				int realR[] = new int[defList.size()];
+				int i = 0;
+				while(i<realR.length) {
+					realR[i]=toR[i];
+					i++;
+				}
+				
+				return realR; // based on premise that buildings always the last on the stack.
 			}
 		}
 		return new int[1];
@@ -187,12 +194,69 @@ public int bp; public boolean premium;
 		if(scout!=1) {
 		
 			if(resupplyID==-1&&deffi!=null) {
-				return getIntArray(deffi);
+				int[] toR =  getIntArray(deffi);
+				int realR[] = new int[defList.size()];
+				int i = 0;
+				while(i<realR.length) {
+					realR[i]=toR[i];
+					i++;
+				}
+				
+				return realR; // based on premise that buildings always the last on the stack.
+				
 			}
 		}
 		
 		return new int[1];
 
+	}
+	/**
+	 * Returns the ending levels of all the buildings in the building name list, so if you had a Metal Mine bombed in your list at index 1, 
+	 * this array at index 1 would have the level it ended at.
+	 * @return
+	 */
+	public int[] getLvlArray() {
+		
+		if(scout!=1) {
+		
+			if(resupplyID==-1&&deffi!=null) {
+				int[] toR =  getIntArray(deffi);
+				int[] toR2 =  getIntArray(defst);
+
+				int realR[] = new int[bldgList.size()];
+				int i = 0;
+				while(i<realR.length) {
+					realR[i]=toR2[i+defList.size()]-toR[i+defList.size()]; // so if there is two unit, and the building is at index 2, then this is 0 + 2 = 2.
+					i++;
+				}
+				
+				return realR; // based on premise that buildings always the last on the stack.
+				
+			}
+		}
+		
+		return new int[1];
+
+	}
+	/**
+	 * Returns the names of the buildings that were bombed.
+	 * @return
+	 */
+	public String[] getBldgNames() {
+		String[] bldg;
+		if(bldgList==null) getRaidString();
+		if(bldgList!=null) {
+		bldg=new String[bldgList.size()];
+		int i =0;
+		for(String x:bldgList) {
+			bldg[i]=x;
+			i++;
+		}
+		return bldg;
+		} else {
+			bldg = new String[0];
+			return bldg;
+		}
 	}
 	/**
 	 * Returns the attack's name.
@@ -203,18 +267,20 @@ public int bp; public boolean premium;
 	}
 	public String[] getOffNames() {
 		int i = 0;
-		getRaidString(); // to populate the offList.
+		if(offList==null) 
+			getRaidString(); // to populate the offList.
 		String toRet[] = new String[offList.size()];
 		while(i<toRet.length) {
 			toRet[i] = removeDoubleColons(new String(offList.get(i)));
 			i++;
 		}
-		
 		return toRet;
 	}
 	public String[] getDefNames() {
 		int i = 0;
-		getRaidString(); // to populate the offList.
+		if(defList==null) 
+			getRaidString(); // to populate the offList.
+
 		String toRet[] = new String[defList.size()];
 		while(i<toRet.length) {
 			toRet[i] = removeDoubleColons(new String(defList.get(i)));
@@ -238,9 +304,9 @@ public int bp; public boolean premium;
 		if(offdig) townOff = " The dig team from " + townOff;
 		if(defdig) townDef = " the dig team on " + townDef;
 
-		if(genocide&&!bombResultBldg[0].equals("null")) toret= townOff + " bombs " + townDef+" as part of a Glassing campaign.";
+		if(genocide&&bomb) toret= townOff + " bombs " + townDef+" as part of a Glassing campaign.";
 		else if(genocide) toret= townOff + " attacks " + townDef+" as part of a Siege campaign.";
-		else if(!genocide&&!bombResultBldg[0].equals("null")&&!debris) toret = townOff + " strafes " + townDef;
+		else if(!genocide&&bomb&&!debris) toret = townOff + " strafes " + townDef;
 		else if(!genocide&&!debris) toret = townOff + " attacks " + townDef;
 		else if(debris) toret = townOff + " collects debris from " +townDef;
 		
@@ -259,7 +325,7 @@ public int bp; public boolean premium;
 		if(support) toret = townOff + " supplies " + townDef; // separate from other ifs,
 		// support changes the entire thing, no matter the other boolean variables.
 		
-		if(resupplyID!=-1&&!bombResultBldg[0].equals("null")) toret=townOff + " resupplies a Glassing campaign raid.";
+		if(resupplyID!=-1&&bomb) toret=townOff + " resupplies a Glassing campaign raid.";
 		else if(resupplyID!=-1) toret=townOff+" resupplies a Siege campaign raid.";
 			// so we do the least stuff last, so specifics get checked first.
 		if(scout==1) toret=townOff + " spies on " + townDef;
@@ -316,7 +382,7 @@ public int bp; public boolean premium;
 	public String getHeaders() {
 		String toRet="";
 		int i = 0;
-		while(i<bombResultBldg.length) {
+		/*while(i<bombResultBldg.length) {
 			if(!bombResultBldg[i].equals("null")&&!bombResultBldg[i].equals("nobldg")) {
 				if(bombResultBldg[i].equals("vic")) toRet+=("Your bombing mission was successful. No targets remain.;");
 				else {
@@ -332,17 +398,17 @@ public int bp; public boolean premium;
 				
 			}
 			i++;
-		}
-		if(ppllost>0) {
+		}*/
+	/*	if(ppllost>0) {
 			//how are these printed? One line for every building? Or just a total number killed? Probably best to do a total number killed...
 			// do this by sucking up the string...
 
 			toRet+=(ppllost+ " citizens were killed in this bombing run.;");
 
-		}
+		}*/
 		if(!support&&resupplyID==-1&&scout==0){
 			// if it is not a support run, or a resupply run, or a scouting run, then print resources taken...
-		toRet+= m + " Metal, "+ t + " Timber, " + mm + " Manufactured Materials, and " + f + " Food were taken in the attack.;";
+		toRet+= m + " Metal, "+ t + " Timber, " + mm + " Crystal, and " + f + " Food were taken in the attack.;";
 	//	if(premium) {
 		//	toRet+="You received " + bp + " BP from this attack. ";
 		//} else toRet+=+ bp + " BP received with premium membership. ";
@@ -398,7 +464,7 @@ public int bp; public boolean premium;
 			
 			
 			if(m!=-1) 
-			toRet+=(m + " Metal, "+ t + " Timber, " + mm + " Manufactured Materials, and " + f + " Food were sited at this location.;");
+			toRet+=(m + " Metal, "+ t + " Timber, " + mm + " Crystal, and " + f + " Food were sited at this location.;");
 			else toRet+=("Resources were not reconnoitered on this scouting run.;");
 		
 		}
@@ -552,7 +618,8 @@ public int bp; public boolean premium;
 	boolean superIndent=false; // only enacted if scout is on and we get attack unit info.
 	offList = new ArrayList<String>();
 	defList = new ArrayList<String>();
-	
+	bldgList = new ArrayList<String>();
+
 	String number, offName, numberlost,unitStats[],nametest;
 	int lengths[];
 	while(i<offCount-1) {
@@ -700,17 +767,18 @@ public int bp; public boolean premium;
 		// no use in ??? out buildings, which happens with scout==1.
 		else defName = defNamestemp.substring(0,defNamestemp.indexOf(","));
 		// no need for ??? for defensive purposes!!!
-		
+		if(Building.getCost(defName)[0]==0)
+		defList.add(new String(defName));
+		else bldgList.add(new String(defName));
+
 	
 		
 		// need to format correctly - whichever is larger controls the pie, so to speak!
 		if(defName.length()>number.length()) {
 			if(defName.endsWith(";")) {
-				defList.add(new String(defName));
 				toRet+=defName;
 			}
 			else {
-				defList.add(new String(defName));
 				toRet+=(defName+";");
 
 			}
