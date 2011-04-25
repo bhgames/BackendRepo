@@ -1,6 +1,7 @@
 package BHEngine;
 
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.Hashtable;
 
 import BattlehardFunctions.UserRaid;
@@ -25,11 +26,20 @@ public class doMethod  extends Thread {
 	public void run() {
 
 		try {
-			
-		
+			Date currTime = new Date();
+			long before = currTime.getTime();		
 			Method hourly = p.getClass().getMethod(method,classes);
+			currTime = new Date();
+			long afterTime = currTime.getTime();
+			System.out.println("Finding the method" + method + " took " + (afterTime-before) + " ms.");
+			 currTime = new Date();
+			 before = currTime.getTime();		
 			hourly.invoke(p,params);
-		
+			 currTime = new Date();
+
+			 afterTime = currTime.getTime();
+				System.out.println("Running the method" + method + " took " + (afterTime-before) + " ms.");
+
 		} catch(Exception exc) { exc.printStackTrace(); } 
 	}
 }

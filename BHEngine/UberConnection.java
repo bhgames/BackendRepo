@@ -10,6 +10,8 @@ public class UberConnection  {
 	private Connection con;
 	private GodGenerator God;
 	private ArrayList<UberStatement> stmtPool = new ArrayList<UberStatement>();
+	private ArrayList<UberPreparedStatement> prepStmtPool = new ArrayList<UberPreparedStatement>();
+
 	public UberConnection(String url, String user, String pass, GodGenerator God) {
 		// TODO Auto-generated constructor stub
 		this.God=God;
@@ -49,18 +51,36 @@ public class UberConnection  {
 			
 			i++;
 		}
+		 i = 0;
+
+		UberPreparedStatement ps;
+		 gameClock = God.gameClock;
+		while(i<prepStmtPool.size()) {
+			ps = prepStmtPool.get(i);
+			
+				if(ps.isTaken()&&ps.getLastOpenedTick()<(gameClock-10)) {
+					// fuck this shit.
+			//		System.out.println("releasing "+ stmtPool.get(i) + " due to a memory leak. It was opened at " + stmtPool.get(i).getLastOpenedTick() + " and gameClock is now " + God.gameClock);
+					prepStmtPool.get(i).close(); // by doing this we don't kill it immediately, it has more time to be taken, maybe?
+				//	stmtPool.remove(i);
+					//i--;
+					
+				}
+			
+			i++;
+		}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-	public synchronized UberStatement createStatement() throws SQLException {
+	public synchronized UberStatement createStatement(int x) throws SQLException {
 		int i = 0; boolean found=false; int extraCounter=0; int index = 0;
 		
 			
 		while(i<stmtPool.size()) {
 			if(found) extraCounter++;
-			if(!stmtPool.get(i).isTaken()) {
+			if(!stmtPool.get(i).isTaken()&&!found) {
 				index = i;
 				found = true;
 			}
@@ -115,12 +135,83 @@ public class UberConnection  {
 		
 		
 	}
+	public synchronized UberPreparedStatement createStatement(String theStmt) throws SQLException {
+		int i = 0; boolean found=false; int extraCounter=0; int index = 0;
+		
+			int totalStmtsOfThisType=0;
+		while(i<prepStmtPool.size()) {
+			if(found&&prepStmtPool.get(i).isStatement(theStmt)) {
+				extraCounter++;
+				totalStmtsOfThisType++;
+
+			}
+			if(!found&&!prepStmtPool.get(i).isTaken()&&prepStmtPool.get(i).isStatement(theStmt)) {
+				index = i;
+				found = true;
+				totalStmtsOfThisType++;
+			}
+		
+			i++;
+		}
+		
+		if(found) {
+			
+			UberPreparedStatement stmt=	prepStmtPool.get(index);
+		//	System.out.println("Opening the stmt " + stmt.myString + " but was looking for " + theStmt);
+			stmt.open();
+			
+			double frac = ((double) extraCounter)/((double) totalStmtsOfThisType);
+		//	System.out.println("frac is " + frac);
+			if(frac>.2) {
+				// need to close some connections;
+				int numToClose = (int) Math.round((frac/2.0)*((double) totalStmtsOfThisType));
+				extraCounter=0;
+		//		System.out.println("closing " + numToClose);
+				
+				while(extraCounter<numToClose) {
+			//		System.out.println("Trying");
+					i = 0;
+					boolean noneClosed=true;
+					while(i<prepStmtPool.size()) {
+					
+						if(!prepStmtPool.get(i).isTaken()&&prepStmtPool.get(i).isStatement(theStmt)) {
+				//			System.out.println("destroying "+ stmtPool.get(i));
+							prepStmtPool.get(i).destroy();
+							prepStmtPool.remove(i);
+							i--;
+							noneClosed=false;
+							extraCounter++;
+						}
+						i++;
+					}
+					
+					if(noneClosed) break;
+					
+				
+				}
+			}
+			
+			return stmt;
+			
+		} else {
+		//	System.out.println("Adding a statement. stmtPool is " + stmtPool.size());
+		//	System.out.println("Adding a new statement for " + theStmt);
+			prepStmtPool.add(new UberPreparedStatement(con.prepareStatement(theStmt),God,theStmt));
+			prepStmtPool.get(prepStmtPool.size()-1).open();
+			return prepStmtPool.get(prepStmtPool.size()-1);
+		}
+		
+		
+	}
 	public void close() throws SQLException {
 		int i = 0;
 		
 		while(i<stmtPool.size()) {
 			stmtPool.get(i).destroy();
 			i++;
+		}
+		for(UberPreparedStatement p: prepStmtPool) {
+			p.destroy();
 		}
 		con.close();
 	}

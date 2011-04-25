@@ -5276,7 +5276,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	}
 	public void repairMap() {
 		try {
-		System.out.println("Repairin map...");
+		System.out.println("Repairing map...");
 		UberStatement stmt = con.createStatement();
 		Hashtable r; 
 		// so it's always going to be a square root...
@@ -6171,7 +6171,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			while(!transacted) {
 				
 			try {
-			UberStatement stmt = con.createStatement(); ResultSet rs;
+			UberPreparedStatement stmt = null; ResultSet rs;
 			
 			
 			/*ResultSet rs = stmt.executeQuery("select pid from player where username = \"" + username + "\";");
@@ -6188,11 +6188,18 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 
 			} else
 			rs.close();*/
-			stmt.executeUpdate("start transaction;");
 			if(okayToMakeNewAccount) {
+				stmt = con.createStatement("insert into users(fuid,username,password,email) values (?,?,?,?);");
+				stmt.setLong(1,fuid);
+				stmt.setString(2,username);
+				stmt.setString(3,"md5(\""+password+"\")");
+				stmt.setString(4,email);
+				stmt.execute();
+				stmt.close();
+				stmt = con.createStatement("select uid,password,registration_date from users where username = ?;");
+				stmt.setString(1,username);
 				
-				stmt.execute("insert into users(fuid,username,password,email) values ("+fuid+",\""+username+"\",md5(\""+password+"\"),\""+email+"\");");
-				rs = stmt.executeQuery("select uid,password,registration_date from users where username = '"+username+"';");
+				rs = stmt.executeQuery();
 				rs.next();
 				Hashtable r = new Hashtable();
 				  r.put("uid",rs.getInt(1));
@@ -6204,37 +6211,51 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		    	 accounts.put(username,r);
 		    	 if(fuid!=0) accounts.put(fuid,r);
 		    	   rs.close();
+		    	   stmt.close();
 				
 			}
 
 			int numPlayers = 0;
-			rs = stmt.executeQuery("select count(*) from player where username = '" + username+"'");
+			stmt = con.createStatement("select count(*) from player where username = ?;");
+			stmt.setString(1,username);
+			rs = stmt.executeQuery();
 			if(rs.next()) numPlayers=rs.getInt(1);
 			rs.close();
+			stmt.close();
 			
 			if(numPlayers==0) {
+				
+				stmt = con.createStatement("insert into player (username,password,scoutTech,knowledge,personalShields,hydraulicAssistors,constructionResearch,firearmResearch,thrustVectoring,townTech,infrastructureTech,bloodMetalPlating,email,fuid) " +
+					"values (?,?,0,0,0,0,2,0,0,1,8,0,?,?);");
+				stmt.setString(1,username);
 				if(okayToMakeNewAccount)
-			stmt.executeUpdate("insert into player (username,password,scoutTech,knowledge,personalShields,hydraulicAssistors,constructionResearch,firearmResearch,thrustVectoring,townTech,infrastructureTech,bloodMetalPlating,email,fuid) " +
-					"values (\"" + username + "\",md5(\"" + password + "\"),0,0,0,0,2,0,0,1,8,0,'"+email+"',"+fuid+")");
-			//		"values (\"" + username + "\",\"" + password + "\",3,0,0,0,1,5,1,1,1,\"1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,\",3,\"null\",\"null\",\"null\",0,1,3,2,3,1,18,'" + code + "',3)");
+					stmt.setString(2,"md5(\"" + password + "\")");
+				else
+					stmt.setString(2,password);
+				
+				stmt.setString(3,email);
+				stmt.setLong(4,fuid);
+				stmt.execute();
 			
-				else  // the not okay to make new account version got it's password from an already encrypted password in users!
-					stmt.executeUpdate("insert into player (username,password,scoutTech,knowledge,personalShields,hydraulicAssistors,constructionResearch,firearmResearch,thrustVectoring,townTech,infrastructureTech,bloodMetalPlating,email,fuid) " +
-							"values (\"" + username + "\",\"" + password + "\",0,0,0,0,2,0,0,1,8,0,'"+email+"',"+fuid+")");
 			
 			}
 					// once the player is made, then we move on.
-			 rs = stmt.executeQuery("select pid from player where username = \"" + username + "\"");
+			stmt.close();
+			stmt = con.createStatement("select pid from player where username = ?;");
+			stmt.setString(1,username);
+			 rs = stmt.executeQuery();
 			rs.next();
 			int pid = rs.getInt(1);		//	System.out.println("pid is " + pid);
-
-			stmt.execute(" insert into revelations (pid,revAI) values (" + pid + ",\"\")");
-			
+			rs.close();
+			stmt.close();
+			stmt = con.createStatement("insert into revelations (pid,revAI) values (?,\"\")");
+			stmt.setInt(1,pid);
+			stmt.execute();
+			stmt.close();
 		//	PlayerScript.exec("mkdir " + PlayerScript.getSrcDirectory()  + "userscripts/" + username);
 		//	PlayerScript.exec("mkdir " + PlayerScript.getBinDirectory()  + "userscripts/" + username);
 
 
-			rs.close();
 			/*int numAttackUnits = 0;
 			rs = stmt.executeQuery("select count(*) from attackunit where pid = " + pid);
 			if(rs.next()) numAttackUnits=rs.getInt(1);
@@ -6284,7 +6305,6 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			// wait to activate the player until after the giveNewCity
 			// mabob has been called.
 			
-			stmt.executeUpdate("commit;");
 			if(type==1) {
 			if(!giveNewTown(p,tidToGive,type,skipMe,chosenTileX,chosenTileY)) return null; // means no room left for new players.
 			// bad because the player still exists but just has no town and hasn't started yet.
@@ -6305,7 +6325,11 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			PlayerScript ps = p.getPs();
 			//	public boolean createUnitTemplate(String unitName, int tierNumber, int concealment,int armor, int cargo, int speed, int weaponsArray[], int graphicNum) {
 			ps.b.setCapitalCity(p.towns().get(0).townID);
-			stmt.executeUpdate("update player set capitaltid = " + p.getCapitaltid() + " where pid = " + p.ID);
+			stmt = con.createStatement("update player set capitaltid = ? where pid = ?;");
+			stmt.setInt(1,p.getCapitaltid());
+			stmt.setInt(2,pid);
+			stmt.executeUpdate();
+			stmt.close();
 			if(type==0||type==1) 		{
 				// ANYTHING YOU WANT TO LOAD FOR PLAYERS/LEAGUES, PUT IT HERE...BECAUSE IF IT REQUIRES HAVING A TOWN WITH A PLAYER REFERENCE,
 				// AND IT'S A QUEST PLAYER, THEN THAT STATEMENT WILL FAIL WHEN YOU TRY TO MAKE QUESTS!
@@ -6324,7 +6348,6 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			}
 
 			p.setInternalClock(gameClock);
-			stmt.close(); 
 	
 			if(type==2) {
 				p.save(); // Seeing as this player is about to die and be reloaded as a quest, best to save it first!
@@ -6646,7 +6669,6 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			try {
 				
 				   
-			   UberStatement   stmt = t1p.God.con.createStatement();
 			      boolean transacted = false;
 			      // First things first.
 			      
@@ -6654,13 +6676,28 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			      while(!transacted) {
 			    	  
 			      try {
-			      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
-			     // only the scouting player gets a report, the defensive one does not.
-			      // we know scout will be 1 so we set it that way and save a SQL transaction.
-			      stmt.execute("insert into statreports (defender,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,combatHeader,offTownName,defTownName) values" +
-			      		"(false," + 1 + "," + m + "," + t + "," + mm + "," + f +","
-			      		+ t1p.ID + ","+ t1.townID + "," + t2.townID + ",\"" + auoffst + "\",\"" + auofffi + "\",\"" 
-			      		+ audefst + "\",\"" + "" +"\",\""+ auoffnames + "\",\"" + audefnames + "\",\"" + combatHeader +  "\",'"+t1.getTownName()+"','"+t2.getTownName()+"');");
+					   UberPreparedStatement   stmt = t1p.God.con.createStatement("insert into statreports (defender,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,combatHeader,offTownName,defTownName) values" +
+					      		"(false,1,?,?,?,?,?,?,?,?,?,?,\"\",?,?,?,?,?);");
+					   stmt.setLong(1,m);
+					   stmt.setLong(2,t);
+					   stmt.setLong(3,mm);
+					   stmt.setLong(4,f);
+					   stmt.setInt(5,t1p.ID);
+					   stmt.setInt(6,t1.townID);
+					   stmt.setInt(7,t2.townID);
+					   stmt.setString(8,auoffst);
+					   stmt.setString(9,auofffi);
+					   stmt.setString(10,audefst);
+					   stmt.setString(11,auoffnames);
+					   stmt.setString(12,audefnames);
+					   stmt.setString(13,combatHeader);
+					   stmt.setString(14,t1.getTownName());
+					   stmt.setString(15,t2.getTownName());
+					  stmt.execute();
+			     // stmt.execute("insert into statreports (defender,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,combatHeader,offTownName,defTownName) values" +
+			      	//	"(false," + 1 + "," + m + "," + t + "," + mm + "," + f +","
+			      	//	+ t1p.ID + ","+ t1.townID + "," + t2.townID + ",\"" + auoffst + "\",\"" + auofffi + "\",\"" 
+			      	//	+ audefst + "\",\"" + "" +"\",\""+ auoffnames + "\",\"" + audefnames + "\",\"" + combatHeader +  "\",'"+t1.getTownName()+"','"+t2.getTownName()+"');");
 			   
 			      // send out reports to support units' players on offensive side, we're assuming
 			      // we weren't discovered so why should defense get one?
@@ -6684,15 +6721,17 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			      o = 0;
 			      while(o<holdForP.size()) {
 			    	  
-				      
-				      stmt.execute("insert into statreports (defender,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,offTownName,defTownName) values" +
-				      		"(false," + 1 + "," + m + "," + t + "," + mm + "," + f +","
-				      		+ holdForP.get(o).ID + ","+ t1.townID + "," + t2.townID + ",\"" + auoffst + "\",\"" + auofffi + "\",\"" 
-				      		+ audefst + "\",\"" + "" +"\",\""+ auoffnames + "\",\"" + audefnames + "\",'"+ t1.getTownName() + "','"+ t2.getTownName()+"');");
+					   stmt.setInt(5,holdForP.get(o).ID);
+					 
+					  stmt.execute();
+				     // stmt.execute("insert into statreports (defender,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,offTownName,defTownName) values" +
+				      	//	"(false," + 1 + "," + m + "," + t + "," + mm + "," + f +","
+				      		//+ holdForP.get(o).ID + ","+ t1.townID + "," + t2.townID + ",\"" + auoffst + "\",\"" + auofffi + "\",\"" 
+				      	//	+ audefst + "\",\"" + "" +"\",\""+ auoffnames + "\",\"" + audefnames + "\",'"+ t1.getTownName() + "','"+ t2.getTownName()+"');");
 			    	  o++;
 			      }
 			      
-			      stmt.execute("commit;");stmt.close();transacted=true; } catch(MySQLTransactionRollbackException exc) { }
+			     stmt.close();transacted=true; } catch(MySQLTransactionRollbackException exc) { }
 			      }
 			 } catch(SQLException exc) { exc.printStackTrace(); }
 
@@ -8097,7 +8136,7 @@ public boolean checkForGenocides(Town t) {
 		boolean doBombingRun=false;
 
 		if(holdAttack.bomb()&&holdAttack.bombTargets().length>0) {
-			System.out.println("Bomb is on and we have targets.");
+			combatData+="\n"+("Bomb is on and we have targets.");
 			AttackUnit bldgAU;
 			for(Building bl: t2.bldg()) {
 				
@@ -8111,10 +8150,10 @@ public boolean checkForGenocides(Town t) {
 						}
 						
 						if(!alreadyThere) {
-							System.out.println("Adding the building "+ bl.getType() + " at " + bl.getLotNum() + " with level " +bl.getLvl());
+							combatData+="\n"+("Adding the building "+ bl.getType() + " at " + bl.getLotNum() + " with level " +bl.getLvl());
 							bldgAU = new AttackUnit(bl.getType(),t2au.size(),bl.getLvl());
 							bldgAU.setLotNum(bl.getLotNum());
-							System.out.println("The au for " + bl.getType() + " has a lvl of " + bl.getLvl());
+							combatData+="\n"+("The au for " + bl.getType() + " has a lvl of " + bl.getLvl());
 							bldgAU.setSize(1);
 							t2au.add(bldgAU);
 							doBombingRun=true;
@@ -8141,7 +8180,7 @@ public boolean checkForGenocides(Town t) {
 				currentArmySize+=au.getSize();
 				currentExpAdvSizeOff+=au.getSize()*au.getExpmod();
 				if(au.getType()==4&&au.getSize()>0){
-					System.out.println("Off air units present.");
+					combatData+="\n"+("Off air units present.");
 					airUnitsPresent=true;
 				}
 				k++;
@@ -8155,7 +8194,7 @@ public boolean checkForGenocides(Town t) {
 					currentArmySizedef+=au.getSize();
 					currentExpAdvSizeDef+=au.getSize()*au.getExpmod();
 					if(au.getType()==4&&au.getSize()>0){
-						System.out.println("def air units present.");
+						combatData+="\n"+("def air units present.");
 
 						airUnitsPresent=true;
 					}
@@ -8257,7 +8296,7 @@ public boolean checkForGenocides(Town t) {
 					if(a.getSupport()==0) theP=t1p;
 					else theP=a.getOriginalPlayer();
 					holdArmorOff[j]=a.getSize()*a.getTrueArmor(theP);
-					System.out.println("For off slot "+ j+", the armor total is " + holdArmorOff[j] + " because true armor is " + a.getTrueArmor(theP) + " and size is " + a.getSize());
+					combatData+="\n"+("For off slot "+ j+", the armor total is " + holdArmorOff[j] + " because true armor is " + a.getTrueArmor(theP) + " and size is " + a.getSize());
 					j++;
 					         
 				}
@@ -8266,7 +8305,7 @@ public boolean checkForGenocides(Town t) {
 					if(a.getSupport()==0) theP=t2p;
 					else theP=a.getOriginalPlayer();
 					holdArmorDef[j]=a.getSize()*a.getTrueArmor(theP); // limited amount of armor in a battle.
-					System.out.println("For def slot "+ j+", the armor total is " + holdArmorDef[j] + " because true armor is " + a.getTrueArmor(theP) + " and size is " + a.getSize());
+					combatData+="\n"+("For def slot "+ j+", the armor total is " + holdArmorDef[j] + " because true armor is " + a.getTrueArmor(theP) + " and size is " + a.getSize());
 
 					j++;
 					         
@@ -8299,7 +8338,7 @@ public boolean checkForGenocides(Town t) {
 					
 					j = 0;
 					while(j<forts.length) {
-						System.out.println("Fort " +j + " is of level " + forts[j].getLvl());
+						combatData+="\n"+("Fort " +j + " is of level " + forts[j].getLvl());
 						j++;
 					}
 				}
@@ -8312,7 +8351,7 @@ public boolean checkForGenocides(Town t) {
 				long totalCost[]=new long[4];
 				boolean stopAirFight=false,offensiveWonAirBattle=false;
 				if(!airUnitsPresent) {
-					System.out.println("no air units present, so not going to do an air battle.");
+					combatData+="\n"+("no air units present, so not going to do an air battle.");
 					stopAirFight=true;
 				}
 				double airBattleAdvantage = 1.2;
@@ -8320,10 +8359,10 @@ public boolean checkForGenocides(Town t) {
 				int roundsLimit = 4;
 					for(int rounds=0;rounds<=roundsLimit;rounds++) { // THIS IS THE GREAT ROUND LOOP. This causes the fighting to keep happening until the rounds are through!
 					
-					System.out.println("Beginning round " + rounds + ".");
-					if(!stopAirFight) System.out.println("Air fight is still going on.");
-					if(stopAirFight&&!startBombing) System.out.println("Ground fight is still going on.");
-					if(startBombing) System.out.println("Bombing is still going on.");
+					combatData+="\n"+("Beginning round " + rounds + ".");
+					if(!stopAirFight) combatData+="\n"+("Air fight is still going on.");
+					if(stopAirFight&&!startBombing) combatData+="\n"+("Ground fight is still going on.");
+					if(startBombing) combatData+="\n"+("Bombing is still going on.");
 					double holdHPLostDef[] = new double[t2au.size()]; // you need to make it the size that
 					double holdHPLostOff[] = new double[t1au.size()];
 	
@@ -8333,20 +8372,20 @@ public boolean checkForGenocides(Town t) {
 					int thisRoundExpAdvSizeDef=0,thisRoundExpAdvSizeOff=0;
 					for(AttackUnit a:t1au) {
 						if((!stopAirFight&&a.getType()==4)||(stopAirFight&&a.getType()!=4)) {
-							System.out.println(a.getName() + " is contributing to offensive expmod this round.");
+							combatData+="\n"+(a.getName() + " is contributing to offensive expmod this round.");
 
 							thisRoundExpAdvSizeOff+=a.getSize()*a.getExpmod();
 						}
 					}
 					for(AttackUnit a:t2au) {
 						if((!stopAirFight&&a.getType()==4)||(stopAirFight&&!startBombing&&a.getType()!=4&&a.getType()!=5)||(startBombing&&a.getType()==5)) {
-								System.out.println(a.getName() + " is contributing to defensive expmod this round.");
+								combatData+="\n"+(a.getName() + " is contributing to defensive expmod this round.");
 								if(!startBombing) thisRoundExpAdvSizeDef+=a.getSize()*a.getExpmod();
 								else thisRoundExpAdvSizeDef+=a.getSize()*a.getLvl();// we want numbers to represent relative levels.
 							}
 
 					}
-					System.out.println("In this round, expadvoff is "+ thisRoundExpAdvSizeOff + " and expadvdef is " + thisRoundExpAdvSizeDef);
+					combatData+="\n"+("In this round, expadvoff is "+ thisRoundExpAdvSizeOff + " and expadvdef is " + thisRoundExpAdvSizeDef);
 
 					while(k<t2au.size()) {
 						 def = t2au.get(k);
@@ -8374,7 +8413,7 @@ public boolean checkForGenocides(Town t) {
 									// or if you're on ground, bombing ain't on yet, and you're not an air unit and they're not, and you're not a bldg and they're not, and you both have >0 sizes, go for it.
 								 	// Also you can get in if you're on a bomb run and you're hitting a building.
 									// May get divide by zeroes otherwise.
-									System.out.println(def.getName() + " is going to be taking some hits from  "+ off.getName());
+									combatData+="\n"+(def.getName() + " is going to be taking some hits from  "+ off.getName());
 									double weightedfrac = 0;
 							if(thisRoundExpAdvSizeOff==0)
 		 					 weightedfrac = ((double) off.getSize())*((double) off.getExpmod()); // to give it proper weight.
@@ -8396,7 +8435,7 @@ public boolean checkForGenocides(Town t) {
 
 								 for(UserBuilding fort: forts) {
 									 // we know we go from highest level to lowest.
-									 System.out.println("Doing fort at lotnum " + fort.getLotNum() + " of lvl " + fort.getLvl());
+									 combatData+="\n"+("Doing fort at lotnum " + fort.getLotNum() + " of lvl " + fort.getLvl());
 									 if(k<fort.getFortArray().length) { // if k > than fortArray, this must be a civilian or a building au, which
 										 // means it was added during this combat run, and will be removed after, so no user could have assigned them
 										 // to a fortification.
@@ -8404,7 +8443,7 @@ public boolean checkForGenocides(Town t) {
 											numTroops-=numInThisFort;
 											int numForFrac = numInThisFort;
 											if(numTroops<0) numForFrac+=numTroops;
-											 System.out.println("numInThisFort is " + numInThisFort + " numTroops is "+  numTroops + " numForFrac is " + numForFrac);
+											// System.out.println("numInThisFort is " + numInThisFort + " numTroops is "+  numTroops + " numForFrac is " + numForFrac);
 
 											// so if there were meant to be 10 troops in the fort, but you've got 3 left, then
 											// the number you use for fracOfTroops is 10+-7=3. Sweet huh?
@@ -8419,11 +8458,11 @@ public boolean checkForGenocides(Town t) {
 											 protection = 1-fort.getLvl()*.025;
 										 
 										fortSummation+=(fracOfTroops)*protection;// so it'll be like .995*.3+.5*.7 and so on. 
-										 System.out.println("numInThisFort is " + numInThisFort + " numTroops is "+  numTroops + " numForFrac is " + numForFrac
+										 combatData+="\n"+("numInThisFort is " + numInThisFort + " numTroops is "+  numTroops + " numForFrac is " + numForFrac
 												 + " fracOfTroops is " +fracOfTroops + " the protection this fort gives is " + protection + " which should be like .95, meaning they receive 5% less damage."
 												  );
 
-										System.out.println("Adding " + (fracOfTroops)*protection + " to my summation.");
+										combatData+="\n"+("Adding " + (fracOfTroops)*protection + " to my summation.");
 										 if(numTroops<=0) break; // we break out of the loop if we've run out of troops to protect.
 									 }
 								 }
@@ -8432,7 +8471,7 @@ public boolean checkForGenocides(Town t) {
 								 // multiplied by 1. They take full damage.
 								 
 								 if(numTroops>0) {
-									 System.out.println("Finally, adding " + ((double) numTroops)/((double) numTroopsTotal) + " to my summation.");
+									 combatData+="\n"+("Finally, adding " + ((double) numTroops)/((double) numTroopsTotal) + " to my summation.");
 									 fortSummation+=((double) numTroops)/((double) numTroopsTotal); // this will automatically be 1, or should be, if no forts
 									 // present.
 								 }
@@ -8453,13 +8492,13 @@ public boolean checkForGenocides(Town t) {
 							 if(def.getSupport()>0) defender = def.getOriginalPlayer();
 							 double HPChange = off.getSize()*weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off, attacker,defender))*differentialfrac*fero*fortSummation;
 							 if(stopAirFight&&offensiveWonAirBattle&&airUnitsPresent){
-								 System.out.println("Air battle advantage is being applied to the offense.");
+								 combatData+="\n"+("Air battle advantage is being applied to the offense.");
 								 HPChange*=airBattleAdvantage;
 							 }
-							 System.out.println("t1 on t2 total HP Change is " + HPChange + " weightedfrac is " + weightedfrac+ " off dmg is " + off.getAttackDamage() + " def armor mod is " + def.getArmorModifier(off,attacker,defender)  + "differential frac is " + differentialfrac + " fero is " + fero + " fortSummation is " + fortSummation);
+							 combatData+="\n"+("t1 on t2 total HP Change is " + HPChange + " weightedfrac is " + weightedfrac+ " off dmg is " + off.getAttackDamage() + " def armor mod is " + def.getArmorModifier(off,attacker,defender)  + "differential frac is " + differentialfrac + " fero is " + fero + " fortSummation is " + fortSummation);
 							 if(holdArmorDef[k]>0) { 
 								 holdArmorDef[k] -= HPChange;
-								 System.out.println(def.getName() +"'s Armor is blocking some of the HP damage.");
+								 combatData+="\n"+(def.getName() +"s Armor is blocking some of the HP damage.");
 							 }
 							 else
 								 holdHPLostDef[k]+=HPChange;
@@ -8510,13 +8549,13 @@ public boolean checkForGenocides(Town t) {
 								 if(def.getSupport()>0) defender = def.getOriginalPlayer();
 								 double HPChange = off.getSize()*weightedfrac*(off.getAttackDamage()*def.getArmorModifier(off,attacker,defender))*differentialfrac*fero;
 								 if(stopAirFight&&!offensiveWonAirBattle&&airUnitsPresent) {
-									 System.out.println("The air battle advantage is being applied to the defense, as in they got it..");
+									 combatData+="\n"+("The air battle advantage is being applied to the defense, as in they got it..");
 									 HPChange*=airBattleAdvantage;
 								 }
-								 System.out.println("t2 on t1 total HP change is " + HPChange + "  weightedfrac is " + weightedfrac+ " off dmg is " + off.getAttackDamage() + " def armor mod is " + def.getArmorModifier(off,attacker,defender)  + "differential frac is " + differentialfrac + " fero is " + fero);
+								 combatData+="\n"+("t2 on t1 total HP change is " + HPChange + "  weightedfrac is " + weightedfrac+ " off dmg is " + off.getAttackDamage() + " def armor mod is " + def.getArmorModifier(off,attacker,defender)  + "differential frac is " + differentialfrac + " fero is " + fero);
 
 								 if(holdArmorOff[k]>0) {
-									 System.out.println(def.getName() +"'s Armor is blocking some of the HP damage.");
+									 combatData+="\n"+(def.getName() +"s Armor is blocking some of the HP damage.");
 									holdArmorOff[k] -= HPChange;
 								 }
 									else
@@ -8544,27 +8583,27 @@ public boolean checkForGenocides(Town t) {
 					 defExpAdv = Math.exp(.1*(1-((double) thisRoundExpAdvSizeDef)/((double) (thisRoundExpAdvSizeOff+1))))*100;
 				//currentExpAdvSizeDef is 40 currentExpAdvSizeOff is 30
 				//	combatHeader+="The exponential advantage increase on hp lost on offense was " + Math.round((100-offExpAdv)) + "% and on defense was " + Math.round((100-defExpAdv)) + "%.";
-				System.out.println("Offensive stats:");
+				combatData+="\n"+("Offensive stats:");
 					 while(k<holdHPLostOff.length) {
 						if(thisRoundExpAdvSizeDef>0) {
 							combatData+=(k + "th lost " + Math.round(holdHPLostOff[k]) + " bef adv " + Math.round(holdHPLostOff[k]*Math.exp(.1*(1-((double) thisRoundExpAdvSizeOff)/((double) (thisRoundExpAdvSizeDef+1))))) + "hp aft.");
-							System.out.println((k + "th lost " + Math.round(holdHPLostOff[k]) + " bef adv " + Math.round(holdHPLostOff[k]*Math.exp(.1*(1-((double) thisRoundExpAdvSizeOff)/((double) (thisRoundExpAdvSizeDef+1))))) + "hp aft."));
+							combatData+="\n"+((k + "th lost " + Math.round(holdHPLostOff[k]) + " bef adv " + Math.round(holdHPLostOff[k]*Math.exp(.1*(1-((double) thisRoundExpAdvSizeOff)/((double) (thisRoundExpAdvSizeDef+1))))) + "hp aft."));
 						}else { 
 							combatData+=(k + "th lost " + holdHPLostOff[k] + " before exp advantage and 0 or unknown amount of hp.");
-							System.out.println((k + "th lost " + holdHPLostOff[k] + " before exp advantage and 0 or unknown amount of hp."));
+							combatData+="\n"+((k + "th lost " + holdHPLostOff[k] + " before exp advantage and 0 or unknown amount of hp."));
 						}
 						k++;
 					}
 					k = 0;
-					System.out.println("Defensive stats:");
+					combatData+="\n"+("Defensive stats:");
 					while(k<holdHPLostDef.length) {
 						if(thisRoundExpAdvSizeOff>0) {
 							combatData+=(k + "th lost " + Math.round(holdHPLostDef[k]) + " bef adv " +  Math.round(holdHPLostDef[k]*Math.exp(.1*(1-((double) thisRoundExpAdvSizeDef)/((double) (thisRoundExpAdvSizeOff+1))))) + "hp aft.");
-							System.out.println((k + "th lost " + Math.round(holdHPLostDef[k]) + " bef adv " +  Math.round(holdHPLostDef[k]*Math.exp(.1*(1-((double) thisRoundExpAdvSizeDef)/((double) (thisRoundExpAdvSizeOff+1))))) + "hp aft."));
+							combatData+="\n"+((k + "th lost " + Math.round(holdHPLostDef[k]) + " bef adv " +  Math.round(holdHPLostDef[k]*Math.exp(.1*(1-((double) thisRoundExpAdvSizeDef)/((double) (thisRoundExpAdvSizeOff+1))))) + "hp aft."));
 						}
 						else  {
 							combatData+=(k + "th lost " + holdHPLostDef[k] + " before exp advantage and 0 or unknown amount of hp.");
-							System.out.println((k + "th lost " + holdHPLostDef[k] + " before exp advantage and 0 or unknown amount of hp."));
+							combatData+="\n"+((k + "th lost " + holdHPLostDef[k] + " before exp advantage and 0 or unknown amount of hp."));
 						}
 						k++;
 					}
@@ -8576,7 +8615,7 @@ public boolean checkForGenocides(Town t) {
 						 holdUnit = t1au.get(k); // DON'T USE T1AU, IT DOESN'T CHANGE WHEN WE USE THE SETTER METHODS!
 						 // THAT'S ONLY USEFUL FOR THE UPPER ATTACK CODE WHERE IT DOES CALCULATIONS!
 							double holdHP = holdUnit.getSize()*holdUnit.getTrueHp(t1p);
-							System.out.println("Offensive Unit " + holdUnit.getName() + "'s True HP is " + holdUnit.getTrueHp(t1p));
+							combatData+="\n"+("Offensive Unit " + holdUnit.getName() + "s True HP is " + holdUnit.getTrueHp(t1p));
 							double holdOld = holdUnit.getSize();
 							if(thisRoundExpAdvSizeDef>0) // if it's 0, we're not losing hp anyway, and this is a div/0 error.
 							holdHP-=holdHPLostOff[k]*Math.exp(.1*(1-((double) thisRoundExpAdvSizeOff)/((double) (thisRoundExpAdvSizeDef+1)))); 
@@ -8603,7 +8642,7 @@ public boolean checkForGenocides(Town t) {
 								} else
 								try {
 									particularCost = holdUnit.getOriginalPlayer().getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),holdUnit.getOriginalPlayer().towns().get(0).townID);
-									}catch(Exception exc) { exc.printStackTrace(); System.out.println("Combat was saved, though."); }
+									}catch(Exception exc) { exc.printStackTrace(); combatData+="\n"+("Combat was saved, though."); }
 								}
 	
 								
@@ -8630,7 +8669,7 @@ public boolean checkForGenocides(Town t) {
 						double holdOld = holdUnit.getSize();
 
 						if(holdUnit.getType()==5) {
-							System.out.println("Building getting checked out. It has lot num of " + holdUnit.getLotNum());
+							combatData+="\n"+("Building getting checked out. It has lot num of " + holdUnit.getLotNum());
 							holdOld=holdUnit.getLvl();
 						}
 						if(t2au.get(k).getType()!=5) // no using exponential advantage on BUILDINGS. It would be really steep, since there are only like 15 of them.
@@ -8683,7 +8722,7 @@ public boolean checkForGenocides(Town t) {
 							if(holdUnit.getTrueHp(t2p)>0){
 								holdUnit.setLvl((int) Math.round(((double) holdHP*holdUnit.getLvl())/(holdUnit.getTrueHp(t2p))));  // so we set lvl like we do size for units,
 								// but size is always one with these buildings.
-								System.out.println("Level before on lotnum " + holdUnit.getLotNum() + " was " + holdOld + " level after is " + holdUnit.getLvl()
+								combatData+="\n"+("Level before on lotnum " + holdUnit.getLotNum() + " was " + holdOld + " level after is " + holdUnit.getLvl()
 										+ " because holdHP is " + holdHP + " and true HP is  "+ holdUnit.getTrueHp(t2p));
 
 								}
@@ -8691,7 +8730,7 @@ public boolean checkForGenocides(Town t) {
 									holdUnit.setSize(0); // so we know it's a dead building.
 									holdUnit.setLvl(0);
 								//	holdUnit.setSize(0); // in case they are zero.
-									System.out.println("Building is dead.");
+									combatData+="\n"+("Building is dead.");
 								}
 						}
 					
@@ -8746,13 +8785,13 @@ public boolean checkForGenocides(Town t) {
 						if((!stopAirFight&&a.getType()==4&&a.getSize()>0)||(!startBombing&&stopAirFight&&a.getType()!=4&&a.getType()!=5&&a.getSize()>0)||(startBombing&&a.getType()==5&&a.getSize()>0)) noMoreAUDef=false;
 						
 					}
-					System.out.println("Are there more off units? " + !noMoreAUOff + " Def units? " +!noMoreAUDef);
+					combatData+="\n"+("Are there more off units? " + !noMoreAUOff + " Def units? " +!noMoreAUDef);
 					if(stopAirFight) {
 						// this is the normal combat...
 						
 						
 						if(rounds==roundsLimit&&doBombingRun&&!startBombing) {
-							System.out.println("Beginning bombing run.");
+							combatData+="\n"+("Beginning bombing run.");
 							startBombing=true;
 							noMoreAUDef=false; // now we're bombing, there are automatically more AU(the buildings) to fight.
 							rounds=0; // this takes us from normal combat into a bomb mode, where only buildings take damage from offensive au.
@@ -8764,14 +8803,14 @@ public boolean checkForGenocides(Town t) {
 						// in air combat, we must reset the rounds.
 						if((noMoreAUOff||noMoreAUDef)&&rounds!=roundsLimit) {
 							stopAirFight=true;
-							System.out.println("Beginning ground fight.");
+							combatData+="\n"+("Beginning ground fight.");
 							if(noMoreAUDef) {
 								offensiveWonAirBattle=true;
-								System.out.println("Offensive won air fight.");
+								combatData+="\n"+("Offensive won air fight.");
 								combatHeader+="In this battle, Air Units were used and the Offensive Side gained Air Superiority.";
 
 							} else {
-								System.out.println("Defensive won air fight.");
+								combatData+="\n"+("Defensive won air fight.");
 
 								combatHeader+="In this battle, Air Units were used and the Defensive Side gained Air Superiority.";
 
@@ -8791,11 +8830,11 @@ public boolean checkForGenocides(Town t) {
 							}
 							if(offAir>defAir) {
 								offensiveWonAirBattle=true;
-								System.out.println("Offensive won air fight.");
+								combatData+="\n"+("Offensive won air fight.");
 
 								combatHeader+="In this battle, Air Units were used and the Offensive Side gained Air Superiority.";
 							} else {			
-								System.out.println("Defensive won air fight.");
+								combatData+="\n"+("Defensive won air fight.");
 
 								combatHeader+="In this battle, Air Units were used and the Defensive Side gained Air Superiority.";
 							}
@@ -8924,7 +8963,7 @@ public boolean checkForGenocides(Town t) {
 				double percentlossdiff=100; // we know that generally the beginning off must have at least 1, but the def may
 				// indeed have 0, in which case we do not want to do this with a 0/0 thing in there, so if it does,
 				// percentlossdif is already 100!
-				System.out.println("expModOffAft is " +expModOffAft + " starting was " + currentExpAdvSizeOff + " def aft is " + expModDefAft + " def starting was "+currentExpAdvSizeDef);
+				combatData+="\n"+("expModOffAft is " +expModOffAft + " starting was " + currentExpAdvSizeOff + " def aft is " + expModDefAft + " def starting was "+currentExpAdvSizeDef);
 				if(currentExpAdvSizeOff!=0&&currentExpAdvSizeDef!=0) {
 					 percentlossoff = 100-100*(((double) expModOffAft)/((double) currentExpAdvSizeOff));
 					 percentlossdef = 100-100*(((double) expModDefAft)/((double) currentExpAdvSizeDef));
@@ -9412,7 +9451,7 @@ public boolean checkForGenocides(Town t) {
 						//	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
 
 						otherT.getPlayer().getPs().b.recall(t2.townID,t2.getPlayer().ID,otherT.townID);
-						digMessage = "The offensive party failed to take over the dig site, but managed to kill all of the defender's Scholars!";
+						digMessage = "The offensive party failed to take over the dig site, but managed to kill all of the defenders Scholars!";
 						
 						t2.resetDig(0,0,false);
 						
@@ -9474,13 +9513,13 @@ public boolean checkForGenocides(Town t) {
 				      int offbp=0,defbp=0;
 				      if(percentlossdiff<0) { defbp=bp; offbp=bp/2;} else {offbp=bp; defbp=bp/2;} // >-30 means that positive means incoming won,
 				      // so we know what to set!
-				     System.out.println("Perc loss diff is " + percentlossdiff + " keeping in mind that - means that defender lost less than off.");
+				     combatData+="\n"+("Perc loss diff is " + percentlossdiff + " keeping in mind that - means that defender lost less than off.");
 				      if(percentlossdiff>(-30))
 				      stmt.execute("insert into statreports (defender,invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,combatdata,combatheader,bp,premium,ax,ay,dx,dy,offTownName,defTownName,zeppText,debm,debt,debmm,debf,offdig,defdig,digMessage,bomb) values" +
 				      		"(false," + invade + "," + invsucc + "," + scout + "," + actattack.getMetal() + "," + actattack.getTimber() + "," +actattack.getManmat() + "," + actattack.getFood() +","
 				      		+ t1p.ID + ","+ t1.townID + "," + t2.townID + ",\"" + offUnitsBefore + "\",\"" + offUnitsAfter + "\",\"" 
-				      		+ defUnitsBefore + "\",\"" + defUnitsAfter +"\",\""+ offNames + "\",\"" + defNames + "\"," +genocide + ",'"
-				      		+ combatData + "','" + combatHeader + "'," + offbp + "," + premium + ","+t1.getX()+","+t1.getY()+","+t2.getX()+","+t2.getY()+",'"+t1.getTownName()+"','"+t2.getTownName()+"','"+zeppText+"',"+totalCost[0]+","+totalCost[1]+","+totalCost[2]+","+totalCost[3]+","+offdig+","+defdig+",'"+digMessage+"',"+bomb+");");
+				      		+ defUnitsBefore + "\",\"" + defUnitsAfter +"\",\""+ offNames + "\",\"" + defNames + "\"," +genocide + ",\""
+				      		+ combatData + "\",'" + combatHeader + "'," + offbp + "," + premium + ","+t1.getX()+","+t1.getY()+","+t2.getX()+","+t2.getY()+",'"+t1.getTownName()+"','"+t2.getTownName()+"','"+zeppText+"',"+totalCost[0]+","+totalCost[1]+","+totalCost[2]+","+totalCost[3]+","+offdig+","+defdig+",'"+digMessage+"',"+bomb+");");
 				      else
 				    	  stmt.execute("insert into statreports (defender,invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,combatdata,combatheader,bp,ax,ay,dx,dy,offTownName,defTownName,zeppText,offdig,defdig,digMessage,bomb) values" +
 						      		"(false," + invade + "," + invsucc + "," + scout + "," + actattack.getMetal() + "," + actattack.getTimber() + "," +actattack.getManmat() + "," + actattack.getFood() +","
@@ -9812,7 +9851,8 @@ public boolean checkForGenocides(Town t) {
 					// Now this is a return raid.
 				//	System.out.println("Returning...");
 					int c = 0;
-					
+					r.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturnedCatch",r.getTown1().getPlayer().getPs().b.getUserRaid(r.raidID));
+
 						AU = r.getAu(); tAU = t1.getAu();
 					do {
 						 au = AU.get(c);

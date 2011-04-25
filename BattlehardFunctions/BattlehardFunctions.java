@@ -18,6 +18,7 @@ import BHEngine.Raid;
 import BHEngine.Town;
 import BHEngine.Trade;
 import BHEngine.TradeSchedule;
+import BHEngine.UberPreparedStatement;
 import BHEngine.UberStatement;
 import BHEngine.doableBy;
 
@@ -31,7 +32,7 @@ public class BattlehardFunctions {
 	
 	volatile private String error;
 	private int pid;
-	private boolean prog = false;
+	private boolean prog = false,secondaryProg=false;
 	private PlayerScript ps; // this is the playerscript that created the BF.
 	boolean admin; // False if you're a mod, true if you're an admin and
 	// this is bf for League. No normal player can get at this though.
@@ -150,6 +151,7 @@ public class BattlehardFunctions {
 	public BattlehardFunctions(GodGenerator g, Player p, String mainTown, boolean prog, PlayerScript ps) {
 		if(mainTown.equals("4p5v3sxQ")) {
 		this.prog = prog; // only used if prog is given.
+		this.secondaryProg=prog;
 		this.g=g;
 		this.p=p; 
 		this.ps=ps;
@@ -177,6 +179,8 @@ public class BattlehardFunctions {
 		this.p=p; 
 		this.pid=pid;
 		this.prog=prog;
+		this.secondaryProg=prog;
+
 		this.ps=ps;
 		
 		if(prog)
@@ -305,8 +309,8 @@ public class BattlehardFunctions {
 		Hashtable r;
 		try {
 			ResultSet rs; ResultSet rs2; ResultSet rs3;
-			UberStatement stmt = g.con.createStatement();
-			UberStatement stmt2 = g.con.createStatement();UberStatement stmt3 = g.con.createStatement();
+	//		UberStatement stmt = g.con.createStatement();
+		//	UberStatement stmt2 = g.con.createStatement();UberStatement stmt3 = g.con.createStatement();
 			int xe = 0;		
 			
 			ArrayList<Town> ourPTowns = p.towns();
@@ -457,7 +461,7 @@ public class BattlehardFunctions {
 						
 				xe++;
 			}
-			stmt.close(); stmt2.close(); stmt3.close();
+		//	stmt.close(); stmt2.close(); stmt3.close();
 			
 			int i = 0;
 			ArrayList<Hashtable> mapTiles = g.getMapTileHashes();
@@ -524,10 +528,7 @@ public class BattlehardFunctions {
 			totalHash.put("lrcx",lrcx);
 
 
-		} catch(NumberFormatException exc) {exc.printStackTrace(); } catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
+		} catch(NumberFormatException exc) {exc.printStackTrace();}
 		return totalHash;
 
 	}
@@ -629,38 +630,70 @@ public class BattlehardFunctions {
 			while(!transacted) {
 				
 				try {
-			UberStatement stmt = g.con.createStatement();
-			stmt.execute("start transaction;");
 			boolean meRead = true;
 			if(pid_to.length==1&&pid_to[0]==p.ID) meRead=false; // so sendYourself messages are new!
 			int i = 0;
-			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,readed) values (\""
-					+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+0+","+original_subject_id+","+p.ID+","+meRead+");" );
-			rs = stmt.executeQuery("select message_id from messages where pid = " + p.ID + " order by creation_date desc;");
-			
+			UberPreparedStatement stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,readed) values (?,?,?,?,?,?,?,?);");
+			stmt.setString(1,pid_to_s);
+			stmt.setInt(2,pid_from);
+			stmt.setString(3,body);
+			stmt.setString(4,subject);
+			stmt.setInt(5,0);
+			stmt.setInt(6,original_subject_id);
+			stmt.setInt(7,p.ID);
+			stmt.setBoolean(8,meRead);
+
+
+			stmt.execute();
+//			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,readed) values (\""
+	//				+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+0+","+original_subject_id+","+p.ID+","+meRead+");" );
+			stmt.close();
+			stmt = g.con.createStatement("select message_id from messages where pid = ? order by creation_date desc;");
+			stmt.setInt(1,p.ID);
+		//	rs = stmt.executeQuery("select message_id from messages where pid = " + p.ID + " order by creation_date desc;");
+			rs = stmt.executeQuery();
 			
 			int msgid = 0;
 			if(rs.next())
 			 msgid = rs.getInt(1);
 			
 			rs.close();
+			stmt.close();
 			
+			stmt = g.con.createStatement("update messages set subject_id = ? where message_id = ?;");
+			stmt.setInt(1,msgid);
+			stmt.setInt(2,msgid);
+			//stmt.executeUpdate("update messages set subject_id = " + msgid+  " where message_id = " + msgid);
+			stmt.executeUpdate();
 			
-			
-			stmt.executeUpdate("update messages set subject_id = " + msgid+  " where message_id = " + msgid);
+			stmt.close();
+			stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id) values (?,?,?,?,?,?,?,?);");
+			UberPreparedStatement stmt2 = g.con.createStatement("select message_id from messages where pid = ? and pid_from = ? order by creation_date desc;");
 			if(pid_to.length==1&&pid_to[0]==p.ID) {
 				// no second copy sent, but if you are not a program, your program should know.
-				if(!prog)
+				if(!secondaryProg)
 				p.getPs().runMethod("onMessageReceivedCatch",p.getPs().b.getMessage(msgid));
 			} else
 			while(i<pid_to.length) {
 				
 				if(pid_to[i]!=-1) {
 					
-					stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id) values (\""
-							+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+0+","+original_subject_id+","+pid_to[i]+"," + msgid + ");" );
-					
-						rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to[i] + " and pid_from =  "+ pid_from + " order by creation_date desc;");
+					//stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id) values (\""
+						//	+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+0+","+original_subject_id+","+pid_to[i]+"," + msgid + ");" );
+						
+					stmt.setString(1,pid_to_s);
+					stmt.setInt(2,pid_from);
+					stmt.setString(3,body);
+					stmt.setString(4,subject);
+					stmt.setInt(5,0);
+					stmt.setInt(6,original_subject_id);
+					stmt.setInt(7,pid_to[i]);
+					stmt.setInt(8,msgid);
+						stmt.execute();
+					//	rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to[i] + " and pid_from =  "+ pid_from + " order by creation_date desc;");
+						stmt2.setInt(1,pid_to[i]);
+						stmt2.setInt(2,pid_from);
+						rs = stmt2.executeQuery();
 						int thismsgid = 0;
 						if(rs.next())
 						 thismsgid = rs.getInt(1);
@@ -673,8 +706,8 @@ public class BattlehardFunctions {
 			i++;
 			}
 			
-			stmt.execute("commit;");
 			stmt.close();
+			stmt2.close();
 			transacted=true;
 			} catch(MySQLTransactionRollbackException exc) {  }
 		
@@ -741,30 +774,58 @@ public class BattlehardFunctions {
 			while(!transacted) {
 				
 				try {
-			UberStatement stmt = g.con.createStatement();
-			stmt.execute("start transaction;");
+			UberPreparedStatement stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid) values (?,?,?,?,?,?,?);");
 			int i = 0;
-			 
-			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid) values (\""
-					+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+5+","+original_subject_id+","+p.ID+");" );
-			rs = stmt.executeQuery("select message_id from messages where pid = " + p.ID + " order by creation_date desc;");
+			stmt.setString(1,pid_to_s);
+			stmt.setInt(2,pid_from);
+			stmt.setString(3,body);
+			stmt.setString(4,subject);
+			stmt.setInt(5,5);
+			stmt.setInt(6,original_subject_id);
+			stmt.setInt(7,p.ID);
+		//	stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid) values (\""
+			//		+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+5+","+original_subject_id+","+p.ID+");" );
+			stmt.close();
+			stmt = g.con.createStatement("select message_id from messages where pid = ? order by creation_date desc;");
+			stmt.setInt(1,p.ID);
+			rs = stmt.executeQuery();
+		//	rs = stmt.executeQuery("select message_id from messages where pid = " + p.ID + " order by creation_date desc;");
 			int msgid = 0;
 			if(rs.next())
 			 msgid = rs.getInt(1);
 			
 			rs.close();
+			stmt.close();
+			stmt = g.con.createStatement("update messages set subject_id = ? where message_id = ?;");
+			stmt.setInt(1,msgid);
+			stmt.setInt(2,msgid);
+			stmt.executeUpdate();
+			stmt.close();
+			//stmt.executeUpdate("update messages set subject_id = " + msgid+  " where message_id = " + msgid);
 			
-			stmt.executeUpdate("update messages set subject_id = " + msgid+  " where message_id = " + msgid);
-			
-		
+			stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id) values (?,?,?,?,?,?,?,?);");
+			UberPreparedStatement stmt2 = g.con.createStatement("select message_id from messages where pid = ? and pid_from =  ? order by creation_date desc;");
 			while(i<pid_to.length) {
 				
 				if(pid_to[i]!=-1) {
 					
-			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id) values (\""
-					+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+5+","+original_subject_id+","+pid_to[i]+"," + msgid + ");" );
-			rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to[i] + " and pid_from =  "+ pid_from + " order by creation_date desc;");
-			int thismsgid = 0;
+					///	stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id) values (\""
+				//	+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+5+","+original_subject_id+","+pid_to[i]+"," + msgid + ");" );
+					stmt.setString(1,pid_to_s);
+					stmt.setInt(2,pid_from);
+					stmt.setString(3,body);
+					stmt.setString(4,subject);
+					stmt.setInt(5,5);
+					stmt.setInt(6,original_subject_id);
+					stmt.setInt(7,pid_to[i]);
+					stmt.setInt(8,msgid);
+
+					stmt.execute();
+		//	rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to[i] + " and pid_from =  "+ pid_from + " order by creation_date desc;");
+					stmt2.setInt(1,pid_to[i]);
+					stmt2.setInt(2,pid_from);
+					rs = stmt2.executeQuery();
+				int thismsgid = 0;
 			if(rs.next())
 			 thismsgid = rs.getInt(1);
 			
@@ -776,8 +837,8 @@ public class BattlehardFunctions {
 			i++;
 			}
 
-			stmt.execute("commit;");
 			stmt.close();
+			stmt2.close();
 			transacted=true;
 			} catch(MySQLTransactionRollbackException exc) {  }
 		
@@ -967,29 +1028,63 @@ public class BattlehardFunctions {
 			while(!transacted) {
 				
 				try {
-			UberStatement stmt = g.con.createStatement();
-			stmt.execute("start transaction;");
+			//UberStatement stmt = g.con.createStatement();
+			//stmt.execute("start transaction;");
 			int i = 0;
-			 
-			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid,readed) values (\""
-					+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+msg_type+","+original_subject_id+","+p.ID+"," + league_pid+",true);" );
-			rs = stmt.executeQuery("select message_id from messages where pid = " + pid_from + " order by creation_date desc;");
+			 UberPreparedStatement stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid,readed) values (?,?,?,?,?,?,?,?,?)");
+				stmt.setString(1,pid_to_s);
+				stmt.setInt(2,pid_from);
+				stmt.setString(3,body);
+				stmt.setString(4,subject);
+				stmt.setInt(5,msg_type);
+				stmt.setInt(6,original_subject_id);
+				stmt.setInt(7,p.ID);
+				stmt.setInt(8,league_pid);
+				stmt.setBoolean(9,true);
+
+				stmt.close();
+			 //stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid,readed) values (\""
+			//		+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+msg_type+","+original_subject_id+","+p.ID+"," + league_pid+",true);" );
+			
+			stmt = g.con.createStatement("select message_id from messages where pid = ? order by creation_date desc;");
+			stmt.setInt(1,pid_from);
+			rs = stmt.executeQuery();
+				//rs = stmt.executeQuery("select message_id from messages where pid = " + pid_from + " order by creation_date desc;");
 			int msgid = 0;
 			if(rs.next())
 			 msgid = rs.getInt(1);
 			
 			rs.close();
-			
-			stmt.executeUpdate("update messages set subject_id = " + msgid+  " where message_id = " + msgid);
-			
-		
+			stmt.close();
+			stmt = g.con.createStatement("update messages set subject_id = ? where message_id = ?;");
+			stmt.setInt(1,msgid);
+			stmt.setInt(2,msgid);
+		//	stmt.executeUpdate("update messages set subject_id = " + msgid+  " where message_id = " + msgid);
+			stmt.executeUpdate();
+			stmt.close();
+			stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id,tsid) values (?,?,?,?,?,?,?,?,?);");
+			UberPreparedStatement stmt2 = g.con.createStatement("select message_id from messages where pid = ? and pid_from =  ? order by creation_date desc;");
 			while(i<pid_to.length) {
 				
 				if(pid_to[i]!=-1) {
 					
-			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id,tsid) values (\""
-					+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+msg_type+","+original_subject_id+","+pid_to[i]+"," + msgid +","+league_pid+ ");" );
-			rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to[i] + " and pid_from =  "+ pid_from + " order by creation_date desc;");
+		//	stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id,tsid) values (\""
+			//		+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+msg_type+","+original_subject_id+","+pid_to[i]+"," + msgid +","+league_pid+ ");" );
+			
+					stmt.setString(1,pid_to_s);
+					stmt.setInt(2,pid_from);
+					stmt.setString(3,body);
+					stmt.setString(4,subject);
+					stmt.setInt(5,msg_type);
+					stmt.setInt(6,original_subject_id);
+					stmt.setInt(7,pid_to[i]);
+					stmt.setInt(8,msgid);
+					stmt.setInt(9,league_pid);
+			
+					stmt2.setInt(1,pid_to[i]);
+					stmt2.setInt(2,pid_from);
+					rs = stmt2.executeQuery();
+			//rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to[i] + " and pid_from =  "+ pid_from + " order by creation_date desc;");
 			int thismsgid = 0;
 			if(rs.next())
 			 thismsgid = rs.getInt(1);
@@ -1002,8 +1097,8 @@ public class BattlehardFunctions {
 			i++;
 			}
 
-			stmt.execute("commit;");
 			stmt.close();
+			stmt2.close();
 
 			transacted=true;
 			} catch(MySQLTransactionRollbackException exc) {  }
@@ -1136,25 +1231,52 @@ public class BattlehardFunctions {
 			ResultSet rs;
 			while(!transacted) {
 				try {
-			UberStatement stmt = g.con.createStatement();
-			stmt.execute("start transaction;");
-			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,tsid,original_subject_id,pid) values (\""
-					+ "["+pid_to+"]" +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+msg_type+"," + tsid+","+original_subject_id  + "," + p.ID + ");" );
+			UberPreparedStatement stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,tsid,original_subject_id,pid) values (?,?,?,?,?,?,?,?);");
+			//stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,tsid,original_subject_id,pid) values (\""
+				//	+ "["+pid_to+"]" +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+msg_type+"," + tsid+","+original_subject_id  + "," + p.ID + ");" );
+			stmt.setString(1,"["+pid_to+"]");
+			stmt.setInt(2,pid_from);
+			stmt.setString(3,body);
+			stmt.setString(4,subject);
+			stmt.setInt(5,msg_type);
+			stmt.setInt(6,tsid);
+			stmt.setInt(7,original_subject_id);
+			stmt.setInt(8,p.ID);
+			stmt.close();
+			stmt = g.con.createStatement("select message_id from messages where pid = ? order by creation_date desc;");
+			stmt.setInt(1,p.ID);
+			rs = stmt.executeQuery();
 			
-			rs = stmt.executeQuery("select message_id from messages where pid = " + p.ID + " order by creation_date desc;");
 			int msgid = 0;
 			if(rs.next())
 			 msgid = rs.getInt(1);
 			
 			rs.close();
+			stmt.close();
+			stmt = g.con.createStatement("update messages set subject_id = ? where message_id = ?");
+			stmt.setInt(1,msgid);
+			stmt.setInt(2,msgid);
+			//stmt.executeUpdate("update messages set subject_id = " + msgid+  " where message_id = " + msgid);
 			
-			stmt.executeUpdate("update messages set subject_id = " + msgid+  " where message_id = " + msgid);
-			
-			
-			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,tsid,original_subject_id,pid,subject_id) values (\""
-					+ "["+pid_to+"]\"" +"," + pid_from +",\"" +body+"\",\""+subject+"\","+msg_type+"," + tsid+","+original_subject_id  + "," + pid_to +","+msgid+ ");" );
-		
-			rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to + " and pid_from =  "+ pid_from + " order by creation_date desc;");
+			stmt.executeUpdate();
+			stmt.close();
+			stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,tsid,original_subject_id,pid,subject_id) values (?,?,?,?,?,?,?,?,?);");
+		//	stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,tsid,original_subject_id,pid,subject_id) values (\""
+			//		+ "["+pid_to+"]\"" +"," + pid_from +",\"" +body+"\",\""+subject+"\","+msg_type+"," + tsid+","+original_subject_id  + "," + pid_to +","+msgid+ ");" );
+			stmt.setString(1,"["+pid_to+"]");
+			stmt.setInt(2,pid_from);
+			stmt.setString(3,body);
+			stmt.setString(4,subject);
+			stmt.setInt(5,msg_type);
+			stmt.setInt(6,tsid);
+			stmt.setInt(7,original_subject_id);
+			stmt.setInt(8,pid_to);
+			stmt.setInt(9,msgid);
+			stmt.close();
+			stmt = g.con.createStatement("select message_id from messages where pid = ? and pid_from =  ? order by creation_date desc;");
+			stmt.setInt(1,pid_to);
+			stmt.setInt(2,pid_from);
+			rs = stmt.executeQuery();
 			int thismsgid = 0;
 			if(rs.next())
 			 thismsgid = rs.getInt(1);
@@ -1163,7 +1285,6 @@ public class BattlehardFunctions {
 			Player otherP = g.getPlayer(pid_to);
 			otherP.getPs().runMethod("onMessageReceivedCatch",otherP.getPs().b.getMessage(thismsgid));
 
-			stmt.execute("commit;");
 			stmt.close();
 			transacted=true;
 			} catch(MySQLTransactionRollbackException exc) {  }
@@ -7290,14 +7411,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 		}
 		try {
-			UberStatement stmt = g.con.createStatement();
+			UberPreparedStatement stmt = g.con.createStatement("select username from player where pid = ?");
 			ResultSet rs;
 			int i = 0;
 			while(i<pid.length) {
 				int j = 0;
-				rs = stmt.executeQuery("select username from player where pid = " + pid[i]);
+				stmt.setInt(1,pid[i]);
+				rs = stmt.executeQuery();
 				if(!rs.next()){
-					rs.close(); stmt.close();
+					rs.close(); 
+					stmt.close();
 
 					return false;
 					
@@ -7305,20 +7428,22 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				while(j<pid.length) {
 					
 					if(pid[i]==pid[j]&&i!=j) {
-						rs.close(); stmt.close();
-
+						rs.close(); 
+						stmt.close();
 						return false;
 					}
 					j++;
 				}
 				i++;
 			}
-				
-			 rs = stmt.executeQuery("select name, usergroupid  from usergroups where pid = " + p.ID);
+			stmt.close();
+			stmt = g.con.createStatement("select name, usergroupid  from usergroups where pid = ?");
+			stmt.setInt(1,p.ID);
+			 rs = stmt.executeQuery();
 			while(rs.next()) {
 				if(rs.getString(1).equals(name)) {
-					rs.close(); stmt.close();
-
+					rs.close(); 
+					stmt.close();
 					return false;
 				}
 			}
@@ -7361,21 +7486,34 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 			try {	
 				if(!canCreateUserGroup(name,pid))  return false;
-				int i = 0; UberStatement stmt = g.con.createStatement();
+				int i = 0; 
+				
+				UberPreparedStatement stmt = g.con.createStatement("insert into usergroups (name,pid) values (?,?);");
 				ResultSet rs;
-			stmt.execute("insert into usergroups (name,pid) values (\"" + name + "\"," + p.ID + ");");
+				stmt.setString(1,name);
+				stmt.setInt(2,p.ID);
+				stmt.execute();
+				stmt.close();
+			//stmt.execute("insert into usergroups (name,pid) values (\"" + name + "\"," + p.ID + ");");
 			
 			 i = 0;
-			rs = stmt.executeQuery("select usergroupid from usergroups where name = \"" + name + "\" and pid = " + p.ID + ";");
+			 stmt = g.con.createStatement("select usergroupid from usergroups where name = ? and pid = ?;");
+			 stmt.setString(1,name);
+			 stmt.setInt(2,p.ID);
+			rs = stmt.executeQuery();
 			rs.next();
 			int ugid = rs.getInt(1);
 			rs.close();
+			stmt.close();
+			stmt = g.con.createStatement("insert into usergroupmember (usergroupid,pid) values (?,?);");
 			while(i<pid.length) {
-				stmt.execute("insert into usergroupmember (usergroupid,pid) values (" + ugid + ","+ pid[i] + ");");
+			//	stmt.execute("insert into usergroupmember (usergroupid,pid) values (" + ugid + ","+ pid[i] + ");");
+				stmt.setInt(1,ugid);
+				stmt.setInt(2,pid[i]);
+				stmt.execute();
 				i++;
 			}
 			
-			stmt.execute("commit;");
 			stmt.close();
 			return true;
 		} catch(SQLException exc) {
@@ -7393,24 +7531,30 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return null;
 		}
 		try {
-			UberStatement stmt = g.con.createStatement();
-			ResultSet rs = stmt.executeQuery("select * from usergroups where pid = " + p.ID);
+			UberPreparedStatement stmt = g.con.createStatement("select * from usergroups where pid = ?;");
+			stmt.setInt(1,p.ID);
+			ResultSet rs = stmt.executeQuery();
+		//	ResultSet rs = stmt.executeQuery("select * from usergroups where pid = " + p.ID);
 			ArrayList<UserGroup> ug = new ArrayList<UserGroup>();
-			ResultSet rs2; UberStatement stmt2=g.con.createStatement();
-			ResultSet rs3; UberStatement stmt3=g.con.createStatement();
+			ResultSet rs2 = null; UberPreparedStatement stmt2=g.con.createStatement("select * from usergroupmember where usergroupid = ?;");
+			ResultSet rs3=null; UberPreparedStatement stmt3=g.con.createStatement("select username,pid from player where pid = ?;");
 
 			ArrayList<String> users;
 			ArrayList<Integer> pids;
 			UserGroup u;
 
 			while(rs.next()) {
-				rs2=stmt2.executeQuery("select * from usergroupmember where usergroupid =" + rs.getInt(1));
+				//rs2=stmt2.executeQuery("select * from usergroupmember where usergroupid =" + rs.getInt(1));
+				stmt2.setInt(1,rs.getInt(1));
+				rs = stmt2.executeQuery();
 				users = new ArrayList<String>();
 				pids = new ArrayList<Integer>();
 
 				while(rs2.next()) {
 				//	public UserGroup(String name, int userGroupID, ArrayList<String> users) {
-				rs3 = stmt3.executeQuery("select username,pid from player where pid = " + rs2.getInt(3));
+				//rs3 = stmt3.executeQuery("select username,pid from player where pid = " + rs2.getInt(3));
+					stmt3.setInt(1,rs2.getInt(3));
+					rs3 = stmt3.executeQuery();
 				rs3.next();
 				
 				users.add(rs3.getString(1));
@@ -7510,13 +7654,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		if(name.equals("all")) return false;
 
 			try {
-				UberStatement stmt = g.con.createStatement();
+				UberPreparedStatement stmt = g.con.createStatement("select username from player where pid = ?;");
 
 				ResultSet rs; 
 				int i = 0;
 				while(i<pid.length) {
 					int j = 0;
-					rs = stmt.executeQuery("select username from player where pid = " + pid[i]);
+					//rs = stmt.executeQuery("select username from player where pid = " + pid[i]);
+					stmt.setInt(1,pid[i]);
+					rs = stmt.executeQuery();
 					if(!rs.next()) {
 						rs.close(); stmt.close();
 
@@ -7532,12 +7678,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					}
 					i++;
 				}
-					
-				 rs = stmt.executeQuery("select name, usergroupid  from usergroups where pid = " + p.ID);
+				stmt.close();
+				stmt = g.con.createStatement("select name, usergroupid  from usergroups where pid = ?;");
+				stmt.setInt(1,p.ID);
+				 rs = stmt.executeQuery();
 				while(rs.next()) {
 					if(rs.getString(1).equals(name)){
-						rs.close(); stmt.close();
-
+						rs.close(); 
+						stmt.close();
 						return true; // reverse of create user group, must exist first.
 					}
 				}
@@ -7649,9 +7797,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		if(!checkLP()) return false;
 		if(name.equals("all")) return false;
 		try {
-			UberStatement stmt = g.con.createStatement();
-			stmt.execute("start transaction;");
-			ResultSet rs = stmt.executeQuery("select name,usergroupid from usergroups where pid = " + p.ID + " and name = \""+name + "\"");
+			UberPreparedStatement stmt = g.con.createStatement("select name,usergroupid from usergroups where pid = ? and name = ?;");
+			//stmt.execute("start transaction;");
+		//	ResultSet rs = stmt.executeQuery("select name,usergroupid from usergroups where pid = " + p.ID + " and name = \""+name + "\"");
+			stmt.setInt(1,p.ID);
+			stmt.setString(2,name);
+			ResultSet rs = stmt.executeQuery();
 			if(!rs.next()) {
 				rs.close(); stmt.close();
 				return false;
@@ -7665,13 +7816,18 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			int i = 0;
 			int usergroupid = rs.getInt(2);
 			rs.close();
-				stmt.execute("delete from usergroupmember where usergroupid = " + usergroupid + ";");
-			
-			stmt.execute("delete from usergroups where usergroupid = " + usergroupid + ";");
-
-
-			stmt.execute("commit;");
-			rs.close();stmt.close();
+			stmt.close();
+			stmt = g.con.createStatement("delete from usergroupmember where usergroupid = ?;");
+			stmt.setInt(1,usergroupid);
+			stmt.execute();
+			stmt.close();
+		//		stmt.execute("delete from usergroupmember where usergroupid = " + usergroupid + ";");
+			stmt = g.con.createStatement("delete from usergroups where usergroupid = ?;");
+			stmt.setInt(1,usergroupid);
+			stmt.execute();
+			stmt.close();
+		//	stmt.execute("delete from usergroups where usergroupid = " + usergroupid + ";");
+			stmt.close();
  
 		} catch(SQLException exc) {
 			exc.printStackTrace();
@@ -7692,8 +7848,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		if(name.equals("all")&&p.getSupportstaff()) return true;
 		else if(name.equals("all")&&p.getSupportstaff()) return false;
 		try {
-			UberStatement stmt = g.con.createStatement();
-			ResultSet rs = stmt.executeQuery("select * from usergroups where name = \"" + name + "\" and pid = " + p.ID + ";");
+			UberPreparedStatement stmt = g.con.createStatement("select * from usergroups where name = ? and pid = ?;");
+			stmt.setString(1,name);
+			stmt.setInt(1,p.ID);
+			ResultSet rs = stmt.executeQuery();
+		//	ResultSet rs = stmt.executeQuery("select * from usergroups where name = \"" + name + "\" and pid = " + p.ID + ";");
 			if(!rs.next())  {
 				rs.close(); stmt.close();
 				return false;
@@ -7706,8 +7865,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	public UserMessage getMessage(int msgID) {
 		try {
 	
-		UberStatement stmt = g.con.createStatement();
-		ResultSet rs = stmt.executeQuery("select * from messages where pid = " + p.ID + " and message_id = " + msgID + "  order by creation_date limit 1");
+		UberPreparedStatement stmt = g.con.createStatement("select * from messages where pid = ? and message_id = ?  order by creation_date limit 1");
+		stmt.setInt(1,p.ID);
+		stmt.setInt(2,msgID);
+		ResultSet rs = stmt.executeQuery();
+		//ResultSet rs = stmt.executeQuery("select * from messages where pid = " + p.ID + " and message_id = " + msgID + "  order by creation_date limit 1");
 			String userArray[]; UserMessage m=null;
 			while(rs.next()) {
 				int pid_to[] = PlayerScript.decodeStringIntoIntArray(rs.getString(2));
@@ -7744,16 +7906,20 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 		// return all messages.
 		try {
-			UberStatement stmt = g.con.createStatement();
+			UberPreparedStatement stmt = g.con.createStatement("select count(*) from messages where pid = ?;");
+			stmt.setInt(1,p.ID);
 			ArrayList<UserMessagePack> ump = new ArrayList<UserMessagePack>();
 			UserMessagePack umpPiece; UserMessage m;
 			
-			ResultSet rs = stmt.executeQuery("select count(*) from messages where pid = " + p.ID);
+			ResultSet rs = stmt.executeQuery();
 	      	int count=0;
 	      	if(rs.next()) count = rs.getInt(1);
 	      	rs.close();
+	      	stmt.close();
+	      	stmt = g.con.createStatement("select message_id from messages where pid = ? order by creation_date desc");
 	      	if(count>GodGenerator.maxMessageLimit) {
-	      		rs = stmt.executeQuery("select message_id from messages where pid = " + p.ID + " order by creation_date desc");
+	      		stmt.setInt(1,p.ID);
+	      		rs = stmt.executeQuery();
 	      		int counter=0;
 	      		ArrayList<Integer> toDel = new ArrayList<Integer>();
 	      		while(rs.next()) {
@@ -7764,13 +7930,19 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	      			}
 	      		}
 	      		rs.close();
+	      		stmt.close();
 	      		int i = 0;
+	      		stmt = g.con.createStatement("delete from messages where message_id = ?;");
 	      		while(i<toDel.size()) {
-    	      		stmt.executeUpdate("delete from messages where message_id = " + toDel.get(i));
+	      			stmt.setInt(1,toDel.get(i));
+    	      		stmt.executeUpdate();
     	      		i++;
 	      		}
 	      	}
-			 rs = stmt.executeQuery("select * from messages where pid = " + p.ID + " order by creation_date");
+	      	stmt.close();
+	      	stmt = g.con.createStatement("select * from messages where pid = " + p.ID + " order by creation_date");
+	      	stmt.setInt(1,p.ID);
+			 rs = stmt.executeQuery();
 			String userArray[];
 			while(rs.next()) {
 				int pid_to[] = PlayerScript.decodeStringIntoIntArray(rs.getString(2));
@@ -7867,8 +8039,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 		}
 		try {
-			UberStatement stmt = g.con.createStatement();
-			stmt.execute("update messages set readed = true where message_id = " + msgid + ";");
+			UberPreparedStatement stmt = g.con.createStatement("update messages set readed = true where message_id = ?;");
+			stmt.setInt(1,msgid);
+			stmt.execute();
 			stmt.close();
 
 			return true;
@@ -7888,8 +8061,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 		}
 		try {
-			UberStatement stmt = g.con.createStatement();
-			stmt.execute("update messages set readed = false where message_id = " + msgid + ";");
+			UberPreparedStatement stmt = g.con.createStatement("update messages set readed = false where message_id = ?;");
+			stmt.setInt(1,msgid);
+			stmt.execute();
 			stmt.close();
 
 			return true;
@@ -7909,8 +8083,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 		}
 		try {
-			UberStatement stmt = g.con.createStatement();
-			stmt.execute("update messages set deleted = true where message_id = " + msgid + ";");
+			UberPreparedStatement stmt = g.con.createStatement("update messages set deleted = true where message_id = ?;");
+			stmt.setInt(1,msgid);
+			stmt.execute();
 			stmt.close();
 			return true;
 		} catch(SQLException exc) {
@@ -8977,16 +9152,21 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 		}
 		try {
-			UberStatement stmt = g.con.createStatement();
-			
-			ResultSet rs = stmt.executeQuery("select * from statreports where pid = " + p.ID + " and sid = " + sid + " and deleted = false;");
+			UberPreparedStatement stmt = g.con.createStatement("select * from statreports where pid = ? and sid = ? and deleted = false;");
+			stmt.setInt(1,p.ID);
+			stmt.setInt(2,sid);
+			ResultSet rs = stmt.executeQuery();
 			if(!rs.next()) {
 				setError("You do not own this stat report or it doesn't exist!");
+				rs.close();
+				stmt.close();
 				return false;
 			}
-			
-			stmt.execute("update statreports set readed = false where sid = " + sid + ";");
 			rs.close();
+			stmt.close();
+			stmt = g.con.createStatement("update statreports set readed = false where sid = ?;");
+			stmt.setInt(1,sid);
+			stmt.execute();
 			stmt.close();
 			
 		} catch (SQLException exc) { exc.printStackTrace(); }
@@ -9002,16 +9182,21 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 		}
 		try {
-			UberStatement stmt = g.con.createStatement();
-			
-			ResultSet rs = stmt.executeQuery("select * from statreports where pid = " + p.ID + " and sid = " + sid + " and deleted = false;");
+			UberPreparedStatement stmt = g.con.createStatement("select * from statreports where pid = ? and sid = ? and deleted = false;");
+			stmt.setInt(1,p.ID);
+			stmt.setInt(2,sid);
+			ResultSet rs = stmt.executeQuery();
 			if(!rs.next()) {
 				setError("You do not own this stat report or it doesn't exist!");
+				rs.close();
+				stmt.close();
 				return false;
 			}
-			
-			stmt.execute("update statreports set readed = true where sid = " + sid + ";");
+			stmt.close();
 			rs.close();
+			stmt = g.con.createStatement("update statreports set readed = true where sid = ?;");
+			stmt.setInt(1,sid);
+			stmt.execute();
 			stmt.close();
 			
 		} catch (SQLException exc) { exc.printStackTrace(); }
@@ -9027,16 +9212,21 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 		}
 		try {
-			UberStatement stmt = g.con.createStatement();
-			
-			ResultSet rs = stmt.executeQuery("select * from statreports where pid = " + p.ID + " and sid = " + sid + " and deleted = false;");
+			UberPreparedStatement stmt = g.con.createStatement("select * from statreports where pid = ? and sid = ? and deleted = false;");
+			stmt.setInt(1,p.ID);
+			stmt.setInt(2,sid);
+			ResultSet rs = stmt.executeQuery();
 			if(!rs.next()) {
 				setError("You do not own this stat report or it doesn't exist!");
+				rs.close();
+				stmt.close();
 				return false;
 			}
-			
-			stmt.execute("update statreports set deleted = true where sid = " + sid + ";");
 			rs.close();
+			stmt.close();
+			stmt = g.con.createStatement("update statreports set deleted = true where sid = ?;");
+			stmt.setInt(1,sid);
+			stmt.execute();
 			stmt.close();
 			
 		} catch (SQLException exc) { exc.printStackTrace(); }
@@ -9052,16 +9242,21 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 		}
 		try {
-			UberStatement stmt = g.con.createStatement();
-			
-			ResultSet rs = stmt.executeQuery("select * from statreports where pid = " + p.ID + " and sid = " + sid + " and deleted = false;");
+			UberPreparedStatement stmt = g.con.createStatement("select * from statreports where pid = ? and sid = ? and deleted = false;");
+			stmt.setInt(1,p.ID);
+			stmt.setInt(2,sid);
+			ResultSet rs = stmt.executeQuery();
 			if(!rs.next()) {
 				setError("You do not own this stat report or it doesn't exist!");
+				rs.close();
+				stmt.close();
 				return false;
 			}
-			
-			stmt.execute("update statreports set archived = true where sid = " + sid + ";");
 			rs.close();
+			stmt.close();
+			stmt = g.con.createStatement("update statreports set archived = true where sid = ?;");
+			stmt.setInt(1,sid);
+			stmt.execute();
 			stmt.close();
 			
 		} catch (SQLException exc) { exc.printStackTrace(); }
@@ -9077,16 +9272,21 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 		}
 		try {
-			UberStatement stmt = g.con.createStatement();
-			
-			ResultSet rs = stmt.executeQuery("select * from statreports where pid = " + p.ID + " and sid = " + sid + " and deleted = false;");
+			UberPreparedStatement stmt = g.con.createStatement("select * from statreports where pid = ? and sid = ? and deleted = false;");
+			stmt.setInt(1,p.ID);
+			stmt.setInt(2,sid);
+			ResultSet rs = stmt.executeQuery();
 			if(!rs.next()) {
 				setError("You do not own this stat report or it doesn't exist!");
+				rs.close();
+				stmt.close();
 				return false;
 			}
-			
-			stmt.execute("update statreports set archived = false where sid = " + sid + ";");
 			rs.close();
+			stmt.close();
+			stmt = g.con.createStatement("update statreports set archived = false where sid = ?;");
+			stmt.setInt(1,sid);
+			stmt.execute();
 			stmt.close();
 			
 		} catch (SQLException exc) { exc.printStackTrace(); }
@@ -9109,14 +9309,18 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		     
 		    	  
 		      
-		      UberStatement stmt = g.con.createStatement();
+		      UberPreparedStatement stmt = g.con.createStatement("select count(*) from statreports where pid = ?;");
+		      stmt.setInt(1,p.ID);
 	//	    ResultSet rs = stmt.executeQuery("select * from statreports where pid = " + p.ID + " ");
-		      ResultSet rs = stmt.executeQuery("select count(*) from statreports where pid = " + p.ID);
+		      ResultSet rs = stmt.executeQuery();
 		      	int count=0;
 		      	if(rs.next()) count = rs.getInt(1);
 		      	rs.close();
+		      	stmt.close();
 		      	if(count>GodGenerator.maxMessageLimit) {
-		      		rs = stmt.executeQuery("select sid from statreports where pid = " + p.ID + " order by created_at desc");
+			      	stmt = g.con.createStatement("select sid from statreports where pid = ? order by created_at desc");
+		      		stmt.setInt(1,p.ID);
+		      		rs = stmt.executeQuery();
 		      		int counter=0;
 		      		ArrayList<Integer> toDel = new ArrayList<Integer>();
 		      		while(rs.next()) {
@@ -9127,13 +9331,19 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		      			}
 		      		}
 		      		rs.close();
+		      		stmt.close();
 		      		int i = 0;
+		      		stmt = g.con.createStatement("delete from statreports where sid = ?;");
 		      		while(i<toDel.size()) {
-	    	      		stmt.executeUpdate("delete from statreports where sid = " + toDel.get(i));
+		      			stmt.setInt(1,toDel.get(i));
+	    	      		stmt.executeUpdate();
 	    	      		i++;
 		      		}
+		      		stmt.close();
 		      	}
-		    		 rs = stmt.executeQuery("select * from statreports where pid = " + p.ID + " and deleted = false order by sid asc;"); // normal statreports.
+		      	stmt = g.con.createStatement("select * from statreports where pid = ? and deleted = false order by sid asc;");
+		      	stmt.setInt(1,p.ID);
+		    	rs = stmt.executeQuery(); // normal statreports.
 		    		// don't question the asc, you'd think it'd be desc but asc works! Desc doesn't!
 		    		// probably because I insert elements at the bottom...
 		    		while(rs.next())  {
@@ -9268,7 +9478,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			i++;
 		}
 		
-		if(desired<max) {
+		if(desired<=max) {
 			b.setFortArray(auNumbers);
 			return true;
 		} else {
@@ -11441,10 +11651,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	public boolean runProgram() {
 		int i = 0;
 		if(!checkLP()) return false;
-		ResultSet holdRevStuff=null; UberStatement stmt=null;
+		ResultSet holdRevStuff=null; UberPreparedStatement stmt=null;
 		try {
-		 stmt = g.con.createStatement();
-		  holdRevStuff = stmt.executeQuery("select revAI from revelations where pid = " + p.ID);
+		 stmt = g.con.createStatement("select revAI from revelations where pid = ?;");
+		 stmt.setInt(1,p.ID);
+		  holdRevStuff = stmt.executeQuery();
 			holdRevStuff.next();
 			String oldRev[] = new String[1];
 			 oldRev[0] = holdRevStuff.getString(1);
@@ -11452,18 +11663,24 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			//LOAD STUFF HERE AND CHECK IT.
 			
 			holdRevStuff.close();
-			holdRevStuff = stmt.executeQuery("select count(*) From checkTable");
+			stmt.close();
+			stmt = g.con.createStatement("select count(*) From checkTable");
+			holdRevStuff = stmt.executeQuery();
 			holdRevStuff.next();
 			String toCheckArray[] = new String[holdRevStuff.getInt(1)];
 			
 			holdRevStuff.close();
-			holdRevStuff = stmt.executeQuery("select badstring From checkTable");
+			stmt.close();
+			stmt = g.con.createStatement("select badstring From checkTable");
+			
+			holdRevStuff = stmt.executeQuery();
 			i=0;
 			while(holdRevStuff.next()) {
 				toCheckArray[i]=holdRevStuff.getString(1);
 				i++;
 			}
 			holdRevStuff.close();
+			stmt.close();
 			i=0;
 		while(i<prog.length) {
 			
@@ -11480,7 +11697,6 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 		
 		// if we get through here, we must be ready to go!
-		stmt.close();
 		
 	//	p.ps.makeCompileReq();
 		if(p.isLeague())
@@ -11549,8 +11765,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 String oldRev = "";
 
 		try {
-			UberStatement stmt = g.con.createStatement();
-		 ResultSet holdRevStuff = stmt.executeQuery("select revAI from revelations where pid = " + p.ID);
+			UberPreparedStatement stmt = g.con.createStatement("select revAI from revelations where pid = ?;");
+			stmt.setInt(1,p.ID);
+		 ResultSet holdRevStuff = stmt.executeQuery();
 			 if(holdRevStuff.next())
 			 oldRev = holdRevStuff.getString(1);
 			 holdRevStuff.close();
@@ -11569,8 +11786,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 		try {
 		//	System.out.println("Saving ... " + toSave);
-			UberStatement stmt = g.con.createStatement();
-			stmt.executeUpdate("update revelations set revAI = '" + toSave + "' where pid = " + p.ID);
+			UberPreparedStatement stmt = g.con.createStatement("update revelations set revAI = ? where pid = ?;");
+			stmt.setString(1,toSave);
+			stmt.setInt(2,p.ID);
+			stmt.executeUpdate();
 			stmt.close();
 			 return true;
 		} catch(SQLException exc) { exc.printStackTrace(); }
@@ -11592,10 +11811,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	private boolean compileProgram() {
 		int i = 0;
-		ResultSet holdRevStuff=null; UberStatement stmt=null;
+		ResultSet holdRevStuff=null; UberPreparedStatement stmt=null;
 		try {
-		 stmt = g.con.createStatement();
-		  holdRevStuff = stmt.executeQuery("select revAI from revelations where pid = " + p.ID);
+		 stmt = g.con.createStatement("select revAI from revelations where pid = ?;");
+		 stmt.setInt(1,p.ID);
+		  holdRevStuff = stmt.executeQuery();
 			holdRevStuff.next();
 			String oldRev[] = new String[1];
 			 oldRev[0] = holdRevStuff.getString(1);
@@ -11603,18 +11823,24 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			//LOAD STUFF HERE AND CHECK IT.
 			
 			holdRevStuff.close();
-			holdRevStuff = stmt.executeQuery("select count(*) From checkTable");
+			stmt.close();
+			stmt = g.con.createStatement("select count(*) From checkTable");
+			holdRevStuff = stmt.executeQuery();
 			holdRevStuff.next();
 			String toCheckArray[] = new String[holdRevStuff.getInt(1)];
 			
 			holdRevStuff.close();
-			holdRevStuff = stmt.executeQuery("select badstring From checkTable");
+			stmt.close();
+			stmt = g.con.createStatement("select badstring From checkTable");
+
+			holdRevStuff = stmt.executeQuery();
 			i=0;
 			while(holdRevStuff.next()) {
 				toCheckArray[i]=holdRevStuff.getString(1);
 				i++;
 			}
 			holdRevStuff.close();
+			stmt.close();
 			i=0;
 		while(i<prog.length) {
 			
@@ -11688,8 +11914,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 */
 	public boolean setAutoRun(boolean on) {
 		try {
-			UberStatement stmt = g.con.createStatement();
-			stmt.execute("update player set autorun = " + on + " where pid = " + p.ID);
+			UberPreparedStatement stmt = g.con.createStatement("update player set autorun = ? where pid = ?;");
+			stmt.setBoolean(1,on);
+			stmt.setInt(2,p.ID);
+			stmt.execute();
 			stmt.close();
 		} catch(SQLException exc) { exc.printStackTrace(); }
 		return true;
@@ -11704,8 +11932,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		boolean auto = false;
 
 		try {
-			UberStatement stmt = g.con.createStatement();
-			ResultSet rs = stmt.executeQuery("select autorun from player where pid = " + p.ID);
+			UberPreparedStatement stmt = g.con.createStatement("select autorun from player where pid = ?;");
+			stmt.setInt(1,pid);
+			ResultSet rs = stmt.executeQuery();
 			if(rs.next()) auto = rs.getBoolean(1);
 			rs.close();
 			stmt.close();
@@ -12460,41 +12689,84 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		int tid=-1;
 
 		try {
-			UberStatement stmt = g.con.createStatement();
 			ResultSet rs;
 			boolean transacted=false;
 			while(!transacted) {
 				try {
-			stmt.execute("start transaction;");
+					UberPreparedStatement stmt = g.con.createStatement("insert into town (pid,townName,x,y,destX,destY,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,au1,au2,au3,au4,au5,au6,zeppelin) values (?,?,?,?,?,0,0,0,0,1,?,?,?,?,?,0,0,0,0,0,0,true)");
+
 		//	stmt.execute("update player set chg = 1 where pid = " + ID);
 		
-			  stmt.execute("insert into town (pid,townName,x,y,destX,destY,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,au1,au2,au3,au4,au5,au6,zeppelin) values (" + p.ID  +",\"" + townName+ "\","
-    				  +x+","+(y)+","+x+","+y+",0,0,0,0,1," + resEffects[0] + "," + resEffects[1] + "," + resEffects[2] + "," + resEffects[3] + "," + resEffects[4] + ",0,0,0,0,0,0,true)");
-    		  rs = stmt.executeQuery("select tid from town where x = " + (x) + " and y = " + (y) + " and zeppelin=true;");
+			  //stmt.execute("insert into town (pid,townName,x,y,destX,destY,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,au1,au2,au3,au4,au5,au6,zeppelin) values (" + p.ID  +",\"" + townName+ "\","
+    			//	  +x+","+(y)+","+x+","+y+",0,0,0,0,1," + resEffects[0] + "," + resEffects[1] + "," + resEffects[2] + "," + resEffects[3] + "," + resEffects[4] + ",0,0,0,0,0,0,true)");
+			  stmt.setInt(1,p.ID);
+			  stmt.setString(2,townName);
+			  stmt.setInt(3,x);
+			  stmt.setInt(4,y);
+			  stmt.setInt(5,x);
+			  stmt.setInt(6,y);
+			  stmt.setDouble(7,resEffects[0]);
+			  stmt.setDouble(8,resEffects[1]);
+			  stmt.setDouble(9,resEffects[2]);
+			  stmt.setDouble(10,resEffects[3]);
+			  stmt.setDouble(11,resEffects[4]);
+
+			  stmt.execute();
+			  stmt.close();
+			  stmt = g.con.createStatement("select tid from town where x = ? and y = ? and zeppelin=true;");
+			  stmt.setInt(1,x);
+			  stmt.setInt(2,y);
+    		  rs = stmt.executeQuery();
     		  rs.next();
     		   tid = rs.getInt(1);
     		  rs.close();
+    		stmt.close();
+    		stmt = g.con.createStatement("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
+    		  		"?,?,3,-1,0,0,0,?,0,0,-1,0);");
+    		stmt.setString(1,"Metal Mine");
+    		stmt.setInt(2,0);
+    		stmt.setInt(3,tid);
+    		stmt.execute();
+    		stmt.setString(1,"Timber Field");
+    		stmt.setInt(2,1);
+    		stmt.setInt(3,tid);
+    		stmt.execute();
+
+    		stmt.setString(1,"Crystal Mine");
+    		stmt.setInt(2,2);
+    		stmt.setInt(3,tid);
+    		stmt.execute();
+
+    		stmt.setString(1,"Farm");
+    		stmt.setInt(2,3);
+    		stmt.setInt(3,tid);
+    		stmt.execute();
+
+    		stmt.setString(1,"Command Center");
+    		stmt.setInt(2,4);
+    		stmt.setInt(3,tid);
+    		stmt.execute();
+
+    		stmt.setString(1,"Metal Warehouse");
+    		stmt.setInt(2,5);
+    		stmt.setInt(3,tid);
+    		stmt.execute();
+
+    		stmt.setString(1,"Lumber Yard");
+    		stmt.setInt(2,6);
+    		stmt.setInt(3,tid);
+    		stmt.execute();
     		
-    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-    		  		"'Metal Mine',0,3,-1,0,0,0,"+tid+",0,0,-1,0);");
-    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Timber Field',1,3,-1,0,0,0,"+tid+",0,0,-1,0);");
-    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Crystal Mine',2,3,-1,0,0,0,"+tid+",0,0,-1,0);");
-    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Farm',3,3,-1,0,0,0,"+tid+",0,0,-1,0);");
-    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Command Center',4,1,-1,0,0,0,"+tid+",0,0,-1,0);");
-    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Metal Warehouse',5,1,-1,0,0,0,"+tid+",0,0,-1,0);");
-    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Lumber Yard',6,1,-1,0,0,0,"+tid+",0,0,-1,0);");
-    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Crystal Repository',7,1,-1,0,0,0,"+tid+",0,0,-1,0);");
-    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Granary',8,1,-1,0,0,0,"+tid+",0,0,-1,0);");
-    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Command Center',9,1,-1,0,0,0,"+tid+",0,0,-1,0);");
+    		stmt.setString(1,"Crystal Repository");
+    		stmt.setInt(2,7);
+    		stmt.setInt(3,tid);
+    		stmt.execute();
+    		
+    		stmt.setString(1,"Granary");
+    		stmt.setInt(2,8);
+    		stmt.setInt(3,tid);
+    		stmt.execute();
+
     		  
     		  Town t = new Town(tid,g);
     		  rs.close();
@@ -12502,9 +12774,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
     		  p.towns().add(t);
     		 // System.out.println("This town: " + t + " on end of player: "+ towns().get(towns().size()-1));
 
-    		  stmt.execute("commit;");
     //		  stmt.execute("update player set chg = 2 where pid = "+ ID);
-    		  rs.close();
     		  stmt.close();
     		  transacted=true;
 				} catch(MySQLTransactionRollbackException exc) { } 

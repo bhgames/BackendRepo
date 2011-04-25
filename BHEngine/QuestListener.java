@@ -373,6 +373,7 @@ public abstract class QuestListener extends Player {
 	 */
 	public boolean completedQuest(Player p, String questname) {
 		int i =0;
+		if(God.getPlayerId(questname)==5) return false;
 		ArrayList<QuestPlayerComplete> qpc = ((QuestListener) God.getPlayer(God.getPlayerId(questname))).qpc();
 		while(i<qpc.size()) {
 
@@ -416,6 +417,8 @@ public abstract class QuestListener extends Player {
 	 */
 	public static boolean partOfQuest(Player p, String questname) {
 		int i = 0;
+		if(p.God.getPlayerId(questname)==5) return false;
+
 		ArrayList<QuestPlayerComplete> qpc = ((QuestListener) p.God.getPlayer(p.God.getPlayerId(questname))).qpc();
 		while(i<qpc.size()) {
 		//	System.out.println(getUsername() + "'s quests when doing completed: " + qpc().get(i).qpcid);
@@ -434,6 +437,8 @@ public abstract class QuestListener extends Player {
 	 */
 	public boolean completedOrPartOfQuest(Player p, String questname) {
 		int i = 0;
+		if(God.getPlayerId(questname)==5) return false;
+
 		ArrayList<QuestPlayerComplete> qpc = ((QuestListener) God.getPlayer(God.getPlayerId(questname))).qpc();
 		while(i<qpc.size()) {
 		//	System.out.println(getUsername() + "'s quests when doing completed: " + qpc().get(i).qpcid);
@@ -547,6 +552,8 @@ public abstract class QuestListener extends Player {
 	
 	public boolean completedQuest(Player p, int qid) {
 		int i = 0;
+		if(God.getPlayer(qid).ID==5) return false;
+
 		ArrayList<QuestPlayerComplete> qpc = ((QuestListener) God.getPlayer(qid)).qpc();
 		while(i<qpc.size()) {
 		//	System.out.println(getUsername() + "'s quests when doing completed: " + qpc().get(i).qpcid);
@@ -590,6 +597,8 @@ public abstract class QuestListener extends Player {
  */
 	public boolean completedOrPartOfQuest(Player p, int qid) {
 		int i = 0;
+		if(God.getPlayer(qid).ID==5) return false;
+
 		ArrayList<QuestPlayerComplete> qpc = ((QuestListener) God.getPlayer(qid)).qpc();
 		while(i<qpc.size()) {
 		//	System.out.println(getUsername() + "'s quests when doing completed: " + qpc().get(i).qpcid);
