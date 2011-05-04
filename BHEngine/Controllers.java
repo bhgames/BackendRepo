@@ -375,7 +375,6 @@ public class Controllers {
 			 return false;
 	}
 	public boolean upgrade(HttpServletRequest req, PrintWriter out) {
-		System.out.println("CALL ME CALLED!");
 		
 		Player p;
 
@@ -386,8 +385,9 @@ public class Controllers {
 
 		 try {
 			 
-			 UberStatement stmt = g.zongCon.createStatement();
-			 ResultSet rs = stmt.executeQuery("select pid,itemDesc from zongPayment where transactionID = " + tID);
+			 UberPreparedStatement stmt = g.zongCon.createStatement("select pid,itemDesc from zongPayment where transactionID = ?;");
+			 stmt.setInt(1,tID);
+			 ResultSet rs = stmt.executeQuery();
 			 if(rs.next()) {
 				 pid=rs.getInt(1);
 				 item = rs.getString(2);
@@ -414,7 +414,8 @@ public class Controllers {
 
 
 			 try {
-				 UberStatement stmt = g.zongCon.createStatement();
+				 UberPreparedStatement stmt = g.zongCon.createStatement("select failureReason from zongPayment where transactionID = ?;");
+				 stmt.setInt(1,tID);
 				 /*
 				  *  transactionID int not null auto_increment,
 						    -> pid int not null,
@@ -432,7 +433,7 @@ public class Controllers {
 						AND sigVers
 				  */
 
-				 ResultSet rs = stmt.executeQuery("select failureReason from zongPayment where transactionID = " + tID);
+				 ResultSet rs = stmt.executeQuery();
 				 boolean canUpdate=true;
 				 if(rs.next()) {
 					 if(rs.getString(1).equals("COMPLETED")) canUpdate=false;
@@ -440,16 +441,26 @@ public class Controllers {
 				 
 
 				 rs.close();
+				 stmt.close();
+
 				 if(canUpdate) {
-				 stmt.execute("update zongPayment set itemDesc = '" + itemDesc + "', status = '" +status + "', failureReason = '" + failure + "'," +
-				 		" method = '" + method + "', msisdn = '" + msisdn + "', outPayment = '" + outPayment + "', consumerPrice = '"+consumerPrice
-				 		+ "', consumerCurrency = '"+consumerCurrency + "', signature = '"+signature +"', sigVers = '"+signatureVersion + "' where transactionID = " + tID + ";");
+				stmt = g.zongCon.createStatement("update zongPayment set itemDesc = ?, status = ?, failureReason = ?, method = ?, msisdn = ?, outPayment = ?, consumerPrice = ?, consumerCurrency = ?, signature = ?, sigVers = ? where transactionID = ?;");
+				stmt.setString(1,itemDesc);
+				stmt.setString(2,status);
+				stmt.setString(3,failure);
+				stmt.setString(4,method);
+				stmt.setString(5,msisdn);
+				stmt.setString(6,outPayment);
+				stmt.setString(7,consumerPrice);
+				stmt.setString(8,consumerCurrency);
+				stmt.setString(9,signature);
+				stmt.setString(10,signatureVersion);
+				stmt.setInt(11,tID);
+				 stmt.execute();
 				 
 				 if(status.equals("COMPLETED")) {
-					 System.out.println(p.getUsername() + " just got upgraded on " + itemDesc);
 					 if(itemDesc.equals("battlehardmode")){
 					 p.setPremiumTimer(p.getPremiumTimer()+(int) Math.round(7.0*24.0*3600.0/GodGenerator.gameClockFactor));
-					 System.out.println("upping premium timer.");
 					 }
 					 else if(itemDesc.equals("autopilot"))
 					 p.setRevTimer(p.getRevTimer()+(int) Math.round(7.0*24.0*3600.0/GodGenerator.gameClockFactor));
@@ -466,20 +477,18 @@ public class Controllers {
 			 return false;
 	}
 	public boolean refund(HttpServletRequest req, PrintWriter out) {
-		System.out.println("CALL ME REFUNDED!");
 		// NOT MADE YET
 		Player p;
 
 		// must be a player request.
-		 System.out.println("0");
 		 int tID = Integer.parseInt(req.getParameter("transactionRef")); 
 		 int pid=0;
 		 
 		 try {
 			 
-			 UberStatement stmt = g.zongCon.createStatement();
-			 
-			 ResultSet rs = stmt.executeQuery("select pid from zongPayment where transactionID = " + tID);
+			 UberPreparedStatement stmt = g.zongCon.createStatement("select pid from zongPayment where transactionID = ?;");
+			 stmt.setInt(1,tID);
+			 ResultSet rs = stmt.executeQuery();
 			 if(rs.next()) pid=rs.getInt(1);
 			 rs.close();
 			 stmt.close();
@@ -502,7 +511,8 @@ public class Controllers {
 
 
 			 try {
-				 UberStatement stmt = g.zongCon.createStatement();
+				 UberPreparedStatement stmt = g.zongCon.createStatement("select failureReason from zongPayment where transactionID = ?;");
+				 stmt.setInt(1,tID);
 				 /*
 				  *  transactionID int not null auto_increment,
 						    -> pid int not null,
@@ -520,7 +530,7 @@ public class Controllers {
 						AND sigVers
 				  */
 
-				 ResultSet rs = stmt.executeQuery("select failureReason from zongPayment where transactionID = " + tID);
+				 ResultSet rs = stmt.executeQuery();
 				 boolean canUpdate=true;
 				 if(rs.next()) {
 					 if(rs.getString(1).equals("COMPLETED")) canUpdate=false;
@@ -529,12 +539,22 @@ public class Controllers {
 
 				 rs.close();
 				 if(canUpdate) {
-				 stmt.execute("update zongPayment set itemDesc = '" + itemDesc + "', status = '" +status + "', failureReason = '" + failure + "'," +
-				 		" method = '" + method + "', msisdn = '" + msisdn + "', outPayment = '" + outPayment + "', consumerPrice = '"+consumerPrice
-				 		+ "', consumerCurrency = '"+consumerCurrency + "', signature = '"+signature +"', sigVers = '"+signatureVersion + "' where transactionID = " + tID + ";");
+					 stmt = g.zongCon.createStatement("update zongPayment set itemDesc = ?, status = ?, failureReason = ?, method = ?, msisdn = ?, outPayment = ?, consumerPrice = ?, consumerCurrency = ?, signature = ?, sigVers = ? where transactionID = ?;");
+						stmt.setString(1,itemDesc);
+						stmt.setString(2,status);
+						stmt.setString(3,failure);
+						stmt.setString(4,method);
+						stmt.setString(5,msisdn);
+						stmt.setString(6,outPayment);
+						stmt.setString(7,consumerPrice);
+						stmt.setString(8,consumerCurrency);
+						stmt.setString(9,signature);
+						stmt.setString(10,signatureVersion);
+						stmt.setInt(11,tID);
+						 stmt.execute();
+				
 				 
 				 if(status.equals("COMPLETED")) {
-					 System.out.println(p.getUsername() + " just got upgraded!");
 					 p.setPremiumTimer(p.getPremiumTimer()+(int) Math.round(7.0*24.0*3600.0/GodGenerator.gameClockFactor));
 				 }
 				 
@@ -557,7 +577,7 @@ public class Controllers {
 				 String country = (String) req.getParameter("country");
 				 int purchaseCode = Integer.parseInt(req.getParameter("purchaseCode"));
 				 boolean league = Boolean.parseBoolean(req.getParameter("league"));
-				 System.out.println("your player is " + p.getUsername() + " and your country is " + country + " and purchaseCode is " + purchaseCode  + " and league is " + league);
+			//	 System.out.println("your player is " + p.getUsername() + " and your country is " + country + " and purchaseCode is " + purchaseCode  + " and league is " + league);
 				 // so if you ask for a league and have a league, and you're an admin, you get it for your leagued player.
 				 if(league&&p.getLeague()!=null&&p.getLeague().getType(p.ID)==2)  {
 					 p = p.getLeague();
@@ -592,10 +612,14 @@ public class Controllers {
 				 int tID = 0;
 
 				 try {
-					 UberStatement stmt = g.zongCon.createStatement();
-					 
-					 stmt.execute("insert into zongPayment(pid,itemDesc) values (" + p.ID +",'"+item +"');");
-					 ResultSet rs = stmt.executeQuery("select max(transactionID) from zongPayment where pid = " + p.ID);
+					 UberPreparedStatement stmt = g.zongCon.createStatement("insert into zongPayment(pid,itemDesc) values (?,?);");
+					 stmt.setInt(1,p.ID);
+					 stmt.setString(2,item);
+					 stmt.execute();
+					 stmt.close();
+					 stmt = g.zongCon.createStatement("select max(transactionID) from zongPayment where pid = ?;");
+					 stmt.setInt(1,p.ID);
+					 ResultSet rs = stmt.executeQuery();
 					 if(rs.next()) tID = rs.getInt(1);
 					 rs.close();
 					 stmt.close();
@@ -611,10 +635,14 @@ public class Controllers {
 		                   new UberConnection(
 	                              GodGenerator.zongurl,GodGenerator.user, GodGenerator.pass,g);
 					 try {
-					 	UberStatement stmt = g.zongCon.createStatement();
-					 
-					 stmt.execute("insert into zongPayment(pid,itemDesc) values (" + p.ID +",'"+item +"');");
-					 ResultSet rs = stmt.executeQuery("select max(transactionID) from zongPayment where pid = " + p.ID);
+						 UberPreparedStatement stmt = g.zongCon.createStatement("insert into zongPayment(pid,itemDesc) values (?,?);");
+						 stmt.setInt(1,p.ID);
+						 stmt.setString(2,item);
+						 stmt.execute();
+						 stmt.close();
+						 stmt = g.zongCon.createStatement("select max(transactionID) from zongPayment where pid = ?;");
+						 stmt.setInt(1,p.ID);
+						 ResultSet rs = stmt.executeQuery();
 					 if(rs.next()) tID = rs.getInt(1);
 					 rs.close();
 					 stmt.close(); } catch(SQLException exc2) { exc2.printStackTrace(); }
@@ -652,8 +680,8 @@ public class Controllers {
 
 			if(p.getSupportstaff()) {
 				try {
-					UberStatement stmt = g.con.createStatement(); 
-					ResultSet rs = stmt.executeQuery("select email from users");
+					UberPreparedStatement stmt = g.con.createStatement("select email from users"); 
+					ResultSet rs = stmt.executeQuery();
 					while(rs.next()) {
 						
 						if(g.getPlayerByEmail(rs.getString(1))==null) {
@@ -729,8 +757,9 @@ public boolean FBBlast(HttpServletRequest req, PrintWriter out) {
 						 if(s[i].sid==sid&&!s[i].getBlasted()) {
 							 System.out.println("Inside reward area and type is " + type + " with sid " + sid);
 							 try {
-								 UberStatement stmt = g.con.createStatement();
-								 stmt.execute("update statreports set blasted=true where sid = " + sid);
+								 UberPreparedStatement stmt = g.con.createStatement("update statreports set blasted=true where sid = ?;");
+								 stmt.setInt(1,sid);
+								 stmt.execute();
 								 stmt.close();
 							 } catch(SQLException exc) { exc.printStackTrace(); }
 						

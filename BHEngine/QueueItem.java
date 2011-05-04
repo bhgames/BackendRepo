@@ -34,8 +34,9 @@ public static int days = 5;
 		this.qid=qid;this.bid=b.bid;this.b=b;
 		this.God=God;this.con=God.con;
 		try {
-		UberStatement qus = con.createStatement();
-		 ResultSet qrs = qus.executeQuery("select * from queue where qid = " + qid);
+		UberPreparedStatement qus = con.createStatement("select * from queue where qid = ?;");
+		qus.setInt(1,qid);
+		 ResultSet qrs = qus.executeQuery();
 		// getting queries.
 		
 		 
@@ -93,11 +94,11 @@ public static int days = 5;
 	}
 	public int returnBID() {
 		return bid;
-	}
+	}/*
 	public int returnMemAUtoBuild() {
 		return getInt("AUtoBuild");
 	}
-	
+	*/
 	public Building getB() {
 		return b;
 	}
@@ -504,7 +505,7 @@ public static int days = 5;
 		 setTicksPerUnit(getUnitTicks(theMany,t));
 	}
 
-
+/*
 	public void setMemAUtoBuild(int AUtoBuild) {
 		setInt("AUtoBuild",AUtoBuild);
 	}
@@ -522,18 +523,7 @@ public static int days = 5;
 	}
 
 
-	public long[] getCost() {
-		if(cost==null) {
-		long[] cost = new long[5];
-		cost[0]=getLong("m");
-		cost[1]=getLong("t");
-		cost[2]=getLong("mm");
-		cost[3]=getLong("f");
-	//	System.out.println("cost is " + cost[3]);
-		this.cost= cost;
-		}
-		return cost;
-	}
+
 
 
 	public void setMemCurrTicks(int currTicks) {
@@ -544,13 +534,32 @@ public static int days = 5;
 	public int getMemCurrTicks() {
 		return getInt("currTicks");
 	}
-
-
+*/
+	public long[] getCost() {
+		if(cost==null) {
+			try {
+				long[] cost = new long[5];
+				UberPreparedStatement stmt = con.createStatement("select m,t,mm,f from queue where qid = ?;");
+				stmt.setInt(1,qid);
+				ResultSet rs = stmt.executeQuery();
+				rs.next();
+				cost[0]=rs.getLong(1);
+				cost[1]=rs.getLong(2);
+				cost[2]=rs.getLong(3);
+				cost[3]=rs.getLong(4);
+			//	System.out.println("cost is " + cost[3]);
+				this.cost= cost;
+				rs.close();
+				stmt.close();
+			} catch(SQLException exc) { exc.printStackTrace(); }
+		}
+		return cost;
+	}
 	public void setTicksPerUnit(int ticksPerUnit) {
 		this.ticksPerUnit = ticksPerUnit;
 	}
 
-
+/*
 	public void setMemTownsAtTime(int townsAtTime) {
 		setInt("townsAtTime",townsAtTime);
 	}
@@ -579,12 +588,13 @@ public static int days = 5;
 	public int getMemTotalNumber() {
 		return getInt("totalNumber");
 	}
-
+*/
 
 	public void deleteMe() {
 		try {
-			UberStatement stmt = con.createStatement();
-			stmt.executeUpdate("delete from queue where qid = " + qid);
+			UberPreparedStatement stmt = con.createStatement("delete from queue where qid = ?;");
+			stmt.setInt(1,qid);
+			stmt.executeUpdate();
 			stmt.close();
 		} catch(SQLException exc) { exc.printStackTrace(); }
 	
@@ -595,15 +605,18 @@ public static int days = 5;
 		try {
 			String update = "update queue set AUNumber = " + getAUNumber() + ", currTicks = " + getCurrTicks() + 
 			  " where qid = " + qid;
-			UberStatement stmt = con.createStatement();
-			stmt.execute(update);
+			UberPreparedStatement stmt = con.createStatement("update queue set AUNumber = ?, currTicks = ? where qid = ?;");
+			stmt.setInt(1,getAUNumber());
+			stmt.setInt(2,getCurrTicks());
+			stmt.setInt(3,qid);
+			stmt.execute();
 			stmt.close();
 			
 		}	catch(SQLException exc) { exc.printStackTrace(); }
 		
 	}
 
-	
+	/*
 
 	public void setMemAUNumber(int AUNumber) {
 		setInt("AUNumber",AUNumber);
@@ -736,5 +749,5 @@ public static int days = 5;
 			exc.printStackTrace();
 		}
 		return null;
-	}
+	}*/
 }

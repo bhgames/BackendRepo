@@ -30,8 +30,8 @@ public class Maelstrom implements Runnable {
 		this.God=God;
 		
 		try {
-			UberStatement stmt = God.con.createStatement();
-			ResultSet getLInfo = stmt.executeQuery("select * from cloud");
+			UberPreparedStatement stmt = God.con.createStatement("select * from cloud");
+			ResultSet getLInfo = stmt.executeQuery();
 			while(getLInfo.next()) {
 				/*
 				 *    ->  cid int unsigned not null auto_increment,
@@ -698,25 +698,33 @@ class Cloud {
 		try {
 
 		   
-		      UberStatement stmt = m.God.con.createStatement();
-
+		      
 		      
 		      // First things first. We update the player table.
+			UberPreparedStatement stmt = null;
 		      boolean transacted=false;
 		      while(!transacted) {
 		    	  try {
-		      
-		      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
+		    		   stmt = m.God.con.createStatement("insert into cloud (incs,centerx,centery,ticksToDeath,direction,velocity,emp,size) values (?,?,?,?,?,?,?,?);");
+				      stmt.setString(1,incsStr);
+				      stmt.setInt(2,centerx);
+				     stmt.setInt(3,centery);
+				     stmt.setInt(4,ticksToDeath);
+				     stmt.setInt(5,direction);
+				     stmt.setDouble(6,velocity);
+				     stmt.setBoolean(7,emp);
+				     stmt.setInt(8,size);
 		      
 		      // let's add this raid and therefore get the rid out of it.
 		     
-		      stmt.executeUpdate("insert into cloud (incs,centerx,centery,ticksToDeath,direction,velocity,emp,size) values ('" +
-		    		  incsStr + "'," + centerx + "," + centery + "," + ticksToDeath
-		    		  + "," + direction+ "," + velocity+","+emp+","+size+");");
-		      stmt.execute("commit;");
-
+		      stmt.executeUpdate();
+		      stmt.close();
+		      stmt = m.God.con.createStatement("select cid from cloud where centerx = ? and centery = ? and size = ?;");
+		      stmt.setInt(1,centerx);
+		      stmt.setInt(2,centery);
+		      stmt.setInt(3,size);
 		      
-		      ResultSet ridstuff = stmt.executeQuery("select cid from cloud where centerx = " + centerx + " and centery = " + centery + " and size = " + size +";");
+		      ResultSet ridstuff = stmt.executeQuery();
 		
 		      
 		      while(ridstuff.next()) {
@@ -760,11 +768,12 @@ class Cloud {
 	}
 	
 	public void delete() {
-		UberStatement stmt;
+		UberPreparedStatement stmt;
 		try {
 
 	      
-	      stmt = m.God.con.createStatement();
+	      stmt = m.God.con.createStatement("delete from cloud where cid = ?;");
+	      stmt.setInt(1,cloudID);
 	      
 	      // First things first. We update the player table.
 	      boolean transacted=false;
@@ -772,14 +781,12 @@ class Cloud {
 	    	  try {
 	    		
 	      
-	      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
 	      
 	      // let's add this raid and therefore get the rid out of it.
-	      stmt.executeUpdate("delete from cloud where cid = " + cloudID  + ";");
+	      stmt.executeUpdate();
 	      
 	   
 	     	      
-	      stmt.execute("commit;");
 
 	      stmt.close(); transacted=true; }
 	    	  catch(MySQLTransactionRollbackException exc) {  }
@@ -845,29 +852,34 @@ class Cloud {
 		try {
 
 		      
-		     UberStatement stmt = m.God.con.createStatement();
+		     UberPreparedStatement stmt = m.God.con.createStatement("update cloud set cid = ?, size = ?, incs = ?, centerx = ?, centery = ?, ticksToDeath = ?, direction = ?, velocity = ? where cid = ?;");
 		      
+		     stmt.setInt(1,cloudID);
+		     stmt.setInt(2,size);
+		     stmt.setString(3,incsStr);
+		     stmt.setInt(4,centerx);
+		     stmt.setInt(5,centery);
+		     stmt.setInt(6,ticksToDeath);
+		     stmt.setDouble(7,velocity);
+		     stmt.setInt(8,cloudID);
 		      // First things first. We update the player table.
 		      boolean transacted=false;
 		      while(!transacted) {
 		    	  try {
 		    
 		      
-		      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
 		      
 		      // let's add this raid and therefore get the rid out of it.
-		      stmt.executeUpdate("update cloud set cid =" + cloudID + ", size = " + size + ", incs = '" + incsStr + "', centerx = " +
-		       centerx + ", centery = " + centery + ", ticksToDeath = " + ticksToDeath + ", direction = " + 
-		       direction +", velocity = " + velocity +  " where cid = " + cloudID  + ";");
+		      stmt.executeUpdate();
 
 		      
 
-		      stmt.execute("commit;");
 
-		      stmt.close(); transacted=true; }
+		     transacted=true; }
 		    	  catch(MySQLTransactionRollbackException exc) {  }
 		      }// need connection for attackunit adds!
-			}catch(SQLException exc) { exc.printStackTrace(); }		
+		      stmt.close(); 
+		      }catch(SQLException exc) { exc.printStackTrace(); }		
 		
 	}
 	public void move(int direction) {

@@ -74,7 +74,7 @@ public class UberConnection  {
 			e.printStackTrace();
 		}
 	}
-	public synchronized UberStatement createStatement(int x) throws SQLException {
+	public synchronized UberStatement createStatement() throws SQLException {
 		int i = 0; boolean found=false; int extraCounter=0; int index = 0;
 		
 			

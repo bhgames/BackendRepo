@@ -23,24 +23,26 @@ public class League extends Player {
 		tpr.add(first);
 		initial.setLeague(this);
 		this.name=leagueName;this.letters=leagueLetters;this.description=description;this.website=website;
-		UberStatement stmt;
+		UberPreparedStatement stmt;
 		try {
 
 	
-	      stmt = con.createStatement();
+	      stmt = con.createStatement("insert into league (pid,name,letters,website,description,mbuff,tbuff,mmbuff,fbuff) values (?,?,?,?,?,0,0,0,0);");
+	      stmt.setInt(1,ID);
+	      stmt.setString(2,leagueName);
+	      stmt.setString(3,leagueLetters);
+	      stmt.setString(4,website);
+	      stmt.setString(5,description);
 	      
 	      // First things first. We update the player table.
 	      boolean transacted=false;
 	      while(!transacted) {
 	    	  try {
 	      
-	      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
 	      
 	      // let's add this raid and therefore get the rid out of it.
 	      
-	      stmt.executeUpdate("insert into league (pid,name,letters,website,description,mbuff,tbuff,mmbuff,fbuff) values ("+ID+",\"" + leagueName +"\",\""+
-	    		  leagueLetters+"\",\""+website+"\",\""+description+"\",0,0,0,0);");
-	      stmt.execute("commit;");
+	      stmt.execute();
 
 	      
 	      //System.out.println("Transacting that shit.");
@@ -72,15 +74,17 @@ public class League extends Player {
 		ArrayList<TaxPlayerRank> tpr = new ArrayList<TaxPlayerRank>();
 
 		try {
-		UberStatement stmt = con.createStatement();
-		ResultSet getLInfo = stmt.executeQuery("select * from tpr where league_pid = " + ID);
-		UberStatement stmt2 = God.con.createStatement();
+		UberPreparedStatement stmt = con.createStatement("select * from tpr where league_pid = ?;");
+		stmt.setInt(1,ID);
+		ResultSet getLInfo = stmt.executeQuery();
+		UberPreparedStatement stmt2 = God.con.createStatement("select * from permissions where tprID = ?;");
 		ResultSet getT; TaxPlayerRank curr;
 
 		ArrayList<Integer> Permissions;
 		while(getLInfo.next()) {
 			Permissions = new ArrayList<Integer>();
-			getT = stmt2.executeQuery("select * from permissions where tprID = " + getLInfo.getInt(1));
+			stmt2.setInt(1,getLInfo.getInt(1));
+			getT = stmt2.executeQuery();
 			while(getT.next()) {
 				Permissions.add(new Integer(getT.getInt(3)));
 			}
@@ -756,8 +760,10 @@ public String getUsername(int pid) {
 
 	public void setMemLetters(String letters) {
 		try {
-			UberStatement stmt = con.createStatement();	
-			stmt.execute("update league set letters = \"" + letters + "\" where pid = "+ ID);
+			UberPreparedStatement stmt = con.createStatement("update league set letters = ? where pid = ?;");	
+			stmt.setString(1,letters);
+			stmt.setInt(2,ID);
+			stmt.execute();
 			stmt.close();
 			
 		} catch(SQLException exc) { exc.printStackTrace(); }	
@@ -766,8 +772,9 @@ public String getUsername(int pid) {
 	public String getMemLetters() {
 		String l="";
 		try {
-			UberStatement stmt = con.createStatement();
-		ResultSet rs= stmt.executeQuery("select letters from league where pid = "+ ID);
+			UberPreparedStatement stmt = con.createStatement("select letters from league where pid = ?;");
+			stmt.setInt(1,ID);
+		ResultSet rs= stmt.executeQuery();
 		if(rs.next()) l=rs.getString(1);
 		rs.close();
 		stmt.close();
@@ -778,8 +785,10 @@ public String getUsername(int pid) {
 
 	public void setMemWebsite(String website) {
 		try {
-			UberStatement stmt = con.createStatement();	
-			stmt.execute("update league set website = \"" + website + "\" where pid = "+ ID);
+			UberPreparedStatement stmt = con.createStatement("update league set website = ? where pid = ?;");
+			stmt.setString(1,website);
+			stmt.setInt(2,ID);
+			stmt.execute();
 			stmt.close();
 			
 		} catch(SQLException exc) { exc.printStackTrace(); }		}
@@ -787,8 +796,9 @@ public String getUsername(int pid) {
 	public String getMemWebsite() {
 		String l="";
 		try {
-			UberStatement stmt = con.createStatement();
-		ResultSet rs= stmt.executeQuery("select website from league where pid = "+ ID);
+			UberPreparedStatement stmt = con.createStatement("select website from league where pid = ?;");
+			stmt.setInt(1,ID);
+		ResultSet rs= stmt.executeQuery();
 		if(rs.next()) l=rs.getString(1);
 		rs.close();
 		stmt.close();
@@ -799,16 +809,19 @@ public String getUsername(int pid) {
 	public void setMemName(String leagueName) {
 		// TODO Auto-generated method stub
 		try {
-			UberStatement stmt = con.createStatement();	
-			stmt.execute("update league set name = \"" + leagueName + "\" where pid = "+ ID);
+			UberPreparedStatement stmt = con.createStatement("update league set name = ? where pid = ?;");	
+			stmt.setString(1,leagueName);
+			stmt.setInt(2,ID);
+			stmt.execute();
 			stmt.close();
 			
 		} catch(SQLException exc) { exc.printStackTrace(); }		}
 	public String getMemName() {
 		String l="";
 		try {
-			UberStatement stmt = con.createStatement();
-		ResultSet rs= stmt.executeQuery("select name from league where pid = "+ ID);
+			UberPreparedStatement stmt = con.createStatement("select name from league where pid = ?;");
+			stmt.setInt(1,ID);
+		ResultSet rs= stmt.executeQuery();
 		if(rs.next()) l=rs.getString(1);
 		rs.close();
 		stmt.close();
@@ -818,8 +831,10 @@ public String getUsername(int pid) {
 
 	public void setMemDescription(String description) {
 		try {
-			UberStatement stmt = con.createStatement();	
-			stmt.execute("update league set description = \"" + description + "\" where pid = "+ ID);
+			UberPreparedStatement stmt = con.createStatement("update league set description = ? where pid = ?;");
+			stmt.setString(1,description);
+			stmt.setInt(2,ID);
+			stmt.execute();
 			stmt.close();
 			
 		} catch(SQLException exc) { exc.printStackTrace(); }	
@@ -828,8 +843,9 @@ public String getUsername(int pid) {
 	public String getMemDescription() {
 		String l="";
 		try {
-			UberStatement stmt = con.createStatement();
-		ResultSet rs= stmt.executeQuery("select description from league where pid = "+ ID);
+			UberPreparedStatement stmt = con.createStatement("select description from league where pid = ?;");
+			stmt.setInt(1,ID);
+		ResultSet rs= stmt.executeQuery();
 		if(rs.next()) l=rs.getString(1);
 		rs.close();
 		stmt.close();
@@ -840,16 +856,23 @@ public String getUsername(int pid) {
 
 	public void setMemSecondaryResBuff(long a[]) {
 		try {
-			UberStatement stmt = con.createStatement();
-			stmt.execute("update league set mbuff = " + a[0] + ", tbuff = " + a[1] + ", mmbuff = " + a[2] + ", fbuff = " + a[3] + " where pid = " + ID);
+			UberPreparedStatement stmt = con.createStatement("update league set mbuff = ?, tbuff = ?, mmbuff = ?, fbuff = ? where pid = ?;");
+			stmt.setDouble(1,a[0]);
+			stmt.setDouble(2,a[1]);
+			stmt.setDouble(3,a[2]);
+			stmt.setDouble(4,a[3]);
+			stmt.setInt(1,ID);
+
+			stmt.execute();
 			stmt.close();
 			} catch(SQLException exc) { exc.printStackTrace(); }	}
 
 	public long[] getMemSecondaryResBuff() {
 		long resBuff[] = new long[5];
 		try {
-			UberStatement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select mbuff,tbuff,mmbuff,fbuff from league where pid = "+ ID);
+			UberPreparedStatement stmt = con.createStatement("select mbuff,tbuff,mmbuff,fbuff from league where pid = ?;");
+			stmt.setInt(1,ID);
+			ResultSet rs = stmt.executeQuery();
 			if(rs.next()) {
 	
 				resBuff[0]=rs.getLong(1);
@@ -882,7 +905,7 @@ public String getUsername(int pid) {
 		return holdingLeagueIteratorID;
 	}
 	
-	public void setLeagueInt(String fieldName, int toSet) {
+	/*public void setLeagueInt(String fieldName, int toSet) {
 		try {
 			UberStatement stmt = con.createStatement();
 			stmt.execute("update league set " + fieldName + " = " + toSet + " where pid = " + ID);
@@ -1005,7 +1028,7 @@ public String getUsername(int pid) {
 			exc.printStackTrace();
 		}
 		return null;
-	}
+	}*/
 }
 
 
@@ -1019,32 +1042,26 @@ class TaxPlayerRank {
 	League league;
 	int type;
 	public void delete() {
-		UberStatement stmt;
+		UberPreparedStatement stmt;
 		try {
 
 	      
-	      stmt = league.God.con.createStatement();
-	      
+
 	      // First things first. We update the player table.
 	      boolean transacted=false;
 	      while(!transacted) {
 	    	  try {
 	    		
-	      
-	      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
-	      // let's add this raid and therefore get the rid out of it.
-
-	      stmt.execute("delete from permissions where tprID = " + tprID); // just easier to reset them than
+			      stmt = league.God.con.createStatement("delete from permissions where tprID = ?;");
+			      stmt.setInt(1,tprID);
+			      stmt.execute();
+			      stmt.close();
 	      // keep track of all the permids and make the changes individually!!!
-	 
-	      stmt.executeUpdate("delete from tpr where tprID = " + tprID  + ";");
-
-	   
-	      int i = 0;
-	      
-	      stmt.execute("commit;");
-
-	      stmt.close(); transacted=true; }
+	      stmt = league.God.con.createStatement("delete from tpr where tprID = ?;");
+	      stmt.setInt(1,tprID);
+	      stmt.execute();
+	      stmt.close();
+	      transacted=true; }
 	    	  catch(MySQLTransactionRollbackException exc) {  }
 	      }// need connection for attackunit adds!
 		}catch(SQLException exc) { exc.printStackTrace();  }
@@ -1055,57 +1072,45 @@ class TaxPlayerRank {
 		this.taxRate = taxRate;
 		this.tids=tids;
 		this.type=type;		
-		UberStatement stmt;
+		UberPreparedStatement stmt;
 		try {
 
 	      
-	      stmt = league.God.con.createStatement();
-	      
+	   
 	      // First things first. We update the player table.
 	      boolean transacted=false;
 	      while(!transacted) {
 	    	  try {
-	    		  /*
-	    		   * +------------+------------------+------+-----+---------+----------------+
-					| Field      | Type             | Null | Key | Default | Extra          |
-					+------------+------------------+------+-----+---------+----------------+
-					| tprID      | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
-					| league_pid | int(10) unsigned | NO   | MUL | NULL    |                |
-					| tax        | double unsigned  | YES  |     | NULL    |                |
-					| pid        | int(10) unsigned | NO   | MUL | NULL    |                |
-					| rank       | varchar(50)      | YES  |     | NULL    |                |
-					+------------+------------------+------+-----+---------+----------------+
-
-	    		   */
-	      
-	      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
+	    		
+	    		   stmt = league.God.con.createStatement("update tpr set league_pid = ?, tax = ?, pid = ?, rank = ?, type = ? where tprID = ?;");
+	    		      stmt.setInt(1,league.ID);
+	    		      stmt.setDouble(2,taxRate);
+	    		      stmt.setInt(3,pid);
+	    		      stmt.setString(4,rank);
+	    		      stmt.setInt(5,type);
+	    		      stmt.setInt(6,tprID);
 	      
 	      // let's add this raid and therefore get the rid out of it.
-	      stmt.executeUpdate("update tpr set league_pid =" + league.ID + ", tax = " + taxRate + ", pid = " + pid + ", rank = \"" +
-	       rank + "\", type = " + type + " where tprID = " + tprID  + ";");
+	    		      stmt.executeUpdate();
+	    		      stmt.close();
+	    		      
+	    		      
+	    		      stmt = league.God.con.createStatement("delete from permissions where tprID = ?;");
 
-	      
-
-	      // now that we possess an id, we need to make entries for each of the towns!
-	      /*
-	      +--------+------------------+------+-----+---------+----------------+
-	      | Field  | Type             | Null | Key | Default | Extra          |
-	      +--------+------------------+------+-----+---------+----------------+
-	      | permid | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
-	      | tprID  | int(10) unsigned | NO   | MUL | NULL    |                |
-	      | tid    | int(10) unsigned | NO   | MUL | NULL    |                |
-	      +--------+------------------+------+-----+---------+----------------+*/
+	    		      stmt.setInt(1,tprID);
 
 	      int i = 0;
-	      stmt.execute("delete from permissions where tprID = " + tprID); // just easier to reset them than
+	      stmt.execute(); // just easier to reset them than
 	      // keep track of all the permids and make the changes individually!!!
+	      stmt.close();
+	      stmt = league.God.con.createStatement("insert into permissions (tprID,tid) values (?,?);");
+	      stmt.setInt(1,tprID);
 	      while(i<tids.length) {
-	    	  
-	    	  stmt.execute("insert into permissions (tprID,tid) values (" + tprID + "," + tids[i] + ");");
+	    	  stmt.setInt(2,tids[i]);
+	    	  stmt.execute();
 	    	  i++;
 	      }
 	      
-	      stmt.execute("commit;");
 
 	      stmt.close(); transacted=true; }
 	    	  catch(MySQLTransactionRollbackException exc) {  }
@@ -1125,37 +1130,31 @@ class TaxPlayerRank {
 		
 		// INSERT SQL STUFF HERE
 		
-		UberStatement stmt;
+		UberPreparedStatement stmt;
 		try {
 
 	      
-	      stmt = league.God.con.createStatement();
 	      
 	      // First things first. We update the player table.
 	      boolean transacted=false;
 	      while(!transacted) {
 	    	  try {
-	    		  /*
-	    		   * +------------+------------------+------+-----+---------+----------------+
-					| Field      | Type             | Null | Key | Default | Extra          |
-					+------------+------------------+------+-----+---------+----------------+
-					| tprID      | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
-					| league_pid | int(10) unsigned | NO   | MUL | NULL    |                |
-					| tax        | double unsigned  | YES  |     | NULL    |                |
-					| pid        | int(10) unsigned | NO   | MUL | NULL    |                |
-					| rank       | varchar(50)      | YES  |     | NULL    |                |
-					+------------+------------------+------+-----+---------+----------------+
+	    		
 
-	    		   */
-	      
-	      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
-	      
+	    	      stmt = league.God.con.createStatement("insert into tpr (league_pid,tax,pid,rank,type) values (?,?,?,?,?);");
+	    	      stmt.setInt(1,league.ID);
+	    	      stmt.setDouble(2,taxRate);
+	    	      stmt.setInt(3,pid);
+	    	      stmt.setString(4,rank);
+	    	      stmt.setInt(5,type);
 	      // let's add this raid and therefore get the rid out of it.
-	      stmt.executeUpdate("insert into tpr (league_pid,tax,pid,rank,type) values (" + league.ID + "," + taxRate + "," + pid + ",\"" +
-	       rank + "\","+type+");");
-
+			      stmt.execute();
+			      stmt.close();
+			      stmt = league.God.con.createStatement("select tprID from tpr where pid = ? and league_pid = ?;");
+			      stmt.setInt(1,pid);
+			      stmt.setInt(2,league.ID);
 	      
-	      ResultSet ridstuff = stmt.executeQuery("select tprID from tpr where pid = " + pid + " and league_pid = " + league.ID);
+	      ResultSet ridstuff = stmt.executeQuery();
 	     
 	      ArrayList<TaxPlayerRank> tpr = league.tpr();
 	      while(ridstuff.next()) {
@@ -1172,6 +1171,7 @@ class TaxPlayerRank {
 	      	tprID = ridstuff.getInt(1);
 
 	      ridstuff.close();
+	      stmt.close();
 	      // now that we possess an id, we need to make entries for each of the towns!
 	      /*
 	      +--------+------------------+------+-----+---------+----------------+
@@ -1183,11 +1183,13 @@ class TaxPlayerRank {
 	      +--------+------------------+------+-----+---------+----------------+*/
 
 	      int i = 0;
+	      stmt = league.God.con.createStatement("insert into permissions (tprID,tid) values (?,?);");
+	      stmt.setInt(1,tprID);
 	      while(i<tids.length) {
-	    	  stmt.execute("insert into permissions (tprID,tid) values (" + tprID + "," + tids[i] + ");");
+	    	  stmt.setInt(2,tids[i]);
+	    	  stmt.execute();
 	    	  i++;
 	      }
-	      stmt.execute("commit;");
 
 	      stmt.close(); transacted=true; }
 	    	  catch(MySQLTransactionRollbackException exc) { }

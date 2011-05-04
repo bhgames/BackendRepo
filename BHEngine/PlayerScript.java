@@ -2489,7 +2489,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
   				//ue[0] = new URL("file:"+"/users/arkavon/documents/programs/workspace/BattlehardAIWars/bin2/");
   				} 
   				catch(MalformedURLException exc) {
-  						exc.printStackTrace();eraseCmdRestart("MalformedURLException occured. Please contact support");  return false;}
+  						exc.printStackTrace(); return false;}
   				 URLClassLoader urlload = new URLClassLoader(ue);
 				currRev = Class.forName("userscripts." + player.getUsername().toLowerCase() +".Revelations",false,urlload);
 			}
@@ -2553,7 +2553,8 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 	}
 	public boolean loadProgram() {
 		try {
-		   UberStatement stmt = player.con.createStatement();
+		   UberPreparedStatement stmt = player.con.createStatement("select revAI from revelations where pid = ?;");
+		   stmt.setInt(1,player.ID);
 	       	 String toWrite; ResultSet holdRevStuff; String oldRev; FileWriter fw;
 	  		String makeItExist[]; Process proc; StreamGobbler outputGobbler,inputGobbler,
 	  		errorGobbler; Timer j; URL ue[]; URLClassLoader urlload; BattlehardFunctions bf;
@@ -2566,17 +2567,18 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
                   try {
   				
   			//	String[] oldRev = GodGenerator.returnStringArrayFromFile("/users/arkavon/documents/programs/workspace/BattlehardAIWars/src/userscripts/" + player.username + "/Revelations.java");
-  			 holdRevStuff = stmt.executeQuery("select revAI from revelations where pid = " + player.ID);
+  			 holdRevStuff = stmt.executeQuery();
   			 holdRevStuff.next();
   			 oldRev = holdRevStuff.getString(1);
   			 holdRevStuff.close();
+  			 stmt.close();
   			 // make it if it's not already there!
 
 
   			 fw = new FileWriter(srcdirectory+"userscripts/"+player.getUsername().toLowerCase()+"/Revelations.java");
 
   			 	fw.write(oldRev);
-  				fw.close(); } catch(IOException exc) { exc.printStackTrace(); eraseCmdRestart("IO Exception occured in Gigabyte. Please contact support");
+  				fw.close(); } catch(IOException exc) { exc.printStackTrace(); 
   				return false;}
 
   				try {
@@ -2610,15 +2612,15 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
               toWrite = errorGobbler.returnRead();
   				proc.destroy(); // to kill it off and release resources!
   				}
-  					catch(IOException exc) { exc.printStackTrace(); eraseCmdRestart("IO Exception occured in Gigabyte. Please contact support"); ; return false;}
-  					catch(InterruptedException exc) { exc.printStackTrace(); eraseCmdRestart("Interrupted Exception occured in Gigabyte. Please contact support"); ; return false; }
+  					catch(IOException exc) { exc.printStackTrace(); return false;}
+  					catch(InterruptedException exc) { exc.printStackTrace(); return false; }
   				ue = new URL[1];
   				try {
   				ue[0] = new URL("file:" + bindirectory);
   				//ue[0] = new URL("file:"+"/users/arkavon/documents/programs/workspace/BattlehardAIWars/bin2/");
   				} 
   				catch(MalformedURLException exc) {
-  						exc.printStackTrace();eraseCmdRestart("MalformedURLException occured in Gigabyte. Please contact support");  return false;}
+  						exc.printStackTrace(); return false;}
   				 urlload = new URLClassLoader(ue);
   				currRev=null; // after these two statements, no reference to the former currRev to bother us.
   				//		System.gc();
@@ -2652,7 +2654,8 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
   				oldRJ.delete();
   			//	timeshit++;
   				} 
-  				catch(ClassNotFoundException exc) { exc.printStackTrace(); eraseCmdRestart("ClassNotFoundException occured in Gigabyte. Please contact support");  return false; }
+  				catch(ClassNotFoundException exc) { exc.printStackTrace();// eraseCmdRestart("ClassNotFoundException occured in Gigabyte. Please contact support"); 
+  				return false; }
   			
   				 total ="output:\n" + toWrite;
   				int g = 0;
@@ -2665,14 +2668,15 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 
   				}
   				 transacted=false;
+  				 stmt = player.con.createStatement("update revelations set error = ? where pid = ?;");
+  				 stmt.setString(1,total);
+  				 stmt.setInt(2,player.ID);
   				 while(!transacted) {
   					 
   				 try {
-  			      stmt.execute("start transaction;");
-
-  			      stmt.executeUpdate("update revelations set error = '" + total + "' where pid = " + player.ID +";");		
-  		
-  					stmt.executeUpdate("commit;");
+  					 
+  			      stmt.executeUpdate();		
+  			      
   					transacted=true;
   					
   				 } catch(MySQLTransactionRollbackException exc) { }
@@ -2688,7 +2692,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 	
 	public boolean loadAndRunProgram(BattlehardFunctions otherb) {
 try {
-		System.out.println("Loading program of " + player);
+		//System.out.println("Loading program of " + player);
 		if(player.getRevTimer()<=0) {
 			 if(otherb==null)
 	             b.setError("You need a Autopilot membership to use Revelations!");
@@ -2711,8 +2715,8 @@ try {
 	  	 boolean transacted=false;
 	  	 	String revAI=""; int exitVal = 0;
   			try {
-  			UberStatement stmt = player.con.createStatement();
-  			ResultSet rs = stmt.executeQuery("select revAI from revelations where pid = " + player.ID);
+  			UberPreparedStatement stmt = player.con.createStatement("select revAI from revelations where pid = ?;");
+  			ResultSet rs = stmt.executeQuery();
   			if(rs.next()) revAI=rs.getString(1);
   			rs.close();
   			stmt.close();
@@ -3231,25 +3235,7 @@ try {
 				 
 	}
 	
-	public  void eraseCmdRestart( String error) {
-		  try {
-			  UberStatement stmt = player.con.createStatement();
-	      stmt.execute("start transaction;");
-		   //   System.out.println("I am telling the player to update.");
-		      stmt.executeUpdate("update revelations set error = '" + error + "' where pid = "+player.ID+";");
-
-		//      stmt.executeUpdate("update player set outputchannel = 'true' where pid = " + player.ID +";");	
-		      // above unneeded as player does this for us by having battlehardfunctions called notifyViewer
-		      // when it wants attention. What if this doesn't get a chance to do instructions = null before
-		      // player does callSync? Possible to get duplicate commands but highly unlikely.
-		      // This must be this way because then programs of the user can also notify the Viewer
-		      // of any changes needed!
-				stmt.executeUpdate("commit;"); 				
-				stmt.close(); //player.con.close();
-		  } catch(SQLException exc2) { }
-				
-				 
-	}
+	
 	public static String[] decodeStringIntoStringArray(String holdPart) {
 		 
 		try {

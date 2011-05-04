@@ -48,9 +48,10 @@ public class Trade {
 		
 		this.tradeID=tradeID;
 		try {
-			UberStatement rus = con.createStatement();
+			UberPreparedStatement rus = con.createStatement("select * from trade where trid = ?;");
+			rus.setInt(1,tradeID);
 			
-		ResultSet rrs = rus.executeQuery("select * from trade where trid = " +tradeID);
+		ResultSet rrs = rus.executeQuery();
 			// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
 			// Then F = !(R!T) = !R + T;
 			while(rrs.next()) {
@@ -104,29 +105,38 @@ public class Trade {
 		
 		this.totalTicks=ticksToHit;
 		tradeOver=false;
-			UberStatement stmt;
+			UberPreparedStatement stmt;
 			
 			try {
 
 		      
-		      stmt = t1.getPlayer().God.con.createStatement();
+		      stmt = t1.getPlayer().God.con.createStatement("insert into trade (tid1, tid2, distance, ticksToHit,m,t,mm,f,totalTicks,tsid,traders) values (?,?,?,?,?,?,?,?,?,?,?);");
 		      
 		      // First things first. We update the player table.
 		      boolean transacted=false;
 		      while(!transacted) {
 		    	  try {
 		      
-		      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
-		      System.out.println("Trade schedule id is " + ts.tradeScheduleID);
 		      // let's add this raid and therefore get the rid out of it.
-		      if(town2!=null)
-		      stmt.executeUpdate("insert into trade (tid1, tid2, distance, ticksToHit,m,t,mm,f,totalTicks,tsid,traders) values (" +
-		    		  town1.townID + "," + town2.townID + "," + distance + "," + ticksToHit
-		    		  + "," + m + "," + t + "," +mm + "," + f + "," + ticksToHit+ ","+ts.tradeScheduleID + "," + traders + ");");
-		      stmt.execute("commit;");
+		      if(town2!=null) {
+		    	  stmt.setInt(1,town1.townID);
+		    	  stmt.setInt(2,town2.townID);
+		    	  stmt.setDouble(3,distance);
+		    	  stmt.setInt(4,ticksToHit);
+		    	  stmt.setLong(5,m);
+		    	  stmt.setLong(6,t);
+		    	  stmt.setLong(7,mm);
+		    	  stmt.setLong(8,f);
+		    	  stmt.setInt(9,ticksToHit);
+		    	  stmt.setInt(10,ts.tradeScheduleID);
+		    	  stmt.setInt(11,traders);
+		    	  stmt.executeUpdate();
+		    	  stmt.close();
+		      }
 		      Thread.currentThread().sleep(10);
-		      
-		      ResultSet ridstuff = stmt.executeQuery("select trid from trade where tid1 = " + town1.townID + " and tradeOver = false");
+		      stmt = con.createStatement("select trid from trade where tid1 = ? and tradeOver = false");
+		      stmt.setInt(1,town1.townID);
+		      ResultSet ridstuff = stmt.executeQuery();
 		      /*
 		       *Okay, search out all raids on the db for this town, and compare them to the raid server that the town has. There should be an rid
 		       *corresponding to each raid on there, and one that isn't. This one is our rid.
@@ -197,29 +207,29 @@ public class Trade {
 		  // and will either survive or goto zero, besides, the statreports exist to tell the true story.
 		  // By placeholders I mean they are like extra au fields for the raid, the actual
 		  // data is held on the supportAU table.
-		try {
 		   
-		   UberStatement stmt = con.createStatement();
 		   //stmt.executeUpdate("update trade set ticksToHit=-1 where trid = " + tradeID);
 		   setTicksToHit(-1);
 		   save();
 		   getTown1().tradeServer().remove(this);
-		   stmt.close();
 		  
-		} catch(SQLException exc) { exc.printStackTrace(); }
 		}
 	synchronized public void save() {
 		try {
-		  String update="";
-		  UberStatement stmt = con.createStatement();
-		  try {
-		   update = "update trade set distance = " + distance + ", ticksToHit = " + ticksToHit + ", tradeOver = " + tradeOver + 
-		   ", m = "+  metal + ", t = " + 
-		  timber + ", mm = " + manmat + ", f = " + food +  ", totalTicks = " + totalTicks +", tsid = " + getTs().tradeScheduleID + " where trid = " + tradeID +";";
-		  } catch(IndexOutOfBoundsException exc) {
-			  exc.printStackTrace();
-		  }
-		  stmt.executeUpdate(update);
+		  UberPreparedStatement stmt = con.createStatement( "update trade set distance = ?, ticksToHit = ?, tradeOver = ?, m = ?, t = ?, mm = ?, f = ?, totalTicks = ?, tsid = ? where trid = ?;");
+			  stmt.setDouble(1,distance);
+			  stmt.setInt(2,ticksToHit);
+			  stmt.setBoolean(3,tradeOver);
+			  stmt.setLong(4,metal);
+			  stmt.setLong(5,timber);
+			  stmt.setLong(6,manmat);
+			  stmt.setLong(7,food);
+			  stmt.setInt(8,totalTicks);
+			  stmt.setInt(9,getTs().tradeScheduleID);
+			  stmt.setInt(10,tradeID);
+			  
+			
+		  stmt.executeUpdate();
 		  stmt.close();
 	
 		
@@ -406,8 +416,10 @@ public class Trade {
 	}
 	public void setInt(String fieldName, int toSet) {
 		try {
-			UberStatement stmt = con.createStatement();
-			stmt.execute("update trade set " + fieldName + " = " + toSet + " where trid = " + tradeID);
+			UberPreparedStatement stmt = con.createStatement("update trade set " + fieldName + " = ? where trid = ?;");
+			stmt.setInt(1,toSet);
+			stmt.setInt(2,tradeID);
+			stmt.execute();
 			stmt.close();
 		}catch(SQLException exc) {
 			exc.printStackTrace();
@@ -415,8 +427,10 @@ public class Trade {
 	}
 	public void setDouble(String fieldName, double toSet) {
 		try {
-			UberStatement stmt = con.createStatement();
-			stmt.execute("update trade set " + fieldName + " = " + toSet + " where trid = " + tradeID);
+			UberPreparedStatement stmt = con.createStatement("update trade set " + fieldName + " = ? where trid = ?;");
+			stmt.setDouble(1,toSet);
+			stmt.setInt(2,tradeID);
+			stmt.execute();
 			stmt.close();
 		}catch(SQLException exc) {
 			exc.printStackTrace();
@@ -424,8 +438,10 @@ public class Trade {
 	}
 	public void setLong(String fieldName, long toSet) {
 		try {
-			UberStatement stmt = con.createStatement();
-			stmt.execute("update trade set " + fieldName + " = " + toSet + " where trid = " + tradeID);
+			UberPreparedStatement stmt = con.createStatement("update trade set " + fieldName + " = ? where trid = ?;");
+			stmt.setLong(1,toSet);
+			stmt.setInt(2,tradeID);
+			stmt.execute();
 			stmt.close();
 		}catch(SQLException exc) {
 			exc.printStackTrace();
@@ -433,8 +449,10 @@ public class Trade {
 	}
 	public void setBoolean(String fieldName, boolean toSet) {
 		try {
-			UberStatement stmt = con.createStatement();
-			stmt.execute("update trade set " + fieldName + " = " + toSet + " where trid = " + tradeID);
+			UberPreparedStatement stmt = con.createStatement("update trade set " + fieldName + " = ? where trid = ?;");
+			stmt.setBoolean(1,toSet);
+			stmt.setInt(2,tradeID);
+			stmt.execute();
 			stmt.close();
 		}catch(SQLException exc) {
 			exc.printStackTrace();
@@ -442,8 +460,10 @@ public class Trade {
 	}
 	public void setString(String fieldName, String toSet) {
 		try {
-			UberStatement stmt = con.createStatement();
-			stmt.execute("update trade set " + fieldName + " = \"" + toSet + "\" where trid = " + tradeID);
+			UberPreparedStatement stmt = con.createStatement("update trade set " + fieldName + " = ? where trid = ?;");
+			stmt.setString(1,toSet);
+			stmt.setInt(2,tradeID);
+			stmt.execute();
 			stmt.close();
 		}catch(SQLException exc) {
 			exc.printStackTrace();
@@ -451,9 +471,10 @@ public class Trade {
 	}
 	public int getInt(String toGet) {
 		try {
-			UberStatement stmt = con.createStatement();
+			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from trade where trid = ?;");
+			stmt.setInt(1,tradeID);
 			
-			ResultSet rs = stmt.executeQuery("select " + toGet + " from trade where trid = " + tradeID);
+			ResultSet rs = stmt.executeQuery();
 			rs.next();
 			int toRet=rs.getInt(1);
 			rs.close();
@@ -468,9 +489,10 @@ public class Trade {
 	
 	public double getDouble(String toGet) {
 		try {
-			UberStatement stmt = con.createStatement();
+			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from trade where trid = ?;");
+			stmt.setInt(1,tradeID);
 			
-			ResultSet rs = stmt.executeQuery("select " + toGet + " from trade where trid = " + tradeID);
+			ResultSet rs = stmt.executeQuery();
 			rs.next();
 			double toRet=rs.getDouble(1);
 			rs.close();
@@ -484,9 +506,10 @@ public class Trade {
 	
 	public long getLong(String toGet) {
 		try {
-			UberStatement stmt = con.createStatement();
+			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from trade where trid = ?;");
+			stmt.setInt(1,tradeID);
 			
-			ResultSet rs = stmt.executeQuery("select " + toGet + " from trade where trid = " + tradeID);
+			ResultSet rs = stmt.executeQuery();
 			rs.next();
 			long toRet=rs.getLong(1);
 			rs.close();
@@ -500,9 +523,10 @@ public class Trade {
 	
 	public boolean getBoolean(String toGet) {
 		try {
-			UberStatement stmt = con.createStatement();
+			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from trade where trid = ?;");
+			stmt.setInt(1,tradeID);
 			
-			ResultSet rs = stmt.executeQuery("select " + toGet + " from trade where trid = " + tradeID);
+			ResultSet rs = stmt.executeQuery();
 			rs.next();
 			boolean toRet=rs.getBoolean(1);
 			rs.close();
@@ -515,9 +539,10 @@ public class Trade {
 	}
 	public String getString(String toGet) {
 		try {
-			UberStatement stmt = con.createStatement();
+			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from trade where trid = ?;");
+			stmt.setInt(1,tradeID);
 			
-			ResultSet rs = stmt.executeQuery("select " + toGet + " from trade where trid = " + tradeID);
+			ResultSet rs = stmt.executeQuery();
 			rs.next();
 			String toRet=rs.getString(1);
 			rs.close();

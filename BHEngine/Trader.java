@@ -17,23 +17,24 @@ public class Trader implements Runnable {
 		t.start();
 	}
 	public void run() {
-		Player p; Town town; TradeSchedule ts; UberStatement stmt; ResultSet rs; UberStatement stmt2; ResultSet rs2;
+		Player p; Town town; TradeSchedule ts; UberPreparedStatement stmt; ResultSet rs; UberPreparedStatement stmt2; ResultSet rs2;
 		for(;;) {
 			try {
 		int i = 0;
 		int j = 0;
 		long newRates[][]=new long[4][4];
-					stmt = g.con.createStatement();
-					stmt2 = g.con.createStatement();
+					stmt = g.con.createStatement("select count(*) from trade where made_at > CURRENT_TIMESTAMP-INTERVAL 1 WEEK;");
+					stmt2 = g.con.createStatement("select * from tradeschedule where tsid = ?;");
 					// assuming only one-to-one resource trades...
-					rs = stmt.executeQuery("select count(*) from trade where made_at > CURRENT_TIMESTAMP-INTERVAL 1 WEEK;");
+					rs = stmt.executeQuery();
 					rs.next();
 					if(rs.getInt(1)>100) {
 						rs.close();
-					rs = stmt.executeQuery("select * from trade where made_at > CURRENT_TIMESTAMP-INTERVAL 1 WEEK;");
+					rs = stmt.executeQuery();
 					while(rs.next()) {
 					//	System.out.println("Found trades.");
-						rs2 = stmt2.executeQuery("select * from tradeschedule where tsid = " +rs.getInt(13));
+						stmt2.setInt(1,rs.getInt(13));
+						rs2 = stmt2.executeQuery();
 						while(rs2.next()) {
 						//	System.out.println("Found tradeschedules.");
 							boolean agreed = rs2.getBoolean(7);

@@ -82,7 +82,8 @@ public class Player  {
 		 * This guy CREATES a player in memory...
 		 */
 		try {
-		   UberStatement stmt = God.con.createStatement();
+		   UberPreparedStatement stmt = God.con.createStatement("select * from player where pid = ?;");
+		   
 		   this.con=God.con;
 		   if(ID==0) {
 			   facsimile=true;
@@ -90,7 +91,8 @@ public class Player  {
 		   }
 		   this.ID=ID;
 		   this.God=God;
-		   ResultSet rs = stmt.executeQuery("select * from player where pid = " + ID);
+		   stmt.setInt(1,ID);
+		   ResultSet rs = stmt.executeQuery();
 	       internalClock = God.gameClock;
 		   rs.next();
 		   username = rs.getString(2);
@@ -346,13 +348,7 @@ public class Player  {
 		UberStatement stmt=null;
 		ResultSet checkChange;
 		
-		  try {
-			stmt = con.createStatement();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} // may be a problem if we lose the UberStatement,
-		  // the player needs complete reloading. But this conserves memory.
+		   
 		  String updateAU[]; String weapStr,soldierPicStr,tankPicStr,juggerPicStr,bomberPicStr; String updatePlayer;
 		  AttackUnit hau; String weapons;
 		     boolean transacted=false;
@@ -518,8 +514,10 @@ public class Player  {
 	}
 	public boolean completedQuest(int qid) {
 		try {
-			UberStatement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select complete from qpc where qid = " + qid + " and pid = " + ID);
+			UberPreparedStatement stmt = con.createStatement("select complete from qpc where qid = ? and pid = ?;");
+			stmt.setInt(1,qid);
+			stmt.setInt(2,ID);
+			ResultSet rs = stmt.executeQuery();
 		
 			if(rs.next()) {
 				if(rs.getInt(1)==1) {
@@ -551,11 +549,14 @@ public class Player  {
 	 */
 	public boolean completedQuest(String classname) {
 		try {
-			UberStatement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select qid from Quest where classname = '" + classname + "'");
-			ResultSet check; UberStatement stmt2 = con.createStatement();
+			UberPreparedStatement stmt = con.createStatement("select qid from Quest where classname = ?;");
+			stmt.setString(1,classname);
+			ResultSet rs = stmt.executeQuery();
+			ResultSet check; UberPreparedStatement stmt2 = con.createStatement("select complete from qpc where qid = ? and pid = ?;");
 			rs.next();
-			 check = stmt.executeQuery("select complete from qpc where qid = " + rs.getInt(1) + " and pid = " + ID);
+			stmt.setInt(1,rs.getInt(1));
+			stmt.setInt(2,ID);
+			 check = stmt.executeQuery();
 			if(check.next()) {
 				if(check.getInt(1)==1) {
 					check.close();
@@ -583,11 +584,11 @@ public class Player  {
 		return false;
 	}
 	synchronized public void synchronize() throws SQLException {
-		System.out.println("I am beginning to synchronize.");
 
 		Town t=null;
-		UberStatement stmt = con.createStatement();
-		ResultSet rs = stmt.executeQuery("select * from player where pid = " + ID);
+		UberPreparedStatement stmt = con.createStatement("select * from player where pid = ?;");
+		stmt.setInt(1,ID);
+		ResultSet rs = stmt.executeQuery();
 		rs.next();
 	        ID = rs.getInt(1);
 	        
@@ -677,9 +678,9 @@ public class Player  {
 			getAu();
 			
 			// time to get town stuff.
-			UberStatement tus = con.createStatement();
-
-			 ResultSet trs = tus.executeQuery("select * from town where pid = " + ID);
+			UberPreparedStatement tus = con.createStatement("select * from town where pid = ?;");
+			tus.setInt(1,ID);
+			 ResultSet trs = tus.executeQuery();
 			
 
 			// need to establish all.
@@ -806,8 +807,9 @@ public class Player  {
 	synchronized public void save() {
 		// saves everything but AUTemplates, which alter themselves on change.
 		try {
-		      UberStatement stmt= con.createStatement();
-		      ResultSet rs = stmt.executeQuery("select chg,last_login from player where pid = " + ID);
+		      UberPreparedStatement stmt= con.createStatement("select chg,last_login from player where pid = ?;");
+		      stmt.setInt(1,ID);
+		      ResultSet rs = stmt.executeQuery();
 		      rs.next();
 		      //	       last_login=rs.getTimestamp(41);
 
@@ -824,8 +826,75 @@ public class Player  {
 		    	  // the save limit and he logs in, putting him in line for a save,
 		    	  // but the server shuts down without him. Then he loses stuff, loses
 		    	  // that he should even be saved for a bit. But this is always true.
-
-	     String  updatePlayer = "update player set bodyArmor = " + bodyArmor +", personalShields = " + personalShields + 
+		    	  stmt.close();
+			       stmt= con.createStatement("update player set bodyArmor = ?, personalShields = ?, hydraulicAssistors = ?, thrustVectoring = ?, bloodMetalPlating = ?, bloodMetalArmor = ?, advancedFortifications = ?, constructionResearch = ?, firearmResearch = ?"  +
+			    		   ", townTech = ?, supportstaff = ?, infrastructureTech = ?, structuralIntegrity = ?" + 
+			    		   ", scholTicks = ?, playedTicks = ?, bp = ?, premiumTimer = ?, ubTimer = ?, mineTimer = ?, feroTimer = ?" +
+			    		   ", timberTimer = ?, mmTimer = ?, fTimer = ?, knowledge = ?, architecture = ?, clockworkComputers = ?, capitaltid = ?" 
+			    		   +", revTimer = ?, totalBPEarned = ?, flicker = ?, fuid = ?, totalTimePlayed = ?, numLogins = ?, last_login = ?, last_session = ?" 
+			    		   	+", last_auto_blast = ?,tPushes = ?, airshipTech = ?, clockworkAugments = ?" 
+			    		   	+", attackAPI = ?, advancedAttackAPI = ?, digAPI = ?, tradingAPI = ?, advancedTradingAPI = ?, smAPI = ?, researchAPI = ?"+ 
+			    		   	", buildingAPI = ?, advancedBuildingAPI = ?, messagingAPI = ?, zeppelinAPI = ?, completeAnalyticAPI = ?, version = ?, nukeAPI = ?, worldMapAPI = ?, owedTicks = ?, email =?, pushLog = ?, password = ? where pid = ?;");
+			       stmt.setInt(1,bodyArmor);
+			       stmt.setBoolean(2,personalShields);
+			       stmt.setBoolean(3,hydraulicAssistors);
+			       stmt.setBoolean(4,thrustVectoring);
+			       stmt.setInt(5,bloodMetalPlating);
+			       stmt.setBoolean(6,bloodMetalArmor);
+			       stmt.setBoolean(7,advancedFortifications);
+			       stmt.setInt(8,constructionResearch);
+			       stmt.setInt(9,firearmResearch);
+			       stmt.setInt(10,townTech);
+			       stmt.setBoolean(11,supportstaff);
+			       stmt.setInt(12,infrastructureTech);
+			       stmt.setInt(13,structuralIntegrity);
+			       stmt.setInt(14,scholTicks);
+			       stmt.setInt(15,playedTicks);
+			       stmt.setInt(16,bp);
+			       stmt.setInt(17,premiumTimer);
+			       stmt.setInt(18,ubTimer);
+			       stmt.setInt(19,mineTimer);
+			       stmt.setInt(20,feroTimer);
+			       stmt.setInt(21,timberTimer);
+			       stmt.setInt(22,mmTimer);
+			       stmt.setInt(23,fTimer);
+			       stmt.setInt(24,knowledge);
+			       stmt.setInt(25,architecture);
+			       stmt.setInt(26,clockworkComputers);
+			       stmt.setInt(27,capitaltid);
+			       stmt.setInt(28,revTimer);
+			       stmt.setInt(29,totalBPEarned);
+			       stmt.setString(30,flicker);
+			       stmt.setLong(31,fuid);
+			       stmt.setLong(32,totalTimePlayed);
+			       stmt.setInt(33,numLogins);
+			       stmt.setString(34,last_login.toString());
+			       stmt.setString(35,last_session.toString());
+			       stmt.setInt(36,last_auto_blast);
+			      stmt.setInt(37,tPushes);
+			       stmt.setBoolean(38,airshipTech);
+			       stmt.setBoolean(39,clockworkAugments);
+			       stmt.setBoolean(40,attackAPI);
+			       stmt.setBoolean(41,advancedAttackAPI);
+			       stmt.setBoolean(42,digAPI);
+			       stmt.setBoolean(43,tradingAPI);
+			       stmt.setBoolean(44,advancedTradingAPI);
+			       stmt.setBoolean(45,smAPI);
+			       stmt.setBoolean(46,researchAPI);
+			       stmt.setBoolean(47,buildingAPI);
+			       stmt.setBoolean(48,advancedBuildingAPI);
+			       stmt.setBoolean(49,messagingAPI);
+			       stmt.setBoolean(50,zeppelinAPI);
+			       stmt.setBoolean(51,completeAnalyticAPI);
+			       stmt.setString(52,version);
+			       stmt.setBoolean(53,nukeAPI);
+			       stmt.setBoolean(54,worldMapAPI);
+			       stmt.setInt(55,owedTicks);
+			       stmt.setString(56,email);
+			       stmt.setString(57,pushLog);
+			       stmt.setString(58,password);
+			       stmt.setInt(59,ID);
+	  /*   String  updatePlayer = "update player set bodyArmor = " + bodyArmor +", personalShields = " + personalShields + 
 	    		  ", hydraulicAssistors = " + hydraulicAssistors +  ", thrustVectoring = " + thrustVectoring + ", bloodMetalPlating = " + bloodMetalPlating +", bloodMetalArmor = " + bloodMetalArmor+ ", advancedFortifications = " + advancedFortifications + ", constructionResearch = " + constructionResearch + ", firearmResearch = " + firearmResearch +
 	    		   ", townTech = " + townTech 
 	    		   +", supportstaff = " + supportstaff +", infrastructureTech = " + infrastructureTech + ", structuralIntegrity = " + structuralIntegrity + 
@@ -836,23 +905,24 @@ public class Player  {
 	    		   	+", attackAPI = " + attackAPI +
 	    		   	", advancedAttackAPI = " + advancedAttackAPI+", digAPI = " + digAPI + ", tradingAPI = " + tradingAPI + ", advancedTradingAPI = " + advancedTradingAPI + ", smAPI = " + smAPI + ", researchAPI = " + researchAPI + 
 	    		   	", buildingAPI = " + buildingAPI + ", advancedBuildingAPI = " + advancedBuildingAPI + ", messagingAPI = " + messagingAPI + ", zeppelinAPI = " + zeppelinAPI + 
-	    		   	", completeAnalyticAPI = " + completeAnalyticAPI +", version = '" + version + "', nukeAPI = " + nukeAPI +", worldMapAPI = " + worldMapAPI +", owedTicks = " + owedTicks+ ", email ='"+ email +"', pushLog = \"" + pushLog + "\", password = '" + password +  "' where pid = " + ID + ";";
-	      stmt.executeUpdate(updatePlayer);
+	    		   	", completeAnalyticAPI = " + completeAnalyticAPI +", version = '" + version + "', nukeAPI = " + nukeAPI +", worldMapAPI = " + worldMapAPI +", owedTicks = " + owedTicks+ ", email ='"+ email +"', pushLog = \"" + pushLog + "\", password = '" + password +  "' where pid = " + ID + ";";*/
+	      stmt.executeUpdate();
 	      
 	      // First, let's get and write to au. I'm not sure if querying first is more labor intensive than just writing. Let's not
 	      // worry just yet!
-	      
+	      stmt.close();
 	      int co = 0;
-
-	      String[] updateAU = new String[getAu().size()];
+	      stmt = con.createStatement("update attackunit set name = ?, slot = ? where pid = ? and slot = ?;");
 	      AttackUnit hau;
 	      try {
 	      while(co<getAu().size()) {
 	    	   hau = getAu().get(co);
 	    	  
-	    	  updateAU[co] = "update attackunit set name = \"" + hau.getName() + "\", slot = " + hau.getSlot() +" where pid = " + ID +" and slot = "+  hau.getSlot() + ";";
-
-	    	  stmt.executeUpdate(updateAU[co]);
+	    	  stmt.setString(1,hau.getName());
+	    	  stmt.setInt(2,hau.getSlot());
+	    	  stmt.setInt(3,ID);
+	    	  stmt.setInt(4,hau.getSlot());
+	    	  stmt.executeUpdate();
 	    	  co++;
 	      }   } catch(Exception exc) { exc.printStackTrace(); System.out.println("Save saved for " + getUsername()); }
 	      rs.close();
@@ -870,10 +940,18 @@ public class Player  {
 		      } else { // we use else statement to close this stuff if we can't iterate, since we close it up there
 		    	  // in the if statement to prevent that statement getting plucked away by UberConnection!
 		    	 if(rs.getInt(1)==0){
-		    		 stmt.execute("update player set owedTicks =  "+owedTicks + " where pid = " + ID+";"); // got to save owed ticks.
+		    		 stmt = con.createStatement("update player set owedTicks =  ? where pid = ?;");
+		    		 stmt.setInt(1,owedTicks);
+		    		 stmt.setInt(2,ID);
+		    		 stmt.execute(); // got to save owed ticks.
+		    		 stmt.close();
+		    		 stmt = con.createStatement("update town set owedTicks = ? where tid = ?;");
+
 		    		 int i = 0;
 		    		 while(i<towns().size()) {
-			    		 stmt.execute("update town set owedTicks =  "+towns().get(i).owedTicks + " where tid = " + towns().get(i).townID + ";"); // got to save owed ticks.
+		    			 stmt.setInt(1,towns().get(i).owedTicks);
+		    			 stmt.setInt(2,towns().get(i).townID);
+			    		 stmt.execute(); // got to save owed ticks.
 
 		    			 i++;
 		    		 }
@@ -1047,8 +1125,12 @@ public class Player  {
 	synchronized public void addAu(AttackUnit au) {
 		au.setSlot(getAu().size());
 		try {
-			UberStatement stmt = con.createStatement();
-			stmt.execute("insert into attackunit(name,pid,slot) values ('"+au.getName()+"',"+ID+","+au.getSlot() + ");");
+			UberPreparedStatement stmt = con.createStatement("insert into attackunit(name,pid,slot) values (?,?,?);");
+			stmt.setString(1,au.getName());
+			stmt.setInt(2,ID);
+			stmt.setInt(3,au.getSlot());
+			
+			stmt.execute();
 			stmt.close();
 			getAu().add(au);
 			
@@ -1085,11 +1167,7 @@ public class Player  {
 					i++;
 				}
 				t.setAu(newTAU);
-				i=0;
-				while(i<t.getAu().size()) {
-					System.out.println(i + " has " + t.getAu().get(i).getName() + " with support of " + t.getAu().get(i).getSupport());
-					i++;
-				}
+				
 			}
 			
 			save();
@@ -1098,6 +1176,7 @@ public class Player  {
 		}
 		
 	}
+	/*
 	public void saveAu(AttackUnit hau) {
 		
 	try {
@@ -1119,14 +1198,15 @@ public class Player  {
 			  stmt.executeUpdate(updateAU);
 			  stmt.close();
 		 } catch(SQLException exc) { exc.printStackTrace(); } 
-	}
+	}*/
 	public ArrayList<AttackUnit> getAu() {
 		if(au==null&&!facsimile) {
 			au = new ArrayList<AttackUnit>();
 
 			try{ 
-			UberStatement aus = con.createStatement();
-			 ResultSet aurs = aus.executeQuery("select * from attackunit where pid = " + ID); // should find six units.
+			UberPreparedStatement aus = con.createStatement("select * from attackunit where pid = ?;");
+			aus.setInt(1,ID);
+			 ResultSet aurs = aus.executeQuery(); // should find six units.
 
 
 
@@ -1148,8 +1228,9 @@ public class Player  {
 			towns = new ArrayList<Town>();
 		ArrayList<Town> totalTowns = God.getTowns();
 		try {
-			UberStatement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select tid from town where pid = " + ID);
+			UberPreparedStatement stmt = con.createStatement("select tid from town where pid = ?;");
+			stmt.setInt(1,ID);
+			ResultSet rs = stmt.executeQuery();
 			while(rs.next()) {
 		
 				int i = 0;
@@ -1183,27 +1264,13 @@ public class Player  {
 	public void setPushLog(String pushLog) {
 		this.pushLog=pushLog;
 	}
-	public ArrayList<Town> getMemTowns() {
-		ArrayList<Town> towns= new ArrayList<Town>();
-		try {
-			UberStatement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select tid from town where pid = " + ID);
-			while(rs.next()) {
-				towns.add(new Town(rs.getInt(1),God));
-			}
-
-			rs.close();
-			stmt.close();
-		} catch(SQLException exc) { exc.printStackTrace(); }
-		
-		return towns;
-	}
+/*
 	public void setMemSupportstaff(boolean supportstaff) {
 		setBoolean("supportstaff",supportstaff);
 	}
 	public boolean getMemSupportstaff() {
 		return getBoolean("supportstaff");
-	}
+	}*/
 	public void setSupportstaff(boolean supportstaff) {
 		this.supportstaff=supportstaff;
 	}
@@ -1213,15 +1280,15 @@ public class Player  {
 	
 	public PlayerScript getPs() {
 		return ps;
-	}
+	}/*
 	public void setMemCommsCenterTech(int commsCenterTech) {
 		setInt("commsCenterTech",commsCenterTech);
 	}
 	public int getMemCommsCenterTech() {
 		return getInt("commsCenterTech");
 	}
-	
-	
+	*/
+	/*
 	
 	public League getMemLeague() {
 		League l=null;
@@ -1237,13 +1304,14 @@ public class Player  {
 		} catch(SQLException exc) { exc.printStackTrace(); }	
 		return l;
 	}
-	
+	*/
 	public League getLeague() {
 		if(league==null) {
 			int lpid=-1; int type=-1;
 			try {
-				UberStatement stmt = con.createStatement();
-				ResultSet rs = stmt.executeQuery("select league_pid,type from tpr where pid = " +ID);
+				UberPreparedStatement stmt = con.createStatement("select league_pid,type from tpr where pid = ?;");
+				stmt.setInt(1,ID);
+				ResultSet rs = stmt.executeQuery();
 				if(rs.next()) { lpid = rs.getInt(1); type=rs.getInt(2);}
 				rs.close();stmt.close();
 			} catch(SQLException exc) { exc.printStackTrace(); }
@@ -1263,25 +1331,25 @@ public class Player  {
 	}
 	public void setKnowledge(int knowledge) {
 		this.knowledge=knowledge;
-	}
+	}/*
 	public void setMemUsername(String username) {
 		setString("username",username);
 	}
 	public String getMemUsername() {
 		return getString("username");
-	}
+	}*/
 	public void setUsername(String username) {
 		this.username=username;
 	}
 	public String getUsername() {
 		return username;
-	}
+	}/*
 	public void setMemCapitaltid(int capitaltid) {
 		setInt("capitaltid",capitaltid);
 	}
 	public int getMemCapitaltid() {
 		return getInt("capitaltid");
-	}
+	}*/
 	public void setCapitaltid(int capitaltid) {
 		this.capitaltid=capitaltid;
 	}
@@ -1405,31 +1473,31 @@ public class Player  {
 			return AUTemplates;
 		}
 	*/
-
+/*
 	public void setMemTownTech(int townTech) {
 		setInt("townTech",townTech);
 	}
 	public int getMemTownTech() {
 		return getInt("townTech");
-	}
+	}*/
 	public void setTownTech(int townTech) {
 		this.townTech=townTech;
 	}
 	public int getTownTech() {
 		return townTech;
-	}
+	}/*
 	public void setMemFirearmResearch(int firearmResearch) {
 		setInt("firearmResearch",firearmResearch);
 	}
 	public int getMemFirearmResearch() {
 		return getInt("firearmResearch");
-	}
+	}*/
 	public void setFirearmResearch(int firearmResearch) {
 		this.firearmResearch=firearmResearch;
 	}
 	public int getFirearmResearch() {
 		return firearmResearch;
-	}
+	}/*
 	public void setMemOrdinanceResearch(int ordinanceResearch) {
 		setInt("ordinanceResearch",ordinanceResearch);
 	}
@@ -1442,7 +1510,7 @@ public class Player  {
 	}
 	public int getMemScholTicks() {
 		return getInt("scholTicks");
-	}
+	}*/
 	public void setScholTicks(int scholTicks) {
 		this.scholTicks=scholTicks;
 	}
@@ -1452,36 +1520,30 @@ public class Player  {
 	
 	public int getScholTicksTotal() {
 		return scholTicksTotal;
-	}
+	}/*
 	public void setMemInfrastructureTech(int infrastructureTech) {
 		setInt("infrastructureTech",infrastructureTech);
 	}
 	public int getMemInfrastructureTech() {
 		return getInt("infrastructureTech");
-	}
+	}*/
 	public void setInfrastructureTech(int infrastructureTech) {
 		this.infrastructureTech=infrastructureTech;
 	}
 	public int getInfrastructureTech() {
 		return infrastructureTech;
-	}
+	}/*
 	public void setMemBodyArmor(int bodyArmor) {
 		setInt("bodyArmor",bodyArmor);
 	}
 	public int getMemBodyArmor() {
 		return getInt("bodyArmor");
-	}
+	}*/
 	public void setBodyArmor(int bodyArmor) {
 		this.bodyArmor=bodyArmor;
 	}
 	public int getBodyArmor() {
 		return bodyArmor;
-	}
-	public void setMemScoutTech(int scoutTech) {
-		setInt("scoutTech",scoutTech);
-	}
-	public int getMemScoutTech() {
-		return getInt("scoutTech");
 	}
 	public void setScoutTech(int scoutTech) {
 		this.scoutTech=scoutTech;
@@ -1489,6 +1551,13 @@ public class Player  {
 	public int getScoutTech() {
 		return scoutTech;
 	}
+/*	public void setMemScoutTech(int scoutTech) {
+		setInt("scoutTech",scoutTech);
+	}
+	public int getMemScoutTech() {
+		return getInt("scoutTech");
+	}
+	
 
 	public void setMemPersonalShields(boolean personalShields) {
 		setBoolean("personalShields",personalShields);
@@ -1672,7 +1741,7 @@ public class Player  {
 	}
 	public int getMemTotalPopulation() {
 		return getInt("totalpop");
-	}
+	}*/
 	public void setInternalClock(int internalClock) {
 		this.internalClock=internalClock;
 	}
@@ -1690,7 +1759,7 @@ public class Player  {
 		return holdingIteratorID;
 	}
 	
-	public ArrayList<QuestListener> getMemActiveQuests() {
+	/*public ArrayList<QuestListener> getMemActiveQuests() {
 		ArrayList<QuestListener> aq = new ArrayList<QuestListener>();
 		try {
 			UberStatement stmt = con.createStatement();
@@ -1846,7 +1915,7 @@ public class Player  {
 			rs.close(); stmt.close();
 		} catch(SQLException exc) { exc.printStackTrace(); }
 		return toRet;
-	}
+	}*/
 	public void setPersonalShields(boolean personalShields) {
 		this.personalShields = personalShields;
 	}
@@ -1987,11 +2056,20 @@ public class Player  {
 		this.password = password;
 	}
 	public void setNewPassword(String password) {
-		setMemPassword(org.apache.commons.codec.digest.DigestUtils.md5Hex(password));
 		try {
-			UberStatement stmt = God.con.createStatement();
-			stmt.executeUpdate("update users set password = md5("+password+") where username = '"+getUsername()+"';");
+			UberPreparedStatement stmt = God.con.createStatement("update users set password = md5(?) where username = ?;");
+			stmt.setString(1,password);
+			stmt.setString(2,getUsername());
 			
+			stmt.executeUpdate();
+			
+			stmt.close();
+			
+			stmt = God.con.createStatement("update player set password = md5(?) where username = ?;");
+			stmt.setString(1,password);
+			stmt.setString(2,getUsername());
+			
+			stmt.executeUpdate();
 			stmt.close();
 		} catch(SQLException exc) { exc.printStackTrace(); }
 		setPassword(org.apache.commons.codec.digest.DigestUtils.md5Hex(password));
@@ -2003,10 +2081,19 @@ public class Player  {
 	}
 
 	public void setNewFuid(long fuid) {
-		setLong("fuid",fuid);
 		try {
-			UberStatement stmt = God.con.createStatement();
-			stmt.executeUpdate("update users set fuid = "+fuid+" where username = '"+getUsername()+"';");
+			UberPreparedStatement stmt = God.con.createStatement("update users set fuid = ? where username = ?;");
+			stmt.setLong(1,fuid);
+			stmt.setString(2,getUsername());
+			
+			stmt.executeUpdate();
+			
+			stmt.close();
+			stmt = God.con.createStatement("update player set fuid = ? where username = ?;");
+			stmt.setLong(1,fuid);
+			stmt.setString(2,getUsername());
+			
+			stmt.executeUpdate();
 			
 			stmt.close();
 		} catch(SQLException exc) { exc.printStackTrace(); }
@@ -2152,8 +2239,11 @@ public class Player  {
 	public void addAchievement(Hashtable r) {
 		getAchievements().add(r);
 		try {
-			UberStatement stmt = con.createStatement();
-			stmt.execute("insert into ap (pid,aid) values (" + ID+","+((Integer) r.get("aid"))+");");
+			UberPreparedStatement stmt = con.createStatement("insert into ap (pid,aid) values (?,?);");
+			stmt.setInt(1,ID);
+			stmt.setInt(2,((Integer) r.get("aid")));
+			
+			stmt.execute();
 			stmt.close();
 		} catch(SQLException exc) {
 			exc.printStackTrace();
@@ -2165,8 +2255,9 @@ public class Player  {
 		if(achievements==null) {
 			achievements = new ArrayList<Hashtable>();
 			try {
-				UberStatement stmt = con.createStatement();
-				ResultSet rs = stmt.executeQuery("select aid from ap where pid = " + ID);
+				UberPreparedStatement stmt = con.createStatement("select aid from ap where pid = ?;");
+				stmt.setInt(1,ID);
+				ResultSet rs = stmt.executeQuery();
 				while(rs.next()) {
 					int i = 0;
 					while(i<God.getAchievements().length) {

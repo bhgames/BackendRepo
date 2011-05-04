@@ -393,8 +393,9 @@ public class Id extends Player {
 	}
 	synchronized public void save() {
 		try {
-		UberStatement stmt = con.createStatement();
-		stmt.execute("update God set gameClock = " + God.gameClock);
+		UberPreparedStatement stmt = con.createStatement("update God set gameClock = ?;");
+		stmt.setInt(1,God.gameClock);
+		stmt.execute();
 		stmt.close();
 		} catch(SQLException exc) { exc.printStackTrace(); }
 		

@@ -36,12 +36,13 @@ public abstract class QuestListener extends Player {
 		if(invadableBy==null) {
 		try {
 			invadableBy=new ArrayList<doableBy>();
-			UberStatement stmt = con.createStatement();
+			UberPreparedStatement stmt = con.createStatement("select * from invadable where tid =  ? and type = 0;");
 			int i = 0;
 			ArrayList<Town> towns = towns();
 			ResultSet rs;
 			while(i<towns.size()) {
-				rs = stmt.executeQuery("select * from invadable where tid =  " + towns.get(i).townID + " and type = 0;");
+				stmt.setInt(1,towns.get(i).townID);
+				rs = stmt.executeQuery();
 				while(rs.next()) {
 					invadableBy.add(new doableBy(rs.getInt(1),rs.getInt(3),rs.getInt(2),0));
 				}
@@ -58,12 +59,13 @@ public abstract class QuestListener extends Player {
 		if(viewableBy==null) {
 			try {
 				viewableBy=new ArrayList<doableBy>();
-				UberStatement stmt = con.createStatement();
+				UberPreparedStatement stmt = con.createStatement("select * from invadable where tid =  ? and type = 1;");
 				int i = 0;
 				ArrayList<Town> towns = towns();
 				ResultSet rs;
 				while(i<towns.size()) {
-					rs = stmt.executeQuery("select * from invadable where tid =  " + towns.get(i).townID + " and type = 1;");
+					stmt.setInt(1,towns.get(i).townID);
+					rs = stmt.executeQuery();
 					while(rs.next()) {
 						viewableBy.add(new doableBy(rs.getInt(1),rs.getInt(3),rs.getInt(2),1));
 					}
@@ -82,8 +84,9 @@ public abstract class QuestListener extends Player {
 			qpc=new ArrayList<QuestPlayerComplete>();
 			players=new ArrayList<Player>();
 	        // so it gets it's a playerscript.
-			UberStatement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select * from qpc where qid = " + ID);
+			UberPreparedStatement stmt = con.createStatement("select * from qpc where qid = ?;");
+			stmt.setInt(1,ID);
+			ResultSet rs = stmt.executeQuery();
 			Player p;
 			while(rs.next()) {
 				
@@ -124,11 +127,14 @@ public abstract class QuestListener extends Player {
 		super.save();
 		int i = 0;
 		try {
-			UberStatement stmt = con.createStatement();
+			UberPreparedStatement stmt = con.createStatement("update qpc set complete = ?, log=? where qpcid = ?;");
 			QuestPlayerComplete q;
 			while(i<qpc().size()) {
 				q = qpc().get(i);
-				stmt.executeUpdate("update qpc set complete = " + q.getCompleted() + ", log=\""+q.getMemory() +"\" where qpcid = " + q.qpcid);
+				stmt.setInt(1,q.getCompleted());
+				stmt.setString(2,q.getMemory());
+				stmt.setInt(3,q.qpcid);
+				stmt.executeUpdate();
 				i++;
 			}
 			stmt.close();
@@ -205,13 +211,13 @@ public abstract class QuestListener extends Player {
 			}
 			
 			}
-			UberStatement stmt = p.con.createStatement();
+			UberPreparedStatement stmt = p.con.createStatement("delete from qpc where qid = ? and pid = ?;");
+			stmt.setInt(1,ID);
+			stmt.setInt(2,p.ID);
 			boolean transacted=false;
 			while(!transacted) {
 			try {
-				stmt.execute("start transaction;");
-			stmt.execute("delete from qpc where qid = " +ID + " and pid = " + p.ID + ";");
-			stmt.execute("commit;");
+			stmt.execute();
 
 			transacted=true;
 			stmt.close();
@@ -650,22 +656,28 @@ public abstract class QuestListener extends Player {
 				return false; // player already added.
 			else {
 				
-			UberStatement stmt = p.con.createStatement();
+			UberPreparedStatement stmt = p.con.createStatement("select * from qpc where pid = ? and qid = ?;");
+			stmt.setInt(1,p.ID);
+			stmt.setInt(2,ID);
 			while(!transacted) {
 			try {
-				ResultSet rs = stmt.executeQuery("select * from qpc where pid = " + p.ID + " and qid = " + ID );
+				ResultSet rs = stmt.executeQuery();
 				if(!rs.next())  {
 					// so if the entry does not exist, we make it.
 				rs.close();
-				stmt.execute("start transaction;");
-				
-				stmt.execute("insert into qpc (qid,pid) values (" +ID + "," + p.ID + ");");
-				stmt.execute("commit;");
-				rs = stmt.executeQuery("select qpcid from qpc where qid = " + ID + " and pid = " + p.ID);
+				stmt.close();
+				stmt = p.con.createStatement("insert into qpc (qid,pid) values (?,?);");
+				stmt.setInt(1,ID);
+				stmt.setInt(2,p.ID);
+				stmt.execute();
+				stmt.close();
+				stmt = p.con.createStatement("select qpcid from qpc where qid = ? and pid = ?;");
+				stmt.setInt(1,ID);
+				stmt.setInt(2,p.ID);
+				rs = stmt.executeQuery();
 				rs.next();
 				int qpcid = rs.getInt(1);
-				rs.close();
-	
+				
 				qpc().add(new QuestPlayerComplete(0,"",p,ID,qpcid));
 				
 				} 
@@ -673,7 +685,7 @@ public abstract class QuestListener extends Player {
 				// a next, and if that next is a completed quest, we do not add it, 
 				// if it isn't, we go through and add it.
 			transacted=true;
-			rs.close();
+			rs.close();// closed no matter what!
 			stmt.close();
 
 			} catch(MySQLTransactionRollbackException exc) {
@@ -791,8 +803,10 @@ public abstract class QuestListener extends Player {
 	public int addTown(int x, int y, String townName, double resEffects[], int[] pidsInvadableBy, int[] pidsViewableBy) {
 		int tid=-1;
 		try {
-			UberStatement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select count(*) from town where x = " + x + " and y = " + y);
+			UberPreparedStatement stmt = con.createStatement("select count(*) from town where x = ? and y = ?;");
+			stmt.setInt(1,x);
+			stmt.setInt(2,y);
+			ResultSet rs = stmt.executeQuery();
 			if(rs.next()) {
 				int size = rs.getInt(1);
 				if(size>0) {
@@ -802,40 +816,67 @@ public abstract class QuestListener extends Player {
 				}
 			}
 			rs.close();
+			stmt.close();
+			
 			boolean transacted=false;
 			while(!transacted) {
 				try {
-			stmt.execute("start transaction;");
 		//	stmt.execute("update player set chg = 1 where pid = " + ID);
-			int newSizes[] = new int[0];
-			  stmt.execute("insert into town (pid,townName,x,y,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,auSizes) values (" + ID  +",\"" + townName+ "\","
-    				  +x+","+(y)+",0,0,0,0,1," + resEffects[0] + "," + resEffects[1] + "," + resEffects[2] + "," + resEffects[3] + "," + resEffects[4] + ",'"+PlayerScript.toJSONString(newSizes)+"')");
-    		  rs = stmt.executeQuery("select tid from town where x = " + (x) + " and y = " + (y) + ";");
+					stmt = con.createStatement("insert into town (pid,townName,x,y,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,auSizes) values (?,?,?,?,0,0,0,0,1,?,?,?,?,?,?);");
+					stmt.setInt(1,ID);
+					stmt.setString(2,townName);
+					stmt.setInt(3,x);
+					stmt.setInt(4,y);
+					stmt.setDouble(5,resEffects[0]);
+					stmt.setDouble(6,resEffects[1]);
+					stmt.setDouble(7,resEffects[2]);
+					stmt.setDouble(8,resEffects[3]);
+					stmt.setDouble(9,resEffects[4]);
+					int newSizes[] = new int[0];
+					stmt.setString(10,PlayerScript.toJSONString(newSizes));
+					stmt.execute();
+					stmt = con.createStatement("select tid from town where x = ? and y = ?;");
+					stmt.setInt(1,x);
+					stmt.setInt(2,y);
+    		  rs = stmt.executeQuery();
     		  rs.next();
     		   tid = rs.getInt(1);
     		  rs.close();
+    		stmt.close();
+    		stmt = con.createStatement("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (?,?,3,-1,0,0,0,?,0,0,-1,0);");
+    		stmt.setInt(3,tid);
+    		stmt.setString(1,"Metal Mine");
+    		stmt.setInt(2,0);
+    		stmt.execute();
+    		stmt.setString(1,"Timber Field");
+    		stmt.setInt(2,1);
+    		stmt.execute();
+    		stmt.setString(1,"Crystal Mine");
+    		stmt.setInt(2,2);
+    		stmt.execute();
+    		stmt.setString(1,"Farm");
+    		stmt.setInt(2,3);
+    		stmt.execute();
     		
-    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-    		  		"'Metal Mine',0,3,-1,0,0,0,"+tid+",0,0,-1,0);");
-    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Timber Field',1,3,-1,0,0,0,"+tid+",0,0,-1,0);");
-    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Crystal Mine',2,3,-1,0,0,0,"+tid+",0,0,-1,0);");
-    		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-	    		  		"'Food Farm',3,3,-1,0,0,0,"+tid+",0,0,-1,0);");
     		  
     		  Town t = new Town(tid,God);
     		  rs.close();
     		  God.getIteratorTowns().add(t);
     		  towns().add(t);
     		 // System.out.println("This town: " + t + " on end of player: "+ towns().get(towns().size()-1));
-
+    		  UberPreparedStatement stmt2 = con.createStatement("select iid from invadable where tid = ? and pid = ? and type = ?");
+    		  stmt2.setInt(1,tid);
+    		  stmt2.setInt(3,0);
+    		  stmt = con.createStatement("insert into invadable(tid,pid,type) values (?,?,?);");
+    		  stmt.setInt(1,tid);
+    		  stmt.setInt(3,0);
     		  if(pidsInvadableBy!=null) {
     			  int i = 0;
     			  while(i<pidsInvadableBy.length) {
-    				  stmt.execute("insert into invadable(tid,pid,type) values (" + tid +"," + pidsInvadableBy[i] +",0);");
-
-        			   rs = stmt.executeQuery("select iid from invadable where tid = " + tid + " and pid = " + pidsInvadableBy[i] + " and type = 0");
+    				  stmt.setInt(2,pidsInvadableBy[i]);
+    				  stmt.execute();
+    				  stmt2.setInt(2,pidsInvadableBy[i]);
+        			   rs = stmt2.executeQuery();
             		
         			   if(rs.next()) invadableBy().add(new doableBy(rs.getInt(1),pidsInvadableBy[i],tid,0));
         			   rs.close();
@@ -843,21 +884,28 @@ public abstract class QuestListener extends Player {
     			  }
 
     		  }
+    		  stmt.setInt(3,1);
+    		  stmt2.setInt(3,1);
     		  if(pidsViewableBy!=null) {
     			  int i = 0;
     			  while(i<pidsViewableBy.length) {
-    				  stmt.execute("insert into invadable(tid,pid,type) values (" + tid +"," + pidsViewableBy[i] +",1);");
-    				  rs = stmt.executeQuery("select iid from invadable where tid = " + tid + " and pid = " + pidsViewableBy[i] + " and type = 1");
+    				  stmt.setInt(2,pidsViewableBy[i]);
+
+    				  stmt.execute();
+    				  
+    				  stmt2.setInt(2,pidsViewableBy[i]);
+
+    				  rs = stmt2.executeQuery();
               		
 	       			   if(rs.next())  viewableBy().add(new doableBy(rs.getInt(1),pidsViewableBy[i],tid,1));
 	       			   rs.close();
     				  i++;
     			  }
     		  }
-    		  stmt.execute("commit;");
     //		  stmt.execute("update player set chg = 2 where pid = "+ ID);
     		  rs.close();
     		  stmt.close();
+    		  stmt2.close();
     		  transacted=true;
 				} catch(MySQLTransactionRollbackException exc) { } 
 			}
@@ -959,13 +1007,15 @@ public ArrayList<Player> getPlayers() {
 
 public void deleteInvadableBy(int tid, int pid) {
 	try {
-		UberStatement stmt = con.createStatement();
+		UberPreparedStatement stmt = con.createStatement("delete from invadable where tid = ? and pid = ? and type = 0;");
+		
 		Player p = findPlayer(pid); Town t = God.findTown(tid);
 		int i = 0;
 		while(i<invadableBy().size()) {
-			System.out.println("seeing " + invadableBy().get(i).tid +"," + invadableBy().get(i).pid + " asking " + tid +"," +pid );
 			if(invadableBy().get(i).tid==tid&&invadableBy().get(i).pid==pid){ 
-				stmt.execute("delete from invadable where tid = " + tid + " and pid = " + pid + " and type = 0");
+				stmt.setInt(1,tid);
+				stmt.setInt(2,pid);
+				stmt.execute();
 				invadableBy().remove(i); break; }
 			i++;
 		}
@@ -976,9 +1026,11 @@ public void deleteInvadableBy(int tid, int pid) {
 }
 public void deleteViewableBy(int tid, int pid) {
 	try {
-		UberStatement stmt = con.createStatement();
+		UberPreparedStatement stmt = con.createStatement("delete from invadable where tid = ? and pid = ? and type = 1;");
 		Player p = findPlayer(pid); Town t = God.findTown(tid);
-		stmt.execute("delete from invadable where tid = " + tid + " and pid = " + pid + " and type = 1");
+		stmt.setInt(1,tid);
+		stmt.setInt(2,pid);
+		stmt.execute();
 		int i = 0;
 		while(i<viewableBy().size()) {
 			if(viewableBy().get(i).tid==tid&&viewableBy().get(i).pid==pid){ viewableBy().remove(i); break; }

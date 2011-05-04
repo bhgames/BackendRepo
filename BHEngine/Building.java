@@ -72,9 +72,9 @@ public static int baseResourceAmt = 2000;
 		this.God=God; this.con = God.con;
 		
 			try {
-				UberStatement bus = con.createStatement();
-
-				ResultSet brs = bus.executeQuery("select * from bldg where bid = " + bid); // Let's kill your mom, ho.
+				UberPreparedStatement bus = con.createStatement("select * from bldg where bid = ?;");
+				bus.setInt(1,bid);
+				ResultSet brs = bus.executeQuery(); // Let's kill your mom, ho.
 				
 			
 				while(brs.next()) {
@@ -87,6 +87,8 @@ public static int baseResourceAmt = 2000;
 					 
 					 
 				}
+				brs.close();
+				bus.close();
 			} catch(SQLException exc) { exc.printStackTrace(); }
 			
 			
@@ -536,8 +538,8 @@ public static int baseResourceAmt = 2000;
 			int originalAUAmt = t.getPlayer().God.getTotalSize(a,t.getPlayer());
 			int totalNumber=number;
 	
-		     UberStatement stmt = t.getPlayer().God.con.createStatement();
-		     UberStatement stmt2 = t.getPlayer().God.con.createStatement();
+		     UberPreparedStatement stmt = null;
+		     UberPreparedStatement stmt2 = null;
 
 		      // First things first. We update the player table.
 		      boolean transacted=false;
@@ -545,17 +547,34 @@ public static int baseResourceAmt = 2000;
 		      while(!transacted) {
 		    	  
 		      try {
-			       rs = stmt2.executeQuery("select slot from bldg where bid = " + bid);
+		    	  stmt2 = t.getPlayer().con.createStatement("select slot from bldg where bid = ?;");
+		    	  stmt2.setInt(1,bid);
+			       rs = stmt2.executeQuery();
 			      if(rs.next()) {
 			      
-		      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
-		      
+				       stmt = t.getPlayer().con.createStatement("insert into queue (bid,AUtoBuild,AUNumber,m,t,mm,f,townsAtTime,originalAUAmt,totalNumber) values (?,?,?,?,?,?,?,?,?,?);");
+
 		      // let's add this raid and therefore get the rid out of it.
-		      stmt.executeUpdate("insert into queue (bid,AUtoBuild,AUNumber,m,t,mm,f,townsAtTime,originalAUAmt,totalNumber) values (" +bid + "," + index + 
-		    		  "," + number + "," + cost[0] + "," + cost[1] + "," + cost[2] + "," + cost[3] + "," + townsAtTime + "," + originalAUAmt + "," + totalNumber + ");");
-		      
-		      ResultSet qrs = stmt.executeQuery("select qid from queue where bid = " + bid + " and AUtoBuild = " + index + 
-		    		  " and AUNumber = " + number + " order by qid desc");
+				       stmt.setInt(1,bid);
+				       stmt.setInt(2,index);
+				       stmt.setInt(3,number);
+				       stmt.setLong(4,cost[0]);
+				       stmt.setLong(5,cost[1]);
+				       stmt.setLong(6,cost[2]);
+				       stmt.setLong(7,cost[3]);
+				       stmt.setInt(8,townsAtTime);
+				       stmt.setInt(9,originalAUAmt);
+				       stmt.setInt(10,totalNumber);
+
+
+				       stmt.execute();
+				       stmt.close();
+				       stmt = t.getPlayer().con.createStatement("select qid from queue where bid = ? and AUtoBuild = ? and AUNumber = ? order by qid desc");
+				       stmt.setInt(1,bid);
+				       stmt.setInt(2,index);
+				       stmt.setInt(3,number);
+				       
+		      ResultSet qrs = stmt.executeQuery();
 		      qrs.next();
 	
 		      QueueItem q = new QueueItem(qrs.getInt(1),this,God);
@@ -565,7 +584,7 @@ public static int baseResourceAmt = 2000;
 				
 		      Queue().add(q);
 		      
-		      stmt.execute("commit;"); qrs.close(); stmt.close(); } rs.close(); stmt2.close(); transacted=true;
+		      qrs.close(); stmt.close();  } rs.close(); stmt2.close();transacted=true;
 		      } catch(MySQLTransactionRollbackException exc) { 		   } 
 		      }
 			 } catch(SQLException exc) { exc.printStackTrace(); }
@@ -585,8 +604,9 @@ public static int baseResourceAmt = 2000;
 		ArrayList<QueueItem> queue= new ArrayList<QueueItem>();
 		long cost[];
 		try {
-		UberStatement qus = con.createStatement();
-		 ResultSet qrs = qus.executeQuery("select * from queue where bid = " + bid + " order by qid asc");
+		UberPreparedStatement qus = con.createStatement("select * from queue where bid = " + bid + " order by qid asc");
+		qus.setInt(1,bid);
+		 ResultSet qrs = qus.executeQuery();
 		 while(qrs.next()) {
 			 //	public QueueItem(int qid, int bid, int AUtoBuild, int AUNumber, int currTicks,Town t) {
 			 int k = 0;
@@ -610,18 +630,28 @@ public static int baseResourceAmt = 2000;
 	synchronized public void save() {
 		try {
 		 String  update ="";
-		 UberStatement stmt = con.createStatement();
- 			   update = "update bldg set name = '" + type + "', lvl = " + getLvl() + ", lvling = " +
- 		  ticksToFinish + ", ppl = " + peopleInside + ", pplbuild = " + numLeftToBuild + ", pplticks = " +
- 		  ticksLeft + ", fortArray = '"+PlayerScript.toJSONString(fortArray) + "', lvlUp = " + lvlUps + ", deconstruct = " + deconstruct + ", bunkerMode = " + bunkerMode +", refuelTicks = " + refuelTicks+", nukeMode = " + nukeMode 
- 		  + " where bid = " + bid + ";";
+		 UberPreparedStatement stmt = con.createStatement("update bldg set name = ?, lvl = ?, lvling = ?, ppl = ?, pplbuild = ?, pplticks = ?, fortArray = ?, lvlUp = ?, deconstruct = ?, bunkerMode = ?, refuelTicks = ?, nukeMode = ? where bid = ?;");
+ 		stmt.setString(1,type);
+ 		stmt.setInt(2,getLvl());
+ 		stmt.setInt(3,ticksToFinish);
+ 		stmt.setInt(4,peopleInside);
+ 		stmt.setInt(5,numLeftToBuild);
+ 		stmt.setInt(6,ticksLeft);
+ 		stmt.setString(7,PlayerScript.toJSONString(fortArray));
+ 		stmt.setInt(8,lvlUps);
+ 		stmt.setBoolean(9,deconstruct);
+ 		stmt.setInt(10,bunkerMode);
+ 		stmt.setInt(11,refuelTicks);
+ 		stmt.setBoolean(12,nukeMode);
+ 		stmt.setInt(13,bid);
+		 
  	
  			  
  		  
 		
  		  // crap, this is ugly.
  		  
- 		  stmt.executeUpdate(update);
+ 		  stmt.executeUpdate();
  		  stmt.close();
  		  int i = 0;
  		  ArrayList<QueueItem> Queue = Queue();
@@ -1142,7 +1172,7 @@ public static int baseResourceAmt = 2000;
 	}
 
 
-
+/*
 
 	public void setMemType(String type) {
 		setString("name",type);
@@ -1175,7 +1205,7 @@ public static int baseResourceAmt = 2000;
 	public int getMemLotNum() {
 		return getInt("slot");
 	}
-
+*/
 	public void setMemTicksToFinishTotal(int ticksToFinishTotal) {
 		this.ticksToFinishTotal = ticksToFinishTotal;
 	}
@@ -1183,7 +1213,7 @@ public static int baseResourceAmt = 2000;
 	public int getMemTicksToFinishTotal() {
 		return ticksToFinishTotal;
 	}
-
+/*
 	public void setMemTicksToFinish(int ticksToFinish) {
 		setInt("lvling",ticksToFinish);
 	}
@@ -1232,7 +1262,7 @@ public static int baseResourceAmt = 2000;
 
 	public int getMemTicksLeft() {
 		return getInt("pplticks");
-	}
+	}*/
 
 	public void setMemTicksPerPerson(int ticksPerPerson) {
 		this.ticksPerPerson = ticksPerPerson;
@@ -1241,7 +1271,7 @@ public static int baseResourceAmt = 2000;
 	public int getMemTicksPerPerson() {
 		return ticksPerPerson;
 	}
-	public void setInt(String fieldName, int toSet) {
+/*	public void setInt(String fieldName, int toSet) {
 		try {
 			UberStatement stmt = con.createStatement();
 			stmt.execute("update bldg set " + fieldName + " = " + toSet + " where bid = " + bid);
@@ -1366,7 +1396,7 @@ public static int baseResourceAmt = 2000;
 		return null;
 	}
 
-
+*/
 
 
 	public void setRefuelTicks(int refuelTicks) {

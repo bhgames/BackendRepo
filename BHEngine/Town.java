@@ -91,64 +91,33 @@ public class Town {
 			exc.printStackTrace(); System.out.println("Everything is fine. The au count though is " +  au.size() + " for " + p.ID);
 		}
 		try {
-		UberStatement sau = con.createStatement();
+		UberPreparedStatement sau = con.createStatement("select * from supportAU where tid = ? order by slotnum asc");
 			
-		ResultSet saurs = sau.executeQuery("select * from supportAU where tid = " + townID + " order by slotnum asc");
-		UberStatement aus; ResultSet aurs;Player foreignP; String weapons;int weapc = 0; int weapforau[]; String holdPart; AttackUnit sAU;
-		aus = con.createStatement();
-
+		sau.setInt(1,townID);
+		ResultSet saurs = sau.executeQuery();
+		UberPreparedStatement aus; ResultSet aurs;Player foreignP; String weapons;int weapc = 0; int weapforau[]; String holdPart; AttackUnit sAU;
+		aus = con.createStatement("select pid from town where tid = ?;");
+		UberPreparedStatement aus2 = con.createStatement("select * from attackunit where pid = ? and slot = ?;");
 		while(saurs.next()) {
 			int forTownSlot = saurs.getInt(3); // foreign town's slot.
 			int thisTownSlot = saurs.getInt(4); // this town's slot.
 			int originalTID = saurs.getInt(2); // the originating town ID of this supportAU.
-			 aurs = aus.executeQuery("select pid from town where tid = " + saurs.getInt(2)); // should find six units.
+			aus.setInt(1,saurs.getInt(2));
+			 aurs = aus.executeQuery(); // should find six units.
 			 // get foreign player's id.
 			  aurs.next();
 			  int fID = aurs.getInt(1);
 			  
 			   foreignP=God.getPlayer(fID);
 			 aurs.close();
-			 aurs = aus.executeQuery("select * from attackunit where pid = " + fID + " and slot = " + forTownSlot); // should find six units.
+			 aus2.setInt(1,fID);
+			 aus2.setInt(2,forTownSlot);
+			 aurs = aus2.executeQuery(); // should find six units.
 								
 			
 			aurs.next();
-				int type = aurs.getInt(8);
-				int popSize = 0;
-				switch(type) {
-				case 1: 
-					popSize=1;
-					break;
-				case 2:
-					popSize=5;
-					break;
-				case 3:
-					popSize=10;
-					break;
-				case 4:
-					popSize=20;
-					break;
-				}
-				 weapons = aurs.getString(9); // weaps getting time...which weapons are equipped?
-
-			        weapc = 0; 
-			        holdPart = weapons;
-			       while(!holdPart.equals("")) {
-			    	   holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
-			    	   weapc++;
-			       }
-			       
-			        weapforau = new int[weapc]; 
-			       
-			       weapc=0;
-					while(weapc<weapforau.length) {
-
-						weapforau[weapc]=Integer.parseInt(weapons.substring(0,weapons.indexOf(",")));
-						
-						weapons = weapons.substring(weapons.indexOf(",")+1,weapons.length());
-
-						weapc++;
-					}
 				
+				 
 				 sAU = new AttackUnit(aurs.getString(1), aurs.getInt(3),0);
 				sAU.setSize(auSizes[i]);
 				i++; // so auSizes gets incremented every time.
@@ -163,7 +132,7 @@ public class Town {
 		
 		}
 		
-		saurs.close();sau.close(); 	aus.close();
+		saurs.close();sau.close(); 	aus.close(); aus2.close();
 
 		} catch(SQLException exc) { exc.printStackTrace();}
 		
@@ -379,20 +348,28 @@ public class Town {
 			
 		
 			
-			UberStatement stmt;
+			UberPreparedStatement stmt;
 			try {
 
 		     
-		      stmt = con.createStatement();
+		      stmt = con.createStatement("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,fortArray) values (?,?,?,0,0,0,0,?,?,false,?);");
+		      stmt.setString(1,type);
+		      stmt.setInt(2,lotNum);
+		      stmt.setInt(3,lvl);
+		      stmt.setInt(4,townID);
+		      stmt.setInt(5,lvlUp);
+		      int newSizes[] = new int[getPlayer().getAu().size()];
+
+		      stmt.setString(6,PlayerScript.toJSONString(newSizes));
 		      
 		      // First things first. We update the player table.
+		      UberPreparedStatement stmt2 = con.createStatement("select bid from bldg where tid = ? and slot = ?;");
+		      stmt2.setInt(1,townID);
+		      stmt2.setInt(2,lotNum);
 		      boolean transacted=false;
 		      while(!transacted) {
 		    	  try {
-		      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
-		      int newSizes[] = new int[getPlayer().getAu().size()];
-			stmt.executeUpdate("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,fortArray) values ('" + type + "'," + lotNum + "," + lvl +"," +
-					"0" + ",0,0,0," + townID + ","+lvlUp+",false,'"+PlayerScript.toJSONString(newSizes)+"');");
+			stmt.executeUpdate();
 			
 			int bid = 0;
 			int timesTried=0;
@@ -402,7 +379,7 @@ public class Town {
 			while(bid==0&&timesTried<1000) {
 				Thread.currentThread().sleep(10);
 
-				id = stmt.executeQuery("select bid from bldg where tid = " + townID + " and slot = " + lotNum);
+				id = stmt2.executeQuery();
 				if(id.next()) bid = id.getInt(1);
 				
 				id.close();
@@ -413,7 +390,7 @@ public class Town {
 			
 			bldg().add(b);
 			
-			stmt.execute("commit;"); stmt.close(); transacted=true; 
+			 stmt.close();stmt2.close(); transacted=true; 
 			return b; } catch(MySQLTransactionRollbackException exc) { } catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -932,7 +909,7 @@ public class Town {
 	
 	public void makeNukeReport(Town t2, String t2UnitsBefore, String t2UnitsAfter, String bombResultBldg, String bombResultPpl, String t2UnitNames, int aggregateLevelLoss,boolean nukeSucc) {
 		try {
-		UberStatement stmt = con.createStatement();
+		UberPreparedStatement stmt = null;
 
 		int o = 0;
 		ArrayList<Player> holdForP = new ArrayList<Player>();
@@ -984,6 +961,16 @@ public class Town {
   	  }
   	  String t2UnitNamesPut,t2UnitsBeforePut,t2UnitsAfterPut;
   	  String toPutTemp;
+	  stmt = con.createStatement("insert into statreports (defender,invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,auoffnames,genocide,bombbldgdata,bombppldata,combatheader,ax,ay,dx,dy,offTownName,defTownName,nuke,nukeSucc) values (false,false,false,false,0,0,0,0,?,?,?,?,?,?,true,?,?,? ,?,?,?,?,?,?,true,?);");
+	  stmt.setInt(2,townID);
+	  stmt.setInt(3,t2.townID);
+	  stmt.setInt(10,getX());
+	  stmt.setInt(11,getY());
+	  stmt.setInt(12,t2.getX());
+	  stmt.setInt(13,t2.getY());
+	  stmt.setString(14,getTownName());
+	  stmt.setString(15,t2.getTownName());
+	  stmt.setBoolean(16,nukeSucc);
 	      while(o<holdForP.size()) {
 	    	  if(holdForP.get(o).ID==t2.getPlayer().ID||holdForP.get(o).ID==getPlayer().ID) {
 	    		  toPutTemp=toPut;
@@ -998,10 +985,15 @@ public class Town {
 	    		  t2UnitsAfterPut=",0,0,0,0,0,0";
 
 	    	  }
-	    	stmt.execute("insert into statreports (defender,invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,auoffnames,genocide,bombbldgdata,bombppldata,combatheader,ax,ay,dx,dy,offTownName,defTownName,nuke,nukeSucc) values" +
-			      		"(false,"+ "false" + "," + "false" + "," +"false" + ","+0 + "," +0+ "," +0 + "," +0 +"," + holdForP.get(o).ID + ","+ townID + "," + t2.townID + ",\"" + t2UnitsBeforePut + "\",\"" + t2UnitsAfterPut + "\",\"" 
-			      		+ t2UnitNamesPut + "\"," + "true" + ",\""+bombResultBldg+"\",\""
-			      		+ bombResultPpl+ "\",'"+toPutTemp+"' ,"+ getX()+","+getY()+","+t2.getX()+","+t2.getY()+",'"+getTownName()+"','"+t2.getTownName()+"',true,"+nukeSucc+");"); // use genocide to trick Markus into making a report for it with bombings.
+	    	  stmt.setInt(1,holdForP.get(o).ID);
+	    	  stmt.setString(4,t2UnitsBeforePut);
+	    	  stmt.setString(5,t2UnitsAfterPut);
+	    	  stmt.setString(6,t2UnitNamesPut);
+	    	  stmt.setString(7,bombResultBldg);
+	    	  stmt.setString(8,bombResultPpl);
+	    	  stmt.setString(9,toPutTemp);
+	    	 
+	    	  stmt.execute(); // use genocide to trick Markus into making a report for it with bombings.
 	    	 
 		      o++;
 	      }
@@ -1418,9 +1410,14 @@ public class Town {
 					String pid_to_s = PlayerScript.toJSONString(pid);
 
 				 try {
-						UberStatement stmt = getPlayer().con.createStatement();
-					stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid) values (\""
-							+ pid_to_s +"\"," + pid[0] +",\"" +body+"\",\""+subject+"\","+6+","+0+","+pid[0]+","+townID+");" );
+						UberPreparedStatement stmt = getPlayer().con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid) values (?,?,?,?,6,0,?,?);" );
+						stmt.setString(1,pid_to_s);
+						stmt.setInt(2,pid[0]);
+						stmt.setString(3,body);
+						stmt.setString(4,subject);
+						stmt.setInt(5,pid[0]);
+						stmt.setInt(6,townID);
+					stmt.execute();
 					
 					stmt.close();
 				} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	
@@ -1441,9 +1438,14 @@ public class Town {
 						String pid_to_s = PlayerScript.toJSONString(pid);
 
 					 try {
-							UberStatement stmt = getPlayer().con.createStatement();
-						stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid) values (\""
-								+ pid_to_s +"\"," + pid[0] +",\"" +body+"\",\""+subject+"\","+6+","+0+","+pid[0]+","+townID+");" );
+						 UberPreparedStatement stmt = getPlayer().con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid) values (?,?,?,?,6,0,?,?);" );
+							stmt.setString(1,pid_to_s);
+							stmt.setInt(2,pid[0]);
+							stmt.setString(3,body);
+							stmt.setString(4,subject);
+							stmt.setInt(5,pid[0]);
+							stmt.setInt(6,townID);
+							stmt.execute();
 						
 						stmt.close();
 					} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	
@@ -1534,36 +1536,34 @@ public class Town {
 		 // raidSupportAU are deleted when a raid returns.
 		 // supportAU are deleted by the AU Check method when there are no further raid support AU out nor supportAU at home.
 	 try {
-		 UberStatement stmt = con.createStatement();
-	 /*	  int j = 6; String updateAU[] = null;
-    	  if(getAu().size()>6) 
-    	  updateAU = new String[getAu().size()-6];
-    	  AttackUnit hau;
-    	  while(j<getAu().size()) {
-    		   hau = getAu().get(j); // get support/civvy units units.
-    		//  System.out.println("Saving " + hau.name);
-    
-    	   if(hau.getSupport()>0) {
-    		  // means it is a support au of some sort. This needs to be updated in a different place.
-    		   
-    			  updateAU[j-(6)] = "update supportAU set size = " + hau.getSize() + " where tid = " + townID + " and slotnum = "+ hau.getSlot() + ";";
+		 UberPreparedStatement stmt = con.createStatement("update town set townName = ?, x = ?, y = ?, m = ?, t = ?, mm = ?, f = ?, auSizes = ?, owedTicks = ?, zeppelin = ?,  fuelcells = ?, ticksTillMove = ?, digTownID = ?, msgSent = ?, digAmt = ?, destX = ?, destY = ?, probTimer =  ?, findTime = ?, digCounter = ?, debm = ?, debt = ?, debmm = ?, debf = ? where tid = ?;");
+		 stmt.setString(1,townName);
+		 stmt.setInt(2,x);
+		 stmt.setInt(3,y);
+		 stmt.setLong(4,getRes()[0]);
+		 stmt.setLong(5,getRes()[1]);
+		 stmt.setLong(6,getRes()[2]);
+		 stmt.setLong(7,getRes()[3]);
+		 stmt.setString(8,PlayerScript.toJSONString(au));
+		 stmt.setInt(9,owedTicks);
+		 stmt.setBoolean(10,zeppelin);
+		 stmt.setInt(11,fuelCells);
+		 stmt.setInt(12,ticksTillMove);
+		 stmt.setInt(13,digTownID);
+		 stmt.setBoolean(14,msgSent);
+		 stmt.setInt(15,digAmt);
+		 stmt.setInt(16,destX);
+		 stmt.setInt(17,destY);
+		 stmt.setInt(18,probTimer);
+		 stmt.setInt(19,findTime);
+		 stmt.setInt(20,digCounter);
+		 stmt.setLong(21,getDebris()[0]);
+		 stmt.setLong(22,getDebris()[1]);
+		 stmt.setLong(23,getDebris()[2]);
+		 stmt.setLong(24,getDebris()[3]);
+		 stmt.setInt(25,townID);
 
-    		
-    			  }
-    			
-    		if(updateAU[j-6]!=null)
-	    	  stmt.executeUpdate(updateAU[j-(6)]);
-    	  
-	    	  j++;
-	    	  
-    	  }*/
-    	  ArrayList<AttackUnit> au = getAu();
-    	  String update = "update town set townName = '" + townName + "', x = " + x + ", y = " + y + 
-	    	  ", m = " + getRes()[0] + ", t = " + getRes()[1] + ", mm = " + getRes()[2] + ", f = " + getRes()[3] + ", pop = " + getRes()[4] +
-	    	  ", auSizes = '"+PlayerScript.toJSONString(au)  +"', owedTicks = " + owedTicks+", zeppelin = " + zeppelin + ",  fuelcells = " + fuelCells + 
-	    	  ", ticksTillMove = " + ticksTillMove +", digTownID = " + digTownID +", msgSent = " +msgSent + ", digAmt = " + digAmt+  ", destX = " + destX +", destY = " + destY + ", probTimer =  " + probTimer + ", findTime = " + findTime + ", digCounter = " + digCounter 
-	    	  +", debm = " + getDebris()[0] + ", debt = " + getDebris()[1] + ", debmm = " + getDebris()[2] + ", debf = " + getDebris()[3] +" where tid = " + townID + ";";
-	    	  stmt.executeUpdate(update);
+    	   	  stmt.executeUpdate();
 	    	  
 	    	  stmt.close();
     	   } catch(SQLException exc) { 
@@ -1632,22 +1632,24 @@ public class Town {
 		// now we have b. As this is an internal method, the user never sees it, and so it's okay.
 		// we need to worry about the population here? it changes...
 		
-		UberStatement stmt;
+		UberPreparedStatement stmt;
 
 	     
-	      stmt = p.God.con.createStatement();
 	      
 	      // First things first. We update the player table.
 	      boolean transacted=false;
 	      while(!transacted) {
 	    	  
-	    	  try {
-	      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
-			stmt.executeUpdate("delete from queue where bid = " + bid + ";");
+	    	  try {	    
+	    		  stmt = p.God.con.createStatement("delete from queue where bid = " + bid + ";");
+	    		  stmt.setInt(1,bid);
 
-		stmt.executeUpdate("delete from bldg where bid = " + bid + ";");
+			stmt.executeUpdate();
+			  stmt = p.God.con.createStatement("delete from bldg where bid = " + bid + ";");
+    		  stmt.setInt(1,bid);
+    		  stmt.executeUpdate();
 		
-		stmt.execute("commit;");stmt.close(); transacted=true; } catch(MySQLTransactionRollbackException exc) { }
+    		  stmt.close(); transacted=true; } catch(MySQLTransactionRollbackException exc) { }
 	      
 			
 	      }
@@ -1661,13 +1663,19 @@ public class Town {
 	}
 	 public void checkBuildingDupes() {
 			try {
-			UberStatement stmt = God.con.createStatement();
+			UberPreparedStatement stmt = getPlayer().con.createStatement("select count(*) from bldg where tid = ? and slot = ?;");
+			UberPreparedStatement stmt2=getPlayer().con.createStatement("select bid,lvl from bldg where tid = ? and slot = ?;");
 			int i = 0;
+			stmt.setInt(1,townID);
+			stmt2.setInt(1,townID);
+
+
 			ResultSet rs; 
 			Player p =getPlayer();
 			int lotTech = p.getInfrastructureTech();
 			while(i<lotTech) {
-				rs =stmt.executeQuery("select count(*) from bldg where tid = " + townID + " and slot = " + i);
+				stmt.setInt(2,i);
+				rs =stmt.executeQuery();
 				int counter = 0;
 				if(rs.next()) {
 					counter=rs.getInt(1);
@@ -1677,8 +1685,8 @@ public class Town {
 				if(counter>1) {
 					int lowest =31;
 					int lowestbid=0;
-					
-					rs = stmt.executeQuery("select bid,lvl from bldg where tid = " + townID + " and slot = " + i);
+					stmt2.setInt(2,i);
+					rs = stmt2.executeQuery();
 					while(rs.next()) {
 						if(rs.getInt(2)<lowest) { lowest = rs.getInt(2); lowestbid = rs.getInt(1); }
 					}
@@ -1693,8 +1701,13 @@ public class Town {
 				i++;
 			}
 			i=0;
+			stmt.close();
+			stmt2.close();
+			stmt = getPlayer().con.createStatement("select count(*) from bldg where tid = ? and name = ?;");
+			stmt.setInt(1,townID);
 			while(i<lotTech) {
-				rs =stmt.executeQuery("select count(*) from bldg where tid = " + townID + " and name = 'Metal Mine';");
+				stmt.setString(2,"Metal Mine");
+				rs =stmt.executeQuery();
 				int counter = 0;
 				if(rs.next()) {
 					counter=rs.getInt(1);
@@ -1706,7 +1719,9 @@ public class Town {
 					System.out.println(townID + " is replacing a metal mine.");
 					addBuilding("Metal Mine",0,3,0);
 				}
-				rs =stmt.executeQuery("select count(*) from bldg where tid = " + townID + " and name = 'Timber Field';");
+				stmt.setString(2,"Timber Field");
+
+				rs =stmt.executeQuery();
 				 counter = 0;
 				if(rs.next()) {
 					counter=rs.getInt(1);
@@ -1719,7 +1734,9 @@ public class Town {
 
 					addBuilding("Timber Field",1,3,0);
 				}
-				rs =stmt.executeQuery("select count(*) from bldg where tid = " + townID + " and name = 'Crystal Mine';");
+				stmt.setString(2,"Crystal Mine");
+
+				rs =stmt.executeQuery();
 				 counter = 0;
 				if(rs.next()) {
 					counter=rs.getInt(1);
@@ -1732,7 +1749,9 @@ public class Town {
 
 					addBuilding("Crystal Mine",2,3,0);
 				}
-				rs =stmt.executeQuery("select count(*) from bldg where tid = " + townID + " and name = 'Farm';");
+				stmt.setString(2,"Farm");
+
+				rs =stmt.executeQuery();
 				 counter = 0;
 				if(rs.next()) {
 					counter=rs.getInt(1);
@@ -2179,12 +2198,11 @@ public class Town {
 			try {
 
 		
-		     UberStatement stmt = con.createStatement();
+		     UberPreparedStatement stmt;
 		      boolean transacted=false;
 		      while(!transacted) {
 		    	  try {
 		      
-		      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
 		      Player player = getPlayer();
 
 		      //BUILDING DEALING BLOCK
@@ -2204,13 +2222,16 @@ public class Town {
 						b.getType().equals("Manufacturing Plant")||
 						b.getType().equals("Airstrip")) {
 				int j = 0;
+				stmt = getPlayer().con.createStatement("delete from queue where qid = ?;");
 				while(j<b.Queue().size()) {
 					 q = b.Queue().get(j);
 					q.deleteMe();
-					stmt.executeUpdate("delete from queue where qid = " + q.qid);
+					stmt.setInt(1,q.qid);
+					stmt.executeUpdate();
 					
 					
 				}
+				stmt.close();
 				}
 				i++;
 			}
@@ -2335,7 +2356,10 @@ public class Town {
 			i = 6;
 			AttackUnit a; BattlehardFunctions bhf;
 			Raid ha;
-
+			stmt = getPlayer().con.createStatement("delete from supportAU where tid = ? and slotnum = ?;");
+			UberPreparedStatement stmt2 = getPlayer().con.createStatement("delete from raidSupportAU where tid = ? and rid = ? and tidslot = ?;");
+			stmt2.setInt(1,townID);
+			stmt.setInt(1,townID);
 			while(i<au.size()) {
 				 a = au.get(i);
 				
@@ -2372,9 +2396,8 @@ public class Town {
 					// the player when we empty normal ones since their size will
 					// be zero and thus harmless!
 					
-					
-					
-					stmt.executeUpdate("delete from supportAU where tid = "+  townID + " and slotnum = "+ a.getSlot() + ";");
+					stmt.setInt(2,a.getSlot());
+					stmt.executeUpdate();
 					int k = 0;
 					while(k<attackServer().size()) { // so for every raid, there is an entry
 						// on raidSupportAU for this attackunit that is a supporter
@@ -2382,15 +2405,24 @@ public class Town {
 						// the recall functions does this to the data structures.
 						
 			    		 ha = attackServer().get(k);
-			    				stmt.executeUpdate("delete from raidSupportAU where tid = " + townID + " and rid = " + ha.raidID + 
-			    						" and tidslot = " + a.getSlot() + ";");				  	
+			    		 stmt2.setInt(2,ha.raidID);
+			    		 stmt2.setInt(3,a.getSlot());
+			    				stmt2.executeUpdate();				  	
 			    		  k++;
 					}
 				i++;
 			}
-			stmt.executeUpdate("delete from supportAU where tid = "+  townID + ";");
+			stmt.close();
+			stmt2.close();
+			stmt = getPlayer().con.createStatement("delete from supportAU where tid = ?;");
+			stmt.setInt(1,townID);
+			stmt.executeUpdate();
+			stmt.close();
 
-			stmt.executeUpdate("delete from raidSupportAU where tid = " + townID + ";");
+			stmt = getPlayer().con.createStatement("delete from raidSupportAU where tid = ?;");
+			stmt.setInt(1,townID);
+			stmt.executeUpdate();
+			stmt.close();
 			//stmt.executeUpdate("update town set invaded_at = CURRENT_TIMESTAMP where tid = " + townID + ";");
 			// delete all traces of support au for this town...
 
@@ -2419,7 +2451,10 @@ public class Town {
 			
 
 			// delete from the db.
-			stmt.executeUpdate("delete from raid where tid1 = " + townID + " and raidOver=false and ticksToHit>0;");
+			stmt = getPlayer().con.createStatement("delete from raid where tid1 = ? and raidOver=false and ticksToHit>0;");
+			stmt.setInt(1,townID);
+			stmt.executeUpdate();
+			stmt.close();
 			
 			i = 0;
 			while(i<attackServer().size()) {  // delete from memory.
@@ -2496,8 +2531,11 @@ public class Town {
 			
 			incomingPlayer.addTown(this); // add to new player's town array.
 			//System.out.println("Town added to "+ p.getUsername() + " who now has town size of " + p.towns().size());
-
-			stmt.executeUpdate("update town set pid = " + p.ID + " where tid = " + townID + ";");
+			stmt = getPlayer().con.createStatement("update town set pid = ? where tid = ?;");
+			stmt.setInt(1,p.ID);
+			stmt.setInt(2,townID);
+			stmt.executeUpdate();
+			stmt.close();
 			// change recorded pid to new player's.
 			
 			// END PAPERWORK DEALING BLOCK
@@ -2505,14 +2543,12 @@ public class Town {
 			//...and now we're done giving the town over.
 
 			
-				stmt.execute("commit;"); transacted=true; } catch(MySQLTransactionRollbackException exc) { }
+			 transacted=true; } catch(MySQLTransactionRollbackException exc) { }
 		      }
 				
-				System.out.println("Committing to memory...");
 				// to synchronize! Using different call signal other than player again
 				// to avoid confusion.
 				
-				stmt.close();
 			} catch(SQLException exc) { exc.printStackTrace(); }
 			
 		}
@@ -2569,7 +2605,7 @@ public class Town {
 			}
 
 		try {
-			UberStatement stmt = getPlayer().con.createStatement();
+			
 			boolean transacted=false;
 			while(!transacted) {
 			
@@ -2578,22 +2614,39 @@ public class Town {
 					God.getTowns().remove(this);
 					getPlayer().towns().remove(this);
 					
+					UberPreparedStatement stmt = getPlayer().con.createStatement("delete from trade where tid1 = ?;");
+					stmt.setInt(1,townID);
+					stmt.execute();
+					stmt.close();
+					stmt = getPlayer().con.createStatement("delete from tradeschedule where tid1 = ?;");
+					stmt.setInt(1,townID);
+					stmt.execute();
+					stmt.close();
+					stmt = getPlayer().con.createStatement("delete from raid where tid1 = ?;");
+					stmt.setInt(1,townID);
+					stmt.execute();
+					stmt.close();
+					stmt = getPlayer().con.createStatement("update raid set raidOver=true,ticksToHit=totalTicks-ticksToHit where tid2 = ?;");
+					stmt.setInt(1,townID);
+					stmt.execute();
+					stmt.close();
+					stmt = getPlayer().con.createStatement("delete from bldg where tid = ?;");
+					stmt.setInt(1,townID);
+					stmt.execute();
+					stmt.close();
+					stmt = getPlayer().con.createStatement("delete from invadable where tid1 = ?;");
+					stmt.setInt(1,townID);
+					stmt.execute();
+					stmt.close();
+					
+					stmt = getPlayer().con.createStatement("delete from town where tid = ?;");
+					stmt.setInt(1,townID);
+					stmt.execute();
+					stmt.close();
 
-			stmt.execute("start transaction");
-			stmt.execute("delete from trade where tid1 = " + townID);
-			stmt.execute("delete from tradeschedule where tid1 = " + townID);
-			stmt.execute("delete from raid where tid1 = " + townID);
-			stmt.execute("update raid set raidOver=true,ticksToHit=totalTicks-ticksToHit where tid2 = " + townID);
-
-			stmt.execute("delete from bldg where tid = " + townID); // delete from buildings.
-			stmt.execute("delete from invadable where tid = " +townID);
-
-			stmt.execute("delete from town where tid = " + townID); // delete from towns.
-			stmt.execute("commit;");
 
 			
 			transacted=true;
-			stmt.close();
 				}
 			} catch(MySQLTransactionRollbackException exc) { } 
 			
@@ -2607,7 +2660,7 @@ public class Town {
 	
 	public ArrayList<Raid> attackServer() {
 		if(attackServer==null) {
-		UberStatement rus; ArrayList<Raid> r = new ArrayList<Raid>();
+		UberPreparedStatement rus; ArrayList<Raid> r = new ArrayList<Raid>();
 		UberConnection con = getPlayer().con;
 	
 		ResultSet rrs;
@@ -2618,9 +2671,10 @@ public class Town {
 			
 			
 		
-		 rus = con.createStatement();
+		 rus = con.createStatement("select rid from raid where tid1 = ? and (raidOver = false or ticksToHit >= 0)");
+		 rus.setInt(1,townID);
 		
-			 rrs = rus.executeQuery("select rid from raid where tid1 = " + townID + " and (raidOver = false or ticksToHit >= 0)");
+			 rrs = rus.executeQuery();
 
 	
 		while(rrs.next()) {
@@ -2648,9 +2702,9 @@ public class Town {
 		if(tradeSchedules==null) {
 		ArrayList<TradeSchedule> tses = new ArrayList<TradeSchedule>();
 		try {
-		UberStatement rus = getPlayer().con.createStatement();
-			
-		ResultSet rrs = rus.executeQuery("select tsid from tradeschedule where tid1 = " + townID + " and finished = false");
+		UberPreparedStatement rus = getPlayer().con.createStatement("select tsid from tradeschedule where tid1 = ? and finished = false");
+			rus.setInt(1,townID);
+		ResultSet rrs = rus.executeQuery();
 		// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
 		// Then F = !(R!T) = !R + T;
 		while(rrs.next()) {
@@ -2670,9 +2724,9 @@ public class Town {
 		if(tradeServer==null) {
 		ArrayList<Trade> tres = new ArrayList<Trade>();
 		try {
-		UberStatement rus = getPlayer().con.createStatement();
-			
-		ResultSet rrs = rus.executeQuery("select trid from trade where tid1 = " + townID + " and (tradeOver = false or ticksToHit>=0)");
+		UberPreparedStatement rus = getPlayer().con.createStatement("select trid from trade where tid1 = ? and (tradeOver = false or ticksToHit>=0)");
+			rus.setInt(1,townID);
+		ResultSet rrs = rus.executeQuery();
 		// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
 		// Then F = !(R!T) = !R + T;
 		while(rrs.next()) {
@@ -2692,9 +2746,10 @@ public class Town {
 		if(bldg==null) {
 		ArrayList<Building> tres = new ArrayList<Building>();
 		try {
-		UberStatement rus = getPlayer().con.createStatement();
+		UberPreparedStatement rus = getPlayer().con.createStatement("select bid from bldg where tid = ?;");
+		rus.setInt(1,townID);
 			
-		ResultSet rrs = rus.executeQuery("select bid from bldg where tid = " + townID + ";");
+		ResultSet rrs = rus.executeQuery();
 		// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
 		// Then F = !(R!T) = !R + T;
 		while(rrs.next()) {
@@ -2810,8 +2865,10 @@ public class Town {
 					
 					if(!foundAU) {
 						try {
-							UberStatement stmt2 = con.createStatement();
-							stmt2.executeUpdate("delete from supportAU where slotnum = " + ourA.getSlot() + " and tid = " + townID);
+							UberPreparedStatement stmt2 = con.createStatement("delete from supportAU where slotnum = ? and tid = ?;");
+							stmt2.setInt(1,ourA.getSlot());
+							stmt2.setInt(1,townID);
+							stmt2.executeUpdate();
 							stmt2.close();
 							// who cares if raidsupportau has zero units.
 						} catch(SQLException exc) { exc.printStackTrace(); }
@@ -3239,18 +3296,20 @@ public class Town {
 	public Player getMemPlayer() {
 		return God.getPlayer(getMemInt("pid"));
 	}
-	public void setMemResBuff(double a[]) {
+	
+	/*public void setMemResBuff(double a[]) {
 		try {
 			UberStatement stmt = con.createStatement();
 			stmt.execute("update town setMem mbuff = " + a[0] + ", tbuff = " + a[1] + ", mmbuff = " + a[2] + ", fbuff = " + a[3] + " where tid = " + townID);
 			stmt.close();
 			} catch(SQLException exc) { exc.printStackTrace(); }
-	}
+	}*/
 	public double[] getMemResBuff() {
 		double resBuff[] = new double[5];
 		try {
-			UberStatement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select mbuff,tbuff,mmbuff,fbuff from town where tid = "+ townID);
+			UberPreparedStatement stmt = con.createStatement("select mbuff,tbuff,mmbuff,fbuff from town where tid = ?;");
+			stmt.setInt(1,townID);
+			ResultSet rs = stmt.executeQuery();
 			if(rs.next()) {
 	
 				resBuff[0]=rs.getDouble(1);
@@ -3265,18 +3324,19 @@ public class Town {
 		return resBuff;
 
 	}
-	public void setMemRes(long a[]) {
+/*	public void setMemRes(long a[]) {
 		try {
 			UberStatement stmt = con.createStatement();
 			stmt.execute("update town setMem m = " + a[0] + ", t = " + a[1] + ", mm = " + a[2] + ", f = " + a[3] +  ", pop = " + a[4] + " where tid = " + townID);
 			stmt.close();
 			} catch(SQLException exc) { exc.printStackTrace(); }
-		}
+		}*/
 	public long[] getMemRes() {
 		long res[] = new long[5];
 		try {
-			UberStatement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select m,t,mm,f,pop from town where tid = "+ townID);
+			UberPreparedStatement stmt = con.createStatement("select m,t,mm,f,pop from town where tid = ?;");
+			stmt.setInt(1,townID);
+			ResultSet rs = stmt.executeQuery();
 			if(rs.next()) {
 	
 		res[0]=rs.getLong(1);
@@ -3293,8 +3353,9 @@ public class Town {
 	}public long[] getMemDebris() {
 		long res[] = new long[5];
 		try {
-			UberStatement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select debm,debt,debmm,debf from town where tid = "+ townID);
+			UberPreparedStatement stmt = con.createStatement("select debm,debt,debmm,debf from town where tid = ?;");
+			stmt.setInt(1,townID);
+			ResultSet rs = stmt.executeQuery();
 			if(rs.next()) {
 	
 		res[0]=rs.getInt(1);
@@ -3309,7 +3370,7 @@ public class Town {
 		return res;
 		
 	}
-	
+	/*
 	public long[] getMemResCaps() {
 		//long newcap =(long) Math.ceil(Building.resourceAmt*Math.exp(holdBldg.getMemLvl()+1));
 		long resCaps[] = new long[5];
@@ -3378,7 +3439,7 @@ public class Town {
 			return resCaps;
 		} catch(SQLException exc) { exc.printStackTrace(); }
 		return resCaps;
-	}
+	}*/
 	public void setMemResEffects(double a[]) {
 		try {
 			UberStatement stmt = con.createStatement();
@@ -3389,8 +3450,9 @@ public class Town {
 	public double[] getMemResEffects() {
 		double resEffects[] = new double[5];
 		try {
-			UberStatement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select minc,tinc,mminc,finc from town where tid = "+ townID);
+			UberPreparedStatement stmt = con.createStatement("select minc,tinc,mminc,finc from town where tid = ?;");
+			stmt.setInt(1,townID);
+			ResultSet rs = stmt.executeQuery();
 			if(rs.next()) {
 	
 				resEffects[0]=rs.getDouble(1);
@@ -3405,7 +3467,7 @@ public class Town {
 		return resEffects;	
 		}
 	
-	public double[] getMemResInc() {
+	/*public double[] getMemResInc() {
 	
 		//						holdTown.getMemResInc()[1]=GodGenerator.gameClockFactor*Town.baseResourceGrowthRate*Math.exp(holdBldg.getMemLvl())/3600;
 		double resIncs[] = new double[5];
@@ -3433,14 +3495,14 @@ public class Town {
 		} catch(SQLException exc) { exc.printStackTrace(); }
 		return resIncs;
 		}
-	
+	*//*
 	public void setMemTownName(String townName) {
 		setMemString("townName",townName);
-	}
+	}*/
 	public String getMemTownName() {
 		return getMemString("townName");
 	}
-
+/*
 	public int getMemTotalTraders() {
 		try {
 			UberStatement stmt = con.createStatement();
@@ -3454,7 +3516,7 @@ public class Town {
 		return 0;	}
 	public void setMemX(int x) {
 		setMemInt("x",x);
-	}
+	}*/
 	public int getMemX() {
 		return getMemInt("x");
 	}
@@ -3464,13 +3526,12 @@ public class Town {
 	public int getMemY() {
 		return getMemInt("y");
 	}
+	
 	public void setMemPop(long pop) {
 		setMemLong("pop",pop);
 	}
 	
-	public String getMemPlayerName() {
-		return getMemPlayer().getMemUsername();
-	}
+	
 	public void setInternalClock(int internalClock) {
 		this.internalClock=internalClock;
 	}
@@ -3480,16 +3541,6 @@ public class Town {
 
 	
 	
-	public boolean exists() {
-		boolean toRet=false;
-		try {
-			UberStatement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select tid from town where tid = " + townID);
-			if(rs.next()) toRet=true;
-			rs.close(); stmt.close();
-		} catch(SQLException exc) { exc.printStackTrace(); }
-		return toRet;
-	}
 
 	public void setHoldingIteratorID(String tosetMem) {
 		holdingIteratorID=tosetMem;
@@ -3499,8 +3550,11 @@ public class Town {
 	}
 	public void setMemInt(String fieldName, int tosetMem) {
 		try {
-			UberStatement stmt = con.createStatement();
-			stmt.execute("update town set " + fieldName + " = " + tosetMem + " where tid = " + townID);
+			UberPreparedStatement stmt = con.createStatement("update town set " + fieldName + "= ? where tid = ?;");
+			stmt.setString(1,fieldName);
+			stmt.setInt(2,tosetMem);
+			stmt.setInt(3,townID);
+			stmt.execute();
 			stmt.close();
 		}catch(SQLException exc) {
 			exc.printStackTrace();
@@ -3508,8 +3562,11 @@ public class Town {
 	}
 	public void setMemDouble(String fieldName, double tosetMem) {
 		try {
-			UberStatement stmt = con.createStatement();
-			stmt.execute("update town set " + fieldName + " = " + tosetMem + " where tid = " + townID);
+			UberPreparedStatement stmt = con.createStatement("update town set " + fieldName + "= ? where tid = ?;");
+			stmt.setString(1,fieldName);
+			stmt.setDouble(2,tosetMem);
+			stmt.setInt(3,townID);
+			stmt.execute();
 			stmt.close();
 		}catch(SQLException exc) {
 			exc.printStackTrace();
@@ -3517,8 +3574,11 @@ public class Town {
 	}
 	public void setMemLong(String fieldName, long tosetMem) {
 		try {
-			UberStatement stmt = con.createStatement();
-			stmt.execute("update town set " + fieldName + " = " + tosetMem + " where tid = " + townID);
+			UberPreparedStatement stmt = con.createStatement("update town set " + fieldName + "= ? where tid = ?;");
+			stmt.setString(1,fieldName);
+			stmt.setLong(2,tosetMem);
+			stmt.setInt(3,townID);
+			stmt.execute();
 			stmt.close();
 		}catch(SQLException exc) {
 			exc.printStackTrace();
@@ -3526,8 +3586,11 @@ public class Town {
 	}
 	public void setMemBoolean(String fieldName, boolean tosetMem) {
 		try {
-			UberStatement stmt = con.createStatement();
-			stmt.execute("update town set " + fieldName + " = " + tosetMem + " where tid = " + townID);
+			UberPreparedStatement stmt = con.createStatement("update town set " + fieldName + "= ? where tid = ?;");
+			stmt.setString(1,fieldName);
+			stmt.setBoolean(2,tosetMem);
+			stmt.setInt(3,townID);
+			stmt.execute();
 			stmt.close();
 		}catch(SQLException exc) {
 			exc.printStackTrace();
@@ -3535,8 +3598,11 @@ public class Town {
 	}
 	public void setMemString(String fieldName, String tosetMem) {
 		try {
-			UberStatement stmt = con.createStatement();
-			stmt.execute("update town set " + fieldName + " = \"" + tosetMem + "\" where tid = " + townID);
+			UberPreparedStatement stmt = con.createStatement("update town set " + fieldName + "= ? where tid = ?;");
+			stmt.setString(1,fieldName);
+			stmt.setString(2,tosetMem);
+			stmt.setInt(3,townID);
+			stmt.execute();
 			stmt.close();
 		}catch(SQLException exc) {
 			exc.printStackTrace();
@@ -3544,8 +3610,9 @@ public class Town {
 	}
 	public int getMemInt(String togetMem) {
 		try {
-			UberStatement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select " + togetMem + " from town where tid = " + townID);
+			UberPreparedStatement stmt = con.createStatement("select " + togetMem + " from town where tid = ?;");
+			stmt.setInt(1,townID);
+			ResultSet rs = stmt.executeQuery();
 			rs.next();
 			int toRet=rs.getInt(1);
 			rs.close();
@@ -3560,9 +3627,9 @@ public class Town {
 	
 	public double getMemDouble(String togetMem) {
 		try {
-			UberStatement stmt = con.createStatement();
-			
-			ResultSet rs = stmt.executeQuery("select " + togetMem + " from town where tid = " + townID);
+			UberPreparedStatement stmt = con.createStatement("select " + togetMem + " from town where tid = ?;");
+			stmt.setInt(1,townID);
+			ResultSet rs = stmt.executeQuery();
 			rs.next();
 			double toRet=rs.getDouble(1);
 			rs.close();
@@ -3576,9 +3643,9 @@ public class Town {
 	
 	public long getMemLong(String togetMem) {
 		try {
-			UberStatement stmt = con.createStatement();
-			
-			ResultSet rs = stmt.executeQuery("select " + togetMem + " from town where tid = " + townID);
+			UberPreparedStatement stmt = con.createStatement("select " + togetMem + " from town where tid = ?;");
+			stmt.setInt(1,townID);
+			ResultSet rs = stmt.executeQuery();
 			rs.next();
 			long toRet=rs.getLong(1);
 			rs.close();
@@ -3592,9 +3659,9 @@ public class Town {
 	
 	public boolean getMemBoolean(String togetMem) {
 		try {
-			UberStatement stmt = con.createStatement();
-			
-			ResultSet rs = stmt.executeQuery("select " + togetMem + " from town where tid = " + townID);
+			UberPreparedStatement stmt = con.createStatement("select " + togetMem + " from town where tid = ?;");
+			stmt.setInt(1,townID);
+			ResultSet rs = stmt.executeQuery();
 			rs.next();
 			boolean toRet=rs.getBoolean(1);
 			rs.close();
@@ -3607,9 +3674,9 @@ public class Town {
 	}
 	public String getMemString(String togetMem) {
 		try {
-			UberStatement stmt = con.createStatement();
-			
-			ResultSet rs = stmt.executeQuery("select " + togetMem + " from town where tid = " + townID);
+			UberPreparedStatement stmt = con.createStatement("select " + togetMem + " from town where tid = ?;");
+			stmt.setInt(1,townID);
+			ResultSet rs = stmt.executeQuery();
 			rs.next();
 			String toRet=rs.getString(1);
 			rs.close();
