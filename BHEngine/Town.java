@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.UUID;
 
 import BattlehardFunctions.BattlehardFunctions;
 import BattlehardFunctions.UserBuilding;
@@ -2405,7 +2406,7 @@ public class Town {
 						// the recall functions does this to the data structures.
 						
 			    		 ha = attackServer().get(k);
-			    		 stmt2.setInt(2,ha.raidID);
+			    		 stmt2.setString(2,ha.getId().toString());
 			    		 stmt2.setInt(3,a.getSlot());
 			    				stmt2.executeUpdate();				  	
 			    		  k++;
@@ -2671,14 +2672,15 @@ public class Town {
 			
 			
 		
-		 rus = con.createStatement("select rid from raid where tid1 = ? and (raidOver = false or ticksToHit >= 0)");
+		 rus = con.createStatement("select id from raid where tid1 = ? and (raidOver = false or ticksToHit >= 0)");
 		 rus.setInt(1,townID);
 		
 			 rrs = rus.executeQuery();
 
 	
 		while(rrs.next()) {
-			r.add(new Raid(rrs.getInt(1),getPlayer().God));
+			if(!rrs.getString(1).equals("none"))
+			r.add(new Raid(UUID.fromString(rrs.getString(1)),getPlayer().God));
 			
 		}
 		
@@ -2801,11 +2803,11 @@ public class Town {
 		}
 		return null;
 	}
-	public Raid findRaid(int rid) {
+	public Raid findRaid(UUID rid) {
 		int i =0;
 		
 		while(i<attackServer().size()) {
-			if(attackServer().get(i).raidID==rid) return attackServer().get(i);
+			if(attackServer().get(i).getId().equals(rid)) return attackServer().get(i);
 			i++;
 		}
 		return null;

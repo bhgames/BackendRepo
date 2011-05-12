@@ -385,7 +385,7 @@ public class Id extends Player {
 				j++;
 			}
 			
-			} catch(Exception exc) { exc.printStackTrace(); if(as.get(j)!=null) { System.out.println("RaidID is " + as.get(j).raidID); } System.out.println("Id saved.");} 
+			} catch(Exception exc) { exc.printStackTrace(); if(as.get(j)!=null) { System.out.println("RaidID is " + as.get(j).getId().toString()); } System.out.println("Id saved.");} 
 			}
 			i++;
 			

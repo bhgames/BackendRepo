@@ -20,7 +20,7 @@ public class Raid {
 		private boolean allClear = false; private long metal, timber, manmat, food;
 	private ArrayList<AttackUnit> au;
 	private UUID id;
-	private double distance; private int resupplyID=-1; // for resupply runs.
+	private double distance; private UUID resupplyID; // for resupply runs.
 	private int ticksToHit; private Town town2; private Town town1; private boolean raidOver;
 	private boolean debris; private int digAmt;
 	UberConnection con; 
@@ -58,7 +58,7 @@ public class Raid {
 	public void setMemResupplyID(int ID) {
 		setInt("resupplyID",ID);
 	}
-	public void setResupplyID(int ID) {
+	public void setResupplyID(UUID ID) {
 		resupplyID=ID;
 	}
 	public void makeOffSupportRun() {
@@ -92,11 +92,11 @@ public class Raid {
 					this.id=id;
 		}
 	
-	public Raid(String id, GodGenerator God) {
+	public Raid(UUID id, GodGenerator God) {
 		this.God=God;
 		this.con=God.con;try {
 		UberPreparedStatement rus = con.createStatement("select * from raid where id = ?;");
-		rus.setString(1,id);
+		rus.setString(1,id.toString());
 		ResultSet rrs = rus.executeQuery();
 		// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
 		// Then F = !(R!T) = !R + T;
@@ -129,7 +129,7 @@ public class Raid {
 			else if(rrs.getInt(22)==1&&!rrs.getBoolean(7)) makeScoutRun();
 			else if(rrs.getInt(22)==2&&!rrs.getBoolean(7)) makeDiscoveredScoutRun();
 			
-			if(rrs.getInt(24)!=-1&&!rrs.getBoolean(7)) setResupplyID(rrs.getInt(24));
+			if(rrs.getString(24)!=null&&!rrs.getBoolean(7)) setResupplyID(UUID.fromString(rrs.getString(24)));
 	
 		}
 		
@@ -177,7 +177,7 @@ public class Raid {
 		      
 		      
 		      // let's add this raid and therefore get the rid out of it.
-		    		  stmt = con.createStatement("insert into raid (tid1, tid2, distance, ticksToHit, genocide, raidOver,allClear,m,t,mm,f,totalTicks,Bomb,invade,name,genoRounds,digAmt,auSizes,support,debris,id) values (,?,?,?,?,false,false,0,0,0,0,?,?,?,?,?,?,?,?,?,?);");
+		    		  stmt = con.createStatement("insert into raid (tid1, tid2, distance, ticksToHit, genocide, raidOver,allClear,m,t,mm,f,totalTicks,Bomb,invade,name,genoRounds,digAmt,auSizes,support,debris,id) values (?,?,?,?,?,false,false,0,0,0,0,?,?,?,?,?,?,?,?,?,?);");
 				      stmt.setInt(1,town1.townID);
 				      stmt.setInt(2,town2.townID);
 				      stmt.setDouble(3,distance);
@@ -412,7 +412,7 @@ public class Raid {
 	public void setInvade(boolean invade) {
 		this.invade = invade;
 	}
-	public int getResupplyID() {
+	public UUID getResupplyID() {
 		return resupplyID;
 	}
 	public void setAu(ArrayList<AttackUnit> au) {
@@ -431,9 +431,9 @@ public class Raid {
 	}*/
 	public void setInt(String fieldName, int toSet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("update raid set " + fieldName + " = ? where rid = ?;");
+			UberPreparedStatement stmt = con.createStatement("update raid set " + fieldName + " = ? where id = ?;");
 			stmt.setInt(1,toSet);
-			stmt.setInt(2,raidID);
+			stmt.setString(2,id.toString());
 			
 			stmt.execute();
 			stmt.close();
@@ -443,9 +443,9 @@ public class Raid {
 	}
 	public void setDouble(String fieldName, double toSet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("update raid set " + fieldName + " = ? where rid = ?;");
+			UberPreparedStatement stmt = con.createStatement("update raid set " + fieldName + " = ? where id = ?;");
 			stmt.setDouble(1,toSet);
-			stmt.setInt(2,raidID);
+			stmt.setString(2,id.toString());
 			
 			stmt.execute();
 			stmt.close();
@@ -455,9 +455,9 @@ public class Raid {
 	}
 	public void setLong(String fieldName, long toSet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("update raid set " + fieldName + " = ? where rid = ?;");
+			UberPreparedStatement stmt = con.createStatement("update raid set " + fieldName + " = ? where id = ?;");
 			stmt.setLong(1,toSet);
-			stmt.setInt(2,raidID);
+			stmt.setString(2,id.toString());
 			
 			stmt.execute();
 			stmt.close();
@@ -467,9 +467,9 @@ public class Raid {
 	}
 	public void setBoolean(String fieldName, boolean toSet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("update raid set " + fieldName + " = ? where rid = ?;");
+			UberPreparedStatement stmt = con.createStatement("update raid set " + fieldName + " = ? where id = ?;");
 			stmt.setBoolean(1,toSet);
-			stmt.setInt(2,raidID);
+			stmt.setString(2,id.toString());
 			
 			stmt.execute();
 			stmt.close();
@@ -479,9 +479,9 @@ public class Raid {
 	}
 	public void setString(String fieldName, String toSet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("update raid set " + fieldName + " = ? where rid = ?;");
+			UberPreparedStatement stmt = con.createStatement("update raid set " + fieldName + " = ? where id = ?;");
 			stmt.setString(1,toSet);
-			stmt.setInt(2,raidID);
+			stmt.setString(2,id.toString());
 			
 			stmt.execute();
 			stmt.close();
@@ -491,8 +491,8 @@ public class Raid {
 	}
 	public int getInt(String toGet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("select "+toGet+" from raid where rid = ?;");
-			stmt.setInt(1,raidID);
+			UberPreparedStatement stmt = con.createStatement("select "+toGet+" from raid where id = ?;");
+			stmt.setString(1,id.toString());
 			
 			ResultSet rs = stmt.executeQuery();
 			rs.next();
@@ -509,8 +509,8 @@ public class Raid {
 	
 	public double getDouble(String toGet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("select "+toGet+" from raid where rid = ?;");
-			stmt.setInt(1,raidID);
+			UberPreparedStatement stmt = con.createStatement("select "+toGet+" from raid where id = ?;");
+			stmt.setString(1,id.toString());
 			
 			ResultSet rs = stmt.executeQuery();
 			rs.next();
@@ -526,8 +526,8 @@ public class Raid {
 	
 	public long getLong(String toGet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("select "+toGet+" from raid where rid = ?;");
-			stmt.setInt(1,raidID);
+			UberPreparedStatement stmt = con.createStatement("select "+toGet+" from raid where id = ?;");
+			stmt.setString(1,id.toString());
 			
 			ResultSet rs = stmt.executeQuery();
 			rs.next();
@@ -543,8 +543,8 @@ public class Raid {
 	
 	public boolean getBoolean(String toGet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("select "+toGet+" from raid where rid = ?;");
-			stmt.setInt(1,raidID);
+			UberPreparedStatement stmt = con.createStatement("select "+toGet+" from raid where id = ?;");
+			stmt.setString(1,id.toString());
 			
 			ResultSet rs = stmt.executeQuery();
 			rs.next();
@@ -559,8 +559,8 @@ public class Raid {
 	}
 	public String getString(String toGet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("select "+toGet+" from raid where rid = ?;");
-			stmt.setInt(1,raidID);
+			UberPreparedStatement stmt = con.createStatement("select "+toGet+" from raid where id = ?;");
+			stmt.setString(1,id.toString());
 			
 			ResultSet rs = stmt.executeQuery();
 			rs.next();
@@ -648,7 +648,7 @@ public class Raid {
 		else {
 			try {
 				UberPreparedStatement stmt = con.createStatement("update raidSupportAU set size = ? where tidslot = ? and rid = ? and tid = ?;");
-				stmt.setInt(3,raidID);
+				stmt.setString(3,id.toString());
 				stmt.setInt(4,getTown1().townID);
 				
 				AttackUnit a = getAu().get(index);
@@ -696,7 +696,7 @@ public class Raid {
 		   int k = 0;
 		   UberPreparedStatement stmt = con.createStatement("delete from raidSupportAU where tid = ? and rid = ? and tidslot = ?;");
 		   stmt.setInt(1,getTown1().townID);
-		   stmt.setInt(2,raidID);
+		   stmt.setString(2,id.toString());
 		   ArrayList<AttackUnit> au = getAu();
 		//   stmt.executeUpdate("update raid set ticksToHit=-1 where rid = " + raidID);
 		   setTicksToHit(-1);
@@ -717,7 +717,7 @@ public class Raid {
 	
 	synchronized public void save() {
    		  try {
-   			  UberPreparedStatement stmt = con.createStatement("update raid set distance = ?, ticksToHit = ?, genocide = ?, raidOver = ?, allClear = ?, m = ?, t = ?, mm = ?, f = ?, auSizes=?, bomb = ?, bombtarget = ?, support = ?, scout = ?, invade = ?, resupplyID = ?, totalTicks = ? where rid = ?;");
+   			  UberPreparedStatement stmt = con.createStatement("update raid set distance = ?, ticksToHit = ?, genocide = ?, raidOver = ?, allClear = ?, m = ?, t = ?, mm = ?, f = ?, auSizes=?, bomb = ?, bombtarget = ?, support = ?, scout = ?, invade = ?, resupplyID = ?, totalTicks = ? where id = ?;");
    	   		  ArrayList<AttackUnit> au = getAu();
    	   		
    	   		  stmt.setDouble(1,distance);
@@ -735,9 +735,11 @@ public class Raid {
    	   		  stmt.setInt(13,support);
    	   		  stmt.setInt(14,scout);
    	   		  stmt.setBoolean(15,invade);
-   	   		  stmt.setInt(16,resupplyID);
+   	   		  if(resupplyID!=null)
+   	   		  stmt.setString(16,resupplyID.toString());
+   	   		  else stmt.setString(16,"none");
    	   		  stmt.setInt(17,totalTicks);
-   	   		  stmt.setInt(18,raidID);
+   	   		  stmt.setString(18,id.toString());
    		  
    		  stmt.executeUpdate();
    		  

@@ -5,6 +5,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.UUID;
+
 import BHEngine.AttackUnit;
 import BHEngine.Building;
 import BHEngine.GodGenerator;
@@ -4636,7 +4638,6 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			 // Simple as cake.
 			holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getTrueSpeed(t1.getPlayer()));
 			totalsize+=holdNumbers[k]*hau.getExpmod();
-			
 			k++;
 		}
 		if(totalsize==0&&!attackType.equals("dig")) {
@@ -5213,7 +5214,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		
 			//	public boolean runMethod(String methodName, Object... params) {
-			UserRaid theRaid =getUserRaid(holdAttack.raidID);
+			UserRaid theRaid =getUserRaid(holdAttack.getId());
 			holdAttack.getTown2().getPlayer().getPs().runMethod("onIncomingRaidDetectedCatch",theRaid);
 			ArrayList<QuestListener> list =  p.getEventListenerList("onRaidSent");
 			if(list!=null)
@@ -5406,7 +5407,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 * 6: Bomb Communications Centers.
 		 * 7: Bomb Command Centers.
 		 */
-	public boolean changeBombTarget(int raidID, String newTarget[], int yourTownID) {
+	public boolean changeBombTarget(UUID raidID, String newTarget[], int yourTownID) {
 		if(prog&&!p.isAttackAPI()) {
 			setError("You do not have the Attack API!");
 			return false;
@@ -5449,7 +5450,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * is the amount of each unit you want to send, size is 6 + however many
 	 * support units you have.
 	 */
-	public boolean resupply(int raidID, int auAmts[], int yourTownID) {
+	public boolean resupply(UUID raidID, int auAmts[], int yourTownID) {
 		if(prog&&!p.isAttackAPI()) {
 			setError("You do not have the Attack API!");
 			return false;
@@ -5466,7 +5467,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 * is the amount of each unit you want to send, size is 6 + however many
 		 * support units you have.
 		 */
-	public boolean resupply(int raidID,String yourTownName, int auAmts[]) {
+	public boolean resupply(UUID raidID,String yourTownName, int auAmts[]) {
 		if(prog&&!p.isAttackAPI()) {
 			setError("You do not have the Attack API!");
 			return false;
@@ -5585,7 +5586,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		k=0;
 		Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, g.findTown(x,y), Genocide, Bomb,support,invade,"noname",false,au,0);
 	
-		holdAttack.setResupplyID(raidID);
+		holdAttack.setResupplyID(holdAttack.getId());
 	
 		//holdAttack.closeCon();
 		notifyViewer();
@@ -5618,7 +5619,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 * UI Implemented.
 		 * Recalls the raid designated by this raidID.
 		 */
-	public boolean recall(int raidID) {
+	public boolean recall(UUID raidID) {
 		if(prog&&!p.isAttackAPI()) {
 			setError("You do not have the Attack API!");
 			return false;
@@ -5628,7 +5629,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		while(i<p.towns().size()) {
 			int j = 0;
 			while(j<p.towns().get(i).attackServer().size()) {
-				if(p.towns().get(i).attackServer().get(j).raidID==raidID) {
+				if(p.towns().get(i).attackServer().get(j).getId().equals(raidID)) {
 					rtokill = p.towns().get(i).attackServer().get(j);
 					break;
 				}
@@ -5694,7 +5695,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				as = towns.get(k).attackServer();
 				int j = 0;
 				while(j<as.size()) {
-					if(as.get(j).getResupplyID()==rtokill.raidID) recall(as.get(j).raidID);
+					if(as.get(j).getResupplyID().equals(rtokill.getId())) recall(as.get(j).getId());
 					j++;
 				}
 				k++;
@@ -5733,7 +5734,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			while(j<raids.length) {
 				int k = 0; boolean add=true;
 				while(k<temp.size()) {
-					if(temp.get(k).raidID()==raids[j].raidID()){  add=false; break;}
+					if(temp.get(k).id().equals(raids[j].id())){  add=false; break;}
 					k++;
 				}
 				if(add)
@@ -9892,11 +9893,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						
 	}
 	/**
-	 * Return a UserRaid by the raidID mentioned.
+	 * Return a UserRaid by the id mentioned.
 	 * @param rid
 	 * @return
 	 */
-	public UserRaid getUserRaid(int rid) {
+	public UserRaid getUserRaid(UUID id) {
 		
 		// LINKED TO GETUSERRAIDS().
 		if(prog&&!p.isAdvancedAttackAPI()) {
@@ -9918,7 +9919,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			int j = 0;
 			while(j<attackServer.size()) {
 				r = attackServer.get(j);
-				if(r.raidID==rid) {
+				if(r.getId().equals(id)) {
 					
 					if(!checkMP(towns.get(i).townID)) {
 						return null;
@@ -9930,7 +9931,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					int support = r.getSupport();
 					int scout = r.getScout();
 					boolean invade = r.isInvade();
-					int resupplyID = r.getResupplyID();
+					UUID resupplyID = r.getResupplyID();
 					boolean debris = r.isDebris();
 					raidType="attack";
 					if(genocide) raidType="siege";
@@ -9940,7 +9941,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					if(support==2) raidType="offsupport";
 					if(scout==1) raidType="scout";
 					if(invade) raidType="invasion";
-					if(resupplyID>-1) raidType="resupply";
+					if(resupplyID!=null) raidType="resupply";
 					if(r.isDebris()) raidType="debris";
 					if(r.getDigAmt()>0) raidType = "dig";
 
@@ -9972,7 +9973,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					}
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
-					return new UserRaid(r.raidID,r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
+					return new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
 							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt());
 				}
 				j++;
@@ -10103,7 +10104,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					int support = r.getSupport();
 					int scout = r.getScout();
 					boolean invade = r.isInvade();
-					int resupplyID = r.getResupplyID();
+					UUID resupplyID = r.getResupplyID();
 					raidType="attack";
 					if(genocide) raidType="siege";
 					if(!genocide&&bomb) raidType = "strafe";
@@ -10112,7 +10113,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					if(support==2) raidType="offsupport";
 					if(scout==1) raidType="scout";
 					if(invade) raidType="invasion";
-					if(resupplyID>-1) raidType="resupply";
+					if(resupplyID!=null) raidType="resupply";
 					if(r.isDebris()) raidType="debris";
 					if(r.getDigAmt()>0) raidType = "dig";
 					int ie = 0;int totalCheckedSize=0;
@@ -10139,9 +10140,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					}
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
-					temp.add(new UserRaid(r.raidID,r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
+					temp.add(new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
 							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt()));
-					} catch(Exception exc) { exc.printStackTrace(); System.out.println("getUserRaids saved. The raid in question: " + r.raidID); }
+					} catch(Exception exc) { exc.printStackTrace(); System.out.println("getUserRaids saved. The raid in question: " + r.getId().toString()); }
 				
 				j++;
 			}
@@ -10240,7 +10241,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					int support = r.getSupport();
 					int scout = r.getScout();
 					boolean invade = r.isInvade();
-					int resupplyID = r.getResupplyID();
+					UUID resupplyID = r.getResupplyID();
 					
 					if(genocide) raidType="siege";
 					if(!genocide&&bomb) raidType = "strafe";
@@ -10249,7 +10250,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					if(support==2) raidType="offsupport";
 					if(scout==1) raidType="scout";
 					if(invade) raidType="invasion";
-					if(resupplyID>-1) raidType="resupply";
+					if(resupplyID!=null) raidType="resupply";
 					
 					 auAmts = new int[r.getAu().size()];
 					 auNames = new String[r.getAu().size()];
@@ -10263,10 +10264,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					}
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
-					temp.add(new UserRaid(r.raidID,r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
+					temp.add(new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
 							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt()));
 					}
-			} catch(Exception exc) { exc.printStackTrace(); System.out.println("Raids saved from " + r.raidID);}
+			} catch(Exception exc) { exc.printStackTrace(); System.out.println("Raids saved from " + r.getId().toString());}
 				
 				j++;
 			}

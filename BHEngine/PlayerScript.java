@@ -15,6 +15,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.UUID;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
@@ -446,7 +447,7 @@ public class PlayerScript implements Runnable {
     		 // number, string, number[],  or number, number[], number
     		 holdPartUse = new String(holdPart);
     		 
-    		 int num1 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
+    		 String str1 =(holdPartUse.substring(0,holdPartUse.indexOf(",")));
     		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
     		 
     		 String str2 = holdPartUse.substring(0,holdPartUse.indexOf(","));
@@ -454,19 +455,19 @@ public class PlayerScript implements Runnable {
     		 if(array2.length==1) {
     			 // we test to see if the array got processed right,
     			 // if it was a town name it returns a 1 length = 0 array.
-    			  num1 = Integer.parseInt(holdPart.substring(0,holdPart.indexOf(",")));
+    			  str1 = (holdPart.substring(0,holdPart.indexOf(",")));
         		 holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
         		  str2 = holdPart.substring(0,holdPart.indexOf(","));
         		 holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
         		 int array3[] = decodeStringIntoIntArray(holdPart.substring(0,holdPart.length()));
 
-        		 toRet+=""+b.resupply(num1,str2,array3);
+        		 toRet+=""+b.resupply(UUID.fromString(str1),str2,array3);
     		 } else {
     			 
     		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
     		 int num3 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.length()));
     		 
-    		 toRet+=""+b.resupply(num1,array2,num3); }
+    		 toRet+=""+b.resupply(UUID.fromString(str1),array2,num3); }
     		 
     	 }else if(holdCmd.equals("bf.getTicksForLeveling")||holdCmd.equals("bf.howManyTraders")) {
     	 
@@ -616,10 +617,10 @@ public class PlayerScript implements Runnable {
         		 
         		 }else if(holdCmd.equals("bf.changeBombTarget")) {
         		 //number, String[], number
-        		 int num1 = Integer.parseInt(holdPart.substring(0,holdPart.indexOf(",")));
+        		 String str1 =(holdPart.substring(0,holdPart.indexOf(",")));
         		 String str2[] = decodeStringIntoStringArray(holdPart.substring(holdPart.indexOf(",")+1,holdPart.indexOf("]")+1));
         		 int num3 = Integer.parseInt(holdPart.substring(holdPart.indexOf("]")+2,holdPart.length()));
-        		 toRet+= b.changeBombTarget(num1,str2,num3);
+        		 toRet+= b.changeBombTarget(UUID.fromString(str1),str2,num3);
         	 
         		 
         		 }else if(holdCmd.equals("bf.setFortification")) {
@@ -641,7 +642,7 @@ public class PlayerScript implements Runnable {
             		 int num3 = Integer.parseInt(holdPart.substring(holdPart.lastIndexOf(",")+1,holdPart.length()));
             		 toRet+= b.recall(num1,num2,num3);
         			 } else if(numCommas==0) {
-        				 toRet+=b.recall(Integer.parseInt(holdPart));
+        				 toRet+=b.recall(UUID.fromString((holdPart)));
         			 } else {
         				 int array1[] = decodeStringIntoIntArray(holdPart.substring(0,holdPart.indexOf("]")+1));
         				 holdPart = holdPart.substring(holdPart.indexOf("]")+2,holdPart.length());
@@ -824,15 +825,14 @@ public class PlayerScript implements Runnable {
         				toRet+=""+b.canSendAttack(num1,int2,int3,intArr4,str5,str6,str7);
  
     		 } catch(Exception exc) {
-    			 exc.printStackTrace();
+    			// exc.printStackTrace();
     		 String str1 = holdPart.substring(0,holdPart.indexOf(","));
     		 holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
     		 int int2 = Integer.parseInt(holdPart.substring(0,holdPart.indexOf(",")));
     		 holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
     		 int int3 = Integer.parseInt(holdPart.substring(0,holdPart.indexOf(",")));
     		 holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
-
-    		 int intArr4[] = decodeStringIntoIntArray(holdPart.substring(0,holdPart.indexOf("],")));
+    		 int intArr4[] = decodeStringIntoIntArray(holdPart.substring(0,holdPart.indexOf("],")+1));
     		/* int i = 0;
     		 while(i<intArr4.length) {
     			 System.out.println(intArr4[i]);
@@ -1696,7 +1696,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 raid = raids[i];
     			 str.object()
     			 .key("rid")
-    			 .value(raid.raidID())
+    			 .value(raid.id().toString())
     			 .key("name")
     			 .value(raid.name())
     			 .key("header")
@@ -2716,6 +2716,7 @@ try {
 	  	 	String revAI=""; int exitVal = 0;
   			try {
   			UberPreparedStatement stmt = player.con.createStatement("select revAI from revelations where pid = ?;");
+  			stmt.setInt(1,player.ID);
   			ResultSet rs = stmt.executeQuery();
   			if(rs.next()) revAI=rs.getString(1);
   			rs.close();

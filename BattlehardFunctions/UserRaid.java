@@ -1,5 +1,7 @@
 package BattlehardFunctions;
 
+import java.util.UUID;
+
 
 public class UserRaid {
 	private String town1; private int x1; private int y1; 
@@ -7,7 +9,7 @@ public class UserRaid {
 	private String raidType;
 	private boolean raidOver; private double ticksToHit;
 	private double distance; private long res[];
-	private int raidID;
+	private UUID id;
 	private int tid1,tid2;
 	private String[] bombTargets;
 	private boolean debris;
@@ -17,7 +19,7 @@ public class UserRaid {
 	private boolean bomb;
 	private boolean allClear = false;
 	private int totalTicks=0;
-	public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, String[] bombTarget,
+	public UserRaid(UUID id, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, String[] bombTarget,
 			int tid1,int tid2,String name, int genoRounds, boolean bomb, boolean debris, int digAmt) {
 		this.town1=town1;this.town2=town2; this.x1=x1;this.y1=y1;
 		this.genoRounds=genoRounds;
@@ -37,7 +39,7 @@ public class UserRaid {
 		res[2]=mm;
 		res[3]=f;
 		
-		this.raidID=raidID;
+		this.id=id;
 		this.allClear=allClear;
 		 
 	}
@@ -115,8 +117,8 @@ public class UserRaid {
 	public double distance() {
 		return distance;
 	}
-	public int raidID() {
-		return raidID;
+	public UUID id() {
+		return id;
 	}
 	public int totalTicks() {
 		return totalTicks;

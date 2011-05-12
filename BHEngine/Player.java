@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.UUID;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -210,14 +211,14 @@ public class Player  {
 		}
 		return null;
 	}
-	public Raid findRaid(int trid) {
+	public Raid findRaid(UUID trid) {
 		int i = 0;
 		int j = 0;
 		while(j<towns().size()) {
 			i = 0;
 			
 		while(i<towns().get(j).attackServer().size()) {
-			if(towns().get(j).attackServer().get(i).raidID==trid) return towns().get(j).attackServer().get(i);
+			if(towns().get(j).attackServer().get(i).getId().equals(trid)) return towns().get(j).attackServer().get(i);
 			i++;
 		}
 		j++;
@@ -554,9 +555,9 @@ public class Player  {
 			ResultSet rs = stmt.executeQuery();
 			ResultSet check; UberPreparedStatement stmt2 = con.createStatement("select complete from qpc where qid = ? and pid = ?;");
 			rs.next();
-			stmt.setInt(1,rs.getInt(1));
-			stmt.setInt(2,ID);
-			 check = stmt.executeQuery();
+			stmt2.setInt(1,rs.getInt(1));
+			stmt2.setInt(2,ID);
+			 check = stmt2.executeQuery();
 			if(check.next()) {
 				if(check.getInt(1)==1) {
 					check.close();

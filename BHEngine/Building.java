@@ -604,7 +604,7 @@ public static int baseResourceAmt = 2000;
 		ArrayList<QueueItem> queue= new ArrayList<QueueItem>();
 		long cost[];
 		try {
-		UberPreparedStatement qus = con.createStatement("select * from queue where bid = " + bid + " order by qid asc");
+		UberPreparedStatement qus = con.createStatement("select * from queue where bid = ? order by qid asc");
 		qus.setInt(1,bid);
 		 ResultSet qrs = qus.executeQuery();
 		 while(qrs.next()) {

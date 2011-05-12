@@ -6664,7 +6664,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			holdAttack.setRaidOver(true);
 			holdAttack.setTicksToHit(testhold);
 		
-			holdAttack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",holdAttack.getTown1().getPlayer().getPs().b.getUserRaid(holdAttack.raidID));
+			holdAttack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",holdAttack.getTown1().getPlayer().getPs().b.getUserRaid(holdAttack.getId()));
 			
 			
 			try {
@@ -6768,7 +6768,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			if(testhold==0) testhold=(int) Math.round(((double) 10/(lowSpeed*speedadjust))/GodGenerator.gameClockFactor);
 
 			holdAttack.setTicksToHit(testhold);
-			holdAttack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",holdAttack.getTown1().getPlayer().getPs().b.getUserRaid(holdAttack.raidID));
+			holdAttack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",holdAttack.getTown1().getPlayer().getPs().b.getUserRaid(holdAttack.getId()));
 
 			// Now raid is being returned!
 			return false;
@@ -7391,7 +7391,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			if(testhold==0) testhold=(int) Math.round(((double) 10/(lowSpeed*speedadjust))/GodGenerator.gameClockFactor);
 
 			actattack.setTicksToHit(testhold);
-			actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+			actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.getId()));
 
 			} else {
 				// in this special case where maxSize=0 and size=0(ie the lowSpeed never changes because there are
@@ -7651,7 +7651,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 
 			holdAttack.setRaidOver(true);
 			holdAttack.setTicksToHit(testhold); // sending back AUs
-			holdAttack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",holdAttack.getTown1().getPlayer().getPs().b.getUserRaid(holdAttack.raidID));
+			holdAttack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",holdAttack.getTown1().getPlayer().getPs().b.getUserRaid(holdAttack.getId()));
 
 		}
 	return false;
@@ -7706,7 +7706,7 @@ public static boolean debrisLogicBlock(Raid r) {
 		}
 		r.setRaidOver(true);
 		r.setTicksToHit(r.getTotalTicks());
-		r.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",r.getTown1().getPlayer().getPs().b.getUserRaid(r.raidID));
+		r.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",r.getTown1().getPlayer().getPs().b.getUserRaid(r.getId()));
 
 		UberPreparedStatement stmt = r.getTown1().getPlayer().God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,debris) values (?,?,?,?,?,?,?,?,?,?,?,?,true);");
 		stmt.setInt(1,t1p.ID);
@@ -8049,11 +8049,11 @@ public boolean checkForGenocides(Town t) {
 			//System.out.println("Without AU...we must return!");
 			actattack.setRaidOver(true);
 			actattack.setTicksToHit(actattack.getTotalTicks());
-			actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+			actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.getId()));
 
 			return false;
 		}
-		UserRaid holdAttack = t1p.getPs().b.getUserRaid(actattack.raidID);
+		UserRaid holdAttack = t1p.getPs().b.getUserRaid(actattack.getId());
 		String raidType = holdAttack.raidType();
 		boolean genocide = false; if(actattack.isGenocide()) genocide=true;
 		if(genocide) actattack.setGenoRounds(holdAttack.getGenoRounds() + 1);
@@ -8069,7 +8069,7 @@ public boolean checkForGenocides(Town t) {
 			actattack.setAllClear(true);
 		//	System.out.println("I changed this guy to allClear due to other genocides in the area.");
 			// in case there are already genocides on this town.
-			holdAttack = t1p.getPs().b.getUserRaid(actattack.raidID);
+			holdAttack = t1p.getPs().b.getUserRaid(actattack.getId());
 		}
 		
 		int t1x = t1.getX(); int t1y = t1.getY(); int t2x = t2.getX(); int t2y = t2.getY();
@@ -9209,7 +9209,7 @@ public boolean checkForGenocides(Town t) {
 					 actattack.setTicksToHit(testhold);
 						actattack.setTotalTicks(testhold);
 						actattack.setRaidOver(true);
-						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.getId()));
 
 						
 							moveResources(actattack,t2,percentlossdiff,false);
@@ -9223,7 +9223,7 @@ public boolean checkForGenocides(Town t) {
 					actattack.setTotalTicks(testhold);
 
 					actattack.setRaidOver(true);
-					actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+					actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.getId()));
 
 				
 					// Means can collect resources.
@@ -9237,7 +9237,7 @@ public boolean checkForGenocides(Town t) {
 				} else if(genocide&&numUnitsRemainingD>0&&numUnitsDestroyedD>0&&!holdAttack.allClear()) {
 					actattack.setTicksToHit((int) Math.round(((double) testhold)/4));
 					actattack.setTotalTicks((int) Math.round(((double) testhold)/4));
-					actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+					actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.getId()));
 
 				} else if((genocide&&numUnitsRemainingD==0&&!holdAttack.allClear())) {
 					// Oo now it's time to attack the civilians!! Kill them all!! :O O O OO O  : OOOO :O :O!!!
@@ -9280,7 +9280,7 @@ public boolean checkForGenocides(Town t) {
 						actattack.setTotalTicks(testhold);
 
 						moveResources(actattack,t2,percentlossdiff,false);
-						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.getId()));
 
 					} else if(!foundNonZeroCiv) {
 						// Civilian units were found but none of them came out due to bunkers.
@@ -9291,14 +9291,14 @@ public boolean checkForGenocides(Town t) {
 						actattack.setTotalTicks(testhold);
 
 						moveResources(actattack,t2,percentlossdiff,false);
-						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.getId()));
 
 					}
 					else {
 					
 						actattack.setTicksToHit((int) Math.round(((double) testhold)/4.0));
 						actattack.setTotalTicks((int) Math.round(((double) testhold)/4.0));
-						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.getId()));
 
 					}
 					
@@ -9310,7 +9310,7 @@ public boolean checkForGenocides(Town t) {
 
 						actattack.setTicksToHit((int) Math.round(((double) testhold)/4));
 						actattack.setTotalTicks((int) Math.round(((double) testhold)/4));
-						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.getId()));
 
 					} else if(holdAttack.allClear()&&numUnitsRemainingD==0) {
 						// so if allClear, no more units remaining, and there are no bombers or bomb isn't set to on,
@@ -9328,7 +9328,7 @@ public boolean checkForGenocides(Town t) {
 
 
 						
-						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.raidID));
+						actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.getId()));
 
 						// knock out capital city!
 						if(t2p.getCapitaltid()==t2.townID) {
@@ -9554,7 +9554,7 @@ public boolean checkForGenocides(Town t) {
 				  if(holdAttack.raidType().equals("strafe")||holdAttack.raidType().equals("glass")) bomb=true;
    
 				  while(!transacted) {
-					 // holdAttack = t1p.getPs().b.getUserRaid(actattack.raidID); // because now they've got res!
+					 // holdAttack = t1p.getPs().b.getUserRaid(actattack.getId()); // because now they've got res!
 					  boolean invade = false; int scout = 0;
 					  if(raidType.equals("invasion")) invade = true;
 					  if(raidType.equals("scout")) scout = 2; // means failed scouting.
@@ -9754,12 +9754,12 @@ public boolean checkForGenocides(Town t) {
 			holdAttack.getAu(); // reset.
 		}
 		Town t1 = holdAttack.getTown1();
-		int raidID = holdAttack.getResupplyID();
+		UUID raidID = holdAttack.getResupplyID();
 		int i = 0; boolean found = false; Raid r=null;
 		ArrayList<Raid> attackServer=t1.attackServer();
 		while(i<attackServer.size()) {
 			 r = attackServer.get(i);
-			if(r.raidID==raidID) { found = true; break; }
+			if(r.getId().equals(raidID)) { found = true; break; }
 			i++;
 		}
 		
@@ -9896,7 +9896,7 @@ public boolean checkForGenocides(Town t) {
 			do {
 				 holdAttack = attackServer[i];
 				 if(holdAttack.getTID1()==t1.townID) { // because we grab incomings also with userraids.
-					r = t1.findRaid(holdAttack.raidID());
+					r = t1.findRaid(holdAttack.id());
 					if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&r.getTown2().owedTicks>0&&r.getTown2().getPlayer().ID!=r.getTown1().getPlayer().ID) {
 						r.getTown2().update();
 						
@@ -9990,7 +9990,7 @@ public boolean checkForGenocides(Town t) {
 					// Now this is a return raid.
 				//	System.out.println("Returning...");
 					int c = 0;
-					r.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturnedCatch",r.getTown1().getPlayer().getPs().b.getUserRaid(r.raidID));
+					r.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturnedCatch",r.getTown1().getPlayer().getPs().b.getUserRaid(r.getId()));
 
 						AU = r.getAu(); tAU = t1.getAu();
 					do {
@@ -10068,7 +10068,6 @@ public boolean checkForGenocides(Town t) {
 		TradeSchedule actts; Trade actt; UserBuilding bldg[]; Town t2;
 		int i = 0; UserTrade[] tres = p.getPs().b.getUserTrades(t1.townID); UserTradeSchedule[] tses = p.getPs().b.getUserTradeSchedules(t1.townID);
 	//	System.out.println(p.username +" is running this shindig on tid " + tid + " which is owned by " + t1.getPlayer().username);
-		UberPreparedStatement stmt = null;
 		UserTrade[] otherTres;
 		
 		while(i<tses.length) {
@@ -10406,12 +10405,6 @@ public boolean checkForGenocides(Town t) {
 
 		}
 			i++;
-		}
-		try {
-			stmt.close();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		
 
@@ -11054,7 +11047,7 @@ public boolean checkForGenocides(Town t) {
 		if(civvybunkerfrac>1) civvybunkerfrac=1; // don't want them getting over 1 in protection!
 		UserRaid r=null;
 		if(holdAttack!=null) {
-		 r = t1p.getPs().b.getUserRaid(holdAttack.raidID);
+		 r = t1p.getPs().b.getUserRaid(holdAttack.getId());
 		
 		if(!r.bomb()) return -2+",null+,null+"; }
 		int bnr[] = new int[31]; // used for bomber numbers. hardcoded.
@@ -11553,7 +11546,7 @@ public boolean checkForGenocides(Town t) {
 					b.modifyTicksLevel(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getArchitecture()); b.setTicksToFinish(b.getTicksToFinish()+1); 
 					} 
 				else if(b.getTicksToFinish()>=b.getTicksToFinishTotal()&&b.getLvlUps()>0) {
-					//UserRaid theRaid =getUserRaid(holdAttack.raidID);
+					//UserRaid theRaid =getUserRaid(holdAttack.getId());
 					//holdAttack.getTown2().getPlayer().getPs().runMethod("onIncomingRaidDetectedCatch",theRaid);
 				b.setLvlUps(b.getLvlUps()-1);
 				
