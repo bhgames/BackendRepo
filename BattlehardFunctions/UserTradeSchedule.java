@@ -1,22 +1,24 @@
 package BattlehardFunctions;
 
+import java.util.UUID;
+
 
 
 public class UserTradeSchedule {
 	private long metal, timber, manmat, food,othermetal, othertimber, othermanmat, otherfood;
-	private int tid2; private int tid1;private int tradeScheduleID;
+	private int tid2; private int tid1;private UUID id;
 	 boolean twoway=false; private String originatingPlayer,originatingTown,destPlayer,destTown;
-	int currTicks = 0,timesDone=0,timesToDo=1; int mateTradeScheduleID=0; // keep set at 0 to test for
+	int currTicks = 0,timesDone=0,timesToDo=1; UUID mateID; // keep set at 0 to test for
 	// twoways without mates! Then it'll set incorrectly, we hope.
 	private double distance;
 	int intervaltime=3600; boolean agreed=false; boolean finished = false,stockMarketTrade=false;
 	public UserTradeSchedule(boolean agreed, int currTicks, boolean finished,
 			long food, int intervaltime, long manmat, 
-			int mateTradeScheduleID, long metal, long otherfood,
+			UUID mateID, long metal, long otherfood,
 			long othermanmat, long othermetal, long othertimber,
 			long timber,
 			int timesDone, int timesToDo, int tid1, int tid2,
-			int tradeScheduleID, boolean twoway,String originatingTown, String originatingPlayer, String destTown,String destPlayer) {
+			UUID id, boolean twoway,String originatingTown, String originatingPlayer, String destTown,String destPlayer) {
 		this.agreed = agreed;
 		this.currTicks = currTicks;
 		this.finished = finished;
@@ -24,7 +26,7 @@ public class UserTradeSchedule {
 		this.tid1=tid1;this.tid2=tid2;
 		this.intervaltime = intervaltime;
 		this.manmat = manmat;
-		this.mateTradeScheduleID = mateTradeScheduleID;
+		this.mateID = mateID;
 		this.metal = metal;
 		this.otherfood = otherfood;
 		this.othermanmat = othermanmat;
@@ -37,7 +39,7 @@ public class UserTradeSchedule {
 		this.setDestPlayer(destPlayer); this.setDestTown(destTown);
 	
 		if(tid1==tid2) stockMarketTrade=true;
-		this.tradeScheduleID = tradeScheduleID;
+		this.id = id;
 		this.twoway = twoway;
 	}
 	public long getMetal() {
@@ -70,8 +72,8 @@ public class UserTradeSchedule {
 	public int getTID1() {
 		return tid1;
 	}
-	public int getTradeScheduleID() {
-		return tradeScheduleID;
+	public UUID getId() {
+		return id;
 	}
 	public boolean isTwoway() {
 		return twoway;
@@ -85,8 +87,8 @@ public class UserTradeSchedule {
 	public int getTimesToDo() {
 		return timesToDo;
 	}
-	public int getMateTradeScheduleID() {
-		return mateTradeScheduleID;
+	public UUID getMateID() {
+		return mateID;
 	}
 	
 	public int getIntervaltime() {

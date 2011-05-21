@@ -11,6 +11,10 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
+import BattlehardFunctions.UserMessage;
+import BattlehardFunctions.UserMessagePack;
+import BattlehardFunctions.UserSR;
+
 import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 
 
@@ -26,6 +30,9 @@ public class Player  {
 	protected PlayerScript ps;
 	private String pushLog="";
 	public int iterTicks = 0;
+	public ArrayList<UserSR> currSRs;
+	public ArrayList<UserMessagePack> currMessages;
+
 	public int playedTicks=0;
 	public long totalTimePlayed = 0;
 	public int numLogins=0;
@@ -197,14 +204,14 @@ public class Player  {
 	}
 
 	
-	public TradeSchedule findTradeSchedule(int trid) {
+	public TradeSchedule findTradeSchedule(UUID trid) {
 		int i = 0;
 		int j = 0;
 		while(j<towns().size()) {
 			i = 0;
 			
 		while(i<towns().get(j).tradeSchedules().size()) {
-			if(towns().get(j).tradeSchedules().get(i).tradeScheduleID==trid) return towns().get(j).tradeSchedules().get(i);
+			if(towns().get(j).tradeSchedules().get(i).id.equals(trid)) return towns().get(j).tradeSchedules().get(i);
 			i++;
 		}
 		j++;
@@ -340,10 +347,320 @@ public class Player  {
 	}
 	
 
-	
+	public void addMessage(UserMessage m) {
+		
+		// m = new UserMessage(UUID.fromString(rs.getString(14)),pid_to,rs.getInt(3),userArray,God.getUsername(rs.getInt(3)),rs.getString(4),rs.getString(5),rs.getInt(6), rs.getBoolean(7), rs.getInt(9), UUID.fromString(rs.getString(10)),rs.getString(11),UUID.fromString(rs.getString(13)),rs.getBoolean(8));
+			
+			if(m.getOriginalSubjectID()==null) {
+				getMessages().add(new UserMessagePack());
+				//	public UserMessage(int messageID,int pidTo, int pidFrom, String body, String subject, int msgType, boolean readed, int tsid, int originalMessageID, String creationDate) {
+				/*
+		
+				 */
+				
+				
+				getMessages().get(getMessages().size()-1).addMessage(m);
+			} else {
+				int i = 0; boolean found = false;
+				UserMessagePack umpPiece;
+				while(i<getMessages().size()) {
+					umpPiece = getMessages().get(i);
+					int j = 0;
+					while(j<umpPiece.getMessages().size()) {
+						if(umpPiece.getMessage(j).getSubjectID().equals(m.getOriginalSubjectID())) {
+							// so we search all messages in a pack for an original reply identifier!
+							
+							umpPiece.addMessage(m); found = true; break;
+						}
+					
+						j++;
+					}
+					if(found) break;
+					i++;
+				}
+				
+				if(!found) 	{
+					getMessages().add(new UserMessagePack());
+					getMessages().get(getMessages().size()-1).addMessage(m);
 
-	
+				}
+				System.out.println(getUsername() + " has gone over message limit, deleting...");
+				int counter=0;
+				while(getMessages().size()>100) {
+					getPs().b.markDeletedMessage(getMessages().get(0).getMessages().get(getMessages().get(0).getMessages().size()-1).getId());
+					counter++;
+				}
+				System.out.println(getUsername() + " rid himself of " + counter + " messages.");
+			}
+			
+	}
+	 public ArrayList<UserMessagePack> getMessages() {
+		 if(currMessages!=null) {
+		// return all messages.
+				UserMessagePack umpPiece; UserMessage m;
+				ArrayList<UserMessagePack> ump = new ArrayList<UserMessagePack>();
 
+			try {
+		/*		UberPreparedStatement stmt = g.con.createStatement("select count(*) from messages where pid = ?;");
+				stmt.setInt(1,p.ID);
+				
+				ResultSet rs = stmt.executeQuery();
+		      	int count=0;
+		      	if(rs.next()) count = rs.getInt(1);
+		      	rs.close();
+		      	stmt.close();
+		      	stmt = g.con.createStatement("select message_id from messages where pid = ? order by creation_date desc");
+		      	if(count>GodGenerator.maxMessageLimit) {
+		      		stmt.setInt(1,p.ID);
+		      		rs = stmt.executeQuery();
+		      		int counter=0;
+		      		ArrayList<Integer> toDel = new ArrayList<Integer>();
+		      		while(rs.next()) {
+		      			if(counter<GodGenerator.maxMessageLimit)
+		      			counter++;
+		      			else {
+		      				toDel.add(rs.getInt(1));
+		      			}
+		      		}
+		      		rs.close();
+		      		stmt.close();
+		      		int i = 0;
+		      		stmt = g.con.createStatement("delete from messages where message_id = ?;");
+		      		while(i<toDel.size()) {
+		      			stmt.setInt(1,toDel.get(i));
+	    	      		stmt.executeUpdate();
+	    	      		i++;
+		      		}
+		      	}
+		      	stmt.close();*/
+		      UberPreparedStatement	stmt = con.createStatement("select * from messages where pid = ? order by creation_date");
+		      	stmt.setInt(1,ID);
+				ResultSet rs = stmt.executeQuery();
+				String userArray[];
+				while(rs.next()) {
+					int pid_to[] = PlayerScript.decodeStringIntoIntArray(rs.getString(2));
+					userArray=new String[pid_to.length];
+					int i = 0;
+					while(i<pid_to.length) {
+						userArray[i]=God.getUsername(pid_to[i]);
+						i++;
+					}
+					String origIDStr=(rs.getString(10));
+					UUID origID=null, subjID=null;
+					if(origIDStr!=null&&!origIDStr.equals("none"))
+					 origID = UUID.fromString(origIDStr);
+					String subjIDStr = (rs.getString(13));
+					if(subjIDStr!=null&&!subjIDStr.equals("none")) subjID = UUID.fromString(subjIDStr);
+					
+					m = new UserMessage(UUID.fromString(rs.getString(14)),pid_to,rs.getInt(3),userArray,God.getUsername(rs.getInt(3)),rs.getString(4),rs.getString(5),rs.getInt(6), rs.getBoolean(7), rs.getInt(9), origID,rs.getString(11),subjID,rs.getBoolean(8));
+					
+					if(origID==null) {
+						ump.add(new UserMessagePack());
+						//	public UserMessage(int messageID,int pidTo, int pidFrom, String body, String subject, int msgType, boolean readed, int tsid, int originalMessageID, String creationDate) {
+						/*
+				
+						 */
+						
+						
+						ump.get(ump.size()-1).addMessage(m);
+					} else {
+						 i = 0; boolean found = false;
+						while(i<ump.size()) {
+							umpPiece = ump.get(i);
+							int j = 0;
+							while(j<umpPiece.getMessages().size()) {
+								if(umpPiece.getMessage(j).getSubjectID().equals(m.getOriginalSubjectID())) {
+									// so we search all messages in a pack for an original reply identifier!
+									
+									umpPiece.addMessage(m); found = true; break;
+								}
+							
+								j++;
+							}
+							if(found) break;
+							i++;
+						}
+						
+						if(!found) 	{
+							ump.add(new UserMessagePack());
+							ump.get(ump.size()-1).addMessage(m);
+
+						}
+					}
+					
+					
+				}
+				rs.close();
+				stmt.close();
+				int i = 0; 
+				while(i<ump.size()) {
+					umpPiece = ump.get(i);
+					int j = 0;
+					while(j<umpPiece.getMessages().size()) {
+						if(umpPiece.getMessages().get(j).getDeleted()) {
+							umpPiece.getMessages().remove(j); j--;
+						}
+
+						
+						j++;
+					}
+					
+					if(umpPiece.getMessages().size()==0) {
+						ump.remove(i);
+						i--;
+					}
+					i++;
+				}
+				
+				currMessages=ump;
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				
+			}
+		 }
+		 
+		 return currMessages;
+	 }
+	public ArrayList<UserSR> getUserSR() {
+	  	  
+	      
+	      UberPreparedStatement stmt = g.con.createStatement("select count(*) from statreports where pid = ?;");
+	      stmt.setInt(1,p.ID);
+//	    ResultSet rs = stmt.executeQuery("select * from statreports where pid = " + p.ID + " ");
+	      ResultSet rs = stmt.executeQuery();
+	      	int count=0;
+	      	if(rs.next()) count = rs.getInt(1);
+	      	rs.close();
+	      	stmt.close();
+	      	if(count>GodGenerator.maxMessageLimit) {
+		      	stmt = g.con.createStatement("select sid from statreports where pid = ? order by created_at desc");
+	      		stmt.setInt(1,p.ID);
+	      		rs = stmt.executeQuery();
+	      		int counter=0;
+	      		ArrayList<Integer> toDel = new ArrayList<Integer>();
+	      		while(rs.next()) {
+	      			if(counter<GodGenerator.maxMessageLimit)
+	      			counter++;
+	      			else {
+	      				toDel.add(rs.getInt(1));
+	      			}
+	      		}
+	      		rs.close();
+	      		stmt.close();
+	      		int i = 0;
+	      		stmt = g.con.createStatement("delete from statreports where sid = ?;");
+	      		while(i<toDel.size()) {
+	      			stmt.setInt(1,toDel.get(i));
+  	      		stmt.executeUpdate();
+  	      		i++;
+	      		}
+	      		stmt.close();
+	      	}
+	      	stmt = g.con.createStatement("select * from statreports where pid = ? and deleted = false order by sid asc;");
+	      	stmt.setInt(1,p.ID);
+	    	rs = stmt.executeQuery(); // normal statreports.
+	    		// don't question the asc, you'd think it'd be desc but asc works! Desc doesn't!
+	    		// probably because I insert elements at the bottom...
+	    		while(rs.next())  {
+	    			
+	    		int currSID = rs.getInt(1); // search for foreign tid reports, then get their sids,
+	    		// see if we have them, and so on...
+	    		int defID = rs.getInt(3); int offID = rs.getInt(2);
+	    	/*	UberStatement stmt2 = g.con.createStatement(); // no help here, need to create it.
+	    		ResultSet town = stmt2.executeQuery("select townName from town where tid = " + defID);
+	    		// what about defenses? HOLY SHIT.
+	    		String townDef = "DATA CORRUPT-ID";
+	    		if(town.next())
+			    	 townDef = town.getString(1);
+	    		town.close();
+	    		 town = stmt2.executeQuery("select townName from town where tid = " + offID);
+		    		String townOff = "DATA CORRUPT-ID";
+		    		if(town.next())
+		    	 townOff = town.getString(1);
+	    		town.close();*/
+	    		Town t = g.findTown(defID); String townOff = "DATA CORRUPT-ID", townDef = "DATA CORRUPT-ID";
+	    		if(t!=null&&t.townID!=0) townDef  = t.getTownName();
+	    		t = g.findTown(offID);
+	    		if(t!=null&&t.townID!=0) townOff  = t.getTownName();
+
+
+		    	boolean defender = rs.getBoolean(17);
+		    	// finding out if the supporting guy got defensive or offensive is problematic.
+		    	// No guarantee it exists in a table when he reads it, so really it needs to be preserved in
+		    	// an off/def boolean.
+	    		String bombResultBldg = rs.getString(13);
+	    		String bombArray[] = UserSR.getStringArrayFromPluses(bombResultBldg);
+	    		int i = 0;
+	    		String[] bname  = new String[bombArray.length]; 
+
+	    		while(i<bombArray.length) {
+	    		if(!bombArray[i].equals("null")&&!bombArray[i].equals("vic")&&!bombArray[i].equals("nobldg")) {
+
+	    			bname[i] = bombArray[i].substring(bombArray[i].lastIndexOf(".")+1,bombArray[i].length());
+	    			bombArray[i] = bombArray[i].substring(0,bombArray[i].lastIndexOf("."));
+	    		
+	    
+	    		// so it finds the building name of the building in the slot destroyed/leveled by the bomber 
+	    		}
+	    			i++;
+	    		}
+	    		// find the name of the building.
+	 //   		ResultSet bldgType = stmt3.executeQuery("select tid ")
+//public StatusReport(int sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, String bombResultBldg, String bombResultPpl, String btype, boolean defender) {
+	    		try {
+	    		boolean support = rs.getBoolean(15);
+	    		if(!support)
+	    		currSR.add(new UserSR(currSID,rs.getString(4),rs.getString(5),rs.getString(6),rs.getString(7),rs.getString(8),
+	    				rs.getString(9),rs.getString(38),rs.getString(39),rs.getBoolean(10),rs.getBoolean(11),rs.getBoolean(51),defender,rs.getInt(18),rs.getInt(19),
+	    				rs.getInt(20),rs.getInt(21),rs.getInt(22),rs.getBoolean(23),rs.getBoolean(24),rs.getInt(25),rs.getBoolean(26),rs.getString(28),rs.getString(29),rs.getString(30),rs.getInt(31),rs.getBoolean(32),rs.getBoolean(33),rs.getInt(34),rs.getInt(35),rs.getInt(36),rs.getInt(37),rs.getString(40),
+	    				rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49),rs.getString(50)));
+	    		else { 
+	    			bname = new String[1]; bname[0]= "null";
+	    			UserSR SR = new UserSR(currSID,rs.getString(4),rs.getString(5),"","",rs.getString(8),"",rs.getString(38),rs.getString(39),
+		    				false,rs.getBoolean(11),rs.getBoolean(51),defender,rs.getInt(18),rs.getInt(19),
+		    				rs.getInt(20),rs.getInt(21),rs.getInt(22),rs.getBoolean(23),rs.getBoolean(24),rs.getInt(25),rs.getBoolean(26),rs.getString(28),rs.getString(29),rs.getString(30),rs.getInt(31),rs.getBoolean(32),rs.getBoolean(33),rs.getInt(34),rs.getInt(35),rs.getInt(36),rs.getInt(37),rs.getString(40)
+		    				,rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49),rs.getString(50));
+	    			currSR.add(SR);
+	    			SR.support=true;
+	    			
+	    		}
+	    		} catch(Exception exc) { exc.printStackTrace(); }
+
+	    	
+	    	}
+			rs.close();
+			stmt.close();
+	    	int i = 0;
+	    	toRet = new UserSR[currSR.size()];
+	    	while(i<currSR.size()) {
+	    		toRet[i]=currSR.get(i);
+	    		i++;
+	    	}
+	    	
+
+	    	return toRet;
+	 
+	  } catch(SQLException exc) { exc.printStackTrace(); }
+
+	toRet = new UserSR[1];
+	return toRet;
+	}
+	 public UserMessage getMessage(UUID id) {
+		 
+		 for(UserMessagePack ump:getMessages()) {
+			 for(UserMessage m:ump.getMessages()) {
+				 
+				 if(m.getId().equals(id)) {
+					 return m;
+				 }
+			 }
+		 }
+		 
+		 return null;
+	 }
+	 
 	public void saveAndIterate(int number) {
 	
 		UberStatement stmt=null;
@@ -928,7 +1245,36 @@ public class Player  {
 	      }   } catch(Exception exc) { exc.printStackTrace(); System.out.println("Save saved for " + getUsername()); }
 	      rs.close();
 	      stmt.close(); // we close these in this if statement so that they don't wait while towns save.
-			int i = 0;
+	      stmt =  con.createStatement("update messages set readed = ?, deleted = ? where id = ?;");
+	      int i = 0;
+	      UserMessagePack ump; UserMessage m;
+	      while(i<getMessages().size()) {
+	    	  ump = getMessages().get(i);
+	    	  int j = 0;
+	    	  while(j<ump.getMessages().size()) {
+	    		  m = ump.getMessages().get(j);
+	    		  stmt.setBoolean(1,m.isReaded());
+	    		  stmt.setBoolean(2,m.getDeleted());
+	    		  stmt.setString(3,m.getId().toString());
+	    		  stmt.execute();
+	    		  
+	    		  if(m.getDeleted()) {
+	    			  
+	    			  ump.removeMessage(m);
+	    			  j--;
+	    			  
+	    		  }
+	    		  j++;
+	    	  }
+	    	  if(ump.getMessages().size()==0)  {
+				  
+				  getMessages().remove(ump);
+				  i--;
+			  }
+	    	  i++;
+	      }
+	      stmt.close();
+			 i = 0;
 			ArrayList<Town> towns = towns();
 			while(i<towns.size()) {
 				try {

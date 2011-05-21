@@ -5,27 +5,28 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 
 public class TradeSchedule {
-	public int tradeScheduleID;
+	public UUID id;
 	private long metal, timber, manmat, food,othermetal, othertimber, othermanmat, otherfood;
 	private Town town2; private Town town1;
 	private  boolean twoway=false;
-	private int currTicks = 0,timesDone=0,timesToDo=1;private  int mateTradeScheduleID;
+	private int currTicks = 0,timesDone=0,timesToDo=1;private  UUID mateID;
 	TradeSchedule mate;  public boolean threadSafe=true;
 	private int intervaltime=3600; private boolean agreed=false; private boolean finished =  false; private boolean stockMarketTrade=false;
 	private UberConnection con; private GodGenerator God; 
 	// they happen to be handled at the same time.
 	
-	public void setTradeScheduleValues(int tradeScheduleID, Town town1, Town town2,
-			long metal, long timber, long manmat, long food, long othermetal,long othertimber, long othermanmat, long otherfood, int currTicks, int timesDone,boolean twoway,boolean agreed, int intervaltime, int timesToDo, int mateTradeScheduleID) {
+	public void setTradeScheduleValues(UUID id, Town town1, Town town2,
+			long metal, long timber, long manmat, long food, long othermetal,long othertimber, long othermanmat, long otherfood, int currTicks, int timesDone,boolean twoway,boolean agreed, int intervaltime, int timesToDo, UUID mateTradeScheduleID) {
 		// This constructor does not use the support integer because it is rarely used compared to other things
 		// and so to save space that is exported as an extra usable method. It is only necessary
 		// when creating raids.
 		// this constructor is for when a raid is being loaded into memory.
-		this.mateTradeScheduleID = mateTradeScheduleID; // if two way and not agreed, will be 0 until agreed, or else
+		this.mateID = mateID; // if two way and not agreed, will be 0 until agreed, or else
 		// if not two way is 0 forever! (mysql autogen id starts at 1)
 		
 			this.twoway=twoway;
@@ -33,7 +34,7 @@ public class TradeSchedule {
 			this.agreed=agreed;this.intervaltime=intervaltime;this.timesToDo=timesToDo;
 		 this.town2=town2;this.town1 = town1;
 		 if(town2!=null&&town2.townID==town1.townID) stockMarketTrade=true; // so we know it's a sm trade!!!
-		 this.tradeScheduleID = tradeScheduleID; this.metal=metal;this.timber=timber;
+		 this.id = id; this.metal=metal;this.timber=timber;
 		 this.manmat=manmat;this.food=food;
 		 this.othermetal=othermetal;this.othertimber=othertimber;
 		 this.othermanmat=othermanmat;this.otherfood=otherfood;
@@ -41,18 +42,18 @@ public class TradeSchedule {
 		
 	
 	}
-	public TradeSchedule(int tradeScheduleID,GodGenerator God) {
+	public TradeSchedule(UUID id,GodGenerator God) {
 			// This constructor does not use the support integer because it is rarely used compared to other things
 			// and so to save space that is exported as an extra usable method. It is only necessary
 			// when creating raids.
 			// this constructor is for when a raid is being loaded into memory.
 			
-			 this.tradeScheduleID = tradeScheduleID; 
+			 this.id = id; 
 			 this.con=God.con; this.God=God;
 			 
 			try {	
-			UberPreparedStatement rus = con.createStatement("select * from tradeschedule where tsid = ?;");
-			rus.setInt(1,tradeScheduleID);
+			UberPreparedStatement rus = con.createStatement("select * from tradeschedule where id = ?;");
+			rus.setString(1,id.toString());
 			ResultSet rrs = rus.executeQuery();
 			// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
 			// Then F = !(R!T) = !R + T;
@@ -62,8 +63,8 @@ public class TradeSchedule {
 				Town town1 = God.findTown(rrs.getInt(1));
 				Town town2Obj = God.findTown(rrs.getInt(2));
 
-				setTradeScheduleValues(rrs.getInt(3),town1,town2Obj,rrs.getLong(8),
-						 rrs.getLong(9),rrs.getLong(10),rrs.getLong(11),rrs.getLong(14), rrs.getLong(15), rrs.getLong(16), rrs.getLong(17), rrs.getInt(13),rrs.getInt(12),rrs.getBoolean(6),rrs.getBoolean(7),rrs.getInt(4),rrs.getInt(5),rrs.getInt(19)); // this one has no sql addition!
+				setTradeScheduleValues(id,town1,town2Obj,rrs.getLong(8),
+						 rrs.getLong(9),rrs.getLong(10),rrs.getLong(11),rrs.getLong(14), rrs.getLong(15), rrs.getLong(16), rrs.getLong(17), rrs.getInt(13),rrs.getInt(12),rrs.getBoolean(6),rrs.getBoolean(7),rrs.getInt(4),rrs.getInt(5),UUID.fromString(rrs.getString(19))); // this one has no sql addition!
 				
 		
 			}
@@ -76,7 +77,7 @@ public class TradeSchedule {
 		 this.con=God.con;
 		try {	
 		UberPreparedStatement rus = con.createStatement("select * from tradeschedule where tsid = ?;");
-		rus.setInt(1,tradeScheduleID);
+		rus.setString(1,id.toString());
 		ResultSet rrs = rus.executeQuery();
 		// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
 		// Then F = !(R!T) = !R + T;
@@ -86,8 +87,8 @@ public class TradeSchedule {
 			Town town1 = God.findTown(rrs.getInt(1));
 			Town town2Obj = God.findTown(rrs.getInt(2));
 
-			setTradeScheduleValues(rrs.getInt(3),town1,town2Obj,rrs.getLong(8),
-					 rrs.getLong(9),rrs.getLong(10),rrs.getLong(11),rrs.getLong(14), rrs.getLong(15), rrs.getLong(16), rrs.getLong(17), rrs.getInt(13),rrs.getInt(12),rrs.getBoolean(6),rrs.getBoolean(7),rrs.getInt(4),rrs.getInt(5),rrs.getInt(19)); // this one has no sql addition!
+			setTradeScheduleValues(id,town1,town2Obj,rrs.getLong(8),
+					 rrs.getLong(9),rrs.getLong(10),rrs.getLong(11),rrs.getLong(14), rrs.getLong(15), rrs.getLong(16), rrs.getLong(17), rrs.getInt(13),rrs.getInt(12),rrs.getBoolean(6),rrs.getBoolean(7),rrs.getInt(4),rrs.getInt(5),UUID.fromString(rrs.getString(19))); // this one has no sql addition!
 			
 	
 		}
@@ -127,8 +128,9 @@ public class TradeSchedule {
 			 stmt.setLong(15,othermanmat);
 			 stmt.setLong(16,otherfood);
 			 stmt.setBoolean(17,finished);
-			 stmt.setInt(18,mateTradeScheduleID);
-			 stmt.setInt(19,tradeScheduleID);
+			 if(mateID!=null)
+			 stmt.setString(18,mateID.toString());
+			 stmt.setString(19,id.toString());
 		  
 		  stmt.executeUpdate();
 		  stmt.close();
@@ -149,7 +151,7 @@ public class TradeSchedule {
 		ArrayList<Trade> tres = t1.tradeServer();
 		while(i<tres.size()) {
 			t = tres.get(i);
-			if(t.getTs().tradeScheduleID==tradeScheduleID) 
+			if(t.getTs().id.equals(id)) 
 				t.setTicksToHit(t.getTotalTicks()-t.getTicksToHit());
 				t.setTradeOver(true);
 			i++;
@@ -211,7 +213,7 @@ public class TradeSchedule {
 		 Town t2 = getTown2();
 		 ArrayList<TradeSchedule> tses = t2.tradeSchedules();
 		 while(i<tses.size()) {
-			 if(tses.get(i).tradeScheduleID==mateTradeScheduleID) {
+			 if(tses.get(i).id.equals(mateID)) {
 				 mate = tses.get(i);
 				 break;
 			 }
@@ -243,13 +245,12 @@ public class TradeSchedule {
 		
 		return false;
 	}
-	public TradeSchedule(Town town1, Town town2, long m, long t, long mm, long f, long othermetal,long othertimber, long othermanmat, long otherfood, int intervaltime,int timesToDo, boolean twoway,int mateTradeScheduleID) {
+	public TradeSchedule(Town town1, Town town2, long m, long t, long mm, long f, long othermetal,long othertimber, long othermanmat, long otherfood, int intervaltime,int timesToDo, boolean twoway,UUID mateTradeScheduleID) {
 		// Can't do an infinite number of arguments here so need to add manually.
 		// holds distance and ticksToHit in this object.
 		 this.con=town1.getPlayer().God.con; this.God=town1.getPlayer().God;
 			boolean smtrade=false;
 		 	if(town2!=null&&town2.townID==town1.townID) smtrade=true;
-
 			this.twoway=twoway;
 			intervaltime=(int) Math.round(intervaltime/GodGenerator.gameClockFactor);
 			 this.town2=town2;
@@ -265,7 +266,7 @@ public class TradeSchedule {
 			try {
 
 		      
-		      stmt = con.createStatement("insert into tradeschedule (tid1, tid2,m,t,mm,f,otherm,othert,othermm,otherf,intervaltime,times,twoway,mate_tsid) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
+		      stmt = con.createStatement("insert into tradeschedule (tid1, tid2,m,t,mm,f,otherm,othert,othermm,otherf,intervaltime,times,twoway,mate_tsid,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
 		      
 		      // First things first. We update the player table.
 		      boolean transacted=false;
@@ -285,43 +286,13 @@ public class TradeSchedule {
 		      stmt.setLong(10,otherfood);
 		      stmt.setInt(11,timesToDo);
 		      stmt.setBoolean(12,twoway);
-		      stmt.setInt(13,mateTradeScheduleID);
-
+		      stmt.setString(13,mateID.toString());
+		      id = UUID.randomUUID();
+		      stmt.setString(14,id.toString());
 		      // let's add this raid and therefore get the rid out of it.
 		      stmt.executeUpdate();
 		    
-		      Thread.currentThread().sleep(10);
-		      stmt.close();
-		      stmt = con.createStatement("select tsid from tradeschedule where tid1 = ? and finished = false");
-		      stmt.setInt(1,town1.townID);
-		      ResultSet ridstuff = stmt.executeQuery();
-		      /*
-		       *Okay, search out all raids on the db for this town, and compare them to the raid server that the town has. There should be an rid
-		       *corresponding to each raid on there, and one that isn't. This one is our rid.
-		       *Now, if the user is running concurrent threads and they both call to this to add the raid at the same time, then there will be two
-		       *separate raidIDs on there. Still something of a problem, but we have to acknowledge the quickness of this maneuver - this thing will
-		       *literally be lightning quick. It'll snatch up that rid and add this one to the server without a hesitation.
-		       *if there is a problem, we can always assign a huge random number tempid to it, and use that as an extra comparison. If the user
-		       *does do two things at once, two raids, then I have to ask - what is the problem with switching the rids up? You see, if he does manage
-		       *to do it on the same town at the same time within a time frame that would allow both to be unaccounted for at the same time, then as soon
-		       *as the rids are switched, the player object would update them both with correct values from us. There we go. It happens so quickly.
-		       */
-		      
-		      while(ridstuff.next()) {
-		    	  int j = 0;
-		    	  
-		    	  while(j<town1.tradeSchedules().size()) {
-		    		  if(town1.tradeSchedules().get(j).tradeScheduleID==ridstuff.getInt(1)) break;
-		    		  j++;
-		    	  }
-		    	  
-		    	  if(j==town1.tradeSchedules().size()) break; // means we found no raid accompanying this raidID.
-		      }
-		      
-		      	tradeScheduleID = ridstuff.getInt(1);
-		      	town1.tradeSchedules().add(this);
 
-		      	ridstuff.close();
 		      /*
 		      ArrayList<TradeSchedule> a  = town1.tradeSchedules();
 		      while(a.size()<=0&&timesTried<10) {
@@ -332,10 +303,7 @@ public class TradeSchedule {
 		      }		     
 		      tradeScheduleID=a.get(a.size()-1).tradeScheduleID;*/
 		      stmt.close(); transacted=true;  }
-		    	  catch(MySQLTransactionRollbackException exc) { } catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		    	  catch(MySQLTransactionRollbackException exc) { } 
 		      }// need connection for attackunit adds!
 		 } catch(SQLException exc) { exc.printStackTrace(); }
 
@@ -393,13 +361,13 @@ public class TradeSchedule {
 		
 		TradeSchedule ts =
 			new TradeSchedule(getTown2(),  getTown1(), getOthermetal(),  getOthertimber(),  getOthermanmat(),  getOtherfood(),
-					 getMetal(), getTimber(),  getManmat(),  getFood(),  getIntervaltime(), getTimesToDo(),  true,tradeScheduleID);
+					 getMetal(), getTimber(),  getManmat(),  getFood(),  getIntervaltime(), getTimesToDo(),  true,id);
 		ts.setIntervaltime(getIntervaltime()); // Because when you create a new schedule, it goes by a shorter interval, because it divides
 		ts.setCurrTicks(getCurrTicks()); // Because when you create a new schedule, it goes by a shorter interval, because it divides
 
 		// by 10 twice.
-		mateTradeScheduleID=ts.tradeScheduleID;
-		ts.mateTradeScheduleID=tradeScheduleID;
+		mateID=ts.id;
+		ts.mateID=id;
 		ts.mate = this;
 		mate=ts;
 		ts.setAgreed(true);
@@ -494,11 +462,11 @@ public class TradeSchedule {
 	public void setTimesToDo(int timesToDo) {
 		this.timesToDo = timesToDo;
 	}
-	public int getMateTradeScheduleID() {
-		return mateTradeScheduleID;
+	public UUID getMateID() {
+		return mateID;
 	}
-	public void setMateTradeScheduleID(int mateTradeScheduleID) {
-		this.mateTradeScheduleID = mateTradeScheduleID;
+	public void setMateID(UUID id) {
+		this.mateID = id;
 	}
 	public int getIntervaltime() {
 		return intervaltime;
@@ -648,7 +616,7 @@ public class TradeSchedule {
 		try {
 			UberPreparedStatement stmt = con.createStatement("update tradeschedule set " + fieldName + " = ? where tsid = ?;");
 			stmt.setInt(1,toSet);
-			stmt.setInt(2,tradeScheduleID);	
+			stmt.setString(2,id.toString());	
 			stmt.execute();
 
 			stmt.close();
@@ -660,7 +628,7 @@ public class TradeSchedule {
 		try {
 			UberPreparedStatement stmt = con.createStatement("update tradeschedule set " + fieldName + " = ? where tsid = ?;");
 			stmt.setDouble(1,toSet);
-			stmt.setInt(2,tradeScheduleID);	
+			stmt.setString(2,id.toString());	
 			stmt.execute();
 
 			stmt.close();
@@ -672,7 +640,7 @@ public class TradeSchedule {
 		try {
 			UberPreparedStatement stmt = con.createStatement("update tradeschedule set " + fieldName + " = ? where tsid = ?;");
 			stmt.setLong(1,toSet);
-			stmt.setInt(2,tradeScheduleID);	
+			stmt.setString(2,id.toString());	
 			stmt.execute();
 
 			stmt.close();
@@ -684,7 +652,7 @@ public class TradeSchedule {
 		try {
 			UberPreparedStatement stmt = con.createStatement("update tradeschedule set " + fieldName + " = ? where tsid = ?;");
 			stmt.setBoolean(1,toSet);
-			stmt.setInt(2,tradeScheduleID);	
+			stmt.setString(2,id.toString());	
 			stmt.execute();
 
 			stmt.close();
@@ -696,7 +664,7 @@ public class TradeSchedule {
 		try {
 			UberPreparedStatement stmt = con.createStatement("update tradeschedule set " + fieldName + " = ? where tsid = ?;");
 			stmt.setString(1,toSet);
-			stmt.setInt(2,tradeScheduleID);	
+			stmt.setString(2,id.toString());	
 			stmt.execute();
 
 			stmt.close();
@@ -707,7 +675,7 @@ public class TradeSchedule {
 	public int getInt(String toGet) {
 		try {
 			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from tradeschedule where tsid = ?;");
-			stmt.setInt(1,tradeScheduleID);
+			stmt.setString(1,id.toString());	
 			ResultSet rs = stmt.executeQuery();
 			rs.next();
 			int toRet=rs.getInt(1);
@@ -724,7 +692,7 @@ public class TradeSchedule {
 	public double getDouble(String toGet) {
 		try {
 			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from tradeschedule where tsid = ?;");
-			stmt.setInt(1,tradeScheduleID);
+			stmt.setString(1,id.toString());	
 			ResultSet rs = stmt.executeQuery();
 			rs.next();
 			double toRet=rs.getDouble(1);
@@ -740,7 +708,7 @@ public class TradeSchedule {
 	public long getLong(String toGet) {
 		try {
 			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from tradeschedule where tsid = ?;");
-			stmt.setInt(1,tradeScheduleID);
+			stmt.setString(1,id.toString());	
 			ResultSet rs = stmt.executeQuery();
 			rs.next();
 			long toRet=rs.getLong(1);
@@ -756,7 +724,7 @@ public class TradeSchedule {
 	public boolean getBoolean(String toGet) {
 		try {
 			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from tradeschedule where tsid = ?;");
-			stmt.setInt(1,tradeScheduleID);
+			stmt.setString(1,id.toString());	
 			ResultSet rs = stmt.executeQuery();
 			rs.next();
 			boolean toRet=rs.getBoolean(1);
@@ -771,7 +739,7 @@ public class TradeSchedule {
 	public String getString(String toGet) {
 		try {
 			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from tradeschedule where tsid = ?;");
-			stmt.setInt(1,tradeScheduleID);
+			stmt.setString(1,id.toString());	
 			ResultSet rs = stmt.executeQuery();
 			rs.next();
 			String toRet=rs.getString(1);

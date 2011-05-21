@@ -79,7 +79,7 @@ public class CQ1 extends QuestListener {
 				int sumX = sumFactorial((t.getX()-cap.getX())), sumY = sumFactorial((t.getY()-cap.getY()));
 		//		System.out.println("Chose " + t.getTownName() + " and am using the factorials of " +(t.getX()-cap.getX()) + " and "+ (t.getY()-cap.getY()) + " with sums of " + sumX + " and " + sumY);
 
-				getPs().b.sendSystemMessage(pid_to,""+sumX,""+sumY, 0);
+				getPs().b.sendSystemMessage(pid_to,""+sumX,""+sumY, null);
 				
 				// So we give you the big factorial, and you have to work backwards to get the limit of the sum.
 			}

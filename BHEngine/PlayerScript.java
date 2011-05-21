@@ -485,10 +485,10 @@ public class PlayerScript implements Runnable {
     		 toRet+=""+false;
     		 else toRet+=""+result; 
     	 } else if(holdCmd.equals("bf.acceptTradeSchedule")) { 
-    		 int num1 = Integer.parseInt(holdPart.substring(0,holdPart.indexOf(",")));
+    		 String str1 = (holdPart.substring(0,holdPart.indexOf(",")));
     		 int num2 = Integer.parseInt(holdPart.substring(holdPart.lastIndexOf(",")+1,holdPart.length()));
     		 
-    		 toRet+=b.acceptTradeSchedule(num1,num2);
+    		 toRet+=b.acceptTradeSchedule(UUID.fromString(str1),num2);
     	 }else if(holdCmd.equals("bf.sendHome")) {
     		 int numCommas = commaCount(holdPart);
     		 if(numCommas==1) {
@@ -866,9 +866,10 @@ public class PlayerScript implements Runnable {
         		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
         		 String str3 = holdPartUse.substring(0,holdPartUse.indexOf(","));
         		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
-        		 int int4 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.length()));
-        		
-        		 toRet+=b.sendMessage(strArr1,str2,str3,int4);
+        		 String str4 = (holdPartUse.substring(0,holdPartUse.length()));
+        		if(str4.equals("null"))
+        		 toRet+=b.sendMessage(strArr1,str2,str3,null);
+        		else  toRet+=b.sendMessage(strArr1,str2,str3,UUID.fromString(str4));
         		
         		
     		 
@@ -932,9 +933,12 @@ public class PlayerScript implements Runnable {
         		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
         		 int int5 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
         		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
-        		 int int6 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.length()));
-        		
-        		 toRet+=b.sendLeagueMessage(strArr1,str2,str3,int4,int5,int6);
+        		 String str6 = (holdPartUse.substring(0,holdPartUse.length()));
+        		if(str6.equals("null"))
+        		 toRet+=b.sendLeagueMessage(strArr1,str2,str3,int4,int5,null);
+        		else
+           		 toRet+=b.sendLeagueMessage(strArr1,str2,str3,int4,int5,UUID.fromString(str6));
+
         		
         		
     		 
@@ -972,7 +976,7 @@ public class PlayerScript implements Runnable {
       
     	 }
     	 else if(holdCmd.equals("bf.sendTradeMessage")) {
-
+    		 /*
     		 // String, String, String, number, number, number
     		 // or number, number, string, string, number, number, number
     		 holdPartUse = new String(holdPart);
@@ -1012,7 +1016,7 @@ public class PlayerScript implements Runnable {
         		
         		 toRet+=b.sendTradeMessage(str1,str2,str3,int4,int5,int6);
     		 }
-        		
+        		*/
     		 
     	 }else if(holdCmd.equals("bf.getAttackETA")) {
     		 int num1 = Integer.parseInt(holdPart.substring(0,holdPart.indexOf(",")));
@@ -1351,8 +1355,8 @@ public class PlayerScript implements Runnable {
     			 try {
     			 if(SR[i]!=null) {
     			 str.object()
-    			  .key("sid")
-    			 .value(s.sid)
+    			  .key("id")
+    			 .value(s.id.toString())
     			 .key("name")
     			 .value(s.getName())
     			 .key("createdAt")
@@ -1538,8 +1542,8 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     				 msg = mpack.getMessage(j);
     				 if(msg.getMsgType()!=5) {
     				 str.object()
-    				 .key("messageID")
-    				 .value(msg.getMessageID())
+    				 .key("id")
+    				 .value(msg.getId())
     				 .key("pidTo").array();
     				 int k = 0;
     				 while(k<msg.getPidTo().length) {
@@ -1695,7 +1699,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     		 while(i<raids.length) {
     			 raid = raids[i];
     			 str.object()
-    			 .key("rid")
+    			 .key("id")
     			 .value(raid.id().toString())
     			 .key("name")
     			 .value(raid.name())
@@ -1783,8 +1787,8 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     		 while(i<TS.length) {
     			 ts = TS[i];
     			 str.object()
-    			 .key("tsid")
-    			 .value(ts.getTradeScheduleID())
+    			 .key("id")
+    			 .value(ts.getId().toString())
     			 .key("tid1")
     			 .value(ts.getTID1())
     			 .key("tid2")
@@ -1813,8 +1817,8 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 .value(ts.getTimesDone())
     			 .key("timesToDo")
     			 .value(ts.getTimesToDo())
-    			 .key("matetsid")
-    			 .value(ts.getMateTradeScheduleID());
+    			 .key("mateID")
+    			 .value(ts.getMateID().toString());
     			 str.key("res")
     			 .array()
     			 .value(ts.getMetal())
@@ -1847,8 +1851,8 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     		 while(i<TS.length) {
     			 ts = TS[i];
     			 str.object()
-    			 .key("tsid")
-    			 .value(ts.getTradeScheduleID())
+    			 .key("id")
+    			 .value(ts.getId().toString())
     			 .key("tid1")
     			 .value(ts.getTID1())
     			 .key("tid2")
@@ -1879,8 +1883,8 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 .value(ts.getTimesDone())
     			 .key("timesToDo")
     			 .value(ts.getTimesToDo())
-    			 .key("matetsid")
-    			 .value(ts.getMateTradeScheduleID());
+    			 .key("mateID")
+    			 .value(ts.getMateID().toString());
     			 str.key("res")
     			 .array()
     			 .value(ts.getMetal())
@@ -1912,8 +1916,8 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     		 while(i<TR.length) {
     			 tr = TR[i];
     			 str.object()
-    			 .key("trid")
-    			 .value(tr.getTradeID())
+    			 .key("id")
+    			 .value(tr.getId().toString())
     			 .key("tsid")
     			 .value(tr.getTradeScheduleID())
     			 .key("tid1")
@@ -1991,7 +1995,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     		 else if(holdCmd.equals("bf.unarchiveUserSR"))
     			 toRet+=b.unarchiveUserSR(Integer.parseInt(holdPart));
     		 else if(holdCmd.equals("bf.cancelTradeSchedule"))
-    			 toRet+=b.cancelTradeSchedule(Integer.parseInt(holdPart));
+    			 toRet+=b.cancelTradeSchedule(UUID.fromString(holdPart));
     		 else if(holdCmd.equals("bf.joinQuest")) {
     			 try {
     			 int num = Integer.parseInt(holdPart);
@@ -2003,11 +2007,11 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     		 else if(holdCmd.equals("bf.setCapitalCity"))
     			 toRet+=b.setCapitalCity(Integer.parseInt(holdPart));
     		 else if(holdCmd.equals("bf.markReadMessage"))
-    			 toRet+=b.markReadMessage(Integer.parseInt(holdPart));
+    			 toRet+=b.markReadMessage(UUID.fromString(holdPart));
     		 else if(holdCmd.equals("bf.markUnReadMessage"))
-    			 toRet+=b.markUnReadMessage(Integer.parseInt(holdPart));
+    			 toRet+=b.markUnReadMessage(UUID.fromString(holdPart));
     		 else if(holdCmd.equals("bf.markDeletedMessage"))
-    			 toRet+=b.markDeletedMessage(Integer.parseInt(holdPart));
+    			 toRet+=b.markDeletedMessage(UUID.fromString(holdPart));
     		 else if(holdCmd.equals("bf.deleteUserGroup"))
     			 toRet+=b.deleteUserGroup(holdPart);
     		 else if(holdCmd.equals("bf.useBP"))

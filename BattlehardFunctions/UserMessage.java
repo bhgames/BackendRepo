@@ -1,5 +1,7 @@
 package BattlehardFunctions;
 
+import java.util.UUID;
+
 public class UserMessage {
 	/*
 	 * +---------------------+------------------+------+-----+-------------------+----------------+
@@ -20,9 +22,9 @@ public class UserMessage {
 
 	 */
 	
-	int messageID;
-	public int getMessageID() {
-		return messageID;
+	UUID id;
+	public UUID getId() {
+		return id;
 	}
 
 	public int[] getPidTo() {
@@ -54,11 +56,11 @@ public class UserMessage {
 		return tsid;
 	}
 
-	public int getOriginalSubjectID() {
+	public UUID getOriginalSubjectID() {
 		return originalSubjectID;
 	}
 
-	public int getSubjectID() {
+	public UUID getSubjectID() {
 		return subjectID;
 	}
 	public String getCreationDate() {
@@ -72,6 +74,14 @@ public class UserMessage {
 	public boolean getDeleted() { 
 		return deleted;
 	}
+	public void setReaded(boolean read) {
+		readed=read;
+	}
+	public void setDeleted(boolean deleted) {
+		this.deleted=deleted;
+	}
+	
+
 	int pidTo[];
 	int pidFrom;
 	String body;
@@ -80,12 +90,12 @@ public class UserMessage {
 	boolean readed;
 	boolean deleted;
 	int tsid=-1;
-	int originalSubjectID;
+	UUID originalSubjectID;
 	String creationDate;
 	String usernameFrom,usernameTo[];
-	int subjectID;
-	public UserMessage(int messageID,int pidTo[], int pidFrom,String usernameTo[], String usernameFrom, String body, String subject, int msgType, boolean readed, int tsid, int originalSubjectID, String creationDate, int subjectID,boolean deleted) {
-		this.messageID=messageID;this.pidTo=pidTo;this.pidFrom=pidFrom;this.body=body;this.subject=subject;this.msgType=msgType;
+	UUID subjectID;
+	public UserMessage(UUID messageID,int pidTo[], int pidFrom,String usernameTo[], String usernameFrom, String body, String subject, int msgType, boolean readed, int tsid, UUID originalSubjectID, String creationDate, UUID subjectID,boolean deleted) {
+		this.id=messageID;this.pidTo=pidTo;this.pidFrom=pidFrom;this.body=body;this.subject=subject;this.msgType=msgType;
 		this.readed=readed;
 		
 		this.tsid=tsid;

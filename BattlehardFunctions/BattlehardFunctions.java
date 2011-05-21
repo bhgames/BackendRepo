@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.UUID;
 
@@ -551,7 +552,7 @@ public class BattlehardFunctions {
 		if(prog) { doINeedToChange=true; // clever, eh? If prog is on, turn it off, do send message, then turn it back on
 		// again if I need to.
 		prog = false;}
-		boolean passed = sendMessage(pid_to, body,subject,0);
+		boolean passed = sendMessage(pid_to, body,subject,null);
 		if(doINeedToChange) prog = true;
 		return passed;
 	}
@@ -564,7 +565,7 @@ public class BattlehardFunctions {
 	 * @param original_message_id
 	 * @return
 	 */
-	public boolean sendMessage(String usernameTo[], String body, String subject, int original_subject_id) {
+	public boolean sendMessage(String usernameTo[], String body, String subject, UUID original_subject_id) {
 		
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
@@ -585,7 +586,7 @@ public class BattlehardFunctions {
 		 * Sends a message to the array of playerIDs specified in pid_to. original_subject_id needs
 		 * to be 0 if this message is not in reply to another or if you do not wish it to be!
 		 */
-	public boolean sendMessage(int pid_to[],String body, String subject, int original_subject_id) {
+	public boolean sendMessage(int pid_to[],String body, String subject, UUID original_subject_id) {
 		int j = 0;
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
@@ -635,46 +636,43 @@ public class BattlehardFunctions {
 			boolean meRead = true;
 			if(pid_to.length==1&&pid_to[0]==p.ID) meRead=false; // so sendYourself messages are new!
 			int i = 0;
-			UberPreparedStatement stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,readed) values (?,?,?,?,?,?,?,?);");
+			UberPreparedStatement stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,readed,id,subject_id) values (?,?,?,?,?,?,?,?,?,?);");
 			stmt.setString(1,pid_to_s);
 			stmt.setInt(2,pid_from);
 			stmt.setString(3,body);
 			stmt.setString(4,subject);
 			stmt.setInt(5,0);
-			stmt.setInt(6,original_subject_id);
+			if(original_subject_id!=null)
+			stmt.setString(6,original_subject_id.toString());
+			else stmt.setString(6,"none");
 			stmt.setInt(7,p.ID);
 			stmt.setBoolean(8,meRead);
+			 UUID id = UUID.randomUUID();
+		      stmt.setString(9,id.toString());
+		      stmt.setString(10,id.toString());
 
 
 			stmt.execute();
 //			stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,readed) values (\""
 	//				+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+0+","+original_subject_id+","+p.ID+","+meRead+");" );
+			
+			 Date time = new Date();
+
+				String userArray[] = new String[pid_to.length]; i = 0;
+
+				while(i<pid_to.length) {
+					userArray[i]=g.getUsername(pid_to[i]);
+					i++;
+				}
+		     UserMessage myM = new UserMessage(id,pid_to,pid_from,userArray,p.getUsername(),body,subject,0, false, 0, original_subject_id,time.toString(),id,false);
+			p.addMessage(myM);
 			stmt.close();
-			stmt = g.con.createStatement("select message_id from messages where pid = ? order by creation_date desc;");
-			stmt.setInt(1,p.ID);
-		//	rs = stmt.executeQuery("select message_id from messages where pid = " + p.ID + " order by creation_date desc;");
-			rs = stmt.executeQuery();
 			
-			int msgid = 0;
-			if(rs.next())
-			 msgid = rs.getInt(1);
-			
-			rs.close();
-			stmt.close();
-			
-			stmt = g.con.createStatement("update messages set subject_id = ? where message_id = ?;");
-			stmt.setInt(1,msgid);
-			stmt.setInt(2,msgid);
-			//stmt.executeUpdate("update messages set subject_id = " + msgid+  " where message_id = " + msgid);
-			stmt.executeUpdate();
-			
-			stmt.close();
-			stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id) values (?,?,?,?,?,?,?,?);");
-			UberPreparedStatement stmt2 = g.con.createStatement("select message_id from messages where pid = ? and pid_from = ? order by creation_date desc;");
+			stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id,id) values (?,?,?,?,?,?,?,?,?);");
 			if(pid_to.length==1&&pid_to[0]==p.ID) {
 				// no second copy sent, but if you are not a program, your program should know.
 				if(!secondaryProg)
-				p.getPs().runMethod("onMessageReceivedCatch",p.getPs().b.getMessage(msgid));
+				p.getPs().runMethod("onMessageReceivedCatch",p.getPs().b.getMessage(id));
 			} else
 			while(i<pid_to.length) {
 				
@@ -688,28 +686,27 @@ public class BattlehardFunctions {
 					stmt.setString(3,body);
 					stmt.setString(4,subject);
 					stmt.setInt(5,0);
-					stmt.setInt(6,original_subject_id);
+					if(original_subject_id!=null)
+						stmt.setString(6,original_subject_id.toString());
+						else stmt.setString(6,"none");
+					
 					stmt.setInt(7,pid_to[i]);
-					stmt.setInt(8,msgid);
+					stmt.setString(8,id.toString());
+					UUID thisMsgID = UUID.randomUUID();
+					stmt.setString(9,thisMsgID.toString());
+
 						stmt.execute();
-					//	rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to[i] + " and pid_from =  "+ pid_from + " order by creation_date desc;");
-						stmt2.setInt(1,pid_to[i]);
-						stmt2.setInt(2,pid_from);
-						rs = stmt2.executeQuery();
-						int thismsgid = 0;
-						if(rs.next())
-						 thismsgid = rs.getInt(1);
-						
-						rs.close();
+						myM = new UserMessage(thisMsgID,pid_to,pid_from,userArray,p.getUsername(),body,subject,0, false, 0, original_subject_id,time.toString(),id,false);
+
 						Player otherP = g.getPlayer(pid_to[i]);
-						otherP.getPs().runMethod("onMessageReceivedCatch",otherP.getPs().b.getMessage(thismsgid));
+						otherP.addMessage(myM);
+						otherP.getPs().runMethod("onMessageReceivedCatch",otherP.getPs().b.getMessage(thisMsgID));
 
 				}
 			i++;
 			}
 			
 			stmt.close();
-			stmt2.close();
 			transacted=true;
 			} catch(MySQLTransactionRollbackException exc) {  }
 		
@@ -730,7 +727,7 @@ public class BattlehardFunctions {
 	 * Sends a system message.
 	 */
 	
-	public boolean sendSystemMessage(int pid_to[],String body, String subject, int original_subject_id) {
+	public boolean sendSystemMessage(int pid_to[],String body, String subject, UUID original_subject_id) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
 			return false;
@@ -776,37 +773,36 @@ public class BattlehardFunctions {
 			while(!transacted) {
 				
 				try {
-			UberPreparedStatement stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid) values (?,?,?,?,?,?,?);");
+			UberPreparedStatement stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,id,subject_id) values (?,?,?,?,?,?,?,?,?);");
 			int i = 0;
 			stmt.setString(1,pid_to_s);
 			stmt.setInt(2,pid_from);
 			stmt.setString(3,body);
 			stmt.setString(4,subject);
 			stmt.setInt(5,5);
-			stmt.setInt(6,original_subject_id);
+			if(original_subject_id!=null)
+			stmt.setString(6,original_subject_id.toString());
+			else
+				stmt.setString(7,"none");
 			stmt.setInt(7,p.ID);
-		//	stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid) values (\""
-			//		+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+5+","+original_subject_id+","+p.ID+");" );
+			 UUID id = UUID.randomUUID();
+		      stmt.setString(8,id.toString());
+		      stmt.setString(9,id.toString());
+		      Date time = new Date();
+
+				String userArray[] = new String[pid_to.length]; i = 0;
+
+				while(i<pid_to.length) {
+					userArray[i]=g.getUsername(pid_to[i]);
+					i++;
+				}
+		     UserMessage myM = new UserMessage(id,pid_to,pid_from,userArray,p.getUsername(),body,subject,5, false, 0, original_subject_id,time.toString(),id,false);
+			p.addMessage(myM);
 			stmt.close();
-			stmt = g.con.createStatement("select message_id from messages where pid = ? order by creation_date desc;");
-			stmt.setInt(1,p.ID);
-			rs = stmt.executeQuery();
-		//	rs = stmt.executeQuery("select message_id from messages where pid = " + p.ID + " order by creation_date desc;");
-			int msgid = 0;
-			if(rs.next())
-			 msgid = rs.getInt(1);
 			
-			rs.close();
-			stmt.close();
-			stmt = g.con.createStatement("update messages set subject_id = ? where message_id = ?;");
-			stmt.setInt(1,msgid);
-			stmt.setInt(2,msgid);
-			stmt.executeUpdate();
-			stmt.close();
 			//stmt.executeUpdate("update messages set subject_id = " + msgid+  " where message_id = " + msgid);
 			
-			stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id) values (?,?,?,?,?,?,?,?);");
-			UberPreparedStatement stmt2 = g.con.createStatement("select message_id from messages where pid = ? and pid_from =  ? order by creation_date desc;");
+			stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id,id) values (?,?,?,?,?,?,?,?,?);");
 			while(i<pid_to.length) {
 				
 				if(pid_to[i]!=-1) {
@@ -818,29 +814,27 @@ public class BattlehardFunctions {
 					stmt.setString(3,body);
 					stmt.setString(4,subject);
 					stmt.setInt(5,5);
-					stmt.setInt(6,original_subject_id);
+					if(original_subject_id!=null)
+						stmt.setString(6,original_subject_id.toString());
+						else
+							stmt.setString(7,"none");
 					stmt.setInt(7,pid_to[i]);
-					stmt.setInt(8,msgid);
-
+					stmt.setString(8,id.toString());
+					 UUID thisMsgID = UUID.randomUUID();
+				      stmt.setString(9,thisMsgID.toString());
 					stmt.execute();
 		//	rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to[i] + " and pid_from =  "+ pid_from + " order by creation_date desc;");
-					stmt2.setInt(1,pid_to[i]);
-					stmt2.setInt(2,pid_from);
-					rs = stmt2.executeQuery();
-				int thismsgid = 0;
-			if(rs.next())
-			 thismsgid = rs.getInt(1);
-			
-			rs.close();
+				
 			Player otherP = g.getPlayer(pid_to[i]);
-			otherP.getPs().runMethod("onMessageReceivedCatch",otherP.getPs().b.getMessage(thismsgid));
+		      UserMessage m = new UserMessage(thisMsgID,pid_to,pid_from,userArray,p.getUsername(),body,subject,5, false, 0, original_subject_id,time.toString(),id,false);
+		      otherP.addMessage(m);
+			otherP.getPs().runMethod("onMessageReceivedCatch",otherP.getPs().b.getMessage(thisMsgID));
 
 				}
 			i++;
 			}
 
 			stmt.close();
-			stmt2.close();
 			transacted=true;
 			} catch(MySQLTransactionRollbackException exc) {  }
 		
@@ -864,7 +858,7 @@ public class BattlehardFunctions {
 	 * @param original_subject_id
 	 * @return
 	 */
-	public boolean sendLeagueMessage(String usernameTo[],  String body, String subject, int msg_type, int league_pid, int original_subject_id) {
+	public boolean sendLeagueMessage(String usernameTo[],  String body, String subject, int msg_type, int league_pid, UUID original_subject_id) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
 			return false;
@@ -891,7 +885,7 @@ public class BattlehardFunctions {
 	 * @return
 	 */
 	
-	public boolean sendLeagueMessage(int pid_to[], String body, String subject, int msg_type, int league_pid, int original_subject_id) {
+	public boolean sendLeagueMessage(int pid_to[], String body, String subject, int msg_type, int league_pid, UUID original_subject_id) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
 			return false;
@@ -1025,7 +1019,6 @@ public class BattlehardFunctions {
 
 		boolean transacted = false;
 		try {
-			ResultSet rs;
 			String pid_to_s = PlayerScript.toJSONString(pid_to);
 			while(!transacted) {
 				
@@ -1033,39 +1026,36 @@ public class BattlehardFunctions {
 			//UberStatement stmt = g.con.createStatement();
 			//stmt.execute("start transaction;");
 			int i = 0;
-			 UberPreparedStatement stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid,readed) values (?,?,?,?,?,?,?,?,?)");
+			 UberPreparedStatement stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid,readed,id,subject_id) values (?,?,?,?,?,?,?,?,?,?,?)");
 				stmt.setString(1,pid_to_s);
 				stmt.setInt(2,pid_from);
 				stmt.setString(3,body);
 				stmt.setString(4,subject);
 				stmt.setInt(5,msg_type);
-				stmt.setInt(6,original_subject_id);
+				if(original_subject_id!=null)
+				stmt.setString(6,original_subject_id.toString());
+				else stmt.setString(6,"none");
 				stmt.setInt(7,p.ID);
 				stmt.setInt(8,league_pid);
 				stmt.setBoolean(9,true);
-
+				 UUID id = UUID.randomUUID();
+			      stmt.setString(10,id.toString());
+			      stmt.setString(11,id.toString());
 				stmt.close();
-			 //stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid,readed) values (\""
-			//		+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+msg_type+","+original_subject_id+","+p.ID+"," + league_pid+",true);" );
+				Date time = new Date();
+
+				String userArray[] = new String[pid_to.length]; i = 0;
+
+				while(i<pid_to.length) {
+					userArray[i]=g.getUsername(pid_to[i]);
+					i++;
+				}
+				UserMessage myM = new UserMessage(id,pid_to,pid_from,userArray,p.getUsername(),body,subject,msg_type, false, league_pid, original_subject_id,time.toString(),id,false);
+				p.addMessage(myM);
+
+			stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id,tsid,id) values (?,?,?,?,?,?,?,?,?,?);");
 			
-			stmt = g.con.createStatement("select message_id from messages where pid = ? order by creation_date desc;");
-			stmt.setInt(1,pid_from);
-			rs = stmt.executeQuery();
-				//rs = stmt.executeQuery("select message_id from messages where pid = " + pid_from + " order by creation_date desc;");
-			int msgid = 0;
-			if(rs.next())
-			 msgid = rs.getInt(1);
-			
-			rs.close();
-			stmt.close();
-			stmt = g.con.createStatement("update messages set subject_id = ? where message_id = ?;");
-			stmt.setInt(1,msgid);
-			stmt.setInt(2,msgid);
-		//	stmt.executeUpdate("update messages set subject_id = " + msgid+  " where message_id = " + msgid);
-			stmt.executeUpdate();
-			stmt.close();
-			stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id,tsid) values (?,?,?,?,?,?,?,?,?);");
-			UberPreparedStatement stmt2 = g.con.createStatement("select message_id from messages where pid = ? and pid_from =  ? order by creation_date desc;");
+		
 			while(i<pid_to.length) {
 				
 				if(pid_to[i]!=-1) {
@@ -1078,29 +1068,30 @@ public class BattlehardFunctions {
 					stmt.setString(3,body);
 					stmt.setString(4,subject);
 					stmt.setInt(5,msg_type);
-					stmt.setInt(6,original_subject_id);
+					if(original_subject_id!=null)
+						stmt.setString(6,original_subject_id.toString());
+						else stmt.setString(6,"none");
 					stmt.setInt(7,pid_to[i]);
-					stmt.setInt(8,msgid);
+					stmt.setString(8,id.toString());
 					stmt.setInt(9,league_pid);
+					 UUID thisMsgID = UUID.randomUUID();
+				      stmt.setString(10,thisMsgID.toString());
 			
-					stmt2.setInt(1,pid_to[i]);
-					stmt2.setInt(2,pid_from);
-					rs = stmt2.executeQuery();
 			//rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to[i] + " and pid_from =  "+ pid_from + " order by creation_date desc;");
-			int thismsgid = 0;
-			if(rs.next())
-			 thismsgid = rs.getInt(1);
-			
-			rs.close();
+				  //	public UserMessage(UUID messageID,int pidTo[], int pidFrom,String usernameTo[], String usernameFrom, String body, String subject, int msgType, boolean readed, int tsid, UUID originalSubjectID, String creationDate, UUID subjectID,boolean deleted) {
+
+					
+					UserMessage m = new UserMessage(thisMsgID,pid_to,pid_from,userArray,p.getUsername(),body,subject,msg_type, false, league_pid, original_subject_id,time.toString(),id,false);
 			Player otherP = g.getPlayer(pid_to[i]);
-			otherP.getPs().runMethod("onMessageReceivedCatch",otherP.getPs().b.getMessage(thismsgid));
+			otherP.addMessage(m);
+
+			otherP.getPs().runMethod("onMessageReceivedCatch",otherP.getPs().b.getMessage(thisMsgID));
 
 				}
 			i++;
 			}
 
 			stmt.close();
-			stmt2.close();
 
 			transacted=true;
 			} catch(MySQLTransactionRollbackException exc) {  }
@@ -1117,38 +1108,7 @@ public class BattlehardFunctions {
 		
 	}
 	
-	/**
-	 * UI Implemented.
-	 * @param x
-	 * @param y
-	 * @param body
-	 * @param subject
-	 * @param msg_type
-	 * @param tsid
-	 * @param original_subject_id
-	 * @return
-	 */
-	public boolean sendTradeMessage(int x, int y,  String body, String subject, int msg_type, int tsid, int original_subject_id) {
-		Town t= g.findTown(x,y);
-		int pid_to =t.getPlayer().ID;
-			
-		return sendTradeMessage(pid_to,body,subject,msg_type,tsid,original_subject_id);
-	}
-	/**
-	 * @deprecated UI Implemented. DEPRECATED: TRADE MESSAGES NO LONGER USED.
-	 * @param usernameTo
-	 * @param body
-	 * @param subject
-	 * @param msg_type
-	 * @param tsid
-	 * @param original_subject_id
-	 * @return
-	 */
-	public boolean sendTradeMessage(String usernameTo,  String body, String subject, int msg_type, int tsid, int original_subject_id) {
-		int pid_to = g.getPlayerId(usernameTo);
-			
-		return sendTradeMessage(pid_to,body,subject,msg_type,tsid,original_subject_id);
-	}
+
 	
 		/**
 		 * @deprecated
@@ -1165,7 +1125,7 @@ public class BattlehardFunctions {
 		 * read by the system as a reply to another message.
 		 */
 
-	public boolean sendTradeMessage(int pid_to, String body, String subject, int msg_type, int tsid, int original_subject_id) {
+/*	public boolean sendTradeMessage(int pid_to, String body, String subject, int msg_type, UUID tsid, int original_subject_id) {
 		if(msg_type!=1&&msg_type!=2) {
 			setError("Improper msg_types for this message.");
 			return false;
@@ -1196,7 +1156,7 @@ public class BattlehardFunctions {
 					tses = town.tradeSchedules();
 					while(k<tses.size()) {
 						ts = tses.get(k);
-						if(ts.tradeScheduleID==tsid) { foundts=true;  break; }
+						if(ts.id.equals(tsid)) { foundts=true;  break; }
 						k++;
 					}
 					if(foundts) break;
@@ -1300,7 +1260,7 @@ public class BattlehardFunctions {
 
 		}
 		return true;
-	}
+	}*/
 
 		/**
 		 * UI Implemented.
@@ -1398,7 +1358,7 @@ public class BattlehardFunctions {
 			break;
 		default: return false;
 		}
-		TradeSchedule ts = new TradeSchedule(t1,  t1,  m,  t,  mm,  f, otherm,othert,othermm,otherf,  1, 1,  false,0);
+		TradeSchedule ts = new TradeSchedule(t1,  t1,  m,  t,  mm,  f, otherm,othert,othermm,otherf,  1, 1,  false,null);
 		
 		
 		return true;
@@ -1483,7 +1443,7 @@ public class BattlehardFunctions {
 		// it's a one way-er then it doesn't really matter so much!
 		//	public boolean sendMessage(int pid_to, int pid_from, String body, String subject, int msg_type) {
 		int toSend[] = new int[1];
-		TradeSchedule ts = new TradeSchedule(t1,  null,  m,  t,  mm,  f,  otherm, othert,  othermm,  otherf,  intervaltime, timesToDo,  twoway,0);
+		TradeSchedule ts = new TradeSchedule(t1,  null,  m,  t,  mm,  f,  otherm, othert,  othermm,  otherf,  intervaltime, timesToDo,  twoway,null);
 	/*	 sendTradeMessage(t2.getPlayer().ID,"Do you accept this trading schedule request from " + t1.getPlayer().getUsername() + "" +
 				" of " + m + " metal " + t + " timber " + mm + " man. mat. " + f + " food in exchange for "
 				+ otherm + " metal " + othert + " timber " + othermm + " man. mat. " + otherf + " that will be completed " + 
@@ -1593,7 +1553,7 @@ public class BattlehardFunctions {
 		// it's a one way-er then it doesn't really matter so much!
 		//	public boolean sendMessage(int pid_to, int pid_from, String body, String subject, int msg_type) {
 
-		TradeSchedule ts = new TradeSchedule(t1,  t2,  m,  t,  mm,  f,  0, 0,  0,  0,  intervaltime, timesToDo,  twoway,0);
+		TradeSchedule ts = new TradeSchedule(t1,  t2,  m,  t,  mm,  f,  0, 0,  0,  0,  intervaltime, timesToDo,  twoway,null);
 	
 		
 		
@@ -5599,7 +5559,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 * UI Implemented.
 		 * Cancels the trade schedule designated by the tsid.
 		 */
-	public boolean cancelTradeSchedule(int tsid) {
+	public boolean cancelTradeSchedule(UUID tsid) {
 		if(prog&&!p.isTradingAPI()) {
 			setError("You do not have the Trading API!");
 			return false;
@@ -7863,36 +7823,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		} catch(SQLException exc) { exc.printStackTrace(); }
 		return false;
 	}
-	public UserMessage getMessage(int msgID) {
-		try {
-	
-		UberPreparedStatement stmt = g.con.createStatement("select * from messages where pid = ? and message_id = ?  order by creation_date limit 1");
-		stmt.setInt(1,p.ID);
-		stmt.setInt(2,msgID);
-		ResultSet rs = stmt.executeQuery();
-		//ResultSet rs = stmt.executeQuery("select * from messages where pid = " + p.ID + " and message_id = " + msgID + "  order by creation_date limit 1");
-			String userArray[]; UserMessage m=null;
-			while(rs.next()) {
-				int pid_to[] = PlayerScript.decodeStringIntoIntArray(rs.getString(2));
-				userArray=new String[pid_to.length];
-				int i = 0;
-				while(i<pid_to.length) {
-					userArray[i]=g.getUsername(pid_to[i]);
-					i++;
-				}
-				m = new UserMessage(rs.getInt(1),pid_to,rs.getInt(3),userArray,g.getUsername(rs.getInt(3)),rs.getString(4),rs.getString(5),rs.getInt(6), rs.getBoolean(7), rs.getInt(9), rs.getInt(10),rs.getString(11),rs.getInt(13),rs.getBoolean(8));
-				
-			}
-			if(m==null) setError("No message by that message ID!");
-			
-			rs.close();
-			stmt.close();
-			return m;
-			} catch(Exception exc) { 
-				exc.printStackTrace();
-			}
-			setError("SQL Error occured!");
-			return null;
+	public UserMessage getMessage(UUID msgID) {
+		return p.getMessage(msgID);
 	}
 		/**
 		 * UI Implemented.
@@ -7905,128 +7837,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return null;
 		}
 
-		// return all messages.
-		try {
-			UberPreparedStatement stmt = g.con.createStatement("select count(*) from messages where pid = ?;");
-			stmt.setInt(1,p.ID);
-			ArrayList<UserMessagePack> ump = new ArrayList<UserMessagePack>();
-			UserMessagePack umpPiece; UserMessage m;
-			
-			ResultSet rs = stmt.executeQuery();
-	      	int count=0;
-	      	if(rs.next()) count = rs.getInt(1);
-	      	rs.close();
-	      	stmt.close();
-	      	stmt = g.con.createStatement("select message_id from messages where pid = ? order by creation_date desc");
-	      	if(count>GodGenerator.maxMessageLimit) {
-	      		stmt.setInt(1,p.ID);
-	      		rs = stmt.executeQuery();
-	      		int counter=0;
-	      		ArrayList<Integer> toDel = new ArrayList<Integer>();
-	      		while(rs.next()) {
-	      			if(counter<GodGenerator.maxMessageLimit)
-	      			counter++;
-	      			else {
-	      				toDel.add(rs.getInt(1));
-	      			}
-	      		}
-	      		rs.close();
-	      		stmt.close();
-	      		int i = 0;
-	      		stmt = g.con.createStatement("delete from messages where message_id = ?;");
-	      		while(i<toDel.size()) {
-	      			stmt.setInt(1,toDel.get(i));
-    	      		stmt.executeUpdate();
-    	      		i++;
-	      		}
-	      	}
-	      	stmt.close();
-	      	stmt = g.con.createStatement("select * from messages where pid = " + p.ID + " order by creation_date");
-	      	stmt.setInt(1,p.ID);
-			 rs = stmt.executeQuery();
-			String userArray[];
-			while(rs.next()) {
-				int pid_to[] = PlayerScript.decodeStringIntoIntArray(rs.getString(2));
-				userArray=new String[pid_to.length];
-				int i = 0;
-				while(i<pid_to.length) {
-					userArray[i]=g.getUsername(pid_to[i]);
-					i++;
-				}
-				m = new UserMessage(rs.getInt(1),pid_to,rs.getInt(3),userArray,g.getUsername(rs.getInt(3)),rs.getString(4),rs.getString(5),rs.getInt(6), rs.getBoolean(7), rs.getInt(9), rs.getInt(10),rs.getString(11),rs.getInt(13),rs.getBoolean(8));
-				
-				if(rs.getInt(10)==0) {
-					ump.add(new UserMessagePack());
-					//	public UserMessage(int messageID,int pidTo, int pidFrom, String body, String subject, int msgType, boolean readed, int tsid, int originalMessageID, String creationDate) {
-					/*
-			
-					 */
-					
-					
-					ump.get(ump.size()-1).addMessage(m);
-				} else {
-					 i = 0; boolean found = false;
-					while(i<ump.size()) {
-						umpPiece = ump.get(i);
-						int j = 0;
-						while(j<umpPiece.getMessages().size()) {
-							if(umpPiece.getMessage(j).getSubjectID()==m.getOriginalSubjectID()) {
-								// so we search all messages in a pack for an original reply identifier!
-								
-								umpPiece.addMessage(m); found = true; break;
-							}
-						
-							j++;
-						}
-						if(found) break;
-						i++;
-					}
-					
-					if(!found) 	{
-						ump.add(new UserMessagePack());
-						ump.get(ump.size()-1).addMessage(m);
-
-					}
-				}
-				
-				
-			}
-			rs.close();
-			stmt.close();
-			int i = 0; 
-			while(i<ump.size()) {
-				umpPiece = ump.get(i);
-				int j = 0;
-				while(j<umpPiece.getMessages().size()) {
-					if(umpPiece.getMessages().get(j).getDeleted()) {
-						umpPiece.getMessages().remove(j); j--;
-					}
-
-					
-					j++;
-				}
-				
-				if(umpPiece.getMessages().size()==0) {
-					ump.remove(i);
-					i--;
-				}
-				i++;
-			}
-			
-			i=0;
-			UserMessagePack toRet[] = new UserMessagePack[ump.size()];
-			while(i<ump.size()) {
-			toRet[i]=ump.get(i);
+		
+		
+		int i=0;
+		UserMessagePack toRet[] = new UserMessagePack[p.getMessages().size()];
+		while(i<p.getMessages().size()) {
+			toRet[i]=p.getMessages().get(i);
 			i++;
-			}
-			return toRet;
-			
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			
 		}
-		return null;
+		return toRet;
 		
 	}
 	/**
@@ -8034,65 +7853,58 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * @param msgid
 	 * @return
 	 */
-	public boolean markReadMessage(int msgid) {
+	public boolean markReadMessage(UUID msgid) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
 			return false;
 		}
-		try {
-			UberPreparedStatement stmt = g.con.createStatement("update messages set readed = true where message_id = ?;");
-			stmt.setInt(1,msgid);
-			stmt.execute();
-			stmt.close();
-
+		UserMessage m = p.getMessage(msgid);
+		if(m!=null) {
+			m.setReaded(true);
 			return true;
-		} catch(SQLException exc) {
-			exc.printStackTrace();
+		} else {
+			setError("Unable to find this message.");
+			return false;
 		}
-		return false;
 	}
 	/**
 	 * UI implemented.
 	 * @param msgid
 	 * @return
 	 */
-	public boolean markUnReadMessage(int msgid) {
+	public boolean markUnReadMessage(UUID msgid) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
 			return false;
 		}
-		try {
-			UberPreparedStatement stmt = g.con.createStatement("update messages set readed = false where message_id = ?;");
-			stmt.setInt(1,msgid);
-			stmt.execute();
-			stmt.close();
-
+		UserMessage m = p.getMessage(msgid);
+		if(m!=null) {
+			m.setReaded(false);
 			return true;
-		} catch(SQLException exc) {
-			exc.printStackTrace();
+		} else {
+			setError("Unable to find this message.");
+			return false;
 		}
-		return false;
 	}
 	/** UI Implemented.
 	 * 
 	 * @param msgid
 	 * @return
 	 */
-	public boolean markDeletedMessage(int msgid) {
+	public boolean markDeletedMessage(UUID id) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
 			return false;
 		}
-		try {
-			UberPreparedStatement stmt = g.con.createStatement("update messages set deleted = true where message_id = ?;");
-			stmt.setInt(1,msgid);
-			stmt.execute();
-			stmt.close();
+		
+		UserMessage m = p.getMessage(id);
+		if(m!=null) {
+			m.setDeleted(true);
 			return true;
-		} catch(SQLException exc) {
-			exc.printStackTrace();
+		} else {
+			setError("Unable to find this message.");
+			return false;
 		}
-		return false;
 	}
 	/**
 	 * UI Implemented. For when you're done socializing.
@@ -10440,7 +10252,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * @param trid
 	 * @return
 	 */
-	public UserTrade getUserTrade(int trid) {
+	public UserTrade getUserTrade(UUID trid) {
 		if(prog&&!p.isAdvancedTradingAPI()) {
 			setError("You do not have the Advanced Trading API!");
 			return null;
@@ -10454,14 +10266,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			int j = 0;
 			while(j<ts.size()) {
 				t = ts.get(j);
-				if(t.tradeID==trid) {
+				if(t.id.equals(trid)) {
 					if(!checkMP(towns.get(i).townID)) {
 						return null;
 					}
 					
 					return new UserTrade(t.getDistance(),t.getFood(),t.getManmat(),t.getMetal(),t.getTicksToHit(),t.getTimber(),
-							t.getTotalTicks(),t.getTown1().townID,t.getTown2().townID,t.tradeID,t.isTradeOver(),t.getTraders(),
-							t.getTs().tradeScheduleID,t.getTown1().getTownName(),t.getTown1().getPlayer().getUsername(),t.getTown2().getTownName(),
+							t.getTotalTicks(),t.getTown1().townID,t.getTown2().townID,t.id,t.isTradeOver(),t.getTraders(),
+							t.getTs().id,t.getTown1().getTownName(),t.getTown1().getPlayer().getUsername(),t.getTown2().getTownName(),
 							t.getTown2().getPlayer().getUsername());
 					
 				}
@@ -10524,10 +10336,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			t = ts.get(j);
 			try {
 				tses.add( new UserTrade(t.getDistance(),t.getFood(),t.getManmat(),t.getMetal(),t.getTicksToHit(),t.getTimber(),
-						t.getTotalTicks(),t.getTown1().townID,t.getTown2().townID,t.tradeID,t.isTradeOver(),t.getTraders(),
-						t.getTs().tradeScheduleID,t.getTown1().getTownName(),t.getTown1().getPlayer().getUsername(),t.getTown2().getTownName(),
+						t.getTotalTicks(),t.getTown1().townID,t.getTown2().townID,t.id,t.isTradeOver(),t.getTraders(),
+						t.getTs().id,t.getTown1().getTownName(),t.getTown1().getPlayer().getUsername(),t.getTown2().getTownName(),
 						t.getTown2().getPlayer().getUsername()));
-			} catch(Exception exc) {System.out.println("usertrade exc caught with "+ t.tradeID); }
+			} catch(Exception exc) {System.out.println("usertrade exc caught with "+ t.id.toString()); }
 				
 			
 			j++;
@@ -10617,10 +10429,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							
 								try {
 									tses.add( new UserTrade(r.getDistance(),r.getFood(),r.getManmat(),r.getMetal(),r.getTicksToHit(),r.getTimber(),
-											r.getTotalTicks(),r.getTown1().townID,r.getTown2().townID,r.tradeID,r.isTradeOver(),r.getTraders(),
-											r.getTs().tradeScheduleID,r.getTown1().getTownName(),r.getTown1().getPlayer().getUsername(),r.getTown2().getTownName(),
+											r.getTotalTicks(),r.getTown1().townID,r.getTown2().townID,r.id,r.isTradeOver(),r.getTraders(),
+											r.getTs().id,r.getTown1().getTownName(),r.getTown1().getPlayer().getUsername(),r.getTown2().getTownName(),
 											r.getTown2().getPlayer().getUsername()));
-								} catch(Exception exc) {System.out.println("usertrade exc caught with "+ r.tradeID); }
+								} catch(Exception exc) {System.out.println("usertrade exc caught with "+ r.id.toString()); }
 									
 							
 							
@@ -10649,7 +10461,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * @param tsid
 	 * @return
 	 */
-	public UserTradeSchedule getUserTradeSchedule(int tsid) {
+	public UserTradeSchedule getUserTradeSchedule(UUID tsid) {
 		if(prog&&!p.isAdvancedTradingAPI()) {
 			setError("You do not have the Advanced Trading API!");
 			return null;
@@ -10663,7 +10475,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			int j = 0;
 			while(j<ts.size()) {
 				t = ts.get(j);
-				if(t.tradeScheduleID==tsid) {
+				if(t.id.equals(tsid)) {
 					
 					if(!checkMP(towns.get(i).townID)) {
 						return null;
@@ -10676,9 +10488,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						town2PlayerName=t.getTown2().getPlayer().getUsername();
 					}
 					return new UserTradeSchedule(t.isAgreed(),t.getCurrTicks(),t.isFinished(),t.getFood(),
-							t.getIntervaltime(),t.getManmat(),t.getMateTradeScheduleID(),t.getMetal(),t.getOtherfood(),
+							t.getIntervaltime(),t.getManmat(),t.getMateID(),t.getMetal(),t.getOtherfood(),
 							t.getOthermanmat(),t.getOthermetal(),t.getOthertimber(),t.getTimber(),
-							t.getTimesDone(),t.getTimesToDo(),t.getTown1().townID,tid2,t.tradeScheduleID,t.isTwoway(),t.getTown1().getTownName(),
+							t.getTimesDone(),t.getTimesToDo(),t.getTown1().townID,tid2,t.id,t.isTwoway(),t.getTown1().getTownName(),
 							t.getTown1().getPlayer().getUsername(),town2Name,
 							town2PlayerName);
 					
@@ -10757,9 +10569,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					}
 
 						tses.add(new UserTradeSchedule(t.isAgreed(),t.getCurrTicks(),t.isFinished(),t.getFood(),
-								t.getIntervaltime(),t.getManmat(),t.getMateTradeScheduleID(),t.getMetal(),t.getOtherfood(),
+								t.getIntervaltime(),t.getManmat(),t.getMateID(),t.getMetal(),t.getOtherfood(),
 								t.getOthermanmat(),t.getOthermetal(),t.getOthertimber(),t.getTimber(),
-								t.getTimesDone(),t.getTimesToDo(),t.getTown1().townID,tid2,t.tradeScheduleID,t.isTwoway(),t.getTown1().getTownName(),
+								t.getTimesDone(),t.getTimesToDo(),t.getTown1().townID,tid2,t.id,t.isTwoway(),t.getTown1().getTownName(),
 								t.getTown1().getPlayer().getUsername(),town2Name,
 								town2PlayerName));
 						
@@ -11952,7 +11764,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * @return
 	 */
 	
-	public boolean acceptTradeSchedule(int tsid, int yourTID) {
+	public boolean acceptTradeSchedule(UUID tsid, int yourTID) {
 		if(prog&&!p.isTradingAPI()) {
 			setError("You do not have the Trading API!");
 			return false;

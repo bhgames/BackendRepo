@@ -6,6 +6,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import BHEngine.AttackUnit;
 import BHEngine.Building;
@@ -24,11 +25,11 @@ public class UserSR {
 	private boolean nukeSucc;
 	private boolean nuke;
 	private boolean debris,offdig,defdig; private String digMessage;
-	String defNames, offNames, offst, offfi, defst, deffi, townOff,townDef; public int sid; public boolean genocide=false,bomb=false; public boolean archived=false;
+	String defNames, offNames, offst, offfi, defst, deffi, townOff,townDef; public UUID id; public boolean genocide=false,bomb=false; public boolean archived=false;
 	public boolean defender = false;public int scout;public int resupplyID=-1;
 public int bp; public boolean premium;
 	public int ppllost=0; public boolean support = false;public int m,t,mm,f; public boolean invade=false;public boolean invsucc=false;
-	public UserSR(int sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+	public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
 			,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage) {
 		this.defNames = defNames; this.offNames=offNames; this.offst=offst; this.offfi = offfi;this.read=read;this.digMessage=digMessage;
 		this.defst = defst; this.deffi = deffi; this.townOff = townOff; this.townDef = townDef;
@@ -36,7 +37,7 @@ public int bp; public boolean premium;
 		this.nuke=nuke;
 		this.nukeSucc=nukeSucc;
 		this.debris=debris;
-		this.sid = sid; this.genocide=genocide; 
+		this.id = id; this.genocide=genocide; 
 		this.name=name;
 		this.blastable=blastable;
 		this.debm=debm;this.debt=debt;this.debmm=debmm;this.debf=debf;
@@ -290,8 +291,8 @@ public int bp; public boolean premium;
 		return toRet;
 	}
 	
-	public boolean isEqual(int sid) {
-		if(this.sid==sid) return true; else return false;
+	public boolean isEqual(UUID sid) {
+		if(this.id.equals(sid)) return true; else return false;
 	}
 	/**
 	 * Returns the header of an SR, ex "Town1 bombs Town2 as part of a siege campaign."

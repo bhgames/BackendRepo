@@ -7442,9 +7442,9 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				"devoted to peace and harmony in this Empire. We've just received <<<<STATIC>>>>> that our Emperor has undertaken a nuclear" +
 						" weapons program in " +  holdT.getTownName() + " at coordinates " + holdT.getX() + "," + holdT.getY() +". We need your help to stop this " +
 								"monstrous leader from taking away our <<<<STATIC>>>> and our humanity! <br /><br /> As of now, our Emperor has one week to finish the Missile Silo. If you attack " + 
-								holdT.getTownName() + " before this time and wipe out all of his defenses, the silo will be destroyed. <br /><br /> Please, help us!<br /><br /> <<<<<SIGNAL RETAINED>>>>>", "TRANSMISSION WARNING: HIJACKED SIGNAL",0)+ ",Error is "  + p.getPs().b.getError());
+								holdT.getTownName() + " before this time and wipe out all of his defenses, the silo will be destroyed. <br /><br /> Please, help us!<br /><br /> <<<<<SIGNAL RETAINED>>>>>", "TRANSMISSION WARNING: HIJACKED SIGNAL",null)+ ",Error is "  + p.getPs().b.getError());
 		else
-		p.getPs().b.sendMessage(pids,"<<<<<SIGNAL HIJACKED>>>>> <br /><br /> <<<<STATIC>>>> This is a message from the " + p.getUsername()+" Liberation Front. Together with the help of " + otherGuy + ", we thwarted the Emperor's plans and destroyed his missile silos, and he is now weeping in his Palace like a girl. Thank you for all of your help! <<<<<SIGNAL RETAINED>>>>>", "TRANSMISSION WARNING: HIJACKED SIGNAL",0);
+		p.getPs().b.sendMessage(pids,"<<<<<SIGNAL HIJACKED>>>>> <br /><br /> <<<<STATIC>>>> This is a message from the " + p.getUsername()+" Liberation Front. Together with the help of " + otherGuy + ", we thwarted the Emperor's plans and destroyed his missile silos, and he is now weeping in his Palace like a girl. Thank you for all of your help! <<<<<SIGNAL RETAINED>>>>>", "TRANSMISSION WARNING: HIJACKED SIGNAL",null);
 		
 		
 	
@@ -7708,7 +7708,7 @@ public static boolean debrisLogicBlock(Raid r) {
 		r.setTicksToHit(r.getTotalTicks());
 		r.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",r.getTown1().getPlayer().getPs().b.getUserRaid(r.getId()));
 
-		UberPreparedStatement stmt = r.getTown1().getPlayer().God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,debris) values (?,?,?,?,?,?,?,?,?,?,?,?,true);");
+		UberPreparedStatement stmt = r.getTown1().getPlayer().God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,debris,id) values (?,?,?,?,?,?,?,?,?,?,?,?,true,?);");
 		stmt.setInt(1,t1p.ID);
 		stmt.setInt(2,t1.townID);
 		stmt.setInt(3,t2.townID);
@@ -7720,6 +7720,8 @@ public static boolean debrisLogicBlock(Raid r) {
 		stmt.setLong(9,r.getManmat());
 		stmt.setLong(10,r.getFood());
 		stmt.setString(11,t1.getTownName());
+		UUID id = UUID.randomUUID();
+		stmt.setString(12,id.toString());
 		
 		 stmt.execute();
 		   
@@ -9591,8 +9593,9 @@ public boolean checkForGenocides(Town t) {
 
 				  stmt.setBoolean(33,offdig);
 				  stmt.setBoolean(34,defdig);
-				  stmt.setBoolean(35,bomb);
-				  stmt.setBoolean(36,false);
+				  stmt.setString(35,digMessage);
+				  stmt.setBoolean(36,bomb);
+				  stmt.setBoolean(37,false);
 				  
 				 if(percentlossdiff>(-30)) { 
 					  stmt.setString(16,defNames);
@@ -9612,7 +9615,7 @@ public boolean checkForGenocides(Town t) {
 				  }
 				  else {
 					  stmt.setString(16,",???,???,???,???,???,???");
-					  stmt.setString(18,"No data is available due to your being pwned.'");
+					  stmt.setString(19,"No data is available due to your being pwned.'");
 					  stmt.setString(13, ",0,0,0,0,0,0");
 					  stmt.setString(14, ",0,0,0,0,0,0");
 					  stmt.setLong(29,0);
@@ -9669,7 +9672,7 @@ public boolean checkForGenocides(Town t) {
 					  o++;
 				  }
 				  
-				  if(percentlossdiff>-30) {
+				  if(percentlossdiff<-30) {
 
 					  stmt.setString(16,defNames);
 					  stmt.setString(19,combatHeader);
@@ -10073,7 +10076,7 @@ public boolean checkForGenocides(Town t) {
 		while(i<tses.length) {
 			try {
 			ts = tses[i];
-			actts = t1.findTradeSchedule(ts.getTradeScheduleID());
+			actts = t1.findTradeSchedule(ts.getId());
 			if(actts.getTown2()!=null)
 			t2 = actts.getTown2();
 			else t2=null;
@@ -10101,7 +10104,6 @@ public boolean checkForGenocides(Town t) {
 
 				}*/
 			} else {
-				if(ts.getTradeScheduleID()==4979||ts.getTradeScheduleID()==4980) System.out.println("I am " + ts.getTradeScheduleID() + " and my timesDone is " + ts.getTimesDone() + " and my todo is " +ts.getTimesToDo());
 			if(ts.getTimesDone()>=ts.getTimesToDo()&&ts.getTimesToDo()!=-1) { 
 				// do nothing, this trade schedule is simply waiting for it's last trade to expire!
 				// if this is an infinity schedule, clearly timesDone is always larger(default at 0)
@@ -10116,7 +10118,7 @@ public boolean checkForGenocides(Town t) {
 					int sum = 0;
 					int k = 0;
 					while(k<tres.length) {
-						if(tres[k].getTradeScheduleID()==ts.getTradeScheduleID()/*&&(!tres[k].isTradeOver()||tres[k].getTicksToHit()>=0)*/) sum++;
+						if(tres[k].getTradeScheduleID().equals(ts.getId())/*&&(!tres[k].isTradeOver()||tres[k].getTicksToHit()>=0)*/) sum++;
 						k++;
 					}
 					/*
@@ -10140,14 +10142,14 @@ public boolean checkForGenocides(Town t) {
 						rs.close();
 					} catch(SQLException exc) { exc.printStackTrace(); }*/
 					while(k<tres.length) {
-						if((tres[k].getTradeScheduleID()==ts.getTradeScheduleID())/*&&(!tres[k].isTradeOver()||tres[k].getTicksToHit()>=0)*/) sum++;
+						if((tres[k].getTradeScheduleID().equals(ts.getId()))/*&&(!tres[k].isTradeOver()||tres[k].getTicksToHit()>=0)*/) sum++;
 						k++;
 					}
 					otherTres =actts.getTown2().getPlayer().getPs().b.getUserTrades(actts.getTown2().townID);
 					
 					k = 0;
 					while(k<otherTres.length) {
-						if((otherTres[k].getTradeScheduleID()==actts.getMate().tradeScheduleID)/*&&(!tres[k].isTradeOver()||tres[k].getTicksToHit()>=0)*/) sum++;
+						if((otherTres[k].getTradeScheduleID().equals(actts.getMate().id))/*&&(!tres[k].isTradeOver()||tres[k].getTicksToHit()>=0)*/) sum++;
 						k++;
 					}
 					if(sum==0&&actts.isThreadSafe()) {
@@ -10176,10 +10178,10 @@ public boolean checkForGenocides(Town t) {
 				exc.printStackTrace();
 				System.out.println("Exception for TS caught and now being dealt with.");
 				if(ts!=null){
-				System.out.println("TradeScheduleID: "+ ts.getTradeScheduleID());
+				System.out.println("TradeScheduleID: "+ ts.getId().toString());
 				try {
-					UberPreparedStatement stmt2 = p.God.con.createStatement("delete from trade where tsid = ?");
-					stmt2.setInt(1,ts.getTradeScheduleID());
+					UberPreparedStatement stmt2 = p.God.con.createStatement("delete from trade where id = ?");
+					stmt2.setString(1,ts.getId().toString());
 					//stmt2.execute("update tradeschedule set finished=true where tsid = " +ts.getTradeScheduleID());
 					stmt2.execute();
 
@@ -10205,7 +10207,7 @@ public boolean checkForGenocides(Town t) {
 			try {
 			t = tres[i];
 			if(t.getTID1()==t1.townID) { // because get user trades fucking grabs incomings too.
-			actt = t1.findTrade(t.getTradeID());
+			actt = t1.findTrade(t.getId());
 			t2 = actt.getTown2();
 			otherP = t2.getPlayer();
 			
@@ -10253,7 +10255,7 @@ public boolean checkForGenocides(Town t) {
 					
 						res = t2.getRes();
 						synchronized(res) {
-						t = p.getPs().b.getUserTrade(t.getTradeID());
+						t = p.getPs().b.getUserTrade(t.getId());
 						res[0]+=t.getMetal();
 						res[1]+=t.getTimber();
 						res[2]+=t.getManmat();
@@ -10283,7 +10285,7 @@ public boolean checkForGenocides(Town t) {
 				actt.setTradeOver(true);
 				
 				actt.getTown1().getPlayer().getPs().runMethod("onOutgoingTradeReturningCatch",
-						actt.getTown1().getPlayer().getPs().b.getUserTrade(actt.tradeID));
+						actt.getTown1().getPlayer().getPs().b.getUserTrade(actt.id));
 
 
 				
@@ -10382,7 +10384,7 @@ public boolean checkForGenocides(Town t) {
 			exc.printStackTrace();
 			System.out.println("Exception for Trade caught and now being dealt with.");
 			if(t!=null){
-			System.out.println("TradeID: "+ t.getTradeID());
+			System.out.println("TradeID: "+ t.getId());
 			if(p.findTradeSchedule(t.getTradeScheduleID())==null) {
 				System.out.println("The tradeschedule is null is the reason. Seems to not be a part of the player anymore.");
 			}
@@ -10390,8 +10392,8 @@ public boolean checkForGenocides(Town t) {
 			if(p.God.findTown(t.getTID2())==null) System.out.println("town 2 is null");
 
 			try {
-				UberPreparedStatement stmt2 = p.God.con.createStatement("delete from trade where tsid = ?;");
-				stmt2.setInt(1,t.getTradeScheduleID());
+				UberPreparedStatement stmt2 = p.God.con.createStatement("delete from trade where id = ?;");
+				stmt2.setString(1,t.getTradeScheduleID().toString());
 			//	stmt2.execute("update tradeschedule set finished=true where tsid = " +t.getTradeScheduleID());
 				stmt2.execute();
 				stmt2.close();
@@ -10434,12 +10436,12 @@ public boolean checkForGenocides(Town t) {
 		Town t1 = actts.getTown1(); Town t2 = actts.getTown2();
 		if(t2.getPlayer().ID!=t1.getPlayer().ID)t2.update(); // obviously need to update before sending trade!
 		UserBuilding[] bldg;
-		UserTradeSchedule ts = actts.getTown1().getPlayer().getPs().b.getUserTradeSchedule(actts.tradeScheduleID);
+		UserTradeSchedule ts = actts.getTown1().getPlayer().getPs().b.getUserTradeSchedule(actts.id);
 		if(ts.isTwoway()&&!ts.isAgreed()) return false;
 		
 		// if it's two way, need to make sure the other town's got a trade schedule identical to it.
 		// Just in case!
-		if(ts.isTwoway()&&ts.isAgreed()&&ts.getMateTradeScheduleID()==0) { actts.deleteMe(); return false; } 
+		if(ts.isTwoway()&&ts.isAgreed()&&ts.getMateID()==null) { actts.deleteMe(); return false; } 
 		
 		// means somebody cancelled the trade and so none should be sent.
 

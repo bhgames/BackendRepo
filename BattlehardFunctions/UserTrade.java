@@ -1,16 +1,18 @@
 package BattlehardFunctions;
 
+import java.util.UUID;
+
 
 public class UserTrade {
 	private long metal, timber, manmat, food;
 	private double distance; 
-	private int ticksToHit; private int tid2 ; private int tid1; private boolean tradeOver; private int tradeID; 
-	 int tradeScheduleID; private String originatingPlayer,originatingTown,destPlayer,destTown;
+	private int ticksToHit; private int tid2 ; private int tid1; private boolean tradeOver; private UUID id; 
+	 UUID tradeScheduleID; private String originatingPlayer,originatingTown,destPlayer,destTown;
 	private int totalTicks=0; private int traders;
 	public UserTrade(double distance, long food, long manmat, long metal,
 			int ticksToHit, long timber, int totalTicks, int tid1,
-			int tid2, int tradeID, boolean tradeOver, int traders,
-			int tradeScheduleID, String originatingTown, String originatingPlayer, String destTown,String destPlayer) {
+			int tid2, UUID tradeID, boolean tradeOver, int traders,
+			UUID tradeScheduleID, String originatingTown, String originatingPlayer, String destTown,String destPlayer) {
 	
 		this.distance = distance;
 		this.food = food;
@@ -21,7 +23,7 @@ public class UserTrade {
 		this.totalTicks = totalTicks;
 		this.tid1 = tid1;
 		this.tid2 = tid2;
-		this.tradeID = tradeID;
+		this.id = tradeID;
 		this.tradeOver = tradeOver;
 		this.traders = traders;
 		this.tradeScheduleID = tradeScheduleID;
@@ -62,10 +64,10 @@ public class UserTrade {
 	public boolean isTradeOver() {
 		return tradeOver;
 	}
-	public int getTradeID() {
-		return tradeID;
+	public UUID getId() {
+		return id;
 	}
-	public int getTradeScheduleID() {
+	public UUID getTradeScheduleID() {
 		return tradeScheduleID;
 	}
 	public int getTotalTicks() {

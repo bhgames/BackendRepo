@@ -6,12 +6,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 
 public class Trade {
 
-	public int tradeID;
+	public UUID id;
 	private UberConnection con; 
 	private GodGenerator God;
 	
@@ -21,7 +22,7 @@ public class Trade {
 	private TradeSchedule ts;
 	private int totalTicks=0; private int traders;
 	
-	public void setTradeValues(int tradeID, double distance, int ticksToHit, Town town1, Town town2,
+	public void setTradeValues( double distance, int ticksToHit, Town town1, Town town2,
 			long metal, long timber, long manmat, long food,boolean tradeOver,int traders, int totalTicks) {
 		// This constructor does not use the support integer because it is rarely used compared to other things
 		// and so to save space that is exported as an extra usable method. It is only necessary
@@ -30,7 +31,7 @@ public class Trade {
 		this.totalTicks=totalTicks;
 		this.distance=distance; this.ticksToHit=ticksToHit;
 		 this.town2=town2;this.town1 = town1;
-		 this.tradeID = tradeID; this.metal=metal;this.timber=timber;
+		 this.metal=metal;this.timber=timber;
 		 this.manmat=manmat;this.food=food;this.tradeOver=tradeOver;
 		 this.traders=traders;
 		
@@ -38,7 +39,7 @@ public class Trade {
 	
 }
 
-	public Trade(int tradeID,GodGenerator God) {
+	public Trade(UUID tradeID,GodGenerator God) {
 			// This constructor does not use the support integer because it is rarely used compared to other things
 			// and so to save space that is exported as an extra usable method. It is only necessary
 			// when creating raids.
@@ -46,10 +47,10 @@ public class Trade {
 		con = God.con;
 		this.God = God;
 		
-		this.tradeID=tradeID;
+		this.id=tradeID;
 		try {
-			UberPreparedStatement rus = con.createStatement("select * from trade where trid = ?;");
-			rus.setInt(1,tradeID);
+			UberPreparedStatement rus = con.createStatement("select * from trade where id = ?;");
+			rus.setString(1,tradeID.toString());
 			
 		ResultSet rrs = rus.executeQuery();
 			// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
@@ -65,7 +66,7 @@ public class Trade {
 				Town town2Obj = God.findTown(rrs.getInt(2));
 
 			
-				 setTradeValues(rrs.getInt(3),rrs.getDouble(4),rrs.getInt(5),town1,town2Obj,rrs.getLong(7),
+				 setTradeValues(rrs.getDouble(4),rrs.getInt(5),town1,town2Obj,rrs.getLong(7),
 						 rrs.getLong(8),rrs.getLong(9),rrs.getLong(10),rrs.getBoolean(6),rrs.getInt(11),rrs.getInt(12)); // this one has no sql addition!
 		
 			}
@@ -110,7 +111,7 @@ public class Trade {
 			try {
 
 		      
-		      stmt = t1.getPlayer().God.con.createStatement("insert into trade (tid1, tid2, distance, ticksToHit,m,t,mm,f,totalTicks,tsid,traders) values (?,?,?,?,?,?,?,?,?,?,?);");
+		      stmt = t1.getPlayer().God.con.createStatement("insert into trade (tid1, tid2, distance, ticksToHit,m,t,mm,f,totalTicks,tsid,traders,id) values (?,?,?,?,?,?,?,?,?,?,?,?);");
 		      
 		      // First things first. We update the player table.
 		      boolean transacted=false;
@@ -128,58 +129,19 @@ public class Trade {
 		    	  stmt.setLong(7,mm);
 		    	  stmt.setLong(8,f);
 		    	  stmt.setInt(9,ticksToHit);
-		    	  stmt.setInt(10,ts.tradeScheduleID);
+		    	  stmt.setString(10,ts.id.toString());
 		    	  stmt.setInt(11,traders);
+		    	  id = UUID.randomUUID();
+			      stmt.setString(12,id.toString());
 		    	  stmt.executeUpdate();
 		    	  stmt.close();
 		      }
-		      Thread.currentThread().sleep(10);
-		      stmt = con.createStatement("select trid from trade where tid1 = ? and tradeOver = false");
-		      stmt.setInt(1,town1.townID);
-		      ResultSet ridstuff = stmt.executeQuery();
-		      /*
-		       *Okay, search out all raids on the db for this town, and compare them to the raid server that the town has. There should be an rid
-		       *corresponding to each raid on there, and one that isn't. This one is our rid.
-		       *Now, if the user is running concurrent threads and they both call to this to add the raid at the same time, then there will be two
-		       *separate raidIDs on there. Still something of a problem, but we have to acknowledge the quickness of this maneuver - this thing will
-		       *literally be lightning quick. It'll snatch up that rid and add this one to the server without a hesitation.
-		       *if there is a problem, we can always assign a huge random number tempid to it, and use that as an extra comparison. If the user
-		       *does do two things at once, two raids, then I have to ask - what is the problem with switching the rids up? You see, if he does manage
-		       *to do it on the same town at the same time within a time frame that would allow both to be unaccounted for at the same time, then as soon
-		       *as the rids are switched, the player object would update them both with correct values from us. There we go. It happens so quickly.
-		       */
-		      
-		      while(ridstuff.next()) {
-		    	  int j = 0;
-		    	  
-		    	  while(j<town1.tradeServer().size()) {
-		    		  if(town1.tradeServer().get(j).tradeID==ridstuff.getInt(1)) break;
-		    		  j++;
-		    	  }
-		    	  
-		    	  if(j==town1.tradeServer().size()) break; // means we found no raid accompanying this raidID.
-		      }
-		      
-		      	tradeID = ridstuff.getInt(1);
-		      	town1.tradeServer().add(this);
-		      	ridstuff.close();
-		     /* int timesTried = 0;
-		      ArrayList<Trade> a  = town1.tradeServer();
-		      while(a.size()<=0&&timesTried<10) {
-			  Thread.currentThread().sleep(10);
-		      a= town1.tradeServer();
-		      timesTried++;
-		      
-		      }
-		      tradeID=a.get(a.size()-1).tradeID;*/
-
+		   
+		    
 		      
 		      stmt.close(); transacted=true;
 		      }
-		    	  catch(MySQLTransactionRollbackException exc) { } catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		    	  catch(MySQLTransactionRollbackException exc) { } 
 		      }// need connection for attackunit adds! Not for trades though.
 			 } catch(SQLException exc) { exc.printStackTrace(); }
 
@@ -216,7 +178,7 @@ public class Trade {
 		}
 	synchronized public void save() {
 		try {
-		  UberPreparedStatement stmt = con.createStatement( "update trade set distance = ?, ticksToHit = ?, tradeOver = ?, m = ?, t = ?, mm = ?, f = ?, totalTicks = ?, tsid = ? where trid = ?;");
+		  UberPreparedStatement stmt = con.createStatement( "update trade set distance = ?, ticksToHit = ?, tradeOver = ?, m = ?, t = ?, mm = ?, f = ?, totalTicks = ?, tsid = ? where id = ?;");
 			  stmt.setDouble(1,distance);
 			  stmt.setInt(2,ticksToHit);
 			  stmt.setBoolean(3,tradeOver);
@@ -225,8 +187,8 @@ public class Trade {
 			  stmt.setLong(6,manmat);
 			  stmt.setLong(7,food);
 			  stmt.setInt(8,totalTicks);
-			  stmt.setInt(9,getTs().tradeScheduleID);
-			  stmt.setInt(10,tradeID);
+			  stmt.setString(9,getTs().id.toString());
+			  stmt.setString(10,id.toString());
 			  
 			
 		  stmt.executeUpdate();
@@ -356,12 +318,12 @@ public class Trade {
 		if(ts==null) {
 			int i = 0;
 			ArrayList<TradeSchedule> tses = getTown1().tradeSchedules();
-			int tradeScheduleID = getInt("tsid");
+			UUID tradeScheduleID = UUID.fromString(getString("tsid"));
 	//		if(tradeID==16197)
 		//System.out.println("Found a tsid of " + tradeScheduleID);
 			while(i<tses.size()) {
 				//System.out.println("Checking ts " + tses.get(i).tradeScheduleID);
-				if(tses.get(i).tradeScheduleID==tradeScheduleID) {
+				if(tses.get(i).id.equals(tradeScheduleID)) {
 					this.ts=tses.get(i);
 					break;
 				}
@@ -416,9 +378,9 @@ public class Trade {
 	}
 	public void setInt(String fieldName, int toSet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("update trade set " + fieldName + " = ? where trid = ?;");
+			UberPreparedStatement stmt = con.createStatement("update trade set " + fieldName + " = ? where id = ?;");
 			stmt.setInt(1,toSet);
-			stmt.setInt(2,tradeID);
+			stmt.setString(2,id.toString());
 			stmt.execute();
 			stmt.close();
 		}catch(SQLException exc) {
@@ -427,9 +389,9 @@ public class Trade {
 	}
 	public void setDouble(String fieldName, double toSet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("update trade set " + fieldName + " = ? where trid = ?;");
+			UberPreparedStatement stmt = con.createStatement("update trade set " + fieldName + " = ? where id = ?;");
 			stmt.setDouble(1,toSet);
-			stmt.setInt(2,tradeID);
+			stmt.setString(2,id.toString());
 			stmt.execute();
 			stmt.close();
 		}catch(SQLException exc) {
@@ -438,9 +400,9 @@ public class Trade {
 	}
 	public void setLong(String fieldName, long toSet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("update trade set " + fieldName + " = ? where trid = ?;");
+			UberPreparedStatement stmt = con.createStatement("update trade set " + fieldName + " = ? where id = ?;");
 			stmt.setLong(1,toSet);
-			stmt.setInt(2,tradeID);
+			stmt.setString(2,id.toString());
 			stmt.execute();
 			stmt.close();
 		}catch(SQLException exc) {
@@ -449,9 +411,9 @@ public class Trade {
 	}
 	public void setBoolean(String fieldName, boolean toSet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("update trade set " + fieldName + " = ? where trid = ?;");
+			UberPreparedStatement stmt = con.createStatement("update trade set " + fieldName + " = ? where id = ?;");
 			stmt.setBoolean(1,toSet);
-			stmt.setInt(2,tradeID);
+			stmt.setString(2,id.toString());
 			stmt.execute();
 			stmt.close();
 		}catch(SQLException exc) {
@@ -460,9 +422,9 @@ public class Trade {
 	}
 	public void setString(String fieldName, String toSet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("update trade set " + fieldName + " = ? where trid = ?;");
+			UberPreparedStatement stmt = con.createStatement("update trade set " + fieldName + " = ? where id = ?;");
 			stmt.setString(1,toSet);
-			stmt.setInt(2,tradeID);
+			stmt.setString(2,id.toString());
 			stmt.execute();
 			stmt.close();
 		}catch(SQLException exc) {
@@ -471,8 +433,8 @@ public class Trade {
 	}
 	public int getInt(String toGet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from trade where trid = ?;");
-			stmt.setInt(1,tradeID);
+			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from trade where id = ?;");
+			stmt.setString(1,id.toString());
 			
 			ResultSet rs = stmt.executeQuery();
 			rs.next();
@@ -489,8 +451,8 @@ public class Trade {
 	
 	public double getDouble(String toGet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from trade where trid = ?;");
-			stmt.setInt(1,tradeID);
+			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from trade where id = ?;");
+			stmt.setString(1,id.toString());
 			
 			ResultSet rs = stmt.executeQuery();
 			rs.next();
@@ -506,8 +468,8 @@ public class Trade {
 	
 	public long getLong(String toGet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from trade where trid = ?;");
-			stmt.setInt(1,tradeID);
+			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from trade where id = ?;");
+			stmt.setString(1,id.toString());
 			
 			ResultSet rs = stmt.executeQuery();
 			rs.next();
@@ -523,8 +485,8 @@ public class Trade {
 	
 	public boolean getBoolean(String toGet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from trade where trid = ?;");
-			stmt.setInt(1,tradeID);
+			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from trade where id = ?;");
+			stmt.setString(1,id.toString());
 			
 			ResultSet rs = stmt.executeQuery();
 			rs.next();
@@ -539,8 +501,8 @@ public class Trade {
 	}
 	public String getString(String toGet) {
 		try {
-			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from trade where trid = ?;");
-			stmt.setInt(1,tradeID);
+			UberPreparedStatement stmt = con.createStatement("select " + toGet + " from trade where id = ?;");
+			stmt.setString(1,id.toString());
 			
 			ResultSet rs = stmt.executeQuery();
 			rs.next();

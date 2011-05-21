@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -346,7 +347,7 @@ public class Controllers {
 			 
 			Player id =  g.getPlayer(5);
 			int toSend[] = {5,809};
-			p.getPs().b.sendMessage(toSend,message,subject + " Email: " +email,0);
+			p.getPs().b.sendMessage(toSend,message,subject + " Email: " +email,null);
 		
 			return true;
 	}
@@ -736,7 +737,7 @@ public boolean FBBlast(HttpServletRequest req, PrintWriter out) {
 		System.out.println("Got a reqest for an fb blast.");
 			 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
 			 int type = (Integer.parseInt( req.getParameter("rewardChoice")));
-			 int sid = (Integer.parseInt( req.getParameter("SID")));
+			 UUID sid = (UUID.fromString( req.getParameter("SID")));
 
 			if(p.getFuid()==0) {
 				retry(out); return false;
@@ -754,11 +755,11 @@ public boolean FBBlast(HttpServletRequest req, PrintWriter out) {
 					 while(i<s.length) {
 						// System.out.println("Scanning " + s[i].sid + " which is " + s[i].getBlasted());
 						 //if(s[i].sid==sid) System.out.println("This is what you requested.");
-						 if(s[i].sid==sid&&!s[i].getBlasted()) {
+						 if(s[i].id.equals(sid)&&!s[i].getBlasted()) {
 							 System.out.println("Inside reward area and type is " + type + " with sid " + sid);
 							 try {
-								 UberPreparedStatement stmt = g.con.createStatement("update statreports set blasted=true where sid = ?;");
-								 stmt.setInt(1,sid);
+								 UberPreparedStatement stmt = g.con.createStatement("update statreports set blasted=true where id = ?;");
+								 stmt.setString(1,sid.toString());
 								 stmt.execute();
 								 stmt.close();
 							 } catch(SQLException exc) { exc.printStackTrace(); }

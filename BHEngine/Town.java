@@ -2704,14 +2704,14 @@ public class Town {
 		if(tradeSchedules==null) {
 		ArrayList<TradeSchedule> tses = new ArrayList<TradeSchedule>();
 		try {
-		UberPreparedStatement rus = getPlayer().con.createStatement("select tsid from tradeschedule where tid1 = ? and finished = false");
+		UberPreparedStatement rus = getPlayer().con.createStatement("select id from tradeschedule where tid1 = ? and finished = false");
 			rus.setInt(1,townID);
 		ResultSet rrs = rus.executeQuery();
 		// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
 		// Then F = !(R!T) = !R + T;
 		while(rrs.next()) {
 	
-			tses.add(new TradeSchedule(rrs.getInt(1),getPlayer().God));
+			tses.add(new TradeSchedule(UUID.fromString(rrs.getString(20)),getPlayer().God));
 	
 		}
 				rrs.close();rus.close();
@@ -2733,7 +2733,7 @@ public class Town {
 		// Then F = !(R!T) = !R + T;
 		while(rrs.next()) {
 	
-			tres.add(new Trade(rrs.getInt(1),getPlayer().God));
+			tres.add(new Trade(UUID.fromString(rrs.getString(15)),getPlayer().God));
 	
 		}
 				rrs.close();rus.close();
@@ -2904,18 +2904,18 @@ public class Town {
 		} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Your shit is a-okay."); } */
 	
 	}
-	public Trade findTrade(int trid) {
+	public Trade findTrade(UUID trid) {
 		int i = 0;
 		while(i<tradeServer().size()) {
-			if(tradeServer().get(i).tradeID==trid) return tradeServer().get(i);
+			if(tradeServer().get(i).id.equals(trid)) return tradeServer().get(i);
 			i++;
 		}
 		return null;
 	}
-	public TradeSchedule findTradeSchedule(int trid) {
+	public TradeSchedule findTradeSchedule(UUID trid) {
 		int i = 0;
 		while(i<tradeSchedules().size()) {
-			if(tradeSchedules().get(i).tradeScheduleID==trid) return tradeSchedules().get(i);
+			if(tradeSchedules().get(i).id.equals(trid)) return tradeSchedules().get(i);
 			i++;
 		}
 		return null;

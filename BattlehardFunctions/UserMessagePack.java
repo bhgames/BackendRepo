@@ -20,6 +20,9 @@ public class UserMessagePack {
 	public void addMessage(UserMessage message) {
 		messages.add(message);
 	}
+	public void removeMessage(UserMessage message) {
+		messages.remove(message);
+	}
 	public int size() {
 		return messages.size();
 	}
