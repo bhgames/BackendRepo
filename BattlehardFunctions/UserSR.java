@@ -37,7 +37,7 @@ public int bp; public boolean premium;
 		this.nuke=nuke;
 		this.nukeSucc=nukeSucc;
 		this.debris=debris;
-		this.id = id; this.genocide=genocide; 
+		this.id = sid; this.genocide=genocide; 
 		this.name=name;
 		this.blastable=blastable;
 		this.debm=debm;this.debt=debt;this.debmm=debmm;this.debf=debf;
@@ -91,11 +91,24 @@ public int bp; public boolean premium;
 			i++;
 		}*/
 	}
+	
+	public UserSR clone() {
+	//	public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+		//		,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage) 
+		return new UserSR(id,offst,offfi,defst,deffi,offNames,defNames,townOff,townDef,genocide,read,bomb,defender,m,t,mm,f,scout,invade,invsucc,resupplyID,archived,combatHeader,createdAt,name,bp,premium,blastable,ax,ay,dx,dy,
+				zeppText,debm,debt,debmm,debf,debris,nuke,nukeSucc,offdig,defdig,digMessage);
+		
+	}
 	public String getCreatedDate() {
 		return createdAt;
 	}
-	
-	static String[] getStringArrayFromPluses(String bombResultBldg) {
+	public void setRead(boolean r) {
+		read=r;
+	}
+	public void setArchived(boolean r) {
+		archived=r;
+	}
+	public static String[] getStringArrayFromPluses(String bombResultBldg) {
 		int i = 0;
 		
 		if(bombResultBldg.equals("null")) {

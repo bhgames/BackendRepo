@@ -13,6 +13,7 @@ public class UserTown {
 	private double[] resEffects;
 	private int destX,destY,fuelCells,ticksTillMove;
 	private boolean zeppelin;
+	private int foodConsumption;
 	private int CSL,CS;
 
 	volatile long resCaps[] = new long[5];
@@ -23,11 +24,12 @@ public class UserTown {
 			long[] resCaps, double[] resInc, double[] resEffects, int totalEngineers,
 			int totalTraders, int townID, String townName,
 			UserTradeSchedule[] tradeSchedules, UserTrade[] tradeServer, int x,
-			int y,int CSL, int CS, boolean zeppelin, int fuelCells, int destX,int destY, int ticksTillMove) {
+			int y,int CSL, int CS, boolean zeppelin, int fuelCells, int destX,int destY, int ticksTillMove, int foodConsumption) {
 		this.attackServer = attackServer;
 		this.au = au;
 		this.bldg = bldg;
 		this.CSL=CSL; this.CS=CS;
+		this.foodConsumption=foodConsumption;
 		this.zeppelin=zeppelin; this.fuelCells=fuelCells; this.destX=destX; this.destY=destY; this.ticksTillMove=ticksTillMove;
 		this.pid = pid;
 		this.playerName = playerName;
@@ -142,6 +144,10 @@ public class UserTown {
 	}
 	public UserTradeSchedule[] getTradeSchedules() {
 		return tradeSchedules;
+	}
+
+	public int getFoodConsumption() {
+		return foodConsumption;
 	}
 	
 }

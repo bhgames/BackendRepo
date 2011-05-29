@@ -961,6 +961,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		}
 		return true;
 	}
+	
+	
 	public boolean loadPlayer(HttpServletRequest req, PrintWriter out, boolean grabLeague) {
 		JSONWriter j = new JSONWriter(out);
 		UserQueueItem q;
@@ -1203,6 +1205,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			        .value(t.getPlayerName())
 			          .key("CSL")
 			        .value(t.getCSL())
+			        .key("foodConsumption")
+			        .value(t.getFoodConsumption())
 			        .key("x")
 			        .value(t.getX())
 			        .key("y")

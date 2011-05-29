@@ -2735,7 +2735,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					 cost[0] = (long)Math.round(17*factor);
 					 cost[1] = (long) Math.round(17*factor);
 					 cost[2] = (long) Math.round(12*factor);
-					 cost[3] = (long) Math.round(24*factor); //  // need a 10, 25, 15, 30
+				//	 cost[3] = (long) Math.round(24*factor); //  // need a 10, 25, 15, 30
 					 cost[4] = -1;
 					 return cost;
 
@@ -2765,7 +2765,7 @@ public long[] returnPrice(int lotNum, int tid) {
 						 cost[0] = (long) Math.round(15*factor);
 				 cost[1] = (long) Math.round(23*factor);
 				 cost[2] = (long) Math.round(12*factor);
-				 cost[3] = (long) Math.round(20*factor);// // need a 10, 25, 15, 30
+				// cost[3] = (long) Math.round(20*factor);// // need a 10, 25, 15, 30
 				 cost[4] = -1; // These are citizens, add one to the population! This doesn't actually do anything the way I programmed it.
 				 return cost;
 
@@ -2798,7 +2798,7 @@ public long[] returnPrice(int lotNum, int tid) {
 				 cost[0] = (long) Math.round(13*factor);
 				 cost[1] = (long) Math.round(20*factor);
 				 cost[2] = (long) Math.round(20*factor);
-				 cost[3] = (long) Math.round(17*factor); // need a 10, 25, 15, 30
+			//	 cost[3] = (long) Math.round(17*factor); // need a 10, 25, 15, 30
 				 cost[4] = -1; // These are citizens, add one to the population!
 				 return cost;
 				 
@@ -2857,7 +2857,7 @@ public long[] returnPrice(int lotNum, int tid) {
 						 cost[0] = (long)Math.round(25*factor); // metal
 						 cost[1] = (long) Math.round(10*factor); // timber
 						 cost[2] = (long) Math.round(26*factor);//manmat
-						 cost[3] = (long) Math.round(9*factor); //food
+					//	 cost[3] = (long) Math.round(9*factor); //food
 						 cost[4] = -AU.getExpmod(); // // need a 10, 25, 15, 30
 						 
 						 return cost;
@@ -8959,151 +8959,90 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * UI Implemented.
 	 * This method marks unread a userSR of the ID given if it belongs to the player.
 	 */
-	public boolean markUnReadUserSR(int sid) {
+	public boolean markUnReadUserSR(UUID sid) {
 		if(prog&&!p.isAdvancedAttackAPI()) {
 			setError("You do not have the Advanced Attack API!");
 			return false;
 		}
-		try {
-			UberPreparedStatement stmt = g.con.createStatement("select * from statreports where pid = ? and sid = ? and deleted = false;");
-			stmt.setInt(1,p.ID);
-			stmt.setInt(2,sid);
-			ResultSet rs = stmt.executeQuery();
-			if(!rs.next()) {
-				setError("You do not own this stat report or it doesn't exist!");
-				rs.close();
-				stmt.close();
-				return false;
-			}
-			rs.close();
-			stmt.close();
-			stmt = g.con.createStatement("update statreports set readed = false where sid = ?;");
-			stmt.setInt(1,sid);
-			stmt.execute();
-			stmt.close();
-			
-		} catch (SQLException exc) { exc.printStackTrace(); }
-		return true;
+		UserSR m = p.getUserSR(sid);
+		if(m!=null) {
+			m.setRead(false);
+			return true;
+		} else {
+			setError("Invalid sid!");
+			return false;
+		}
 	}
 	/**
 	 * UI Implemented.
 	 * This method marks read a userSR of the ID given if it belongs to the player.
 	 */
-	public boolean markReadUserSR(int sid) {
+	public boolean markReadUserSR(UUID sid) {
 		if(prog&&!p.isAdvancedAttackAPI()) {
 			setError("You do not have the Advanced Attack API!");
 			return false;
 		}
-		try {
-			UberPreparedStatement stmt = g.con.createStatement("select * from statreports where pid = ? and sid = ? and deleted = false;");
-			stmt.setInt(1,p.ID);
-			stmt.setInt(2,sid);
-			ResultSet rs = stmt.executeQuery();
-			if(!rs.next()) {
-				setError("You do not own this stat report or it doesn't exist!");
-				rs.close();
-				stmt.close();
-				return false;
-			}
-			stmt.close();
-			rs.close();
-			stmt = g.con.createStatement("update statreports set readed = true where sid = ?;");
-			stmt.setInt(1,sid);
-			stmt.execute();
-			stmt.close();
-			
-		} catch (SQLException exc) { exc.printStackTrace(); }
-		return true;
+		UserSR m = p.getUserSR(sid);
+		if(m!=null) {
+			m.setRead(true);
+			return true;
+		} else {
+			setError("Invalid sid!");
+			return false;
+		}
 	}
 	/**
 	 * UI Implemented.
 	 * This method deletes a userSR of the ID given if it belongs to the player.
 	 */
-	public boolean deleteUserSR(int sid) {
+	public boolean deleteUserSR(UUID sid) {
 		if(prog&&!p.isAdvancedAttackAPI()) {
 			setError("You do not have the Advanced Attack API!");
 			return false;
 		}
-		try {
-			UberPreparedStatement stmt = g.con.createStatement("select * from statreports where pid = ? and sid = ? and deleted = false;");
-			stmt.setInt(1,p.ID);
-			stmt.setInt(2,sid);
-			ResultSet rs = stmt.executeQuery();
-			if(!rs.next()) {
-				setError("You do not own this stat report or it doesn't exist!");
-				rs.close();
-				stmt.close();
-				return false;
-			}
-			rs.close();
-			stmt.close();
-			stmt = g.con.createStatement("update statreports set deleted = true where sid = ?;");
-			stmt.setInt(1,sid);
-			stmt.execute();
-			stmt.close();
-			
-		} catch (SQLException exc) { exc.printStackTrace(); }
+		if(p.deleteUserSR(sid))
 		return true;
+		else {
+			setError("Invalid sid!");
+			return false;
+		}
 	}
 	/**
 	 * UI Implemented.
 	 * This method archives a userSR of the ID given if it belongs to the player.
 	 */
-	public boolean archiveUserSR(int sid) {
+	public boolean archiveUserSR(UUID sid) {
 		if(prog&&!p.isAdvancedAttackAPI()) {
 			setError("You do not have the Advanced Attack API!");
 			return false;
 		}
-		try {
-			UberPreparedStatement stmt = g.con.createStatement("select * from statreports where pid = ? and sid = ? and deleted = false;");
-			stmt.setInt(1,p.ID);
-			stmt.setInt(2,sid);
-			ResultSet rs = stmt.executeQuery();
-			if(!rs.next()) {
-				setError("You do not own this stat report or it doesn't exist!");
-				rs.close();
-				stmt.close();
-				return false;
-			}
-			rs.close();
-			stmt.close();
-			stmt = g.con.createStatement("update statreports set archived = true where sid = ?;");
-			stmt.setInt(1,sid);
-			stmt.execute();
-			stmt.close();
-			
-		} catch (SQLException exc) { exc.printStackTrace(); }
-		return true;
+		UserSR m = p.getUserSR(sid);
+		if(m!=null) {
+			m.setArchived(true);
+			return true;
+		} else {
+			setError("Invalid sid!");
+			return false;
+		}
 	}
 	/**
 	 * UI Implemented.
 	 * This method unarchives a userSR of the ID given if it belongs to the player.
 	 */
-	public boolean unarchiveUserSR(int sid) {
+	public boolean unarchiveUserSR(UUID sid) {
 		if(prog&&!p.isAdvancedAttackAPI()) {
 			setError("You do not have the Advanced Attack API!");
 			return false;
 		}
-		try {
-			UberPreparedStatement stmt = g.con.createStatement("select * from statreports where pid = ? and sid = ? and deleted = false;");
-			stmt.setInt(1,p.ID);
-			stmt.setInt(2,sid);
-			ResultSet rs = stmt.executeQuery();
-			if(!rs.next()) {
-				setError("You do not own this stat report or it doesn't exist!");
-				rs.close();
-				stmt.close();
-				return false;
-			}
-			rs.close();
-			stmt.close();
-			stmt = g.con.createStatement("update statreports set archived = false where sid = ?;");
-			stmt.setInt(1,sid);
-			stmt.execute();
-			stmt.close();
-			
-		} catch (SQLException exc) { exc.printStackTrace(); }
-		return true;
+		UserSR m = p.getUserSR(sid);
+		if(m!=null) {
+			m.setArchived(true);
+			return true;
+		} else {
+			setError("Invalid sid!");
+			return false;
+		}
+
 	}
 	/**
 	 * UI Implemented.
@@ -9115,119 +9054,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return null;
 		}
 		UserSR[] toRet;
-		ArrayList<UserSR> currSR=new ArrayList<UserSR>();
-		try {
-
-		      // First things first. We update the player table.
-		     
-		    	  
-		      
-		      UberPreparedStatement stmt = g.con.createStatement("select count(*) from statreports where pid = ?;");
-		      stmt.setInt(1,p.ID);
-	//	    ResultSet rs = stmt.executeQuery("select * from statreports where pid = " + p.ID + " ");
-		      ResultSet rs = stmt.executeQuery();
-		      	int count=0;
-		      	if(rs.next()) count = rs.getInt(1);
-		      	rs.close();
-		      	stmt.close();
-		      	if(count>GodGenerator.maxMessageLimit) {
-			      	stmt = g.con.createStatement("select sid from statreports where pid = ? order by created_at desc");
-		      		stmt.setInt(1,p.ID);
-		      		rs = stmt.executeQuery();
-		      		int counter=0;
-		      		ArrayList<Integer> toDel = new ArrayList<Integer>();
-		      		while(rs.next()) {
-		      			if(counter<GodGenerator.maxMessageLimit)
-		      			counter++;
-		      			else {
-		      				toDel.add(rs.getInt(1));
-		      			}
-		      		}
-		      		rs.close();
-		      		stmt.close();
-		      		int i = 0;
-		      		stmt = g.con.createStatement("delete from statreports where sid = ?;");
-		      		while(i<toDel.size()) {
-		      			stmt.setInt(1,toDel.get(i));
-	    	      		stmt.executeUpdate();
-	    	      		i++;
-		      		}
-		      		stmt.close();
-		      	}
-		      	stmt = g.con.createStatement("select * from statreports where pid = ? and deleted = false order by sid asc;");
-		      	stmt.setInt(1,p.ID);
-		    	rs = stmt.executeQuery(); // normal statreports.
-		    		// don't question the asc, you'd think it'd be desc but asc works! Desc doesn't!
-		    		// probably because I insert elements at the bottom...
-		    		while(rs.next())  {
-		    			
-		    		int currSID = rs.getInt(1); // search for foreign tid reports, then get their sids,
-		    		// see if we have them, and so on...
-		    		int defID = rs.getInt(3); int offID = rs.getInt(2);
-		    	/*	UberStatement stmt2 = g.con.createStatement(); // no help here, need to create it.
-		    		ResultSet town = stmt2.executeQuery("select townName from town where tid = " + defID);
-		    		// what about defenses? HOLY SHIT.
-		    		String townDef = "DATA CORRUPT-ID";
-		    		if(town.next())
-				    	 townDef = town.getString(1);
-		    		town.close();
-		    		 town = stmt2.executeQuery("select townName from town where tid = " + offID);
-			    		String townOff = "DATA CORRUPT-ID";
-			    		if(town.next())
-			    	 townOff = town.getString(1);
-		    		town.close();*/
-		    		Town t = g.findTown(defID); String townOff = "DATA CORRUPT-ID", townDef = "DATA CORRUPT-ID";
-		    		if(t!=null&&t.townID!=0) townDef  = t.getTownName();
-		    		t = g.findTown(offID);
-		    		if(t!=null&&t.townID!=0) townOff  = t.getTownName();
-
-
-			    	boolean defender = rs.getBoolean(17);
-			    	// finding out if the supporting guy got defensive or offensive is problematic.
-			    	// No guarantee it exists in a table when he reads it, so really it needs to be preserved in
-			    	// an off/def boolean.
-		    		String bombResultBldg = rs.getString(13);
-		    		String bombArray[] = UserSR.getStringArrayFromPluses(bombResultBldg);
-		    		int i = 0;
-		    		String[] bname  = new String[bombArray.length]; 
-
-		    		while(i<bombArray.length) {
-		    		if(!bombArray[i].equals("null")&&!bombArray[i].equals("vic")&&!bombArray[i].equals("nobldg")) {
-
-		    			bname[i] = bombArray[i].substring(bombArray[i].lastIndexOf(".")+1,bombArray[i].length());
-		    			bombArray[i] = bombArray[i].substring(0,bombArray[i].lastIndexOf("."));
-		    		
-		    
-		    		// so it finds the building name of the building in the slot destroyed/leveled by the bomber 
-		    		}
-		    			i++;
-		    		}
-		    		// find the name of the building.
-		 //   		ResultSet bldgType = stmt3.executeQuery("select tid ")
-//	public StatusReport(int sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, String bombResultBldg, String bombResultPpl, String btype, boolean defender) {
-		    		try {
-		    		boolean support = rs.getBoolean(15);
-		    		if(!support)
-		    		currSR.add(new UserSR(currSID,rs.getString(4),rs.getString(5),rs.getString(6),rs.getString(7),rs.getString(8),
-		    				rs.getString(9),rs.getString(38),rs.getString(39),rs.getBoolean(10),rs.getBoolean(11),rs.getBoolean(51),defender,rs.getInt(18),rs.getInt(19),
-		    				rs.getInt(20),rs.getInt(21),rs.getInt(22),rs.getBoolean(23),rs.getBoolean(24),rs.getInt(25),rs.getBoolean(26),rs.getString(28),rs.getString(29),rs.getString(30),rs.getInt(31),rs.getBoolean(32),rs.getBoolean(33),rs.getInt(34),rs.getInt(35),rs.getInt(36),rs.getInt(37),rs.getString(40),
-		    				rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49),rs.getString(50)));
-		    		else { 
-		    			bname = new String[1]; bname[0]= "null";
-		    			UserSR SR = new UserSR(currSID,rs.getString(4),rs.getString(5),"","",rs.getString(8),"",rs.getString(38),rs.getString(39),
-			    				false,rs.getBoolean(11),rs.getBoolean(51),defender,rs.getInt(18),rs.getInt(19),
-			    				rs.getInt(20),rs.getInt(21),rs.getInt(22),rs.getBoolean(23),rs.getBoolean(24),rs.getInt(25),rs.getBoolean(26),rs.getString(28),rs.getString(29),rs.getString(30),rs.getInt(31),rs.getBoolean(32),rs.getBoolean(33),rs.getInt(34),rs.getInt(35),rs.getInt(36),rs.getInt(37),rs.getString(40)
-			    				,rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49),rs.getString(50));
-		    			currSR.add(SR);
-		    			SR.support=true;
-		    			
-		    		}
-		    		} catch(Exception exc) { exc.printStackTrace(); }
-
-		    	
-		    	}
-				rs.close();
-				stmt.close();
+		ArrayList<UserSR> currSR=p.getUserSR();
+		if(currSR!=null) {
 		    	int i = 0;
 		    	toRet = new UserSR[currSR.size()];
 		    	while(i<currSR.size()) {
@@ -9237,11 +9065,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		    	
 
 		    	return toRet;
+		} else return null;
 		 
-		  } catch(SQLException exc) { exc.printStackTrace(); }
-
-		toRet = new UserSR[1];
-		return toRet;
 	}
 	/**
 	 * UI Implemented.
@@ -10787,7 +10612,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			toRet[i] = new UserTown(r,au,b,p.ID,p.getUsername(),res,resCaps,resInc,resEffects,t.getTotalEngineers(),
 					t.getTotalTraders(),t.townID,t.getTownName(),ts,tr,t.getX(),t.getY(),getCSL(t.townID),getCS(t.townID),t.isZeppelin()
-					,t.getFuelCells(),t.getDestX(),t.getDestY(),t.getTicksTillMove());
+					,t.getFuelCells(),t.getDestX(),t.getDestY(),t.getTicksTillMove(),t.getFoodConsumption());
 			}
 			i++;
 

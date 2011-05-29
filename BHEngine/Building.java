@@ -722,7 +722,7 @@ public static int baseResourceAmt = 2000;
 			cost[0] = 0;
 			cost[1] = 0;
 			cost[2] = 0;
-			cost[3] = 0;
+		//	cost[3] = 0;
 			cost[4] = 0;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
@@ -731,59 +731,59 @@ public static int baseResourceAmt = 2000;
 			cost[0] = 150;
 			cost[1] = 70;
 			cost[2] = 110;
-			cost[3] = 70;
+		//	cost[3] = 70;
 			cost[4] = 0;
 		}
 		if(type.equals("Missile Silo")) { 
 			cost[0] = 1000;
 			cost[1] = 1000;
 			cost[2] = 1000;
-			cost[3] = 1000;
+		//	cost[3] = 1000;
 			cost[4] = 0;
 		}if(type.equals("Recycling Center")) { 
 			cost[0] = 50;
 			cost[1] = 130;
 			cost[2] = 90;
-			cost[3] = 130;
+		//	cost[3] = 130;
 			cost[4] = 0;
 		}
 		if(type.equals("Foundry")) { 
 			cost[0] = 40;
 			cost[1] = 150;
 			cost[2] = 140;
-			cost[3] = 70;
+		//	cost[3] = 70;
 			cost[4] = 0;
 		}if(type.equals("Sawmill")) { 
 			cost[0] = 70;
 			cost[1] = 40;
 			cost[2] = 150;
-			cost[3] = 140;
+		//	cost[3] = 140;
 			cost[4] = 0;
 		}if(type.equals("Crystal Refinery")) { 
 			cost[0] = 140;
 			cost[1] = 70;
 			cost[2] = 40;
-			cost[3] = 150;
+		//	cost[3] = 150;
 			cost[4] = 0;
 		}if(type.equals("Hydroponics Bay")) { 
 			cost[0] = 150;
 			cost[1] = 140;
 			cost[2] = 70;
-			cost[3] = 40;
+		//	cost[3] = 40;
 			cost[4] = 0;
 		}
 		if(type.equals("Command Center")) { 
 			cost[0] = 70;
 			cost[1] = 40;
 			cost[2] = 150;
-			cost[3] = 140;
+		//	cost[3] = 140;
 			cost[4] = 0;
 		}
 		if(type.equals("Arms Factory")) {//100 100 100 100
 			cost[0] = 150;
 			cost[1] = 70;
 			cost[2] = 140;
-			cost[3] = 40;
+		//	cost[3] = 40;
 			cost[4] = 0;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
@@ -793,7 +793,7 @@ public static int baseResourceAmt = 2000;
 			cost[0] = 150;
 			cost[1] = 70;
 			cost[2] = 140;
-			cost[3] = 40;
+		//	cost[3] = 40;
 			cost[4] = 0;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
@@ -803,7 +803,7 @@ public static int baseResourceAmt = 2000;
 			cost[0] = 70;
 			cost[1] = 150;
 			cost[2] = 140;
-			cost[3] = 40;
+		//	cost[3] = 40;
 			cost[4] = 0;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 		//	peopleInside=0;
@@ -815,7 +815,7 @@ public static int baseResourceAmt = 2000;
 			cost[0] = 40;
 			cost[1] = 140;
 			cost[2] = 70;
-			cost[3] = 150;
+		//	cost[3] = 150;
 			cost[4] = 0;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			;
@@ -830,7 +830,7 @@ public static int baseResourceAmt = 2000;
 			cost[0] = 140;
 			cost[1] = 40;
 			cost[2] = 150;
-			cost[3] = 70;
+		//	cost[3] = 70;
 			cost[4] = 0;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			;
@@ -843,7 +843,7 @@ public static int baseResourceAmt = 2000;
 			cost[0] = 100;
 			cost[1] = 100;
 			cost[2] = 100;
-			cost[3] = 100;
+		//	cost[3] = 100;
 			cost[4] = 0;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			;
@@ -856,7 +856,7 @@ public static int baseResourceAmt = 2000;
 			cost[0] = 140;
 			cost[1] = 150;
 			cost[2] = 40;
-			cost[3] = 70;
+		//	cost[3] = 70;
 			cost[4] = 0;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
@@ -870,7 +870,7 @@ public static int baseResourceAmt = 2000;
 			cost[0] = 40;
 			cost[1] = 150;
 			cost[2] = 140;
-			cost[3] = 70;
+		//	cost[3] = 70;
 			cost[4] = 0;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
@@ -882,7 +882,7 @@ public static int baseResourceAmt = 2000;
 			cost[0] = 70;
 			cost[1] = 40;
 			cost[2] = 150;
-			cost[3] = 140;
+		//	cost[3] = 140;
 			cost[4] = 0;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
@@ -894,7 +894,7 @@ public static int baseResourceAmt = 2000;
 			cost[0] = 140;
 			cost[1] = 70;
 			cost[2] = 40;
-			cost[3] = 150;
+		//	cost[3] = 150;
 			cost[4] = 0;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
@@ -907,7 +907,7 @@ public static int baseResourceAmt = 2000;
 			cost[0] = 150;
 			cost[1] = 140;
 			cost[2] = 70;
-			cost[3] = 40;
+		//	cost[3] = 40;
 			cost[4] = 0;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
@@ -918,7 +918,7 @@ public static int baseResourceAmt = 2000;
 			cost[0] = 100;
 			cost[1] = 130;
 			cost[2] = 60;
-			cost[3] = 110;
+		//	cost[3] = 110;
 			cost[4] = 0;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 		
@@ -930,7 +930,7 @@ public static int baseResourceAmt = 2000;
 			cost[0] = 95;
 			cost[1] = 95;
 			cost[2] = 60;
-			cost[3] = 150;
+		//	cost[3] = 150;
 			cost[4] = 0;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
@@ -941,7 +941,7 @@ public static int baseResourceAmt = 2000;
 			cost[0] = 100;
 			cost[1] = 90;
 			cost[2] = 90;
-			cost[3] = 120;
+		//	cost[3] = 120;
 			cost[4] = 0;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			
@@ -952,7 +952,7 @@ public static int baseResourceAmt = 2000;
 			cost[0] = 95;
 			cost[1] = 95;
 			cost[2] = 100;
-			cost[3] = 110;
+		//	cost[3] = 110;
 			cost[4] = 0;
 			//ticksToFinishTotal = cost[0] + cost[1] + cost[2] + cost[3];
 			

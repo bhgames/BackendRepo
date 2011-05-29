@@ -24,6 +24,7 @@ public class Town {
 	 private GodGenerator God; private UberConnection con;
 	 private ArrayList<AttackUnit> au;
 	 private ArrayList<Building> bldg;
+	 private int influence;
 	 private int probTimer,findTime,digCounter;
 	 private int digAmt;
 	 private long res[], debris[];
@@ -1477,6 +1478,7 @@ public class Town {
 		GodGenerator.tradeServerCheck(this,p); // Not this thing.
 		GodGenerator.buildingServerCheck(this); // Not this thing
 		nukeCheck(); // Not this thing, either.
+		foodCheck();
 		try {
 		makeZeppelinFuel(num);
 		giveFuelToZeppelin(num);
@@ -1485,6 +1487,135 @@ public class Town {
 		
 		setInternalClock(getInternalClock() + num); // we only iterate after FINISHING THE SAVE!
 		if(getInternalClock()>God.gameClock) setInternalClock(God.gameClock); // means owedTicks stretches past the last server restart,
+	 }
+	 public void foodCheck() {
+		 /*
+		  * If my getPlayedTicks() is on an hour marker, then we f-ing do this shit.
+		  */
+		 double hourlyLeft = (getPlayer().getPlayedTicks())/(3600/GodGenerator.gameClockFactor);
+			hourlyLeft-=Math.round(hourlyLeft);
+			if(hourlyLeft==0) {
+				//FoodConsumption = 5*popSize*sizeMod
+				int foodConsumed = getFoodConsumption();
+			//	System.out.println(getTownName() + " has food consumption req of " + foodConsumed);
+				double sizeMod=1;
+				
+				if(foodConsumed>getRes()[3]) {
+					// shit. somebody has to die. who?
+					 
+					// CIVVIES FIRST.
+
+					int numToDie = (int) Math.round((((double) foodConsumed)-((double) getRes()[3]))/(5.0)); // number of soldiers needed.
+					long totalPop = getPop();
+				//	System.out.println(getTownName() + " needs to kill " +numToDie + " soldiers, so we start with civvies, with pop of " + totalPop);
+
+					while(numToDie>0&&totalPop>0) {
+						for(Building b: bldg()) {
+							if((b.getType().equals("Trade Center")
+									||b.getType().equals("Institute")||
+									b.getType().equals("Command Center"))&&b.getPeopleInside()>=1) {
+									b.setPeopleInside(b.getPeopleInside()-1);
+									totalPop--; // populationCheck doesn't occur until next iteration, must keep track ourselves.
+									numToDie-=2; // one civvie is worth two soldiers.
+								//	System.out.println("Killing a " + b.getType() + " unit in " + getTownName());
+							}
+						}
+					}
+				//	System.out.println("Now numToDie is " + numToDie + " in " + getTownName());
+					//now we go for units.
+						int type=1;
+						while(type<=4&&numToDie>0) { 
+							// so we start with unit type 1, and add up total soldiers,
+							// then go through each one and knock out units until we run out.
+							// if we do, then we break out of the outer loop, if we don't,
+							// we move on to tanks.
+							
+							int totalUnits = 0;
+							for(AttackUnit a:getAu()) { 
+								if(a.getType()==type)
+								totalUnits+=a.getSize();
+							}
+							while(numToDie>0&&totalUnits>0) {
+								for(AttackUnit a:getAu()) {
+									if(a.getType()==type&&a.getSize()>0) {
+										switch(type) {
+											case 1:
+												if(a.getArmorType()==4) {
+													// 4 is civvie armor
+													sizeMod=2;
+												}
+												break;
+											case 2:
+												sizeMod=.75;
+												break;
+											case 3:
+												sizeMod=.5;
+												break;
+											case 4:
+												sizeMod=.5;
+												break;
+											case 5:
+												sizeMod=0;
+												break;
+										}
+									//	System.out.println("Eating some " + a.getType() + " of name " + a.getName() + " from " + getTownName());
+										a.setSize(a.getSize()-1);
+										numToDie-=a.getExpmod()*sizeMod; // killing off one unit.
+										totalUnits--;
+									}
+								}
+								
+							}
+							type++;
+						}
+						
+					//	System.out.println("After soldiers, now numToDie is " + numToDie + " in " + getTownName());
+						// so now we have killed everybody.
+					
+					getRes()[3]=0;
+
+				} else{
+					getRes()[3]-=foodConsumed;
+				}
+				
+				
+			}
+			
+		 
+	 }
+	 
+	 public int getFoodConsumption() {
+		 int foodConsumed=0;
+			double sizeMod=1;
+			for(AttackUnit a:getAu()) {
+					switch(a.getType()) {
+					case 1:
+						if(a.getArmorType()==4) {
+							// 4 is civvie armor
+							sizeMod=2;
+						}
+						break;
+					case 2:
+						sizeMod=.75;
+						break;
+					case 3:
+						sizeMod=.5;
+						break;
+					case 4:
+						sizeMod=.5;
+						break;
+					case 5:
+						sizeMod=0;
+						break;
+					}
+				foodConsumed+=5*a.getSize()*a.getExpmod()*sizeMod;
+				//System.out.println("Adding for " + a.getName() + " which has expmod of " + a.getExpmod() + " and sizeMod of " + sizeMod + " so total addition of " + 5*a.getSize()*a.getExpmod()*sizeMod);
+			}
+			
+			sizeMod = 2;
+			foodConsumed+=5*getPop()*sizeMod;  // civilians!!!
+			//System.out.println("With a pop of " + getPop() + ", we add another " +5*getPop()*sizeMod );
+			return foodConsumed-10; // one of those civvies ain't real.
 	 }
 	 public void doMyResources(int num) {
 		 double[] resInc=getResInc();
@@ -1537,7 +1668,7 @@ public class Town {
 		 // raidSupportAU are deleted when a raid returns.
 		 // supportAU are deleted by the AU Check method when there are no further raid support AU out nor supportAU at home.
 	 try {
-		 UberPreparedStatement stmt = con.createStatement("update town set townName = ?, x = ?, y = ?, m = ?, t = ?, mm = ?, f = ?, auSizes = ?, owedTicks = ?, zeppelin = ?,  fuelcells = ?, ticksTillMove = ?, digTownID = ?, msgSent = ?, digAmt = ?, destX = ?, destY = ?, probTimer =  ?, findTime = ?, digCounter = ?, debm = ?, debt = ?, debmm = ?, debf = ? where tid = ?;");
+		 UberPreparedStatement stmt = con.createStatement("update town set townName = ?, x = ?, y = ?, m = ?, t = ?, mm = ?, f = ?, auSizes = ?, owedTicks = ?, zeppelin = ?,  fuelcells = ?, ticksTillMove = ?, digTownID = ?, msgSent = ?, digAmt = ?, destX = ?, destY = ?, probTimer =  ?, findTime = ?, digCounter = ?, debm = ?, debt = ?, debmm = ?, debf = ?, influence = ? where tid = ?;");
 		 stmt.setString(1,townName);
 		 stmt.setInt(2,x);
 		 stmt.setInt(3,y);
@@ -1562,7 +1693,8 @@ public class Town {
 		 stmt.setLong(22,getDebris()[1]);
 		 stmt.setLong(23,getDebris()[2]);
 		 stmt.setLong(24,getDebris()[3]);
-		 stmt.setInt(25,townID);
+		 stmt.setInt(25,influence);
+		 stmt.setInt(26,townID);
 
     	   	  stmt.executeUpdate();
 	    	  
@@ -3776,6 +3908,14 @@ public class Town {
 
 	public boolean getMsgSent() {
 		return msgSent;
+	}
+
+	public void setInfluence(int influence) {
+		this.influence = influence;
+	}
+
+	public int getInfluence() {
+		return influence;
 	}
 }
 

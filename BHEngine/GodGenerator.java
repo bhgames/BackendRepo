@@ -37,6 +37,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import BattlehardFunctions.BattlehardFunctions;
 import BattlehardFunctions.UserBuilding;
 import BattlehardFunctions.UserRaid;
+import BattlehardFunctions.UserSR;
 import BattlehardFunctions.UserTPR;
 import BattlehardFunctions.UserTown;
 import BattlehardFunctions.UserTrade;
@@ -4697,6 +4698,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	private ArrayList<Town> iteratorTowns;
 	public Maelstrom Maelstrom;
 	public boolean loaded=false;
+	public Hashtable territoryCache; // stores territory maps by player. 
 	public static int totalUnitPrice=70;
 	public static int unarmedAmt = 10; // The unarmed weapon which occurs when soldiers/tanks/juggers/bombers
 	// fight unarmed. Currently is 10.
@@ -4885,6 +4887,21 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		Router.compileProgram(req,out);
 	} 
 	else {
+		ArrayList<Hashtable> tp = new ArrayList<Hashtable>();
+		int x = 0;
+		while(x<10){ 
+			int y = 0;
+			while(y<10) {
+				Hashtable p = new Hashtable();
+				p.put("y",y);
+				p.put("x",x);
+				tp.add(p);
+				y++;
+			}
+			x++;
+		}
+		getPlayer(5).returnTerritory(tp);
+		out.println("Completed test.");
 		out.println(status);
 	}
 	else 
@@ -5381,6 +5398,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		}
 		
 	}
+	
 	public boolean needMoreIterators() {
 		try {
 			UberStatement stmt = con.createStatement();
@@ -6677,8 +6695,8 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			      while(!transacted) {
 			    	  
 			      try {
-					   UberPreparedStatement   stmt = t1p.God.con.createStatement("insert into statreports (defender,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,combatHeader,offTownName,defTownName) values" +
-					      		"(false,1,?,?,?,?,?,?,?,?,?,?,\"\",?,?,?,?,?);");
+					   UberPreparedStatement   stmt = t1p.God.con.createStatement("insert into statreports (defender,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,combatHeader,offTownName,defTownName,ax,ay,dx,dy,id) values" +
+					      		"(false,1,?,?,?,?,?,?,?,?,?,?,\"\",?,?,?,?,?,id);");
 					   stmt.setLong(1,m);
 					   stmt.setLong(2,t);
 					   stmt.setLong(3,mm);
@@ -6694,7 +6712,19 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 					   stmt.setString(13,combatHeader);
 					   stmt.setString(14,t1.getTownName());
 					   stmt.setString(15,t2.getTownName());
+					   stmt.setInt(16,t1.getX());
+					   stmt.setInt(17,t1.getY());
+					   stmt.setInt(18,t2.getX());
+					   stmt.setInt(19,t2.getY());
+
+					   UUID id = UUID.randomUUID();
+					   stmt.setString(20,id.toString());
 					  stmt.execute();
+					  Date today = new Date();
+					  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+					//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
+					  t1p.addUserSR(new UserSR(id,auoffst,auofffi,audefst,"",auoffnames,audefnames,t1.getTownName(),t2.getTownName(),false,false,false,false,(int) m,(int)t,(int)mm,(int)f,
+							  1,false,false,0,false,combatHeader,today.toString(),holdAttack.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,false,false,"none"));
 			     // stmt.execute("insert into statreports (defender,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,combatHeader,offTownName,defTownName) values" +
 			      	//	"(false," + 1 + "," + m + "," + t + "," + mm + "," + f +","
 			      	//	+ t1p.ID + ","+ t1.townID + "," + t2.townID + ",\"" + auoffst + "\",\"" + auofffi + "\",\"" 
@@ -6821,8 +6851,8 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 						unitStart+=","+t2.getDigAmt();
 						unitNames+=",Scholar";
 						unitEnd+=",0";
-						stmt = God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,offdig,defdig) values" +
-						      		"(?,?,?,?,?,?,?,?,?,?,?,?,'The dig site was inhabited by an armed force, so the dig could not begin.',true,true);");
+						stmt = God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,offdig,defdig,ax,ay,dx,dy,id) values" +
+						      		"(?,?,?,?,?,?,?,?,?,?,?,?,'The dig site was inhabited by an armed force, so the dig could not begin.',true,true,?,?,?,?,?);");
 						stmt.setInt(1,t1.getPlayer().ID);
 						stmt.setInt(2,t1.townID);
 						stmt.setInt(3,t2.townID);
@@ -6835,10 +6865,23 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 						stmt.setLong(10,r.getFood());
 						stmt.setString(11,t1.getTownName());
 						stmt.setString(12,t2.getTownName());
+						stmt.setInt(13,t1.getX());
+						stmt.setInt(14,t1.getY());
+						stmt.setInt(15,t2.getX());
+						stmt.setInt(16,t2.getY());
+
+						UUID id = UUID.randomUUID();
+						stmt.setString(17,id.toString());
 
 						 stmt.execute();
 						 stmt.close();
-						
+						 Date today = new Date();
+						  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
+						 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+							//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
+							  t1.getPlayer().addUserSR(new UserSR(id,unitStart,unitEnd,null,null,unitNames,null,t1.getTownName(),t2.getTownName(),false,false,false,false,(int)r.getMetal(),(int) r.getTimber(),(int)r.getManmat(),(int)r.getFood(),
+									  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,true,true,"The dig site was inhabited by an armed force, so the dig could not begin."));
+				
 						r.setRaidOver(true);
 						r.setTicksToHit(r.getTotalTicks());
 					}
@@ -6864,8 +6907,8 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 						unitStart+=","+r.getDigAmt();
 						unitNames+=",Scholar";
 						unitEnd+=",0";
-						stmt = God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,offdig,defdig) values" +
-			      		"(?,?,?,?,?,?,?,?,?,?,?,?,'The defensive dig site was forcibly overtaken by an enemy dig party.',true,true);");
+						stmt = God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,offdig,defdig,ax,ay,dx,dy,id) values" +
+			      		"(?,?,?,?,?,?,?,?,?,?,?,?,'The defensive dig site was forcibly overtaken by an enemy dig party.',true,true,?,?,?,?,?);");
 								stmt.setInt(1,otherT.getPlayer().ID);
 								stmt.setInt(2,t1.townID);
 								stmt.setInt(3,t2.townID);
@@ -6878,9 +6921,23 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 								stmt.setLong(10,r.getFood());
 								stmt.setString(11,t1.getTownName());
 								stmt.setString(12,t2.getTownName());
+								stmt.setInt(13,t1.getX());
+								stmt.setInt(14,t1.getY());
+								stmt.setInt(15,t2.getX());
+								stmt.setInt(16,t2.getY());
+
+								UUID id = UUID.randomUUID();
+								stmt.setString(17,id.toString());
 					
 								 stmt.execute();
 								 stmt.close();
+								 Date today = new Date();
+								  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
+								 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+									//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
+									  t1.getPlayer().addUserSR(new UserSR(id,unitStart,unitEnd,null,null,unitNames,null,t1.getTownName(),t2.getTownName(),false,false,false,false,(int)r.getMetal(),(int)r.getTimber(),(int)r.getManmat(),(int)r.getFood(),
+											  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,true,true,"The defensive dig site was forcibly overtaken by an enemy dig party."));
+						
 						
 						
 					
@@ -7336,7 +7393,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		
 		
 		      stmt.close();
-		      stmt = t1p.God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,offTownName,defTownName,support,offdig) values (?,?,?,?,?,?,?,?,true,?);");
+		      stmt = t1p.God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,offTownName,defTownName,support,offdig,ax,ay,dx,dy,id) values (?,?,?,?,?,?,?,?,true,?,?,?,?,?,?);");
 		      stmt.setInt(1,t1p.ID);
 		      stmt.setInt(2, t1.townID);
 		      stmt.setInt(3,t2.townID);
@@ -7350,8 +7407,22 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		      boolean offdig = false;
 		      if(actattack.getDigAmt()>0) offdig=true;
 		      stmt.setBoolean(9,offdig);
+		      stmt.setInt(10,t1.getX());
+		      stmt.setInt(11,t1.getY());
+		      stmt.setInt(12,t2.getX());
+		      stmt.setInt(13,t2.getY());
+
+		      UUID id=UUID.randomUUID();
+		      stmt.setString(14,id.toString());
 
 		//      System.out.println("I am making a support report.");
+		      Date today = new Date();
+			  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
+			 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+				//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
+				  t1.getPlayer().addUserSR(new UserSR(id,supportUnitsGained,supportUnitsReturned,null,null,supportUnitNames,null,t1.getTownName(),t2.getTownName(),false,false,false,false,0,0,0,0,
+						  0,false,false,0,false,"No data on this yet.",today.toString(),actattack.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,offdig,false,"none"));
+	
 		      if(!suppressSR) {
 		    	  
 		    	  
@@ -7359,6 +7430,11 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		      }
 		      if(t2p.ID!=t1p.ID&&!suppressSR) {
 		    	  stmt.setInt(1,t2p.ID);
+		    	  id = UUID.randomUUID();
+		    	  stmt.setString(14,id.toString());
+		    	  t2.getPlayer().addUserSR(new UserSR(id,supportUnitsGained,supportUnitsReturned,null,null,supportUnitNames,null,t1.getTownName(),t2.getTownName(),false,false,false,false,0,0,0,0,
+						  0,false,false,0,false,"No data on this yet.",today.toString(),actattack.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,offdig,false,"none"));
+	
 		    	  stmt.execute();
 		      }
 		      stmt.close(); transacted=true;
@@ -7708,7 +7784,7 @@ public static boolean debrisLogicBlock(Raid r) {
 		r.setTicksToHit(r.getTotalTicks());
 		r.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",r.getTown1().getPlayer().getPs().b.getUserRaid(r.getId()));
 
-		UberPreparedStatement stmt = r.getTown1().getPlayer().God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,debris,id) values (?,?,?,?,?,?,?,?,?,?,?,?,true,?);");
+		UberPreparedStatement stmt = r.getTown1().getPlayer().God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,debris,ax,ay,dx,dy,id) values (?,?,?,?,?,?,?,?,?,?,?,?,true,?,?,?,?,?);");
 		stmt.setInt(1,t1p.ID);
 		stmt.setInt(2,t1.townID);
 		stmt.setInt(3,t2.townID);
@@ -7720,11 +7796,22 @@ public static boolean debrisLogicBlock(Raid r) {
 		stmt.setLong(9,r.getManmat());
 		stmt.setLong(10,r.getFood());
 		stmt.setString(11,t1.getTownName());
+		stmt.setInt(12,t1.getX());
+		stmt.setInt(13,t1.getY());
+		stmt.setInt(14,t2.getX());
+		stmt.setInt(15,t2.getY());
+
 		UUID id = UUID.randomUUID();
-		stmt.setString(12,id.toString());
+		stmt.setString(16,id.toString());
 		
 		 stmt.execute();
-		   
+		 Date today = new Date();
+		  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
+		 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+			//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
+			  t1.getPlayer().addUserSR(new UserSR(id,unitStart,unitEnd,null,null,unitEnd,null,t1.getTownName(),t2.getTownName(),false,false,false,false,(int) r.getMetal(),(int) r.getTimber(),(int) r.getManmat(),(int) r.getFood(),
+					  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,true,false,false,false,false,"none"));
+
 		   stmt.close();
 		
 	}catch(SQLException exc) { exc.printStackTrace(); }
@@ -9561,7 +9648,7 @@ public boolean checkForGenocides(Town t) {
 					  if(raidType.equals("invasion")) invade = true;
 					  if(raidType.equals("scout")) scout = 2; // means failed scouting.
 					  try {
-				  stmt =t1p.con.createStatement("insert into statreports (invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,combatdata,combatheader,bp,premium,ax,ay,dx,dy,offTownName,defTownName,zeppText,debm,debt,debmm,debf,offdig,defdig,digMessage,bomb,defender) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
+				  stmt =t1p.con.createStatement("insert into statreports (invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,combatdata,combatheader,bp,premium,ax,ay,dx,dy,offTownName,defTownName,zeppText,debm,debt,debmm,debf,offdig,defdig,digMessage,bomb,defender,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
 				  int offbp=0,defbp=0;
 				  if(percentlossdiff<0) { defbp=bp; offbp=bp/2;} else {offbp=bp; defbp=bp/2;} // >-30 means that positive means incoming won,
 				  // so we know what to set!
@@ -9590,13 +9677,16 @@ public boolean checkForGenocides(Town t) {
 				  stmt.setString(26,t1.getTownName());
 				  stmt.setString(27,t2.getTownName());
 				  stmt.setString(28,zeppText);
-
+				  Date today = new Date();
 				  stmt.setBoolean(33,offdig);
 				  stmt.setBoolean(34,defdig);
 				  stmt.setString(35,digMessage);
 				  stmt.setBoolean(36,bomb);
 				  stmt.setBoolean(37,false);
-				  
+				  UUID id = UUID.randomUUID();
+				  stmt.setString(38,id.toString());
+				  UserSR offSR = null;
+				  UserSR defSR=null;
 				 if(percentlossdiff>(-30)) { 
 					  stmt.setString(16,defNames);
 					  stmt.setString(19,combatHeader);
@@ -9607,12 +9697,14 @@ public boolean checkForGenocides(Town t) {
 					  stmt.setLong(31,totalCost[2]);
 					  stmt.setLong(32,totalCost[3]);
 					  stmt.execute();
-				//  stmt.execute("insert into statreports (defender,invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,combatdata,combatheader,bp,premium,ax,ay,dx,dy,offTownName,defTownName,zeppText,debm,debt,debmm,debf,offdig,defdig,digMessage,bomb) values" +
-				  //		"(false," + invade + "," + invsucc + "," + scout + "," + actattack.getMetal() + "," + actattack.getTimber() + "," +actattack.getManmat() + "," + actattack.getFood() +","
-				  	//	+ t1p.ID + ","+ t1.townID + "," + t2.townID + ",\"" + offUnitsBefore + "\",\"" + offUnitsAfter + "\",\"" 
-				  	//	+ defUnitsBefore + "\",\"" + defUnitsAfter +"\",\""+ offNames + "\",\"" + defNames + "\"," +genocide + ",\""
-				  	//	+ combatData + "\",'" + combatHeader + "'," + offbp + "," + premium + ","+t1.getX()+","+t1.getY()+","+t2.getX()+","+t2.getY()+",'"+t1.getTownName()+"','"+t2.getTownName()+"','"+zeppText+"',"+totalCost[0]+","+totalCost[1]+","+totalCost[2]+","+totalCost[3]+","+offdig+","+defdig+",'"+digMessage+"',"+bomb+");");
-				  }
+					  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
+					 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+						//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
+						offSR = new UserSR(id,offUnitsBefore,offUnitsAfter,defUnitsBefore,defUnitsAfter,offNames,defNames,t1.getTownName(),t2.getTownName(),genocide,false,bomb,false,(int) actattack.getMetal(),(int) actattack.getTimber(),(int) actattack.getManmat(),(int) actattack.getFood(),
+								  actattack.getScout(),invade,invsucc,0,false,combatHeader,today.toString(),actattack.getName(),offbp,premium,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),zeppText,(int) totalCost[0],(int) totalCost[1],(int) totalCost[2],(int) totalCost[3],false,false,false,offdig,defdig,digMessage);
+
+					  t1.getPlayer().addUserSR(offSR);
+				 }
 				  else {
 					  stmt.setString(16,",???,???,???,???,???,???");
 					  stmt.setString(19,"No data is available due to your being pwned.'");
@@ -9623,14 +9715,15 @@ public boolean checkForGenocides(Town t) {
 					  stmt.setLong(31,0);
 					  stmt.setLong(32,0);
 					  stmt.execute();
-					  
-				
+					  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
+						 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+							//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
+							
+					  	offSR = new UserSR(id,offUnitsBefore,offUnitsAfter,",0,0,0,0,0,0",",0,0,0,0,0,0",offNames,",???,???,???,???,???,???",t1.getTownName(),t2.getTownName(),genocide,false,bomb,false,(int) actattack.getMetal(),(int) actattack.getTimber(),(int) actattack.getManmat(),(int) actattack.getFood(),
+								  actattack.getScout(),invade,invsucc,0,false,combatHeader,today.toString(),actattack.getName(),offbp,premium,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),zeppText,0,0,0,0,false,false,false,offdig,defdig,digMessage);
+					  	t1.getPlayer().addUserSR(offSR);
 
-					 // stmt.execute("insert into statreports (defender,invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,combatdata,combatheader,bp,ax,ay,dx,dy,offTownName,defTownName,zeppText,offdig,defdig,digMessage,bomb) values" +
-					   ///   		"(false," + invade + "," + invsucc + "," + scout + "," + actattack.getMetal() + "," + actattack.getTimber() + "," +actattack.getManmat() + "," + actattack.getFood() +","
-					  //    		+ t1p.ID + ","+ t1.townID + "," + t2.townID + ",\"" + offUnitsBefore + "\",\"" + offUnitsAfter + "\",\"" 
-					   //   		+ ",0,0,0,0,0,0" + "\",\"" + ",0,0,0,0,0,0" +"\",\""+ offNames + "\",\"" + ",???,???,???,???,???,???" + "\"," + genocide + ",'" + combatData + "','" + "No data is available due to your being pwned.'" +","+offbp+ ","+t1.getX()+","+t1.getY()+","+t2.getX()+","+t2.getY()+",'"+t1.getTownName()+"','"+t2.getTownName()+"','"+zeppText+"'"+","+offdig+","+defdig+",'"+digMessage+"',"+bomb+");");
-				  
+					
 					  
 				  }
 				 int o =0;
@@ -9658,17 +9751,13 @@ public boolean checkForGenocides(Town t) {
 				  while(o<holdForP.size()) {
 					 // System.out.println("my percentlossdiff is " + percentlossdiff);
 					  stmt.setInt(8,holdForP.get(o).ID);
+					  id = UUID.randomUUID();
+					  stmt.setString(38,id.toString());
+
 					  stmt.execute();
-					  /*   if(percentlossdiff>-30) {
-				     stmt.execute("insert into statreports (defender,invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,combatdata,combatheader,ax,ay,dx,dy,offTownName,defTownName,zeppText,debm,debt,debmm,debf,offdig,defdig,digMessage,bomb) values" +
-					      		"(false,"+ invade + "," + invsucc + "," +scout + ","+ actattack.getMetal() + "," + actattack.getTimber() + "," +actattack.getManmat() + "," + actattack.getFood() +"," + holdForP.get(o).ID + ","+ t1.townID + "," + t2.townID + ",\"" + offUnitsBefore + "\",\"" + offUnitsAfter + "\",\"" 
-					      		+ defUnitsBefore + "\",\"" + defUnitsAfter +"\",\""+ offNames + "\",\"" + defNames + "\"," + genocide + ",'" + combatData + "','" + combatHeader + "'"+ ","+t1.getX()+","+t1.getY()+","+t2.getX()+","+t2.getY()+",'"+t1.getTownName()+"','"+t2.getTownName()+"','"+zeppText+"',"+totalCost[0]+","+totalCost[1]+","+totalCost[2]+","+totalCost[3]+","+offdig+","+defdig+",'"+digMessage +"',"+bomb+");");
-					  } else {
-				    	  stmt.execute("insert into statreports (defender,invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,combatdata,combatheader,ax,ay,dx,dy,offTownName,defTownName,zeppText,debm,debt,debmm,debf,offdig,defdig,digMessage,bomb) values" +
-						      		"(false," + invade + "," + invsucc + "," + scout + "," + actattack.getMetal() + "," + actattack.getTimber() + "," +actattack.getManmat() + "," + actattack.getFood() +","
-						      		+ holdForP.get(o).ID+ ","+ t1.townID + "," + t2.townID + ",\"" + offUnitsBefore + "\",\"" + offUnitsAfter + "\",\"" 
-						      		+ ",0,0,0,0,0,0" + "\",\"" + ",0,0,0,0,0,0" +"\",\""+ offNames + "\",\"" + ",???,???,???,???,???,???" + "\"," + genocide + ",'"+ combatData + "','" + "No data is available due to your being pwned." + "'"+ ","+t1.getX()+","+t1.getY()+","+t2.getX()+","+t2.getY()+",'"+t1.getTownName()+"','"+t2.getTownName()+"','"+zeppText+"',"+totalCost[0]+","+totalCost[1]+","+totalCost[2]+","+totalCost[3]+","+offdig+","+defdig+",'"+digMessage+"',"+bomb+");");
-					  }*/
+					 offSR.id=id;
+					 holdForP.get(o).addUserSR(offSR.clone());
+
 					  o++;
 				  }
 				  
@@ -9685,7 +9774,17 @@ public boolean checkForGenocides(Town t) {
 				  }
 				 stmt.setInt(8,t2pid);
 				 stmt.setInt(20,defbp);
-				 stmt.setBoolean(36,false);
+				  stmt.setBoolean(37,true);
+
+				 id = UUID.randomUUID();
+				  stmt.setString(38,id.toString());
+				  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
+					 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+						//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
+				
+				  defSR = new UserSR(id,offUnitsBefore,offUnitsAfter,defUnitsBefore,defUnitsAfter,offNames,defNames,t1.getTownName(),t2.getTownName(),genocide,false,bomb,true,(int) actattack.getMetal(),(int) actattack.getTimber(),(int) actattack.getManmat(),(int) actattack.getFood(),
+						  actattack.getScout(),invade,invsucc,0,false,combatHeader,today.toString(),actattack.getName(),defbp,premium,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),zeppText,(int) totalCost[0],(int) totalCost[1],(int) totalCost[2],(int) totalCost[3],false,false,false,offdig,defdig,digMessage);
+				  t2p.addUserSR(defSR);
 				 stmt.execute();
 				 
    //  stmt.execute("insert into statreports (defender,invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,combatdata,combatheader,bp,premium,ax,ay,dx,dy,offTownName,defTownName,zeppText,debm,debt,debmm,debf,offdig,defdig,digMessage,bomb) values" +
@@ -9720,6 +9819,10 @@ public boolean checkForGenocides(Town t) {
 				  o = 0;
 				  while(o<holdForP.size()) {
 					  stmt.setInt(8,holdForP.get(o).ID);
+					  id = UUID.randomUUID();
+					  stmt.setString(38,id.toString());
+					  defSR.id=id;
+					  holdForP.get(o).addUserSR(defSR.clone());
 					  stmt.execute();
 				   //   stmt.execute("insert into statreports (defender,invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,bombbldgdata,bombppldata,combatdata,combatheader,ax,ay,dx,dy,offTownName,defTownName,zeppText,debm,debt,debmm,debf,offdig,defdig,digMessage) values" +
 					 //     		"(true,"+ invade + "," + invsucc + "," +scout + ","+  holdAttack.resources()[0] + "," + holdAttack.resources()[1] + "," + holdAttack.resources()[2] + "," + holdAttack.resources()[3] +"," + holdForP.get(o).ID + ","+ t1.townID + "," + t2.townID + ",\"" + offUnitsBefore + "\",\"" + offUnitsAfter + "\",\"" 
@@ -9934,7 +10037,7 @@ public boolean checkForGenocides(Town t) {
 						String unitStart=""; String unitNames="";String unitEnd="";
 						 k = 0;
 						Player t1p = r.getTown1().getPlayer();
-						UberPreparedStatement stmt = t1.getPlayer().con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,offdig,defdig) values (?,?,?,?,?,?,?,?,?,?,?,?,'The defensive dig site was forced out of their dig by an enemy attack.',false,true);");
+						UberPreparedStatement stmt = t1.getPlayer().con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,offdig,defdig,id) values (?,?,?,?,?,?,?,?,?,?,?,?,'The defensive dig site was forced out of their dig by an enemy attack.',false,true,?);");
 						Town t2 = r.getTown2();
 						while(k<r.getAu().size()) {
 							unitStart+=","+r.getAu().get(k).getSize();
@@ -9955,8 +10058,17 @@ public boolean checkForGenocides(Town t) {
 						stmt.setLong(10,r.getFood());
 						stmt.setString(11,t1.getTownName());
 						stmt.setString(12,t2.getTownName());
-						
+						UUID id  =UUID.randomUUID();
+						  stmt.setString(13,id.toString());
+
 						 stmt.execute();
+						   Date today = new Date();
+							  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
+							 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+								//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
+								  otherT.getPlayer().addUserSR(new UserSR(id,unitStart,unitEnd,null,null,unitNames,null,t1.getTownName(),t2.getTownName(),false,false,false,false,(int) r.getMetal(),(int) r.getFood(),(int) r.getManmat(),(int) r.getFood(),
+										  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,false,true,"The defensive dig site was forced out of their dig by an enemy attack."));
+					
 						   
 					stmt.close();
 					} catch(SQLException exc) {  exc.printStackTrace(); } 

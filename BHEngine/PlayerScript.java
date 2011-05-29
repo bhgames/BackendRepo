@@ -1971,9 +1971,9 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     	 		 ||holdCmd.equals("bf.setVersion")||holdCmd.equals("bf.getCacheEffectToString")) {
     		 //int
     		 if(holdCmd.equals("bf.deleteUserSR"))
-    			 toRet+=b.deleteUserSR(Integer.parseInt(holdPart));
+    			 toRet+=b.deleteUserSR(UUID.fromString(holdPart));
     		 else if(holdCmd.equals("bf.markReadUserSR")) 
-    			 toRet+=b.markReadUserSR(Integer.parseInt(holdPart));
+    			 toRet+=b.markReadUserSR(UUID.fromString(holdPart));
     		 else if(holdCmd.equals("bf.getCacheEffectToString")) 
     			 toRet+=b.getCacheEffectToString(Integer.parseInt(holdPart));
     		 else if(holdCmd.equals("bf.pingQuest")) 
@@ -1985,15 +1985,15 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     		 else if(holdCmd.equals("bf.setVersion")) 
     			 toRet+=b.setVersion(holdPart);
     		 else if(holdCmd.equals("bf.markUnReadUserSR")) 
-    			 toRet+=b.markUnReadUserSR(Integer.parseInt(holdPart));
+    			 toRet+=b.markUnReadUserSR(UUID.fromString(holdPart));
     		 else if(holdCmd.equals("bf.abortAirship"))
     			 toRet+=b.abortAirship(Integer.parseInt(holdPart));
     		 else if(holdCmd.equals("bf.offloadResources"))
     			 toRet+=b.offloadResources(Integer.parseInt(holdPart));
     		 else if(holdCmd.equals("bf.archiveUserSR"))
-    			 toRet+=b.archiveUserSR(Integer.parseInt(holdPart));
+    			 toRet+=b.archiveUserSR(UUID.fromString(holdPart));
     		 else if(holdCmd.equals("bf.unarchiveUserSR"))
-    			 toRet+=b.unarchiveUserSR(Integer.parseInt(holdPart));
+    			 toRet+=b.unarchiveUserSR(UUID.fromString(holdPart));
     		 else if(holdCmd.equals("bf.cancelTradeSchedule"))
     			 toRet+=b.cancelTradeSchedule(UUID.fromString(holdPart));
     		 else if(holdCmd.equals("bf.joinQuest")) {

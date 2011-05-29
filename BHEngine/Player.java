@@ -395,7 +395,7 @@ public class Player  {
 			
 	}
 	 public ArrayList<UserMessagePack> getMessages() {
-		 if(currMessages!=null) {
+		 if(currMessages==null) {
 		// return all messages.
 				UserMessagePack umpPiece; UserMessage m;
 				ArrayList<UserMessagePack> ump = new ArrayList<UserMessagePack>();
@@ -523,66 +523,234 @@ public class Player  {
 		 
 		 return currMessages;
 	 }
+	 public void territoryCalculator() {
+			/*
+			 * This guy calculates territories for the map, as a series of hashtables.
+			 * Then it stores these hashes by player in God's table, so each player has a ArrayList of Hashtables,
+			 * each Hashtable entry representing a territory they own. These player-ArrayLists are then
+			 * stored in the territory cache for easy plucking by the world map function.
+			 * 
+			 * First, territories are calculated for each town as a separate shard. We don't worry about
+			 * overlaps yet. To grab the blocks adjacent to blocks you already possess, the farthest of which is at Y-1 distance,
+			 * you must have 
+			 * 
+			 * influence = 10(2.5y^2)
+			 * 
+			 * 
+			 *  Then, at spots where overlap occurs, ownership is calculated by finding the person who has the most influence on that tile,
+			 * the influence given as a Sum(townInfluence/town_r^2) for the person, where town_r is the distance
+			 * from that point to the town. Players will no longer be placed in areas where their territorial
+			 * strength would not beat that of a nearby player. This will have to be precalculated in player creation.
+									  {
+							
+							owner : "SomeGuy"
+							start : [6,2]
+							sides : [-3, -3, 3, 3]
+							}
+				
+				So corner 1 is 3,2
+				 corner 2 is 3,-1
+				  corner 3 is 6,-1
+				  corner 4 is 6,2
+
+
+				Finally, territorial overlaps between the same player will be combined.
+				
+			 
+			 */
+			
+			Hashtable townPointLists = new Hashtable(); // holds the points each town possesses before
+			// transformation into territory lists.
+
+			for(Town t: towns()) {
+				// so first we add influence.
+				t.setInfluence(t.getInfluence()+t.getPlayer().getPs().b.getCSL(t.townID));
+				
+				// now we calculate to see what the max block this guy should have is.
+				
+				int maxR = (int) Math.round(Math.sqrt(t.getInfluence()/20.5));
+				
+				/*
+				 * Now we need to figure out the "boundaries" of the parcel. What I suggest is starting with the point -maxR,maxR
+				 * relative to the town, and scanning down the square, picking up everything that is within a distance maxR of the
+				 * town. So we carve a circle out and store the points in like an arraylist.
+				 */
+				ArrayList<Hashtable> points = new ArrayList<Hashtable>();
+				Hashtable pt;
+				int startX = t.getX()-maxR;
+				while(startX<=t.getX()+maxR) {
+					int startY = t.getY()+maxR;
+					while(startY>=t.getY()-maxR) {
+						double dist = Math.sqrt(Math.pow((t.getX()-startX),2)+Math.pow((t.getY()-startY),2));
+						if(dist<=maxR) {
+							pt = new Hashtable();
+							pt.put("x",startX);
+							pt.put("y",startY);
+							points.add(pt);
+						}
+						startY++;
+					}
+					startX++;
+				}
+				
+				townPointLists.put(t.townID,points);
+				
+				
+				
+			}
+			
+			// now we must check out conflicting territorial boundaries...
+			// if one of their edges is inside our edges.
+			
+			for(Town t: towns()) {
+				ArrayList<Hashtable> points = (ArrayList<Hashtable>) townPointLists.get(t.townID);
+				
+				
+				ArrayList<Hashtable> r = (ArrayList<Hashtable>) getPs().b.getWorldMap().get("townHash");
+				
+				// Presumably, the world map will gather territories that matter and send them down!
+				for(Hashtable h:r) {
+					
+					
+					
+				}
+			}
+			
+		}
+	 
+	 public Hashtable returnTerritory(ArrayList<Hashtable> points) {
+		 
+		 /*
+		  * This method takes an assemblage of points and returns a polygon out of it.
+		  * It does this:
+		  * 
+		  *  {
+							
+							owner : "SomeGuy"
+							start : [6,2]
+							sides : [-3, -3, 3, 3]
+							}
+				
+				So corner 1 is 3,2
+				 corner 2 is 3,-1
+				  corner 3 is 6,-1
+				  corner 4 is 6,2
+
+			It does this by finding the farthest point in the +x,+y direction as a starting "corner", which is
+			just any point that has the highest x and highest y.
+
+		  */
+		 
+		 ArrayList<Hashtable> borders = giftWrapping(points);
+		 for(Hashtable p:borders) {
+			 System.out.println("x: "+( (Integer) p.get("x")) + " y: "+( (Integer) p.get("y")));
+		 }
+		 
+		 return null;
+	 }
+	 private ArrayList<Hashtable> giftWrapping(ArrayList<Hashtable> points)
+	 	{
+				// random
+				 
+				 int xPoints[] = new int[points.size()];
+				 int yPoints[] = new int[points.size()];
+				 int xPoints2[] = new int[points.size()];
+				 int yPoints2[] = new int[points.size()];
+				 int c = 0;
+				 for(Hashtable r: points) {
+					 xPoints[c] = (Integer) r.get("x");
+					 yPoints[c] = (Integer) r.get("y");
+					 c++;
+				 }
+				
+				// convex hull
+				int min = 0;
+				for ( int i = 1; i < points.size(); i++ ) {
+				    if ( yPoints[i] == yPoints[min] ) {
+					if ( xPoints[i] < xPoints[min] )
+					    min = i;
+				    }
+				    else if ( yPoints[i] < yPoints[min] )
+					min = i;
+				}
+				//System.out.println("min: " + min);
+		
+				int	num = 0;
+				int smallest;
+				int current = min;
+				do {
+				    xPoints2[num] = xPoints[current];
+				    yPoints2[num] = yPoints[current];
+				    num++;
+				    //System.out.println("num: " + num + ", current: " + current + "(" + xPoints[current] + ", " + yPoints[current] + ")");
+				    smallest = 0;
+				    if ( smallest == current )
+					smallest = 1;
+				    for ( int i = 0; i < points.size(); i++ ) {
+					if ( ( current == i ) || ( smallest == i ) )
+					    continue;
+					if ( small(current, smallest, i,xPoints,yPoints))
+					    smallest = i;
+				    }
+				    current = smallest;
+				} while ( current != min );
+				
+				c = 0;ArrayList<Hashtable> toRet = new ArrayList<Hashtable>();
+				Hashtable toAdd;
+				while(c<yPoints2.length) {
+					toAdd = new Hashtable();
+					toAdd.put("x",xPoints2[c]);
+					toAdd.put("y",yPoints2[c]);
+					toRet.add(toAdd);
+					c++;
+				}
+				
+				return toRet;
+				
+		 }
+
+	    private boolean small(int current, int smallest, int i, int[] xPoints, int[] yPoints)
+	    {int xa, ya, xb, yb, val;
+		xa = xPoints[smallest] - xPoints[current];
+		xb = xPoints[i] - xPoints[current];
+		ya = yPoints[smallest] - yPoints[current];
+		yb = yPoints[i] - yPoints[current];
+		
+		val = xa * yb - xb * ya;
+		if ( val > 0 )
+		    return true;
+		else if ( val < 0 )
+		    return false;
+		else {
+		    if ( xa * xb + ya * yb < 0 )
+			return false;
+		    else {
+			if ( xa * xa + ya * ya > xb * xb + yb * yb )
+			    return true;
+			else
+			    return false;
+		    }
+		}
+}
 	public ArrayList<UserSR> getUserSR() {
-	  	  
-	      
-	      UberPreparedStatement stmt = g.con.createStatement("select count(*) from statreports where pid = ?;");
-	      stmt.setInt(1,p.ID);
-//	    ResultSet rs = stmt.executeQuery("select * from statreports where pid = " + p.ID + " ");
-	      ResultSet rs = stmt.executeQuery();
-	      	int count=0;
-	      	if(rs.next()) count = rs.getInt(1);
-	      	rs.close();
-	      	stmt.close();
-	      	if(count>GodGenerator.maxMessageLimit) {
-		      	stmt = g.con.createStatement("select sid from statreports where pid = ? order by created_at desc");
-	      		stmt.setInt(1,p.ID);
-	      		rs = stmt.executeQuery();
-	      		int counter=0;
-	      		ArrayList<Integer> toDel = new ArrayList<Integer>();
-	      		while(rs.next()) {
-	      			if(counter<GodGenerator.maxMessageLimit)
-	      			counter++;
-	      			else {
-	      				toDel.add(rs.getInt(1));
-	      			}
-	      		}
-	      		rs.close();
-	      		stmt.close();
-	      		int i = 0;
-	      		stmt = g.con.createStatement("delete from statreports where sid = ?;");
-	      		while(i<toDel.size()) {
-	      			stmt.setInt(1,toDel.get(i));
-  	      		stmt.executeUpdate();
-  	      		i++;
-	      		}
-	      		stmt.close();
-	      	}
-	      	stmt = g.con.createStatement("select * from statreports where pid = ? and deleted = false order by sid asc;");
-	      	stmt.setInt(1,p.ID);
-	    	rs = stmt.executeQuery(); // normal statreports.
+	  	  if(currSRs==null) {
+	      try{
+	     
+	    
+	      	UberPreparedStatement stmt = con.createStatement("select * from statreports where pid = ? and deleted = false order by sid asc;");
+	      	stmt.setInt(1,ID);
+	    	ResultSet rs = stmt.executeQuery(); // normal statreports.
 	    		// don't question the asc, you'd think it'd be desc but asc works! Desc doesn't!
 	    		// probably because I insert elements at the bottom...
 	    		while(rs.next())  {
 	    			
-	    		int currSID = rs.getInt(1); // search for foreign tid reports, then get their sids,
+	    		UUID currSID = UUID.fromString(rs.getString(1)); // search for foreign tid reports, then get their sids,
 	    		// see if we have them, and so on...
 	    		int defID = rs.getInt(3); int offID = rs.getInt(2);
-	    	/*	UberStatement stmt2 = g.con.createStatement(); // no help here, need to create it.
-	    		ResultSet town = stmt2.executeQuery("select townName from town where tid = " + defID);
-	    		// what about defenses? HOLY SHIT.
-	    		String townDef = "DATA CORRUPT-ID";
-	    		if(town.next())
-			    	 townDef = town.getString(1);
-	    		town.close();
-	    		 town = stmt2.executeQuery("select townName from town where tid = " + offID);
-		    		String townOff = "DATA CORRUPT-ID";
-		    		if(town.next())
-		    	 townOff = town.getString(1);
-	    		town.close();*/
-	    		Town t = g.findTown(defID); String townOff = "DATA CORRUPT-ID", townDef = "DATA CORRUPT-ID";
+	    
+	    		Town t = God.findTown(defID); String townOff = "DATA CORRUPT-ID", townDef = "DATA CORRUPT-ID";
 	    		if(t!=null&&t.townID!=0) townDef  = t.getTownName();
-	    		t = g.findTown(offID);
+	    		t = God.findTown(offID);
 	    		if(t!=null&&t.townID!=0) townOff  = t.getTownName();
 
 
@@ -612,7 +780,7 @@ public class Player  {
 	    		try {
 	    		boolean support = rs.getBoolean(15);
 	    		if(!support)
-	    		currSR.add(new UserSR(currSID,rs.getString(4),rs.getString(5),rs.getString(6),rs.getString(7),rs.getString(8),
+	    		currSRs.add(new UserSR(currSID,rs.getString(4),rs.getString(5),rs.getString(6),rs.getString(7),rs.getString(8),
 	    				rs.getString(9),rs.getString(38),rs.getString(39),rs.getBoolean(10),rs.getBoolean(11),rs.getBoolean(51),defender,rs.getInt(18),rs.getInt(19),
 	    				rs.getInt(20),rs.getInt(21),rs.getInt(22),rs.getBoolean(23),rs.getBoolean(24),rs.getInt(25),rs.getBoolean(26),rs.getString(28),rs.getString(29),rs.getString(30),rs.getInt(31),rs.getBoolean(32),rs.getBoolean(33),rs.getInt(34),rs.getInt(35),rs.getInt(36),rs.getInt(37),rs.getString(40),
 	    				rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49),rs.getString(50)));
@@ -622,7 +790,7 @@ public class Player  {
 		    				false,rs.getBoolean(11),rs.getBoolean(51),defender,rs.getInt(18),rs.getInt(19),
 		    				rs.getInt(20),rs.getInt(21),rs.getInt(22),rs.getBoolean(23),rs.getBoolean(24),rs.getInt(25),rs.getBoolean(26),rs.getString(28),rs.getString(29),rs.getString(30),rs.getInt(31),rs.getBoolean(32),rs.getBoolean(33),rs.getInt(34),rs.getInt(35),rs.getInt(36),rs.getInt(37),rs.getString(40)
 		    				,rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49),rs.getString(50));
-	    			currSR.add(SR);
+	    			currSRs.add(SR);
 	    			SR.support=true;
 	    			
 	    		}
@@ -632,20 +800,56 @@ public class Player  {
 	    	}
 			rs.close();
 			stmt.close();
-	    	int i = 0;
-	    	toRet = new UserSR[currSR.size()];
-	    	while(i<currSR.size()) {
-	    		toRet[i]=currSR.get(i);
-	    		i++;
-	    	}
 	    	
-
-	    	return toRet;
 	 
 	  } catch(SQLException exc) { exc.printStackTrace(); }
+	  
+	  	  }
+	  	  
+	  	  return currSRs;
 
-	toRet = new UserSR[1];
-	return toRet;
+	
+	}
+	public void addUserSR(UserSR sr) {
+		
+		if(getUserSR().size()>100) {
+			System.out.println(getUsername() + " has gone over SR limit, deleting...");
+			int counter=0;
+			while(getUserSR().size()>100) {
+				getPs().b.deleteUserSR(getUserSR().get(0).id);
+				counter++;
+			}
+			System.out.println(getUsername() + " rid himself of " + counter + " SRs.");
+			
+		}
+	}
+	public boolean deleteUserSR(UUID id) {
+		try {
+			UberPreparedStatement stmt = con.createStatement("update statreports set deleted=true where id = ?;");
+			stmt.setString(1,id.toString());
+			stmt.execute();
+			stmt.close();
+			
+			int i = 0;
+			while(i<getUserSR().size()) {
+				if(getUserSR().get(i).id.equals(id)) {
+					getUserSR().remove(i);
+					return true;
+				}
+				i++;
+			}
+		} catch(SQLException exc) {
+			exc.printStackTrace();
+		}
+		
+		return false;
+	}
+	public UserSR getUserSR(UUID id) {
+		
+		for(UserSR s:getUserSR()) {
+			if(s.id.equals(id)) return s;
+		}
+		return null;
 	}
 	 public UserMessage getMessage(UUID id) {
 		 
@@ -1272,6 +1476,14 @@ public class Player  {
 				  i--;
 			  }
 	    	  i++;
+	      }
+	      stmt.close();
+	      stmt = con.createStatement("update statreports set readed=?,archived=? where id = ?;");
+	      for(UserSR s:getUserSR()) {
+	    	  stmt.setBoolean(1,s.read);
+	    	  stmt.setBoolean(2,s.archived);
+	    	  stmt.setString(3,s.id.toString());
+	    	  stmt.execute();
 	      }
 	      stmt.close();
 			 i = 0;
