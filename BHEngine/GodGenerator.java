@@ -4698,7 +4698,6 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	private ArrayList<Town> iteratorTowns;
 	public Maelstrom Maelstrom;
 	public boolean loaded=false;
-	public Hashtable territoryCache; // stores territory maps by player. 
 	public static int totalUnitPrice=70;
 	public static int unarmedAmt = 10; // The unarmed weapon which occurs when soldiers/tanks/juggers/bombers
 	// fight unarmed. Currently is 10.
@@ -4823,6 +4822,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		Router.serverStatus(req,out);
 	}else if(req.getParameter("reqtype").equals("convert")) {
 		Router.convert(req,out);
+	}else if(req.getParameter("reqtype").equals("runTest")) {
+		Router.runTest(req,out);
 	}else if(req.getParameter("reqtype").equals("deleteOldPlayers")) {
 		Router.deleteOldPlayers(req,out);
 	}else if(req.getParameter("reqtype").equals("returnPrizeName")) {
@@ -4888,14 +4889,16 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	} 
 	else {
 		ArrayList<Hashtable> tp = new ArrayList<Hashtable>();
-		int x = 0;
-		while(x<10){ 
-			int y = 0;
-			while(y<10) {
-				Hashtable p = new Hashtable();
-				p.put("y",y);
-				p.put("x",x);
-				tp.add(p);
+		int x = -10;
+		while(x<-1){ 
+			int y = 10;
+			while(y<20) {
+				if(Math.pow(x+10,2)+Math.pow(y-10,2)<25) {
+					Hashtable p = new Hashtable();
+					p.put("y",y);
+					p.put("x",x);
+					tp.add(p);
+				}
 				y++;
 			}
 			x++;

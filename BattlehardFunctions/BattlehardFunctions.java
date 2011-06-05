@@ -267,6 +267,57 @@ public class BattlehardFunctions {
 	 *  the center of this map tile is in the x,y space of towns, centery, and finally mapName, the filename of the map tile being
 	 *  used.
 	 *  
+	 *  To grab the array of territory hashtables, use the key "territoryArray"
+	 *  
+	 *  territory entry data key:
+	 *  [] means an array
+	 *  {} means a Hashtable
+	 *  "id"->object is a key-value pair
+	 *  
+	 *  The entry data is exemplified by:
+	 *  
+	   [
+	   {
+	  		  "id"->UUID -- Unique ID used by the backend to help sort territories.
+	   		  		These ids are not saved across server restarts.
+
+	 			(the corners hashtable is the only part used by the front end, so all info necessary for territorial identification by the WM goes in the corners block)
+
+	  			"corners" -> {
+		  
+		  		"owner"->"SomeGuy"
+			   "corner"-> [1,1]
+			   "sides"-> [2,3,4]
+			   
+			   };
+			    (the points array is used by the backend for territory comparison, so it does not need or contain ownership info)
+			   "points"(an array of Hashtables) -> 
+			   [
+			   
+			   	{
+			   		x->1
+			   		y->1
+			   	},
+			   	{
+			   		x->3
+			   		y->1
+			   	},
+			   	{
+			   		x->3
+			   		y->4
+			   	},
+			   	{
+			   		x->7
+			   		y->4
+			  	}
+			   	
+			   	
+			   ]
+	   },
+	  {
+	   ...
+	   }
+	   ]
 	 *  
 	 *   To grab the array of cloud hashtables, use the key "cloudHash".
 	 *   

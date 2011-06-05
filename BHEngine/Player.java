@@ -11,6 +11,10 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.methods.PostMethod;
+
 import BattlehardFunctions.UserMessage;
 import BattlehardFunctions.UserMessagePack;
 import BattlehardFunctions.UserSR;
@@ -42,6 +46,7 @@ public class Player  {
 	public int owedTicks =0;
 	private String version;
 	private ArrayList<Hashtable> achievements;
+	private ArrayList<Hashtable> territories=new ArrayList<Hashtable>(); 
 	public int last_auto_blast;
 	public Timestamp last_login;
 	private long fuid;
@@ -558,8 +563,7 @@ public class Player  {
 				
 			 
 			 */
-			
-			Hashtable townPointLists = new Hashtable(); // holds the points each town possesses before
+			ArrayList<ArrayList<Hashtable>> townPointLists = new ArrayList<ArrayList<Hashtable>>(); // holds the points each town possesses before
 			// transformation into territory lists.
 
 			for(Town t: towns()) {
@@ -593,31 +597,264 @@ public class Player  {
 					startX++;
 				}
 				
-				townPointLists.put(t.townID,points);
+				townPointLists.add(points);
 				
 				
 				
 			}
 			
-			// now we must check out conflicting territorial boundaries...
-			// if one of their edges is inside our edges.
+			// now we combine towns:
 			
-			for(Town t: towns()) {
-				ArrayList<Hashtable> points = (ArrayList<Hashtable>) townPointLists.get(t.townID);
+			 int k = 0;
+			while(k<townPointLists.size()) {
+				ArrayList<Hashtable> points = (ArrayList<Hashtable>) townPointLists.get(k);
+				int i = 0;
+				while(i<points.size()) {
+					Hashtable point = points.get(i);
+					int x = (Integer) point.get("x");
+					int y = (Integer) point.get("y");
+					int j = k+1; // for each point, we check for a copy of the point in the remaining territories, to see if connection is
+					// necessary.
+					while(j<townPointLists.size()) {
+							ArrayList<Hashtable> otherPoints = (ArrayList<Hashtable>) townPointLists.get(j);
+							int z = 0;
+							while(z<otherPoints.size()) {
+								Hashtable otherPoint = otherPoints.get(z);
+								int otherX = (Integer) otherPoint.get("x");
+								int otherY = (Integer) otherPoint.get("y");
+								if(x==otherX&&y==otherY) {
+									
+									// WE HAVE A CONNECTION, CONNECT THE TERRITORIES!
+									// now we must remember that k need not change, it's
+									// at a lower entry than j, but entry j does need to be kicked out
+									// of the pool, which means j will need to go j--.
+									// it's possible j could be --'ed to k, but then it gets ++'d, so it's okay.
+									// also, all x,y in otherPoints must be added that are not duplicates of x,y
+									// in points.
+									// Once this is done, then we break out of this z-loop,
+									// and let the j-loop keep on going. Most likely, all town territories
+									// will collapse into one giant one.
+									
+									int l = 0;
+									while(l<otherPoints.size()) {
+										int m = 0; boolean found = false;
+										otherPoint = otherPoints.get(l);
+										 otherX = (Integer) otherPoint.get("x");
+										 otherY = (Integer) otherPoint.get("y");
+										while(m<points.size()) {
+											Hashtable checkPoint = points.get(m);
+											int checkX = (Integer) checkPoint.get("x");
+											int checkY = (Integer) checkPoint.get("y");
+											if(checkX==otherX&&checkY==otherY) {
+												found=true;
+												break;
+											}
+											m++;
+										}
+										
+										if(!found) {
+											// add the point.
+											points.add(otherPoint);
+										}
+										l++;
+									}
+									townPointLists.remove(j);
+									j--;
+									break;
+									
+								}
+								z++;
+							}
+						
+						j++;
+					}
+					i++;
+				}
+				k++;
+			}
+			ArrayList<ArrayList<Hashtable>> ourTerritories = townPointLists; //renaming for different use.
+
+			// now we must check out conflicting territorial boundaries...
+			// if one of their points is ALSO our points.
+			// if it is, then we get the strength given by every town that has a point there
+			// and compare. 
+		
 				
-				
-				ArrayList<Hashtable> r = (ArrayList<Hashtable>) getPs().b.getWorldMap().get("townHash");
+				Hashtable[] r = (Hashtable[]) getPs().b.getWorldMap().get("territoryArray");
 				
 				// Presumably, the world map will gather territories that matter and send them down!
+				// If we just go straight by player, we will have to analyze each territory, ALL of them.
+				// GetWorldMAP has the ability to sort through territories of relevance and return ONLY those.
+				
 				for(Hashtable h:r) {
 					
-					
-					
+					Hashtable[] theirPoints = (Hashtable[]) h.get("points"); // get the point format, but this is a copy of the actual storage.
+					Hashtable theirTerritory = (Hashtable) h.get("corners");
+					int pid = God.getPlayerId((String) theirTerritory.get("owner"));
+					Player owner = God.getPlayer(pid);
+					Hashtable actualTerritory = null; // so we have h, which is the carbon copy of the WM, and this, the actual,
+					// to alter if points overlap.
+					boolean actualChanged=false;  // if the actual territory changes, then we must recalculate corners.
+					synchronized(owner.territories) { // we may be changing territories, so we need control of it.
+					for(Hashtable terr: owner.territories) {
+						if(((UUID) terr.get("id")).equals((UUID) h.get("id"))) { 
+							actualTerritory=terr;
+							break;
+						}
+					}
+				
+					for(Hashtable theirPoint: theirPoints) {
+						int theirX = (Integer) theirPoint.get("x");
+						int theirY = (Integer) theirPoint.get("y");
+						 k = 0;
+						while(k<ourTerritories.size()) {
+							ArrayList<Hashtable> ourPoints = (ArrayList<Hashtable>) ourTerritories.get(k);
+							int i = 0;
+							
+							while(i<ourPoints.size()) {
+								Hashtable ourPoint = ourPoints.get(i);
+								// so now we compare, nigga. We use a while with ourPoints because we'll be altering it,
+								// their points, we're altering the real versions cached, not the copies given by
+								// getWorldMaps, so we don't need to worry. The way the world map sends them,
+								// each point has only one owner, so once we go past it, we no longer need to worry about it!
+							
+								int ourX = (Integer) ourPoint.get("x");
+								int ourY = (Integer) ourPoint.get("y");
+								if(ourX==theirX&&ourY==theirY) {
+									// CHECK IT OUT!
+									//Sum(townInfluence/town_r^2)
+									double myInfluence=0;
+									for(Town t: towns()) {
+										if((Math.pow(t.getX()-ourX,2)+Math.pow(t.getY()-ourY,2))!=0)
+											myInfluence +=t.getInfluence()/(Math.pow(t.getX()-ourX,2)+Math.pow(t.getY()-ourY,2));
+										else myInfluence+=t.getInfluence();
+									}
+									
+									
+									
+									double theirInfluence = 0;
+									for(Town t: owner.towns()) {
+										if((Math.pow(t.getX()-ourX,2)+Math.pow(t.getY()-ourY,2))!=0)
+											theirInfluence +=t.getInfluence()/(Math.pow(t.getX()-ourX,2)+Math.pow(t.getY()-ourY,2));
+										else theirInfluence+=t.getInfluence();
+									}
+									
+									if(myInfluence>theirInfluence) {
+										// they lose the point.
+											// each territory has a "corners" version and a "points" version.
+											ArrayList<Hashtable> points = (ArrayList<Hashtable>) actualTerritory.get("points");
+											int l = 0;
+											while(l<points.size()) {
+												Hashtable checkPoint = points.get(l);
+												int checkX = (Integer) checkPoint.get("x");
+												int checkY = (Integer) checkPoint.get("y");
+												if(checkX==ourX&&checkY==ourY) {
+													// this shit needs to be removed.
+													points.remove(l);
+													break;
+												}
+
+												l++;
+											}
+											
+											actualChanged=true;
+										
+									} else {
+										// I lose the point.
+										ourPoints.remove(i);
+										i--;
+									}
+									
+								}
+								i++;
+							}
+							k++;
+						}
+					}
+					if(actualChanged) {
+						// what if the territory has been cut in half? How do we detect?
+						ArrayList<ArrayList<Hashtable>> separatedPoints = owner.separatePoints((ArrayList<Hashtable>) actualTerritory.get("points"));
+						
+							owner.territories.remove(actualTerritory);
+							for(ArrayList<Hashtable> points:separatedPoints) {
+								owner.territories.add(owner.returnTerritory(points));
+							}
+						
+						// so in one fell swoop, we redo the corners.
+						
+					}
+					}
+				}
+				// now we need to make sure our territories weren't cut in half.
+				ArrayList<ArrayList<Hashtable>> newTerritories = new ArrayList<ArrayList<Hashtable>>();
+				for(ArrayList<Hashtable> points:ourTerritories) {
+					ArrayList<ArrayList<Hashtable>> separatedPoints = separatePoints(points);
+					for(ArrayList<Hashtable> newPoints:separatedPoints) {
+						newTerritories.add(newPoints);
+					}
+
+				}
+				
+				// now with newTerritories, we can actually add them.
+				synchronized(territories) {
+					territories = new ArrayList<Hashtable>();
+	
+					for(ArrayList<Hashtable> points: newTerritories) {
+						
+						territories.add(returnTerritory(points));
+					}
 				}
 			}
-			
-		}
+	 public int makeWallPost(String message,String name, String caption, String link, String description, String picture, String bottomlinkname, String bottomlink) {
+		 if(getFuid()!=0) {
+			 /*
+			  * 	
+	$attachment = array('message' => urldecode($_POST['message']),
+	'name' => urldecode($_POST['name']),
+	'caption' => urldecode($_POST['caption']),
+	'link' => urldecode($_POST['link']),
+	'description' => urldecode($_POST['description']),
+	'picture' => urldecode($_POST['picture']),
+	'actions' => array(array('name' => urldecode($_POST['bottomlinkname']),
+	'link' => urldecode($_POST['bottomlink'])))
+	);
+			  */
+			 
+			 HttpClient httpClient = new HttpClient();
+				PostMethod method = new PostMethod("http://127.0.0.1/backendpost/wallpost.php");
+				method.addParameter("message", message);
+				method.addParameter("name", name);
+				method.addParameter("caption", caption);
+				method.addParameter("link", link);
+				method.addParameter("description", description);
+				method.addParameter("picture", picture);
+				method.addParameter("bottomlinkname", bottomlinkname);
+				method.addParameter("bottomlink", bottomlink);
+				method.addParameter("fuid",""+getFuid());
+
+				try {
+					int statusCode = httpClient.executeMethod( method );
+					return statusCode;
+				//	System.out.println(statusCode);
+				} catch (HttpException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				return -1;
+			}
+		 return -1;
+			 
+		 }
 	 
+	 public ArrayList<ArrayList<Hashtable>> separatePoints(ArrayList<Hashtable> points) {
+		 // if a set of points has points a,b and c,d such that a,b cannot be connected
+		 // directly to point c,d, then we separate the collections of points connected to a,b and c,d and return them
+		 // as separate arraylists.
+		 return null;
+	 }
 	 public Hashtable returnTerritory(ArrayList<Hashtable> points) {
 		 
 		 /*
@@ -642,11 +879,109 @@ public class Player  {
 		  */
 		 
 		 ArrayList<Hashtable> borders = giftWrapping(points);
+		 
+		 // so now i must take this code and turn it into Markus' corner code. F-THAT-SHIT
+		 
+		 int i = 0;
+		 while(i<borders.size()) { // sort border points by distance.
+			 Hashtable p1 = borders.get(i);
+			 int x1 = (Integer) p1.get("x");
+			 int y1 = (Integer) p1.get("y");
+
+			 int j = i+1;
+			 int minEntry=i+1;
+			 double minDist=99999;
+			 while(j<borders.size()) {
+				 Hashtable p2 = borders.get(j);
+				 int x2 = (Integer) p2.get("x");
+				 int y2 = (Integer) p2.get("y");
+				 double dist = Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1-y2,2));
+				 if(dist<minDist) {
+					 minDist=dist;
+					 minEntry=j;
+				 }
+				 j++;
+			 }
+			 
+			 Hashtable swapPoint = borders.get(i+1);
+			 Hashtable toPutInThere = borders.get(minEntry);
+			 
+			 borders.set(i+1,toPutInThere);
+			 borders.set(minEntry,swapPoint); // should eventually swap them all correctly.
+			 
+			 
+			 i++;
+		 }
+		 ArrayList<Integer> xdiffs = new ArrayList<Integer>();
+		 ArrayList<Integer> ydiffs = new ArrayList<Integer>();
+		  i = 1;
+		 while(i<borders.size()) {
+			 Hashtable p1 = borders.get(i-1);
+			 Hashtable p2 = borders.get(i);
+			 int x1 = (Integer) p1.get("x");
+			 int y1 = (Integer) p1.get("y");
+			 int x2 = (Integer) p2.get("x");
+			 int y2 = (Integer) p2.get("y");
+			 xdiffs.add(x2-x1);
+			 ydiffs.add(y2-y1);
+			 i++;
+		 }
+		 
+		 i = 0;
+		 while(i<xdiffs.size()) {
+			 if(xdiffs.get(i)==0||ydiffs.get(i)==0) {
+				 // if it equals zero, this means we're either going in the straight y dir, or the straight x dir,
+				 // so we may as well compound here.
+				if(i!=0) {
+					// we need to take this entry and add it to the previous one, then move everything down.
+					xdiffs.set(i-1,xdiffs.get(i-1)+xdiffs.get(i));
+					xdiffs.remove(i);
+					ydiffs.set(i-1,ydiffs.get(i-1)+ydiffs.get(i));
+					ydiffs.remove(i);
+					i--;
+				} else {
+					// in the event this is the FIRST entry, then we must just move everything down, and add the first entry
+					// to the second.
+					xdiffs.set(1,xdiffs.get(1)+xdiffs.get(0));
+					xdiffs.remove(0);
+					ydiffs.set(1,ydiffs.get(1)+ydiffs.get(0));
+					ydiffs.remove(0);
+					i--;
+				}
+			 }
+			 i++;
+		 }
+		 
+		 int sides[] = new int[xdiffs.size()*2];
+		 i = 0; int k =0;
+		 while(i<xdiffs.size()) {
+			 sides[k]=xdiffs.get(i);
+			 k++;
+			 sides[k]=ydiffs.get(i);
+			 k++;
+			 i++;
+		 }
+		 UUID id = UUID.randomUUID();
+		 
+		 Hashtable newTerr = new Hashtable();
+		 newTerr.put("id",id);
+		 Hashtable corners = new Hashtable();
+		 corners.put("owner",getUsername());
+		 int corner[] = new int[2];
+		 corner[0] =(Integer)  borders.get(0).get("x");
+		 corner[1] =(Integer)  borders.get(0).get("y");
+
+		 corners.put("corner",corner);
+		 corners.put("sides",sides);
+		 newTerr.put("corners",corners);
+
+		 newTerr.put("points",points);
+		 /*
 		 for(Hashtable p:borders) {
 			 System.out.println("x: "+( (Integer) p.get("x")) + " y: "+( (Integer) p.get("y")));
 		 }
-		 
-		 return null;
+		 */
+		 return newTerr;
 	 }
 	 private ArrayList<Hashtable> giftWrapping(ArrayList<Hashtable> points)
 	 	{
@@ -654,8 +989,8 @@ public class Player  {
 				 
 				 int xPoints[] = new int[points.size()];
 				 int yPoints[] = new int[points.size()];
-				 int xPoints2[] = new int[points.size()];
-				 int yPoints2[] = new int[points.size()];
+				 ArrayList<Hashtable> toRet = new ArrayList<Hashtable>();
+					Hashtable toAdd;
 				 int c = 0;
 				 for(Hashtable r: points) {
 					 xPoints[c] = (Integer) r.get("x");
@@ -679,8 +1014,12 @@ public class Player  {
 				int smallest;
 				int current = min;
 				do {
-				    xPoints2[num] = xPoints[current];
-				    yPoints2[num] = yPoints[current];
+				 //   xPoints2[num] = xPoints[current];
+				  //  yPoints2[num] = yPoints[current];
+				    toAdd = new Hashtable();
+				    toAdd.put("x",xPoints[current]);
+				    toAdd.put("y",yPoints[current]);
+				    toRet.add(toAdd);
 				    num++;
 				    //System.out.println("num: " + num + ", current: " + current + "(" + xPoints[current] + ", " + yPoints[current] + ")");
 				    smallest = 0;
@@ -695,16 +1034,8 @@ public class Player  {
 				    current = smallest;
 				} while ( current != min );
 				
-				c = 0;ArrayList<Hashtable> toRet = new ArrayList<Hashtable>();
-				Hashtable toAdd;
-				while(c<yPoints2.length) {
-					toAdd = new Hashtable();
-					toAdd.put("x",xPoints2[c]);
-					toAdd.put("y",yPoints2[c]);
-					toRet.add(toAdd);
-					c++;
-				}
-				
+				c = 0;
+		
 				return toRet;
 				
 		 }
@@ -736,7 +1067,7 @@ public class Player  {
 	  	  if(currSRs==null) {
 	      try{
 	     
-	    
+	    	  currSRs = new ArrayList<UserSR>();
 	      	UberPreparedStatement stmt = con.createStatement("select * from statreports where pid = ? and deleted = false order by sid asc;");
 	      	stmt.setInt(1,ID);
 	    	ResultSet rs = stmt.executeQuery(); // normal statreports.

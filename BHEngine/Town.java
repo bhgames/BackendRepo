@@ -1774,11 +1774,11 @@ public class Town {
 	      while(!transacted) {
 	    	  
 	    	  try {	    
-	    		  stmt = p.God.con.createStatement("delete from queue where bid = " + bid + ";");
+	    		  stmt = p.God.con.createStatement("delete from queue where bid = ?;");
 	    		  stmt.setInt(1,bid);
 
 			stmt.executeUpdate();
-			  stmt = p.God.con.createStatement("delete from bldg where bid = " + bid + ";");
+			  stmt = p.God.con.createStatement("delete from bldg where bid = ?;");
     		  stmt.setInt(1,bid);
     		  stmt.executeUpdate();
 		
