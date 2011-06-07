@@ -42,7 +42,15 @@ public class UserMessage {
 	public String getSubject() {
 		return subject;
 	}
-
+/**
+ * Not sure on these:
+ * 0 is normal
+ * 3 is league invite
+ * 4 is league accept
+ * 5 is system message(meaning only visible to AIs)
+ * 6 is vassal invite
+ * @return
+ */
 	public int getMsgType() {
 		return msgType;
 	}

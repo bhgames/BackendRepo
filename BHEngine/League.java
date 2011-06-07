@@ -14,7 +14,8 @@ public class League extends Player {
 	private String holdingLeagueIteratorID = "-1";
 	private ArrayList<TaxPlayerRank> tpr;
 	private String name,letters,description,website;
-	private long[] secondaryResBuff;
+	private long[] secondaryResBuff; // duplicate of player, it'll get saved in league instead of player table,
+	// but overall shouldn't be a problem if both league and player use a secondary res buff for lord and league taxes.
 	public void createLeague(String leagueName,String leagueLetters, String description, String website, Player initial) {
 		int tid[] = {towns().get(0).townID };
 		TaxPlayerRank first = new TaxPlayerRank(0,initial.ID,"Admin",2,tid,this);

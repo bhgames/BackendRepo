@@ -6,7 +6,9 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.UUID;
 
@@ -31,6 +33,8 @@ public class Town {
 	 private double resEffects[],resBuff[];
 	 private Player p;
 	 public int owedTicks;
+	 private Player lord;
+	 private Timestamp vassalFrom;
 	 private ArrayList<Trade> tradeServer;
 	 private ArrayList<TradeSchedule> tradeSchedules;
 	 private ArrayList<Raid> attackServer;
@@ -215,6 +219,8 @@ public class Town {
 		owedTicks = getMemInt("owedTicks");
 		debris = getMemDebris();
 		zeppelin = getMemBoolean("zeppelin");
+		lord=null;
+		vassalFrom=null;
 		if(isZeppelin()) {
 		destX = getMemInt("destX");
 		destY = getMemInt("destY");
@@ -1629,7 +1635,23 @@ public class Town {
 		int j = 0;
 		double taxRate=0;
 		if(l!=null)
-		 taxRate = l.getTaxRate(p.ID);
+		 taxRate += l.getTaxRate(p.ID);
+		if(getLord()!=null) {
+			if(getPlayer().getLord()!=null&&getPlayer().getLord().ID==getLord().ID) {
+				taxRate+=getPlayer().getTaxRate();
+			} else
+			if(getVassalFrom()!=null) {
+				long diff = (new Timestamp((new Date()).getTime())).getTime()-getVassalFrom().getTime();
+				double weeks = (int) Math.floor(((double) diff)/604800000);
+				double toAdd = weeks*.15;
+				if(toAdd>.75) toAdd=.75;
+				taxRate+=toAdd;
+			
+			}
+		} else if(getLord()==null&&getPlayer().getLord()!=null) {
+			taxRate+=getPlayer().getTaxRate();
+		}
+		if(taxRate>.99) taxRate=.99;
 		Town zepp = getPlayer().God.findZeppelin(getX(),getY());
 		if(getPlayer().ID==5&&zepp.townID!=0){
 			resBuff = zepp.getResBuff(); // SUCKLEPOWA
@@ -1668,7 +1690,7 @@ public class Town {
 		 // raidSupportAU are deleted when a raid returns.
 		 // supportAU are deleted by the AU Check method when there are no further raid support AU out nor supportAU at home.
 	 try {
-		 UberPreparedStatement stmt = con.createStatement("update town set townName = ?, x = ?, y = ?, m = ?, t = ?, mm = ?, f = ?, auSizes = ?, owedTicks = ?, zeppelin = ?,  fuelcells = ?, ticksTillMove = ?, digTownID = ?, msgSent = ?, digAmt = ?, destX = ?, destY = ?, probTimer =  ?, findTime = ?, digCounter = ?, debm = ?, debt = ?, debmm = ?, debf = ?, influence = ? where tid = ?;");
+		 UberPreparedStatement stmt = con.createStatement("update town set townName = ?, x = ?, y = ?, m = ?, t = ?, mm = ?, f = ?, auSizes = ?, owedTicks = ?, zeppelin = ?,  fuelcells = ?, ticksTillMove = ?, digTownID = ?, msgSent = ?, digAmt = ?, destX = ?, destY = ?, probTimer =  ?, findTime = ?, digCounter = ?, debm = ?, debt = ?, debmm = ?, debf = ?, influence = ?, lord = ?, vassalFrom = ? where tid = ?;");
 		 stmt.setString(1,townName);
 		 stmt.setInt(2,x);
 		 stmt.setInt(3,y);
@@ -1694,7 +1716,13 @@ public class Town {
 		 stmt.setLong(23,getDebris()[2]);
 		 stmt.setLong(24,getDebris()[3]);
 		 stmt.setInt(25,influence);
-		 stmt.setInt(26,townID);
+		 if(getLord()!=null)
+		 stmt.setInt(26,getLord().ID);
+		 else stmt.setInt(26,0);
+		 if(getVassalFrom()!=null)
+			 stmt.setString(27,getVassalFrom().toString());
+			 else stmt.setString(27,null);
+		 stmt.setInt(28,townID);
 
     	   	  stmt.executeUpdate();
 	    	  
@@ -3917,5 +3945,47 @@ public class Town {
 	public int getInfluence() {
 		return influence;
 	}
+
+	public void setVassalFrom(Timestamp vassalFrom) {
+		this.vassalFrom = vassalFrom;
+	}
+
+	public Timestamp getVassalFrom() {
+		if(vassalFrom==null) {
+			try {
+				UberPreparedStatement stmt = con.createStatement("select vassalFrom from town where tid = ?;");
+				stmt.setInt(1,townID);
+				ResultSet rs = stmt.executeQuery();
+				if(rs.next()) {
+					if(rs.getTimestamp(1)!=null)
+				       vassalFrom=rs.getTimestamp(1);
+
+				}
+				rs.close();
+				stmt.close();
+			} catch(SQLException exc) {
+				exc.printStackTrace();
+			}
+
+		}
+		return vassalFrom;
+	}
+
+	public void setLord(Player lord) {
+		this.lord = lord;
+	}
+
+	public Player getLord() {
+		if(lord==null) {
+			int lpid = getMemInt("lord");
+			if(lpid!=0) {
+				lord=getPlayer().God.getPlayer(lpid);
+			}
+			
+		}
+		return lord;
+	}
+	
+	
 }
 

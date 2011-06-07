@@ -33,6 +33,7 @@ public class Player  {
 	private String holdingIteratorID="-1";
 	protected PlayerScript ps;
 	private String pushLog="";
+	private long[] secondaryResBuff;
 	public int iterTicks = 0;
 	public ArrayList<UserSR> currSRs;
 	public ArrayList<UserMessagePack> currMessages;
@@ -40,9 +41,14 @@ public class Player  {
 	public int playedTicks=0;
 	public long totalTimePlayed = 0;
 	public int numLogins=0;
+	private boolean voluntaryVassal;
 	 private Hashtable eventListenerLists = new Hashtable();
+		private String holdingLordIteratorID = "-1";
 
+	 private Player lord;
+	 private double taxRate;
 	public Timestamp last_session;
+	private int lordInternalClock=0;
 	public int owedTicks =0;
 	private String version;
 	private ArrayList<Hashtable> achievements;
@@ -190,7 +196,8 @@ public class Player  {
 	   //    tradeTech = rs.getInt(27);
 	   //   commsCenterTech = rs.getInt(43);
 	       capitaltid = rs.getInt(39);
-	       
+	       taxRate = rs.getDouble(88);
+	       voluntaryVassal=rs.getBoolean(89);
 	       pushLog = rs.getString(42);
 	      // need to break apart weaptech into an array.
 	  
@@ -528,6 +535,207 @@ public class Player  {
 		 
 		 return currMessages;
 	 }
+	 public boolean hasVassaledTowns(int ID) {
+		 for(Town t: towns()) {
+			 if(t.getLord()!=null&&t.getLord().ID==ID) return true;
+		 }
+		 return false;
+	 }
+	
+	 public void doVassalTaxes(int num) {
+			/*if(resTimer==null) {
+
+				calculateResIncs();
+				resTimer = new Timer(checkResInc*1000);
+			}
+			else if(resTimer.isDone()) {
+				calculateResIncs();
+				resTimer = new Timer(checkResInc*1000);
+			}*/
+			Town holdTown; Player curr; Player p; Town t;
+
+				/*
+				 * Okay, granted, in the open space version, you just multiply by the fractions
+				 * and add to each one. The problem is when you go over the limit.
+				 * What you need to do is use the space available in each city
+				 * as the sort of fraction. Then, what you do, is you load up
+				 * res for each one proportional to the fraction of space AVAILABLE,
+				 * and the fact is, if you've got 900 resource space available and 1000
+				 * to fill, then doing 1/2 in one who has 450 and one half in the other 450
+				 * you're gonna be left with losing resources. If you've got 2000 available
+				 * then doing 1/3 * 1000 in each one is fine.
+				 * 
+				 * 
+				 * 
+				 */
+			
+			 int i = 0;
+			 int totalOpenSpace[] = new int[5];
+			 double newIncs[];
+				double resEffects[]; long resCaps[]; double resInc[];
+				long res[];
+				ArrayList<Town> towns = towns();
+				double resBuff[];
+				
+				while(i<towns.size()) {
+				
+				
+				 int j = 0;
+				 holdTown = towns.get(i);
+				 resInc=holdTown.getResInc();
+				 resCaps=holdTown.getResCaps();
+				 res = holdTown.getRes();
+
+						do {
+							totalOpenSpace[j]+=(resCaps[j]+Building.baseResourceAmt-res[j]);
+							j++;
+						} while(j<res.length);
+						
+		
+					i++;
+						
+					} 
+			i=0;
+			double tresEffects[];  double tresInc[];
+		
+			long[] secbuff = getSecondaryResBuff();
+			 while(i<towns.size()) {
+				
+				
+				 int j = 0;
+				 holdTown = towns.get(i);
+				 resInc=holdTown.getResInc();
+				 resEffects=holdTown.getResEffects();
+				 resCaps=holdTown.getResCaps();
+				 resBuff = holdTown.getResBuff();
+				 res = holdTown.getRes();
+				 ArrayList<Town> ptowns;
+				 
+					// we add the secondary stuff. It'll get added completely, the fractions add to one.
+				 synchronized(resBuff) {
+					 double befBuff = resBuff[j];
+				do {
+				//	System.out.println(resBuff[j] + " before");
+					double multiplier = 1;
+					if(getMineTimer()>0&&j==0) multiplier*=1.25;
+					if(getTimberTimer()>0&&j==1) multiplier*=1.25;
+					if(getMmTimer()>0&&j==2) multiplier*=1.25;
+					if(getFTimer()>0&&j==3) multiplier*=1.25;
+
+					if(getPremiumTimer()>0) multiplier*=.5;
+					
+					if(totalOpenSpace[j]!=0)
+					resBuff[j] +=multiplier*secbuff[j]*((double)(resCaps[j]+Building.baseResourceAmt-res[j])/(totalOpenSpace[j]));
+					//System.out.println(resBuff[j] + " after");
+
+					// add taxrates here
+					
+					int x = 0;
+				
+					while(x<God.getPlayers().size()) { //add taxes
+						curr = God.getPlayers().get(x);
+						if((curr.getLord()!=null&&curr.getLord().ID==ID)||curr.hasVassaledTowns(ID)) {
+							int y = 0;
+							p = curr;
+						//	if(p.owedTicks<3*24*3600/GodGenerator.gameClockFactor) p.update(); // No need to update if a player is this old, just collect!
+							// When we try to update players here, we often deadlock them.
+								ptowns = p.towns();
+								//checkForLeagueReference(p); Lordship is automatically retained the next day
+								// if the reference is somehow lost. Leagues don't have this luxury.
+							while(y<ptowns.size()) {
+								
+								t = ptowns.get(y);
+								double taxRate=0;
+								if(p.getLord()!=null&&p.getLord().ID==ID) {
+									// If you are the lord here,
+									if(t.getLord()==null||(t.getLord()!=null&&t.getLord().ID==ID)) //and the town has no town-level lord, or you are the 
+										// town level lord also, give them the player taxrate.
+										taxRate=p.getTaxRate();
+									else if(t.getLord()!=null&&t.getLord().ID!=ID) taxRate=0; // if you are the lord here but not over this town, someone else is, you get shit.
+								} else if((p.getLord()==null||(p.getLord()!=null&&p.getLord().ID!=ID))&&t.getLord()!=null&&t.getLord().ID==ID) {
+									// if this player has no lord, or has one that isn't you, and you are lord of this town, then you
+									// get slow growth.
+									long diff = (new Timestamp((new Date()).getTime())).getTime()-t.getVassalFrom().getTime();
+									double weeks = (int) Math.floor(((double) diff)/604800000);
+									double toAdd = weeks*.15;
+									if(toAdd>.75) toAdd=.75;
+									taxRate=toAdd;
+								}
+								
+								tresInc=t.getResInc();
+								 tresEffects=t.getResEffects();
+								 newIncs = God.Maelstrom.getResEffects(tresInc,t.getX(),t.getY());
+								
+	
+								 if(totalOpenSpace[j]!=0){
+							
+						//		if(j==0&&getUsername().equals("EAGLE"))
+							//	System.out.println("The internalclock is " + getLeagueInternalClock() + ". The tax rate is " + curr.taxRate + " for user " + curr.player.getUsername() + " from their town of " + t.getTownName() + ". The resInc is " + tresInc[j] + " and I am adding"  +
+								//		multiplier*num*newIncs[j]*(tresEffects[j]+1)*curr.taxRate*((double)(resCaps[j]+Building.baseResourceAmt-res[j])/(totalOpenSpace[j]))  + " because the difference is " + 
+									//	((double)(resCaps[j]+Building.baseResourceAmt-res[j])) + " and the open space is " + totalOpenSpace[j] + ", num: "+ num+ ", mult: "+  multiplier +", newIncs: " + newIncs[j]);
+								
+								 resBuff[j]+=multiplier*num*newIncs[j]*(tresEffects[j]+1)*taxRate*((double)(resCaps[j]+Building.baseResourceAmt-res[j])/(totalOpenSpace[j]));
+								 }
+								 y++;
+							}
+							
+							
+							}
+						x++;
+					}
+			
+					
+				//	if(j==0&&getUsername().equals("EAGLE")) System.out.println("Total resbuff take is: " + (resBuff[j]-befBuff));
+					j++;
+				} while(j<res.length);
+				 }
+				j = 0;
+				synchronized(res) {
+					synchronized(resBuff) {
+				while(j<res.length){
+				if(resBuff[j]>=1) {
+					int toAdd = (int) Math.floor(resBuff[j]);
+					res[j]+=toAdd;
+					resBuff[j]-=toAdd;
+					
+					if(res[j]>(resCaps[j]+Building.baseResourceAmt))
+						res[j]=resCaps[j]+Building.baseResourceAmt;
+					// works even if you lose the building and suddenly have a massive over the limit
+					// amount of resources! HAHA :D
+					
+					}
+				j++;
+				}
+				}
+				}
+				
+
+				// Then I need to check building and attack servers. Each town has a building server, and an attack server.
+			i++;
+				
+			}
+			i = 0;
+			
+			while(i<secbuff.length) { //reset the resbuff of secondaryhood.
+				secbuff[i]=0;
+				i++;
+			}
+			
+			setLordInternalClock(getLordInternalClock() + num); // we only iterate after FINISHING THE SAVE!
+
+			
+		}
+	 public boolean isLord() {
+		 for(Player p:God.getPlayers()) {
+			 if(p.getLord()!=null&&p.getLord().ID==ID) return true;
+			 else {
+				 for(Town t: p.towns()) {
+					 if(t.getLord()!=null&&t.getLord().ID==ID) return true;
+				 }
+			 }
+		 }
+		 return false;
+	 }
 	 public void territoryCalculator() {
 			/*
 			 * This guy calculates territories for the map, as a series of hashtables.
@@ -798,13 +1006,196 @@ public class Player  {
 				// now with newTerritories, we can actually add them.
 				synchronized(territories) {
 					territories = new ArrayList<Hashtable>();
-	
+					if(getLord()!=null) {
+						
+					}
 					for(ArrayList<Hashtable> points: newTerritories) {
 						
 						territories.add(returnTerritory(points));
 					}
 				}
+				
+				checkForNewlyVassaledTowns();
+				checkLordQualifications();
 			}
+	 public void checkLordQualifications() {
+		 // checks to see if you qualify to become somebody's bitch, or to be passed
+		 // along to be somebody else's bitch.
+		 //Requirements:Capital City tax rate of 75%
+		// 50% of all towns are taxed 75% by the same player.
+		 // first we see if you can break free of the current guy. 
+		 
+		 // then we check if there is anybody who qualifies to be the new guy.
+		 
+		 int yourPerc=0;// how many of your towns that YOU own.
+		
+		 ArrayList<Player> possibleLords = new ArrayList<Player>();
+		 ArrayList<Integer> possibleLordTownsOwned = new ArrayList<Integer>();
+		 for(Town t: towns()) {
+				 if(t.getLord()!=null) {
+					
+					 long diff = (new Timestamp((new Date()).getTime())).getTime()-t.getVassalFrom().getTime();
+						double weeks = (int) Math.floor(((double) diff)/604800000);
+						taxRate+=weeks*.15;
+						if(taxRate>=.75) {
+							int i = 0; boolean found = false;
+							while(i<possibleLords.size()) {
+								if(possibleLords.get(i).ID==t.getLord().ID) {
+									possibleLordTownsOwned.set(i,possibleLordTownsOwned.get(i)+1);
+									found=true;
+									break;
+								}
+								i++;
+							}
+							if(!found) {
+								// need to add new lord.
+								possibleLords.add(t.getLord());
+								possibleLordTownsOwned.add(1);
+							}
+						}
+						
+				 } else {
+					  yourPerc++;
+				 }
+			 
+			 
+		 }
+		 
+		 if((int) Math.round(yourPerc/towns().size())>=.5&&getLord()!=null&&!isVoluntaryVassal()) {
+			 getLord().makeWallPost("","Vassal Lost!",getUsername()+"'s empire has freed itself from my grasp!",
+						"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
+						"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+						"Play Now!","http://www.steampunkwars.com/");
+
+				makeWallPost("","Freedom!","After a long period of vassalage under "+getLord().getUsername()+", my people are now free once more!",
+						"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
+						"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+						"Play Now!","http://www.steampunkwars.com/");
+				
+				 makeVassalOf(null,false);
+
+		 } else {
+			 // lets see if the other lords have the ability to claim you, then. Whichever has the right, gets lordship.
+			  int i = 0;
+			 while(i<possibleLordTownsOwned.size()) {
+				 if(((double) possibleLordTownsOwned.get(i))/(((double) towns().size()))>=.5) {
+					 // this is the guy who gets it.
+					 if(getLord()!=null&&getLord().ID!=possibleLords.get(i).ID) {
+						 //  this is the case where one lord gives it to another
+						 getLord().makeWallPost("","Vassal Lost!",getUsername()+"'s empire has freed itself from my grasp!",
+									"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
+									"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+									"Play Now!","http://www.steampunkwars.com/");
+						
+							
+							
+						
+					 } 
+					 possibleLords.get(i).makeWallPost("","Vassal Acquired!",getUsername()+"'s entire empire has fallen under my sway and has sworn fealty to me and me alone!",
+								"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
+								"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+								"Play Now!","http://www.steampunkwars.com/");
+					 makeWallPost("","Subjugation!","My empire has fallen under the sway of "+possibleLords.get(i).getUsername()+".  I'm now forced to be their vassal.",
+								"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
+								"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+								"Play Now!","http://www.steampunkwars.com/");
+					 makeVassalOf(possibleLords.get(i),false);
+					 
+						
+				 }
+				 i++;
+			 }
+			 
+		 }
+		 
+		 
+		 
+	 }
+	public void makeVassalOf(Player lord, boolean voluntary) {
+		setLord(lord);
+		 setVoluntaryVassal(voluntary);
+		 for(Hashtable terr:territories) {
+			 if(lord==null)
+				 ((Hashtable) terr.get("corners")).put("lord","none");
+			 else
+			 ((Hashtable) terr.get("corners")).put("lord",lord.getUsername());
+		 }
+		 save();
+	}
+	 public void checkForNewlyVassaledTowns() {
+		 /*
+		  * This function checks to see if any of your towns are not in your territories. If they are not in your territories
+		  * and are not yet "vassaled" to someone else with a counter set, then they get that shit.
+		  */
+		 for(Town t: towns()) {
+			 boolean found=false;
+			 for(Hashtable terr:territories) {
+				 for(Hashtable point:(ArrayList<Hashtable>) terr.get("points")) {
+					 int x = (Integer) point.get("x");
+					 int y = (Integer) point.get("y");
+					 if(x==t.getX()&&y==t.getY()) {
+						 found=true;
+						 break;
+					 }
+				 }
+			 }
+			 if(!found) {
+				 
+				 // shit, this town was taken, but was it already taken?
+				 // if it was already taken by someone, then this code doesn't care - it'll reset
+				 // that shit.
+					Hashtable[] r = (Hashtable[]) getPs().b.getWorldMap().get("territoryArray");
+					
+					// Presumably, the world map will gather territories that matter and send them down!
+					// If we just go straight by player, we will have to analyze each territory, ALL of them.
+					// GetWorldMAP has the ability to sort through territories of relevance and return ONLY those.
+					
+					for(Hashtable h:r) {
+						
+						Hashtable[] theirPoints = (Hashtable[]) h.get("points"); // get the point format, but this is a copy of the actual storage.
+						Hashtable theirTerritory = (Hashtable) h.get("corners");
+						int pid = God.getPlayerId((String) theirTerritory.get("owner"));
+						Player owner = God.getPlayer(pid);
+						
+						for(Hashtable theirPoint:theirPoints) {
+							
+							int theirX = (Integer) theirPoint.get("x");
+							int theirY = (Integer) theirPoint.get("y");
+							
+							if(theirX==t.getX()&&theirY==t.getY()) {
+								
+								// now we have a winner.
+								
+								
+
+								owner.makeWallPost("","Territory Conquered!",getUsername()+"'s town has just fallen under my influence in Steampunk Wars!",
+										"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+										"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+										"Play Now!","http://www.steampunkwars.com/");
+
+								makeWallPost("","Territory Conquered!","My town " + t.getTownName() + " has just fallen under " + owner.getUsername() + "'s influence in Steampunk Wars!",
+										"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+										"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+										"Play Now!","http://www.steampunkwars.com/");
+								// presumably this is also called if they just got online, so it's possible
+								// that they already have a timer set up.
+								
+									t.setLord(owner);
+									t.setVassalFrom(new Timestamp((new Date()).getTime()));
+							}
+
+						}
+						
+						
+						
+					}
+			 } else if(found&&t.getLord()!=null) {
+				 // so now it's under it's own power again, but there is still a lord - RESET!
+				
+					 t.setLord(null);
+			 }
+		 }
+	 }
 	 public int makeWallPost(String message,String name, String caption, String link, String description, String picture, String bottomlinkname, String bottomlink) {
 		 if(getFuid()!=0) {
 			 /*
@@ -967,6 +1358,12 @@ public class Player  {
 		 newTerr.put("id",id);
 		 Hashtable corners = new Hashtable();
 		 corners.put("owner",getUsername());
+		 if(getLord()==null) {
+			 corners.put("lord","none");
+		 }
+		 else {
+			 corners.put("lord",getLord().getUsername());
+		 }
 		 int corner[] = new int[2];
 		 corner[0] =(Integer)  borders.get(0).get("x");
 		 corner[1] =(Integer)  borders.get(0).get("y");
@@ -1456,7 +1853,8 @@ public class Player  {
 	       tPushes = rs.getInt(60);
 	       version = rs.getString(81);
 	       owedTicks = rs.getInt(82);
-
+	       voluntaryVassal=rs.getBoolean(89);
+	       secondaryResBuff=null; // let it get reset!
 	       try {
 		       last_session=rs.getTimestamp(83);
 		      } catch(Exception exc) { last_session = new Timestamp((new Date()).getTime());}	       numLogins = rs.getInt(84);
@@ -1479,6 +1877,7 @@ public class Player  {
 		       tradingAPI = rs.getBoolean(70);
 		       advancedTradingAPI = rs.getBoolean(71);
 		       smAPI = rs.getBoolean(72);
+		       taxRate = rs.getDouble(88);
 		       researchAPI = rs.getBoolean(73);
 		       buildingAPI = rs.getBoolean(74);
 		       advancedBuildingAPI = rs.getBoolean(75);
@@ -1687,7 +2086,7 @@ public class Player  {
 			    		   +", revTimer = ?, totalBPEarned = ?, flicker = ?, fuid = ?, totalTimePlayed = ?, numLogins = ?, last_login = ?, last_session = ?" 
 			    		   	+", last_auto_blast = ?,tPushes = ?, airshipTech = ?, clockworkAugments = ?" 
 			    		   	+", attackAPI = ?, advancedAttackAPI = ?, digAPI = ?, tradingAPI = ?, advancedTradingAPI = ?, smAPI = ?, researchAPI = ?"+ 
-			    		   	", buildingAPI = ?, advancedBuildingAPI = ?, messagingAPI = ?, zeppelinAPI = ?, completeAnalyticAPI = ?, version = ?, nukeAPI = ?, worldMapAPI = ?, owedTicks = ?, email =?, pushLog = ?, password = ? where pid = ?;");
+			    		   	", buildingAPI = ?, advancedBuildingAPI = ?, messagingAPI = ?, zeppelinAPI = ?, completeAnalyticAPI = ?, version = ?, nukeAPI = ?, worldMapAPI = ?, owedTicks = ?, email =?, pushLog = ?, password = ?, lord = ?, taxRate = ?, voluntaryVassal=?, mbuff=?, tbuff = ?, mmbuff=?, fbuff=? where pid = ?;");
 			       stmt.setInt(1,bodyArmor);
 			       stmt.setBoolean(2,personalShields);
 			       stmt.setBoolean(3,hydraulicAssistors);
@@ -1746,7 +2145,25 @@ public class Player  {
 			       stmt.setString(56,email);
 			       stmt.setString(57,pushLog);
 			       stmt.setString(58,password);
-			       stmt.setInt(59,ID);
+			       if(getLord()!=null)
+			    	   stmt.setInt(59,lord.ID);
+			       else
+			    	   stmt.setInt(59,0);
+			       stmt.setDouble(60,taxRate);
+			       stmt.setBoolean(61,voluntaryVassal);
+			       if(secondaryResBuff==null) {
+			    	   stmt.setLong(62,0);
+			    	   stmt.setLong(63,0);
+			    	   stmt.setLong(64,0);
+			    	   stmt.setLong(65,0);
+
+			       } else {
+			    	   stmt.setLong(62,secondaryResBuff[0]);
+			    	   stmt.setLong(63,secondaryResBuff[1]);
+			    	   stmt.setLong(64,secondaryResBuff[2]);
+			    	   stmt.setLong(65,secondaryResBuff[3]);
+			       }
+			       stmt.setInt(66,ID);
 	  /*   String  updatePlayer = "update player set bodyArmor = " + bodyArmor +", personalShields = " + personalShields + 
 	    		  ", hydraulicAssistors = " + hydraulicAssistors +  ", thrustVectoring = " + thrustVectoring + ", bloodMetalPlating = " + bloodMetalPlating +", bloodMetalArmor = " + bloodMetalArmor+ ", advancedFortifications = " + advancedFortifications + ", constructionResearch = " + constructionResearch + ", firearmResearch = " + firearmResearch +
 	    		   ", townTech = " + townTech 
@@ -3270,6 +3687,102 @@ public class Player  {
 
 	public int getTeslaTech() {
 		return teslaTech;
+	}
+
+
+	public void setLord(Player lord) {
+		this.lord = lord;
+	}
+
+
+	public Player getLord() {
+		if(lord==null) {
+			try {
+				UberPreparedStatement stmt = con.createStatement("select lord from player where pid = ?;");
+				stmt.setInt(1,ID);
+				ResultSet rs = stmt.executeQuery();
+				if(rs.next()) {
+					
+					int lpid = rs.getInt(1);
+					if(lpid!=0) {
+						lord = God.getPlayer(lpid);
+					}
+				}
+			} catch(SQLException exc) {
+				exc.printStackTrace();
+			}
+			
+		}
+		return lord;
+	}
+
+
+	public void setTaxRate(double taxRate) {
+		this.taxRate = taxRate;
+	}
+
+
+	public double getTaxRate() {
+		return taxRate;
+	}
+
+
+	public void setVoluntaryVassal(boolean voluntaryVassal) {
+		this.voluntaryVassal = voluntaryVassal;
+	}
+
+
+	public boolean isVoluntaryVassal() {
+		return voluntaryVassal;
+	}
+
+
+	public void setLordInternalClock(int lordInternalClock) {
+		this.lordInternalClock = lordInternalClock;
+	}
+
+
+	public int getLordInternalClock() {
+		return lordInternalClock;
+	}
+
+
+	public void setSecondaryResBuff(long[] secondaryResBuff) {
+		this.secondaryResBuff = secondaryResBuff;
+	}
+
+
+	public long[] getSecondaryResBuff() {
+		if(secondaryResBuff==null) { // so we only load it if the player needs it!
+			long resBuff[] = new long[5];
+			try {
+				UberPreparedStatement stmt = con.createStatement("select mbuff,tbuff,mmbuff,fbuff from player where pid = ?;");
+				stmt.setInt(1,ID);
+				ResultSet rs = stmt.executeQuery();
+				if(rs.next()) {
+		
+					resBuff[0]=rs.getLong(1);
+					resBuff[1]=rs.getLong(2);
+					resBuff[2]=rs.getLong(3);
+					resBuff[3]=rs.getLong(4);
+					resBuff[4] = 0;
+				}
+				rs.close();
+			stmt.close();
+			secondaryResBuff=resBuff;
+			} catch(SQLException exc) { exc.printStackTrace(); }
+		}
+		return secondaryResBuff;
+	}
+
+
+	public void setHoldingLordIteratorID(String holdingLordIteratorID) {
+		this.holdingLordIteratorID = holdingLordIteratorID;
+	}
+
+
+	public String getHoldingLordIteratorID() {
+		return holdingLordIteratorID;
 	}
 }
 

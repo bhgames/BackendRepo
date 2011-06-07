@@ -286,6 +286,7 @@ public class BattlehardFunctions {
 	  			"corners" -> {
 		  
 		  		"owner"->"SomeGuy"
+		  		"lord"->"yourLordsUsername"(if you are a Vassal) or "none"
 			   "corner"-> [1,1]
 			   "sides"-> [2,3,4]
 			   
@@ -636,6 +637,7 @@ public class BattlehardFunctions {
 		 *
 		 * Sends a message to the array of playerIDs specified in pid_to. original_subject_id needs
 		 * to be 0 if this message is not in reply to another or if you do not wish it to be!
+		 * 
 		 */
 	public boolean sendMessage(int pid_to[],String body, String subject, UUID original_subject_id) {
 		int j = 0;
@@ -770,6 +772,157 @@ public class BattlehardFunctions {
 
 		} catch(Exception e) {
 			e.printStackTrace();
+		}
+		return true;
+	}
+	/**
+	 * UI Implemented.
+	 * 
+	 * @param usernameTo
+	 * @param body
+	 * @param subject
+	 * @param original_message_id
+	 * @return
+	 */
+	public boolean sendVassalInvitationMessage(String usernameTo[], String body, String subject, UUID original_subject_id) {
+		
+		if(prog&&!p.isMessagingAPI()) {
+			setError("You do not have the Messaging API!");
+			return false;
+		}
+		
+		int pid_to[] = new int[usernameTo.length];
+		int i = 0;
+		while(i<pid_to.length) {
+			pid_to[i]=g.getPlayerId(usernameTo[i]);
+			i++;
+		}
+		return sendVassalInvitationMessage(pid_to,body,subject,original_subject_id);
+	}
+	/**
+	 * 
+	 * Sends a vassal invitation message.
+	 * msgtype will be 6 for vassal invitations.
+	 */
+	
+	public boolean sendVassalInvitationMessage(int pid_to[],String body, String subject, UUID original_subject_id) {
+		if(prog&&!p.isMessagingAPI()) {
+			setError("You do not have the Messaging API!");
+			return false;
+		}
+		int j = 0;
+		// msg_type 5
+		while(j<pid_to.length) {
+			int k = 0;
+			while(k<pid_to.length) {
+				if(pid_to[j]==pid_to[k]&&k!=j) {
+					setError("No duplicate messages.");
+						return false;
+				}
+				k++;
+			}
+			j++;
+		}
+		 j = 0; Player pl;
+		 boolean found;
+		 ArrayList<Player> players = g.getPlayers();
+
+		while(j<pid_to.length) {
+			int k = 0;
+			found=false;
+			while(k<players.size()) {
+				pl = players.get(k);
+				if(pid_to[j]==pl.ID) {
+					found=true;
+					break;
+				}
+				k++;
+			}
+			if(!found) pid_to[j]=-1;
+			j++;
+		}
+		
+		// original message id can be 0.
+		boolean transacted = false;
+		int pid_from = p.ID;
+		try {
+			ResultSet rs;
+			String pid_to_s = PlayerScript.toJSONString(pid_to);
+			while(!transacted) {
+				
+				try {
+			UberPreparedStatement stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,id,subject_id) values (?,?,?,?,?,?,?,?,?);");
+			int i = 0;
+			stmt.setString(1,pid_to_s);
+			stmt.setInt(2,pid_from);
+			stmt.setString(3,body);
+			stmt.setString(4,subject);
+			stmt.setInt(5,6);
+			if(original_subject_id!=null)
+			stmt.setString(6,original_subject_id.toString());
+			else
+				stmt.setString(7,"none");
+			stmt.setInt(7,p.ID);
+			 UUID id = UUID.randomUUID();
+		      stmt.setString(8,id.toString());
+		      stmt.setString(9,id.toString());
+		      Date time = new Date();
+
+				String userArray[] = new String[pid_to.length]; i = 0;
+
+				while(i<pid_to.length) {
+					userArray[i]=g.getUsername(pid_to[i]);
+					i++;
+				}
+		     UserMessage myM = new UserMessage(id,pid_to,pid_from,userArray,p.getUsername(),body,subject,5, false, 0, original_subject_id,time.toString(),id,false);
+			p.addMessage(myM);
+			stmt.close();
+			
+			//stmt.executeUpdate("update messages set subject_id = " + msgid+  " where message_id = " + msgid);
+			
+			stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id,id) values (?,?,?,?,?,?,?,?,?);");
+			while(i<pid_to.length) {
+				
+				if(pid_to[i]!=-1) {
+					
+					///	stmt.execute("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id) values (\""
+				//	+ pid_to_s +"\"," + pid_from +",\"" +body+"\",\""+subject+"\","+5+","+original_subject_id+","+pid_to[i]+"," + msgid + ");" );
+					stmt.setString(1,pid_to_s);
+					stmt.setInt(2,pid_from);
+					stmt.setString(3,body);
+					stmt.setString(4,subject);
+					stmt.setInt(5,6);
+					if(original_subject_id!=null)
+						stmt.setString(6,original_subject_id.toString());
+						else
+							stmt.setString(7,"none");
+					stmt.setInt(7,pid_to[i]);
+					stmt.setString(8,id.toString());
+					 UUID thisMsgID = UUID.randomUUID();
+				      stmt.setString(9,thisMsgID.toString());
+					stmt.execute();
+		//	rs = stmt.executeQuery("select message_id from messages where pid = " + pid_to[i] + " and pid_from =  "+ pid_from + " order by creation_date desc;");
+				
+			Player otherP = g.getPlayer(pid_to[i]);
+		      UserMessage m = new UserMessage(thisMsgID,pid_to,pid_from,userArray,p.getUsername(),body,subject,5, false, 0, original_subject_id,time.toString(),id,false);
+		      otherP.addMessage(m);
+			otherP.getPs().runMethod("onMessageReceivedCatch",otherP.getPs().b.getMessage(thisMsgID));
+
+				}
+			i++;
+			}
+
+			stmt.close();
+			transacted=true;
+			} catch(MySQLTransactionRollbackException exc) {  }
+		
+			}
+		}	catch (SQLException e) {
+		
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+
 		}
 		return true;
 	}
@@ -12578,5 +12731,53 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		p.setVersion(version);
 		return false;
+	}
+	/**
+	 * UI Implemented.
+	 * If you are already a voluntary vassal of one Lord and wish to switch, then you can do that with the msgid of the
+	 * invite message.
+	 * If you are not a vassal, and you have no sack, then you can swear fealty here too.
+	 * 
+	 * @param msgID
+	 * @return
+	 */
+	public boolean acceptVassalage(UUID msgID) {
+		
+		
+		UserMessage msg = getMessage(msgID);
+		Player lord = g.getPlayer(msg.getPidFrom());
+		if(msg==null){
+			setError("Not a valid message!");
+			return false;
+		} 
+
+		if(msg.getMsgType()!=6) {
+			setError("Not a vassal invite!");
+			return false;
+		}
+		if(p.getLord()==null||
+				(p.getLord()!=null&&p.getLord().ID!=lord.ID&&p.isVoluntaryVassal())
+				||(p.getLord()!=null&&p.getLord().ID==lord.ID&&!p.isVoluntaryVassal())) {
+			if(p.getLord()!=null) {
+				 p.getLord().makeWallPost("","Vassal Lost!",p.getUsername()+"'s empire has freed itself from my grasp!",
+							"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
+							"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+							"Play Now!","http://www.steampunkwars.com/");
+			}
+			lord.makeWallPost("","Vassal Acquired!",p.getUsername()+"'s entire empire has fallen under my sway and has sworn fealty to me and me alone!",
+					"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
+					"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+					"Play Now!","http://www.steampunkwars.com/");
+			p.makeWallPost("","Subjugation!","My empire has fallen under the sway of "+lord.getUsername()+".  We shall be their vassal forevermore.",
+					"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
+					"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+					"Play Now!","http://www.steampunkwars.com/");
+			
+			 p.makeVassalOf(lord,true);
+			 return true;
+		} else {
+			setError("You are either a forced vassal of a different lord, or are already a voluntary vassal of this one!");
+			return false;
+		}
 	}
 	}

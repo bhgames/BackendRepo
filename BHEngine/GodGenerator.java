@@ -4684,7 +4684,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	UberConnection zongCon;
 	
 	public Trader Trader;
-	public static int leagueLagTime=1; // how many ticks before taxes are done with leagues.
+	public static int leagueLagTime=360; // how many ticks before taxes are done with leagues.
+	public static int lordLagTime=360; // once an hour.
 	//public int gpid; // The player this God is based around, if -1, is a normal God.
 	//public int lgpid;
 	public int gameClock=0;
@@ -10367,6 +10368,50 @@ public boolean checkForGenocides(Town t) {
 							
 					}
 					
+					if(!actt.getTs().isTwoway()&&otherP.getLord()!=null||t2.getLord()!=null) {
+						/*
+						 * If this is a two way trade,
+						 * then town 2, where the dump is occurring, paid tax
+						 * on the resources they shipped already through collecting them
+						 * in a raid or by mines. If this is just someone
+						 * dumping resources on them, ie, a one way trade, this
+						 * trade needs to be taxed!
+						 */
+						double tax = 0;
+
+						if(t2.getLord()!=null) {
+							if(otherP.getLord()!=null&&otherP.getLord().ID==t2.getLord().ID) {
+								tax+=otherP.getTaxRate();
+							} else
+							if(t2.getVassalFrom()!=null) {
+								long diff = (new Timestamp((new Date()).getTime())).getTime()-t2.getVassalFrom().getTime();
+								double weeks = (int) Math.floor(((double) diff)/604800000);
+								double toAdd = weeks*.15;
+								if(toAdd>.75) toAdd=.75;
+								tax+=toAdd;
+							
+							}
+						} else if(t2.getLord()==null&&otherP.getLord()!=null) {
+							tax+=otherP.getTaxRate();
+						}
+							double afterTax = (1-tax);
+							actt.setMetal((long) Math.round(t.getMetal()*afterTax));
+							actt.setTimber((long) Math.round(t.getTimber()*afterTax));
+							actt.setManmat((long) Math.round(t.getManmat()*afterTax));
+							actt.setFood((long) Math.round(t.getFood()*afterTax));
+							
+							long[] secbuff = otherP.getLeague().getSecondaryResBuff();
+							synchronized(secbuff) {
+								double modifier=1;
+								if(otherP.getLeague().getPremiumTimer()>0) modifier=.5;
+								secbuff[0]+=t.getMetal()*tax*modifier;
+								secbuff[1]+=t.getTimber()*tax*modifier;
+								secbuff[2]+=t.getManmat()*tax*modifier;
+								secbuff[3]+=t.getFood()*tax*modifier;
+							}
+
+							
+					}
 					
 						res = t2.getRes();
 						synchronized(res) {
@@ -11114,6 +11159,48 @@ public boolean checkForGenocides(Town t) {
 			
 
 			}
+			if(r.getTown1().getPlayer().getLeague()!=null) {
+				double tax = 0;
+
+				if(r.getTown1().getLord()!=null) {
+					if(r.getTown1().getPlayer().getLord()!=null&&r.getTown1().getPlayer().getLord().ID==r.getTown1().getLord().ID) {
+						tax+=r.getTown1().getPlayer().getTaxRate();
+					} else
+					if(r.getTown1().getVassalFrom()!=null) {
+						long diff = (new Timestamp((new Date()).getTime())).getTime()-r.getTown1().getVassalFrom().getTime();
+						double weeks = (int) Math.floor(((double) diff)/604800000);
+						double toAdd = weeks*.15;
+						if(toAdd>.75) toAdd=.75;
+						tax+=toAdd;
+					
+					}
+				} else if(r.getTown1().getLord()==null&&r.getTown1().getPlayer().getLord()!=null) {
+					tax+=r.getTown1().getPlayer().getTaxRate();
+				}
+					double afterTax = (1-tax);
+				long oldM = r.getMetal();
+				long oldT = r.getTimber();
+				long oldMM = r.getManmat();
+				long oldF = r.getFood();
+			//	System.out.println("raid gets "+r.getMetal()*afterTax + " and leagues gets " + r.getMetal()*tax + " of total " + r.getMetal() + " due to tax being " + tax + " and aftertax being " + afterTax);
+				r.setMetal((long) Math.round(r.getMetal()*afterTax));
+				r.setTimber((long) Math.round(r.getTimber()*afterTax));
+				r.setManmat((long) Math.round(r.getManmat()*afterTax));
+				r.setFood((long) Math.round(r.getFood()*afterTax));
+				
+				long secbuff[] = r.getTown1().getPlayer().getLeague().getSecondaryResBuff();
+				double tmodifier = 1;
+				if(r.getTown1().getPlayer().getLeague().getPremiumTimer()>0) tmodifier=.5;
+				synchronized(secbuff){ 
+					secbuff[0]+=oldM*tax*tmodifier;
+					secbuff[1]+=oldT*tax*tmodifier;
+					secbuff[2]+=oldMM*tax*tmodifier;
+					secbuff[3]+=oldF*tax*tmodifier;}
+				//	r.getTown1().getPlayer().getLeague().setSecondaryResBuff(secbuff);
+				
+
+				}
+		
 		
 		 
 

@@ -75,7 +75,7 @@ public class Iterator implements Runnable {
 					//	 System.out.println(p.getUsername() + " is active and has " + p.owedTicks + " ticks owed.");
 						p.saveAndIterate(internalClock-p.getInternalClock());}
 					else {  
-						System.out.println(p.getUsername() + " is inactive and has " + p.owedTicks + " ticks owed and played for a total of "+ (p.last_login.getTime()-p.last_session.getTime()));
+					//	System.out.println(p.getUsername() + " is inactive and has " + p.owedTicks + " ticks owed and played for a total of "+ (p.last_login.getTime()-p.last_session.getTime()));
 						// we know last_login - last_session is the time they played this time.
 						if(p.totalTimePlayed<0) p.totalTimePlayed=0;
 						if(p.numLogins<=0) p.numLogins=1;
@@ -162,6 +162,48 @@ public class Iterator implements Runnable {
 			}
 			
 			
+			i++;
+		}
+		
+
+		
+		
+	}
+	public void checkLords() {
+		// GOTTA UPDATE LEAGUES CONSTANTLY, COULD COME ON AND GET TAXES FROM ALL NEW MINES INSTEAD OF OLDER UNUPGRADED ONES!
+			ArrayList<Player> players = God.getIteratorPlayers();
+	//		System.out.println(iterateID + "'s internal clock is off.");
+		// only need to loop once - think about it, with two iterators,
+		// then 0 would be gotten by the first, and the second would hit 1,
+		// and then if second lagged at 1, first would skip 1 and get 2 and 3,
+		// and so on. With five or ten iterators combing, it's possible to get them all
+		// with one iteration.
+		// Then at the end of this iteration, we should check.
+		int i = 0; 
+		Player p; 
+		while(i<players.size()) {
+			p = players.get(i);
+			if(p.isLord()) { 
+				// basically, if one grabs this player,
+			// and starts iterating it, the others can't, and will wait
+			// to try, but then they'll find it can't be done.
+			if(p.getHoldingLordIteratorID().equals("-1")&&p.getLordInternalClock()<internalClock-GodGenerator.lordLagTime) {
+			
+			
+				synchronized(p){if(p.getHoldingLordIteratorID().equals("-1")) p.setHoldingLordIteratorID(iterateID); }
+				if(p.getHoldingLordIteratorID().equals(iterateID)) {
+			//		System.out.println(iterateID + " caught " + p.username + "'s focus and is iterating at " + internalClock);
+			
+				try {
+			//	System.out.println(iterateID + " is iterating " + p.username);
+					p.doVassalTaxes(internalClock-p.getLordInternalClock());
+				} catch(Exception exc) { exc.printStackTrace(); } 
+			
+				p.setHoldingLordIteratorID("-1");
+				}
+			}
+			
+			}
 			i++;
 		}
 		
@@ -304,10 +346,12 @@ public class Iterator implements Runnable {
 			double rand = Math.random();
 			if(rand<.5)
 			 checkTowns();
-			else if(rand>.5&&rand<.8)
+			else if(rand>=.5&&rand<.8)
 			 checkPlayers();
-			else if(rand>.8&rand<.9)
+			else if(rand>=.8&rand<.85)
 		     checkLeagues();
+			else if(rand>=.85&&rand<.9)
+			 checkLords();
 			else
 			 checkPrograms();
 			

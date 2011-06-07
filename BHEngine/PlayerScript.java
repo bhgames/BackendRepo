@@ -873,6 +873,28 @@ public class PlayerScript implements Runnable {
         		
         		
     		 
+    	 }else if(holdCmd.equals("bf.sendVassalInvitationMessage")) {
+    		 
+    		 //	public boolean attack(String yourTownName, int enemyx, int enemyy, int auAmts[], String attackType, int target) {
+    		 // String[], String, String, number
+    		 holdPartUse = new String(holdPart);
+    		 // generally they should have 6 commas + 0,0,0,0,0,0 (ausize-1) commas if they are naming,
+    		 // and minus one that if not, so that's how we can identify old versions vs new ones.
+    		 
+    		//	 System.out.println("The arraystring is " +holdPartUse.substring(0,holdPart.indexOf("],")+1) );
+    		 	String strArr1[] = decodeStringIntoStringArray(holdPartUse.substring(0,holdPartUse.indexOf("],")+1));
+       			holdPartUse = holdPartUse.substring(holdPartUse.indexOf("],")+2,holdPartUse.length());
+    			 String str2 = holdPartUse.substring(0,holdPartUse.indexOf(","));
+        		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
+        		 String str3 = holdPartUse.substring(0,holdPartUse.indexOf(","));
+        		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
+        		 String str4 = (holdPartUse.substring(0,holdPartUse.length()));
+        		if(str4.equals("null"))
+        		 toRet+=b.sendMessage(strArr1,str2,str3,null);
+        		else  toRet+=b.sendVassalInvitationMessage(strArr1,str2,str3,UUID.fromString(str4));
+        		
+        		
+    		 
     	 }else if(holdCmd.equals("bf.canCreateUserGroup")||holdCmd.equals("bf.createUserGroup")||holdCmd.equals("bf.canUpdateUserGroup")
     			) {
 
