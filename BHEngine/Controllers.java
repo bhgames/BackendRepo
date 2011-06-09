@@ -54,6 +54,8 @@ public class Controllers {
 		Hashtable[] townHash = (Hashtable[]) totalHash.get("townHash");
 		Hashtable[] cloudHash = (Hashtable[]) totalHash.get("cloudHash");
 		Hashtable[] tileHash = (Hashtable[]) totalHash.get("tileHash");
+		Hashtable[] terrHash = (Hashtable[]) totalHash.get("territoryHash");
+
 	/*	int ulcy = (Integer) totalHash.get("ulcy");
 		int llcy = (Integer) totalHash.get("llcy");
 		int ulcx = (Integer) totalHash.get("ulcx");
@@ -112,8 +114,43 @@ public class Controllers {
 					x++;
 			}
 			j.endArray()
-			.key("tiles").array();
+			.key("territories").array();
 			int y = 0;
+			Hashtable corners; int[] array;
+			while(y<terrHash.length) {
+				j.object()
+				.key("id")
+				.value((Integer) terrHash[y].get("id"));
+				corners =(Hashtable) terrHash[y].get("corners");
+				j.key("corners").object();
+				if(((String) corners.get("lord")).equals("none"))
+					j.key("owner").value((String) corners.get("owner"));
+				else 
+					j.key("owner").value((String) corners.get("lord"));
+				j.key("sides").array();
+				int k = 0;
+				array = (int[]) corners.get("sides");
+				while(k<array.length) {
+					j.value(array[k]);
+					k++;
+				}
+				j.endArray();
+				j.key("corner").array();
+				k = 0;
+				array = (int[]) corners.get("corner");
+				while(k<array.length) {
+					j.value(array[k]);
+					k++;
+				}
+				j.endArray()
+				.endObject();
+				
+				y++;
+			}
+			j.endArray();
+
+			j.key("tiles").array();
+			 y = 0;
 			while(y<tileHash.length) {
 				j.object()
 				.key("mid")
@@ -1035,6 +1072,34 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			.value(p.getCapitaltid())
 			.key("gameClockFactor")
 			.value(GodGenerator.gameClockFactor)
+			.key("vassalHash").array();
+			Hashtable[] vassalHash = p.getVassalHash();
+			Hashtable[] townsHash;
+			for(Hashtable r: vassalHash) {
+				j.object();
+				j.key("owner")
+				.value((String) r.get("owner"))
+				.key("vassal")
+				.value((Boolean) r.get("vassal"))
+				.key("towns").array();
+				townsHash = (Hashtable[]) r.get("towns");
+				
+				for(Hashtable townHash:townsHash) {
+					j.object()
+					.key("townName")
+					.value((String) townHash.get("townName"))
+					.key("taxRate")
+					.value((Double) townHash.get("taxRate"))
+					.key("x")
+					.value((Integer) townHash.get("x"))
+					.key("y")
+					.value((Integer) townHash.get("y"))
+					.endObject();
+				}
+				j.endArray()
+				.endObject();
+			}
+			j.endArray()
 			.key("research").object()
 		//	.key("brkthrus")
 		//	.value(p.getBrkthrus())

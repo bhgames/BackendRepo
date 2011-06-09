@@ -1,6 +1,8 @@
 package BattlehardFunctions;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 
 
@@ -19,6 +21,9 @@ public class UserPlayer {
 	private int manMatTimer=0;
 	private int scoutTech;
 	private int totalBPEarned=0;
+	private int lord=0;
+	private Timestamp vassalFrom;
+	private Hashtable[] vassalHash;
 	private int knowledge;	
 	private boolean airshipTech,clockworkAugments;
 	private boolean attackAPI, advancedAttackAPI, tradingAPI,advancedTradingAPI,smAPI,researchAPI,buildingAPI,advancedBuildingAPI,messagingAPI,zeppelinAPI,completeAnalyticAPI,nukeAPI,worldMapAPI,digAPI;
@@ -66,7 +71,7 @@ public class UserPlayer {
 			int ubTimer, int mineTimer, int feroTimer, int timberTimer, int manMatTimer, int foodTimer, int revTimer, int totalBPEarned, String email,
 			boolean airshipTech, boolean clockworkAugments, boolean attackAPI, boolean advancedAttackAPI, boolean tradingAPI, boolean advancedTradingAPI,
 			boolean smAPI, boolean researchAPI, boolean buildingAPI, boolean advancedBuildingAPI, boolean messagingAPI,
-			boolean zeppelinAPI, boolean completeAnalyticAPI, boolean nukeAPI, boolean worldMapAPI, boolean digAPI, int scoutTech, boolean bloodMetalArmor) {
+			boolean zeppelinAPI, boolean completeAnalyticAPI, boolean nukeAPI, boolean worldMapAPI, boolean digAPI, int scoutTech, boolean bloodMetalArmor, int lord, Timestamp vassalFrom, Hashtable[] vassalHash) {
 
 		this.bp=bp;
 		this.scoutTech=scoutTech;
@@ -75,6 +80,9 @@ public class UserPlayer {
 		this.playedTicks=playedTicks;
 		this.premiumTimer=premiumTimer;
 		this.attackAPI=attackAPI;this.advancedAttackAPI=advancedAttackAPI;
+		this.vassalHash=vassalHash;
+		this.lord=lord;
+		this.vassalFrom = new Timestamp(vassalFrom.getTime()); // must be copied.
 		this.tradingAPI=tradingAPI;this.advancedTradingAPI=advancedTradingAPI;
 		this.smAPI=smAPI;this.researchAPI=researchAPI;this.buildingAPI=buildingAPI;
 		this.advancedBuildingAPI=advancedBuildingAPI;this.messagingAPI=messagingAPI;
@@ -313,5 +321,33 @@ public class UserPlayer {
 
 	public boolean isBloodMetalArmor() {
 		return bloodMetalArmor;
+	}
+	public void setLord(int lord) {
+		this.lord = lord;
+	}
+	/**
+	 * Returns the pid of your lord if you have one, otherwise is 0.
+	 * @return
+	 */
+	public int getLord() {
+		return lord;
+	}
+	public void setVassalFrom(Timestamp vassalFrom) {
+		this.vassalFrom = vassalFrom;
+	}
+	public Timestamp getVassalFrom() {
+		return vassalFrom;
+	}
+	public void setVassalHash(Hashtable[] vassalHash) {
+		this.vassalHash = vassalHash;
+	}
+	/**
+	 * Returns an array of hashtables, each representing a player who has towns you control or who is your vassal.
+	 * ex:
+	 *  { {owner: someone, vassal: true/false, towns: {townName, taxRate,x,y} }, { owner... 
+	 * @return
+	 */
+	public Hashtable[] getVassalHash() {
+		return vassalHash;
 	}
 }

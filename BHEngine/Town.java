@@ -1623,6 +1623,25 @@ public class Town {
 			//System.out.println("With a pop of " + getPop() + ", we add another " +5*getPop()*sizeMod );
 			return foodConsumed-10; // one of those civvies ain't real.
 	 }
+	 public double getVassalRate() {
+		 double taxRate=0;
+		 if(getLord()!=null) {
+				if(getPlayer().getLord()!=null&&getPlayer().getLord().ID==getLord().ID) {
+					taxRate+=getPlayer().getTaxRate();
+				} else
+				if(getVassalFrom()!=null) {
+					long diff = (new Timestamp((new Date()).getTime())).getTime()-getVassalFrom().getTime();
+					double weeks = (int) Math.floor(((double) diff)/604800000);
+					double toAdd = weeks*.15;
+					if(toAdd>.75) toAdd=.75;
+					taxRate+=toAdd;
+				
+				}
+			} else if(getLord()==null&&getPlayer().getLord()!=null) {
+				taxRate+=getPlayer().getTaxRate();
+			}
+		 return taxRate;
+	 }
 	 public void doMyResources(int num) {
 		 double[] resInc=getResInc();
 		 double[] resEffects=getResEffects();
@@ -1636,21 +1655,7 @@ public class Town {
 		double taxRate=0;
 		if(l!=null)
 		 taxRate += l.getTaxRate(p.ID);
-		if(getLord()!=null) {
-			if(getPlayer().getLord()!=null&&getPlayer().getLord().ID==getLord().ID) {
-				taxRate+=getPlayer().getTaxRate();
-			} else
-			if(getVassalFrom()!=null) {
-				long diff = (new Timestamp((new Date()).getTime())).getTime()-getVassalFrom().getTime();
-				double weeks = (int) Math.floor(((double) diff)/604800000);
-				double toAdd = weeks*.15;
-				if(toAdd>.75) toAdd=.75;
-				taxRate+=toAdd;
-			
-			}
-		} else if(getLord()==null&&getPlayer().getLord()!=null) {
-			taxRate+=getPlayer().getTaxRate();
-		}
+		taxRate+=getVassalRate();
 		if(taxRate>.99) taxRate=.99;
 		Town zepp = getPlayer().God.findZeppelin(getX(),getY());
 		if(getPlayer().ID==5&&zepp.townID!=0){

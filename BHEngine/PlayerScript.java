@@ -375,6 +375,12 @@ public class PlayerScript implements Runnable {
     		 int num2 = Integer.parseInt(holdPart.substring(holdPart.indexOf(",")+1,holdPart.length()));
     		 
     		 toRet+=b.createAirship(str1,num2);
+    	 } else if(holdCmd.equals("bf.resetVassalTax")){
+    		 //String, number
+    		 String str1 = holdPart.substring(0,holdPart.indexOf(","));
+    		 double num2 = Double.parseDouble(holdPart.substring(holdPart.indexOf(",")+1,holdPart.length()));
+    		 
+    		 toRet+=b.resetVassalTax(str1,num2);
     	 } else if(holdCmd.equals("bf.goBHM")) { 
     		 toRet+=b.goBHM();
     	 }
@@ -1927,7 +1933,12 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     		 str.endArray();
     		 } catch(JSONException exc) { exc.printStackTrace();  toRet+="internalservererror";}
     		toRet+=str.toString();
-    	 } else if(holdCmd.equals("bf.getUserTrades")) {
+    	 } else if(holdCmd.equals("bf.cancelVassalage")) { 
+    		 if(holdPart.length()==0)
+    		 toRet+=b.cancelVassalage();
+    		 else toRet+=b.cancelVassalage(holdPart);
+    	 }
+    	 else if(holdCmd.equals("bf.getUserTrades")) {
     		 // no args
     		 str = new JSONStringer();
     		 //		 UserBuilding[] bldgs; UserBuilding bldg;
@@ -1990,12 +2001,15 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 ||holdCmd.equals("bf.getQuestDescription")||holdCmd.equals("bf.setAutoRun")
     	 		 ||holdCmd.equals("bf.useBP")||holdCmd.equals("bf.pingQuest")
     	 		 ||holdCmd.equals("bf.abortAirship")||holdCmd.equals("bf.offloadResources")
-    	 		 ||holdCmd.equals("bf.setVersion")||holdCmd.equals("bf.getCacheEffectToString")) {
+    	 		 ||holdCmd.equals("bf.setVersion")||holdCmd.equals("bf.getCacheEffectToString")
+    	 		 ||holdCmd.equals("bf.acceptVassalage")) {
     		 //int
     		 if(holdCmd.equals("bf.deleteUserSR"))
     			 toRet+=b.deleteUserSR(UUID.fromString(holdPart));
     		 else if(holdCmd.equals("bf.markReadUserSR")) 
     			 toRet+=b.markReadUserSR(UUID.fromString(holdPart));
+    		 else if(holdCmd.equals("bf.acceptVassalage")) 
+    			 toRet+=b.acceptVassalage(UUID.fromString(holdPart));
     		 else if(holdCmd.equals("bf.getCacheEffectToString")) 
     			 toRet+=b.getCacheEffectToString(Integer.parseInt(holdPart));
     		 else if(holdCmd.equals("bf.pingQuest")) 

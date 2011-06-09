@@ -1,5 +1,7 @@
 package BattlehardFunctions;
 
+import java.sql.Timestamp;
+
 import BHEngine.Town;
 
 
@@ -14,6 +16,9 @@ public class UserTown {
 	private int destX,destY,fuelCells,ticksTillMove;
 	private boolean zeppelin;
 	private int foodConsumption;
+	private int lord=0;
+	private double taxRate=0;
+	private Timestamp vassalFrom;
 	private int CSL,CS;
 
 	volatile long resCaps[] = new long[5];
@@ -24,14 +29,18 @@ public class UserTown {
 			long[] resCaps, double[] resInc, double[] resEffects, int totalEngineers,
 			int totalTraders, int townID, String townName,
 			UserTradeSchedule[] tradeSchedules, UserTrade[] tradeServer, int x,
-			int y,int CSL, int CS, boolean zeppelin, int fuelCells, int destX,int destY, int ticksTillMove, int foodConsumption) {
+			int y,int CSL, int CS, boolean zeppelin, int fuelCells, int destX,int destY, int ticksTillMove, int foodConsumption, double taxRate, int lord, Timestamp vassalFrom) {
 		this.attackServer = attackServer;
 		this.au = au;
 		this.bldg = bldg;
 		this.CSL=CSL; this.CS=CS;
+		this.taxRate=taxRate;
+		this.lord=lord;
 		this.foodConsumption=foodConsumption;
 		this.zeppelin=zeppelin; this.fuelCells=fuelCells; this.destX=destX; this.destY=destY; this.ticksTillMove=ticksTillMove;
 		this.pid = pid;
+		this.vassalFrom = new Timestamp(vassalFrom.getTime()); // must be copied.
+		
 		this.playerName = playerName;
 		this.res = res;
 		this.resCaps = resCaps;
@@ -148,6 +157,35 @@ public class UserTown {
 
 	public int getFoodConsumption() {
 		return foodConsumption;
+	}
+	public void setTaxRate(double taxRate) {
+		this.taxRate = taxRate;
+	}
+	public double getTaxRate() {
+		return taxRate;
+	}
+	public void setLord(int lord) {
+		this.lord = lord;
+	}
+	/**
+	 * If this town is under the influence of another player, this function will return that player's
+	 * pid. If the player who owns this town is a vassal of a player(The lord), this town will only return the pid
+	 * of the lord if the lord actually has influence over the town, and doesn't just have tax control over it
+	 * because of player-level vassalage.(ie, if you own 10 towns, and are a vassal to a player because he has
+	 * influence over 6 of them. The other 4 towns would have 0 as the pid of the lord, because they are not
+	 * influenced, but are still taxed under the vassalage pact.) 
+	 * 
+	 * Returns 0 if the town has no lord.
+	 * @return
+	 */
+	public int getLord() {
+		return lord;
+	}
+	public void setVassalFrom(Timestamp vassalFrom) {
+		this.vassalFrom = vassalFrom;
+	}
+	public Timestamp getVassalFrom() {
+		return vassalFrom;
 	}
 	
 }

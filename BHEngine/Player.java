@@ -37,6 +37,7 @@ public class Player  {
 	public int iterTicks = 0;
 	public ArrayList<UserSR> currSRs;
 	public ArrayList<UserMessagePack> currMessages;
+	 private Timestamp vassalFrom;
 
 	public int playedTicks=0;
 	public long totalTimePlayed = 0;
@@ -725,6 +726,72 @@ public class Player  {
 
 			
 		}
+	 public Hashtable[] getVassalHash() {
+		 // makes a vassal hash for use by the player.
+		 /*
+		  *  { {owner: someone, vassal: true/false, towns: {townName, taxRate,x,y} }, { owner... 
+
+		  */
+		 
+		 
+		 ArrayList<Hashtable> vassals = new ArrayList<Hashtable>();
+		 Hashtable vassal; Hashtable[] towns;
+		 ArrayList<Hashtable> tempTowns; Town t;
+		 Hashtable tempTown;
+		 for(Player p: God.getPlayers()) {
+			 boolean canAdd=false;
+			 if(p.getLord()!=null&&p.getLord().ID==ID) {
+				canAdd=true;
+			 } else {
+				for(Town theirT: p.towns()) {
+					if(theirT.getLord()!=null&&theirT.getLord().ID==ID) {
+						canAdd=true;
+						break;
+					}
+				}
+			 }
+			 
+			 if(canAdd) {
+				 vassal = new Hashtable();
+				 tempTowns = new ArrayList<Hashtable>();
+				 int i = 0;
+				 while(i<p.towns().size()) {
+					 t = p.towns().get(i);
+					 if(t.getLord()==null||(t.getLord()!=null&&t.getLord().ID==ID)) {
+						 tempTown = new Hashtable();
+						 tempTown.put("townName",t.getTownName());
+						 tempTown.put("taxRate",t.getVassalRate());
+						 tempTown.put("x",t.getX());
+						 tempTown.put("y",t.getY());
+						 tempTowns.add(tempTown);
+					 }
+					 i++;
+				 }
+				  i = 0;
+				 towns = new Hashtable[tempTowns.size()];
+				 while(i<towns.length) {
+					 towns[i]=tempTowns.get(i);
+					 i++;
+				 }
+				 vassal.put("towns",towns);
+				 if(p.getLord()!=null&&p.getLord().ID==ID) {
+					 vassal.put("vassal",true);
+
+				 } else vassal.put("vassal",false);
+				 vassal.put("owner",p.getUsername());
+				 vassals.add(vassal);
+			 }
+			 
+		 }
+		 
+		 Hashtable[] toRet = new Hashtable[vassals.size()];
+		 int i = 0;
+		 while(i<toRet.length) {
+			 toRet[i]=vassals.get(i);
+			 i++;
+		 }
+		 return toRet;
+	 }
 	 public boolean isLord() {
 		 for(Player p:God.getPlayers()) {
 			 if(p.getLord()!=null&&p.getLord().ID==ID) return true;
@@ -771,9 +838,10 @@ public class Player  {
 				
 			 
 			 */
+			if(!isQuest()&&ID!=5) { // Id does not have territories, neither do Quests.
+
 			ArrayList<ArrayList<Hashtable>> townPointLists = new ArrayList<ArrayList<Hashtable>>(); // holds the points each town possesses before
 			// transformation into territory lists.
-
 			for(Town t: towns()) {
 				// so first we add influence.
 				t.setInfluence(t.getInfluence()+t.getPlayer().getPs().b.getCSL(t.townID));
@@ -903,8 +971,8 @@ public class Player  {
 					Hashtable actualTerritory = null; // so we have h, which is the carbon copy of the WM, and this, the actual,
 					// to alter if points overlap.
 					boolean actualChanged=false;  // if the actual territory changes, then we must recalculate corners.
-					synchronized(owner.territories) { // we may be changing territories, so we need control of it.
-					for(Hashtable terr: owner.territories) {
+					synchronized(owner.getTerritories()) { // we may be changing territories, so we need control of it.
+					for(Hashtable terr: owner.getTerritories()) {
 						if(((UUID) terr.get("id")).equals((UUID) h.get("id"))) { 
 							actualTerritory=terr;
 							break;
@@ -983,9 +1051,9 @@ public class Player  {
 						// what if the territory has been cut in half? How do we detect?
 						ArrayList<ArrayList<Hashtable>> separatedPoints = owner.separatePoints((ArrayList<Hashtable>) actualTerritory.get("points"));
 						
-							owner.territories.remove(actualTerritory);
+							owner.getTerritories().remove(actualTerritory);
 							for(ArrayList<Hashtable> points:separatedPoints) {
-								owner.territories.add(owner.returnTerritory(points));
+								owner.getTerritories().add(owner.returnTerritory(points));
 							}
 						
 						// so in one fell swoop, we redo the corners.
@@ -1004,19 +1072,22 @@ public class Player  {
 				}
 				
 				// now with newTerritories, we can actually add them.
-				synchronized(territories) {
-					territories = new ArrayList<Hashtable>();
+				synchronized(getTerritories()) {
+					setTerritories(new ArrayList<Hashtable>());
 					if(getLord()!=null) {
 						
 					}
 					for(ArrayList<Hashtable> points: newTerritories) {
 						
-						territories.add(returnTerritory(points));
+						getTerritories().add(returnTerritory(points));
 					}
 				}
-				
-				checkForNewlyVassaledTowns();
+				checkForNewlyVassaledTowns();  // Id cannot have towns vassaled.
 				checkLordQualifications();
+	 	}	 else {
+	 		if(getTerritories()==null) setTerritories(new ArrayList<Hashtable>()); // Id has an empty hashtable.
+	 	}
+				
 			}
 	 public void checkLordQualifications() {
 		 // checks to see if you qualify to become somebody's bitch, or to be passed
@@ -1048,7 +1119,10 @@ public class Player  {
 								i++;
 							}
 							if(!found) {
-								// need to add new lord.
+								// need to add new lord. This should always work - if two
+								// different player territories who are vassals of a larger lords
+								// intersect to take this guy out, all the towns will be owned by the
+								// lord already.
 								possibleLords.add(t.getLord());
 								possibleLordTownsOwned.add(1);
 							}
@@ -1076,36 +1150,46 @@ public class Player  {
 
 		 } else {
 			 // lets see if the other lords have the ability to claim you, then. Whichever has the right, gets lordship.
-			  int i = 0;
-			 while(i<possibleLordTownsOwned.size()) {
-				 if(((double) possibleLordTownsOwned.get(i))/(((double) towns().size()))>=.5) {
-					 // this is the guy who gets it.
-					 if(getLord()!=null&&getLord().ID!=possibleLords.get(i).ID) {
-						 //  this is the case where one lord gives it to another
-						 getLord().makeWallPost("","Vassal Lost!",getUsername()+"'s empire has freed itself from my grasp!",
+			 // you may still be on cooldown from your last vassaling - which happens if 
+			 boolean canVassal=true;
+			 
+			 if(getLord()==null&&getVassalFrom()!=null) {
+				long diff = (new Timestamp((new Date()).getTime())).getTime()-getVassalFrom().getTime();
+				double weeks = (int) Math.floor(((double) diff)/604800000);
+				if(weeks<1) canVassal=false; // possible safe measure to keep from vassaldom.
+			 }
+			 
+			 if(canVassal) {
+				  int i = 0;
+				 while(i<possibleLordTownsOwned.size()) {
+					 if(((double) possibleLordTownsOwned.get(i))/(((double) towns().size()))>=.5) {
+						 // this is the guy who gets it.
+						 if(getLord()!=null&&getLord().ID!=possibleLords.get(i).ID) {
+							 //  this is the case where one lord gives it to another
+							 getLord().makeWallPost("","Vassal Lost!",getUsername()+"'s empire has freed itself from my grasp!",
+										"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
+										"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+										"Play Now!","http://www.steampunkwars.com/");
+							
+								
+								
+							
+						 } 
+						 possibleLords.get(i).makeWallPost("","Vassal Acquired!",getUsername()+"'s entire empire has fallen under my sway and has sworn fealty to me and me alone!",
 									"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
 									"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
 									"Play Now!","http://www.steampunkwars.com/");
-						
+						 makeWallPost("","Subjugation!","My empire has fallen under the sway of "+possibleLords.get(i).getUsername()+".  I'm now forced to be their vassal.",
+									"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
+									"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+									"Play Now!","http://www.steampunkwars.com/");
+						 makeVassalOf(possibleLords.get(i),false);
+						 
 							
-							
-						
-					 } 
-					 possibleLords.get(i).makeWallPost("","Vassal Acquired!",getUsername()+"'s entire empire has fallen under my sway and has sworn fealty to me and me alone!",
-								"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
-								"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
-								"Play Now!","http://www.steampunkwars.com/");
-					 makeWallPost("","Subjugation!","My empire has fallen under the sway of "+possibleLords.get(i).getUsername()+".  I'm now forced to be their vassal.",
-								"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
-								"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
-								"Play Now!","http://www.steampunkwars.com/");
-					 makeVassalOf(possibleLords.get(i),false);
-					 
-						
+					 }
+					 i++;
 				 }
-				 i++;
-			 }
-			 
+			}
 		 }
 		 
 		 
@@ -1114,11 +1198,47 @@ public class Player  {
 	public void makeVassalOf(Player lord, boolean voluntary) {
 		setLord(lord);
 		 setVoluntaryVassal(voluntary);
-		 for(Hashtable terr:territories) {
+		 setVassalFrom(new Timestamp((new Date()).getTime()));
+		 if(voluntary) setTaxRate(0);
+		 if(!voluntary) setTaxRate(.5);
+		 for(Hashtable terr:getTerritories()) {
 			 if(lord==null)
 				 ((Hashtable) terr.get("corners")).put("lord","none");
 			 else
 			 ((Hashtable) terr.get("corners")).put("lord",lord.getUsername());
+		 }
+	
+		 
+		 if(isLord()&&lord!=null) { // don't need to do this if you're being freed.
+			 for(Player p:God.getPlayers()) {
+				 boolean becameVassal=false;
+				 if(p.getLord()!=null&&p.getLord().ID==ID) {
+					
+					 p.makeWallPost("","Freedom!","After a long period of vassalage under "+getUsername()+", my people are now free once more!",
+								"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
+								"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+								"Play Now!","http://www.steampunkwars.com/");
+					 p.makeVassalOf(null,false);
+					 becameVassal=true;
+					 
+				 }
+				 for(Town t:p.towns()) {
+					 if(t.getLord()!=null&&t.getLord().ID==ID){
+						 if(!becameVassal) {
+							 // no need to send extra FB messages for towns getting switched over.
+							
+							 p.makeWallPost("","Territory Freed!","The people of my town are free from "+t.getLord().getUsername()+"'s tyranny!",
+										"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+										"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+										"Play Now!","http://www.steampunkwars.com/");
+
+								
+						 }
+						 t.setLord(null); 
+						t.setVassalFrom(new Timestamp((new Date()).getTime()));
+					}
+				 }
+			 }
 		 }
 		 save();
 	}
@@ -1129,7 +1249,7 @@ public class Player  {
 		  */
 		 for(Town t: towns()) {
 			 boolean found=false;
-			 for(Hashtable terr:territories) {
+			 for(Hashtable terr:getTerritories()) {
 				 for(Hashtable point:(ArrayList<Hashtable>) terr.get("points")) {
 					 int x = (Integer) point.get("x");
 					 int y = (Integer) point.get("y");
@@ -1141,9 +1261,7 @@ public class Player  {
 			 }
 			 if(!found) {
 				 
-				 // shit, this town was taken, but was it already taken?
-				 // if it was already taken by someone, then this code doesn't care - it'll reset
-				 // that shit.
+				
 					Hashtable[] r = (Hashtable[]) getPs().b.getWorldMap().get("territoryArray");
 					
 					// Presumably, the world map will gather territories that matter and send them down!
@@ -1165,23 +1283,25 @@ public class Player  {
 							if(theirX==t.getX()&&theirY==t.getY()) {
 								
 								// now we have a winner.
-								
+								if(owner.getLord()!=null) owner = owner.getLord(); // they goto your lord.
+								if(t.getLord()==null||(t.getLord()!=null&&t.getLord().ID!=owner.ID)) { // we only reset
+									// if you're a new lord, or t doesn't got one.
 								
 
-								owner.makeWallPost("","Territory Conquered!",getUsername()+"'s town has just fallen under my influence in Steampunk Wars!",
-										"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
-										"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
-										"Play Now!","http://www.steampunkwars.com/");
-
-								makeWallPost("","Territory Conquered!","My town " + t.getTownName() + " has just fallen under " + owner.getUsername() + "'s influence in Steampunk Wars!",
-										"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
-										"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
-										"Play Now!","http://www.steampunkwars.com/");
-								// presumably this is also called if they just got online, so it's possible
-								// that they already have a timer set up.
-								
-									t.setLord(owner);
-									t.setVassalFrom(new Timestamp((new Date()).getTime()));
+									owner.makeWallPost("","Territory Conquered!",getUsername()+"'s town " + t.getTownName() + " has just fallen under my influence in Steampunk Wars!",
+											"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+											"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+											"Play Now!","http://www.steampunkwars.com/");
+	
+									makeWallPost("","Territory Conquered!","My town " + t.getTownName() + " has just fallen under " + owner.getUsername() + "'s influence in Steampunk Wars!",
+											"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+											"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+											"Play Now!","http://www.steampunkwars.com/");
+									// presumably this is also called if they just got online, so it's possible
+									// that they already have a timer set up.
+										t.setLord(owner);
+										t.setVassalFrom(new Timestamp((new Date()).getTime()));
+								}
 							}
 
 						}
@@ -1191,8 +1311,18 @@ public class Player  {
 					}
 			 } else if(found&&t.getLord()!=null) {
 				 // so now it's under it's own power again, but there is still a lord - RESET!
-				
+				// this happens whether you belong to the person who just owned you, or to their lord.
+				 t.getLord().makeWallPost("","Territory Freed!",getUsername()+"'s town has freed itself from my influence.... for now.",
+							"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+							"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+							"Play Now!","http://www.steampunkwars.com/");
+				 makeWallPost("","Territory Freed!","The people of my town are free from "+t.getLord().getUsername()+"'s tyranny!",
+							"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+							"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+							"Play Now!","http://www.steampunkwars.com/");
 					 t.setLord(null);
+					t.setVassalFrom(new Timestamp((new Date()).getTime()));
+
 			 }
 		 }
 	 }
@@ -1244,7 +1374,48 @@ public class Player  {
 		 // if a set of points has points a,b and c,d such that a,b cannot be connected
 		 // directly to point c,d, then we separate the collections of points connected to a,b and c,d and return them
 		 // as separate arraylists.
-		 return null;
+		 
+		 // how do we do this?
+		 // Need an arraylist of arraylists.
+		 // Pick the first point, make an arraylist, and then find all points that can be connected to that point.
+		 // Add them, and remove them from pile. Then go back through and find all points that can connect to any points in the list.
+		 // Keep doing this till you can't find any more such points. Then add it to your arraylist of arraylists.
+		 // Repeat until empty.
+		 ArrayList<ArrayList<Hashtable>> pointSets = new ArrayList<ArrayList<Hashtable>>();
+		 while(points.size()>0) {
+			 ArrayList<Hashtable> newPoints = new ArrayList<Hashtable>();
+			 newPoints.add(points.get(0));
+			 points.remove(0);
+			int i = 0;
+			while(i<points.size()) { // it'll basically go through this shit till all connected points are found.
+				Hashtable point = points.get(i);
+				 int candidateX = (Integer) point.get("x");
+				 int candidateY = (Integer) point.get("y");
+				 boolean canAdd=false;
+				 for(Hashtable newPoint:newPoints) {
+					 int partX = (Integer) point.get("x");
+					 int partY = (Integer) point.get("y");
+					 int xdiff = Math.abs(partX-candidateX);
+					 int ydiff = Math.abs(partY-candidateY);
+					 // so qualifying candidates are (x,y+/-1), and (x+/-1, y),
+					// and (x+/-1,y+/-1). 
+					 if((xdiff==0&&ydiff==1)||(xdiff==1&&ydiff==0)||(xdiff==1&&ydiff==1)) {
+						 canAdd=true;
+						 break;
+					 }
+				 }
+				 if(canAdd) {
+					 newPoints.add(point);
+					 points.remove(i);
+					 i--;
+				 }
+				 i++;
+			 }
+			
+			pointSets.add(newPoints); // we add the point set, and recycle.
+			 
+		 }
+		 return pointSets;
 	 }
 	 public Hashtable returnTerritory(ArrayList<Hashtable> points) {
 		 
@@ -1855,6 +2026,7 @@ public class Player  {
 	       owedTicks = rs.getInt(82);
 	       voluntaryVassal=rs.getBoolean(89);
 	       secondaryResBuff=null; // let it get reset!
+	       vassalFrom=null;
 	       try {
 		       last_session=rs.getTimestamp(83);
 		      } catch(Exception exc) { last_session = new Timestamp((new Date()).getTime());}	       numLogins = rs.getInt(84);
@@ -2086,7 +2258,7 @@ public class Player  {
 			    		   +", revTimer = ?, totalBPEarned = ?, flicker = ?, fuid = ?, totalTimePlayed = ?, numLogins = ?, last_login = ?, last_session = ?" 
 			    		   	+", last_auto_blast = ?,tPushes = ?, airshipTech = ?, clockworkAugments = ?" 
 			    		   	+", attackAPI = ?, advancedAttackAPI = ?, digAPI = ?, tradingAPI = ?, advancedTradingAPI = ?, smAPI = ?, researchAPI = ?"+ 
-			    		   	", buildingAPI = ?, advancedBuildingAPI = ?, messagingAPI = ?, zeppelinAPI = ?, completeAnalyticAPI = ?, version = ?, nukeAPI = ?, worldMapAPI = ?, owedTicks = ?, email =?, pushLog = ?, password = ?, lord = ?, taxRate = ?, voluntaryVassal=?, mbuff=?, tbuff = ?, mmbuff=?, fbuff=? where pid = ?;");
+			    		   	", buildingAPI = ?, advancedBuildingAPI = ?, messagingAPI = ?, zeppelinAPI = ?, completeAnalyticAPI = ?, version = ?, nukeAPI = ?, worldMapAPI = ?, owedTicks = ?, email =?, pushLog = ?, password = ?, lord = ?, taxRate = ?, voluntaryVassal=?, mbuff=?, tbuff = ?, mmbuff=?, fbuff=?, vassalFrom = ? where pid = ?;");
 			       stmt.setInt(1,bodyArmor);
 			       stmt.setBoolean(2,personalShields);
 			       stmt.setBoolean(3,hydraulicAssistors);
@@ -2163,7 +2335,10 @@ public class Player  {
 			    	   stmt.setLong(64,secondaryResBuff[2]);
 			    	   stmt.setLong(65,secondaryResBuff[3]);
 			       }
-			       stmt.setInt(66,ID);
+			       if(getVassalFrom()!=null)
+						 stmt.setString(66,getVassalFrom().toString());
+						 else stmt.setString(66,null);
+			       stmt.setInt(67,ID);
 	  /*   String  updatePlayer = "update player set bodyArmor = " + bodyArmor +", personalShields = " + personalShields + 
 	    		  ", hydraulicAssistors = " + hydraulicAssistors +  ", thrustVectoring = " + thrustVectoring + ", bloodMetalPlating = " + bloodMetalPlating +", bloodMetalArmor = " + bloodMetalArmor+ ", advancedFortifications = " + advancedFortifications + ", constructionResearch = " + constructionResearch + ", firearmResearch = " + firearmResearch +
 	    		   ", townTech = " + townTech 
@@ -3783,6 +3958,43 @@ public class Player  {
 
 	public String getHoldingLordIteratorID() {
 		return holdingLordIteratorID;
+	}
+
+
+	public void setVassalFrom(Timestamp vassalFrom) {
+		this.vassalFrom = vassalFrom;
+	}
+
+
+	public Timestamp getVassalFrom() {
+		if(vassalFrom==null) {
+			try {
+				UberPreparedStatement stmt = con.createStatement("select vassalFrom from player where pid = ?;");
+				stmt.setInt(1,ID);
+				ResultSet rs = stmt.executeQuery();
+				if(rs.next()) {
+					if(rs.getTimestamp(1)!=null)
+				       vassalFrom=rs.getTimestamp(1);
+
+				}
+				rs.close();
+				stmt.close();
+			} catch(SQLException exc) {
+				exc.printStackTrace();
+			}
+
+		}
+		return vassalFrom;
+		}
+
+
+	public void setTerritories(ArrayList<Hashtable> territories) {
+		this.territories = territories;
+	}
+
+
+	public ArrayList<Hashtable> getTerritories() {
+		return territories;
 	}
 }
 

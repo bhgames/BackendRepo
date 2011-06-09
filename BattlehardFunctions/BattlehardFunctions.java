@@ -3,6 +3,7 @@ import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
@@ -260,7 +261,8 @@ public class BattlehardFunctions {
 	 *  
 	 *   To grab the array of town hashtables, use the key "townHash".
 	 *   Each hashtable in the town hashtable array has keys "townName","owner","pid","SSL", "resEffects"(an array), "debris"(an array),
-	 *   "x", "y", "dig"(which returns true if a dig is present.)
+	 *   "x", "y", "dig"(which returns true if a dig is present.),"taxRate"(a double which is zero if you cannot see it, or the actual
+	 *   tax rate if this is one of your towns or a town you have vassaled.)
 	 *   
 	 *  To grab the maptile array of hashtables, use the key "tileHash". Each entry is a hashtable containing
 	 *  these keys: mid, an integer identifier for the tile, centerx, an integer that represents the at what spot
@@ -358,10 +360,13 @@ public class BattlehardFunctions {
 		ArrayList<Town> towns = g.getTowns();
 		ArrayList<Hashtable> tileHash = new ArrayList<Hashtable>();
 		ArrayList<Hashtable> cloudHash = new ArrayList<Hashtable>();
+		ArrayList<Hashtable> territoryArray = new ArrayList<Hashtable>();
+		int[] cornerArray,cornerArrayClone,sidesArrayClone,sidesArray;
+		ArrayList<Hashtable> points,pointsClone;
 		 int counter=0;
 		 Hashtable totalHash = new Hashtable(); // reverse all of them, so we always get lower.
 		int urcx=-1000000000,urcy=-1000000000,ulcx=+1000000000,ulcy=-1000000000,lrcx=-1000000000,lrcy=+1000000000,llcx=1000000000,llcy=1000000000;
-		Hashtable r;
+		Hashtable r,clone,cornClone,corners;
 		try {
 			ResultSet rs; ResultSet rs2; ResultSet rs3;
 	//		UberStatement stmt = g.con.createStatement();
@@ -423,6 +428,66 @@ public class BattlehardFunctions {
 					r.put("townName",towns.get(i).getTownName());
 					r.put("owner",towns.get(i).getPlayer().getUsername());
 					r.put("pid",towns.get(i).getPlayer().ID);
+					for(Hashtable pterr: towns.get(i).getPlayer().getTerritories()) {
+						boolean canAdd=true;
+						for(Hashtable terr:territoryArray){
+							if(((UUID) pterr.get("id")).equals((UUID) terr.get("id"))) {
+								canAdd=false;
+								break;
+							}
+						}
+						if(canAdd) { // means we can add a copy of the territory!
+						 clone = new Hashtable();
+							clone.put("id",UUID.fromString(pterr.get("id").toString())); 
+							/*
+							 * 
+							  			"corners" -> {
+								  
+								  		"owner"->"SomeGuy"
+								  		"lord"->"yourLordsUsername"(if you are a Vassal) or "none"
+									   "corner"-> [1,1]
+									   "sides"-> [2,3,4]
+									   
+									   };
+							 */
+							 cornClone = new Hashtable();
+							 corners =(Hashtable) pterr.get("corners");
+							cornClone.put("owner",pterr.get("owner"));
+							cornClone.put("lord",pterr.get("lord"));
+							cornerArray = (int[]) corners.get("corner");
+							sidesArray = (int[]) corners.get("sides");
+							cornerArrayClone = new int[cornerArray.length];
+							sidesArrayClone = new int[sidesArray.length];
+
+							int le = 0;
+							while(le<cornerArray.length) {
+								cornerArrayClone[le]=cornerArray[le];
+								le++;
+							}
+							le = 0;
+							while(le<sidesArray.length) {
+								sidesArrayClone[le]=sidesArray[le];
+								le++;
+							}
+							cornClone.put("corner",cornerArrayClone);
+							cornClone.put("sides",sidesArrayClone);
+							
+							clone.put("corners",cornClone);
+							
+							points = (ArrayList<Hashtable>) pterr.get("points");
+							pointsClone = new ArrayList<Hashtable>();
+							for(Hashtable point:points) {
+								cornClone = new Hashtable();
+								cornClone.put("x",point.get("x"));
+								cornClone.put("y",point.get("y"));
+								pointsClone.add(cornClone);
+							}
+
+							clone.put("points",cornClone);
+
+							territoryArray.add(clone);
+						}
+					}
 					if(towns.get(i).getDigCounter()>=0) r.put("dig",true);
 					else r.put("dig",false);
 					  int k = 0; boolean add=true;
@@ -10811,12 +10876,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				 resEffects[1] = t.getResEffects()[1];
 				 resEffects[2] = t.getResEffects()[2];
 				 resEffects[3] = t.getResEffects()[3];
-
+				 int lord = 0;
+				 if(t.getLord()!=null) lord = t.getLord().ID;
+				 Timestamp vassalFrom = new Timestamp((new Date()).getTime());
+				 if(t.getVassalFrom()!=null) vassalFrom = t.getVassalFrom();
 
 			
 			toRet[i] = new UserTown(r,au,b,p.ID,p.getUsername(),res,resCaps,resInc,resEffects,t.getTotalEngineers(),
 					t.getTotalTraders(),t.townID,t.getTownName(),ts,tr,t.getX(),t.getY(),getCSL(t.townID),getCS(t.townID),t.isZeppelin()
-					,t.getFuelCells(),t.getDestX(),t.getDestY(),t.getTicksTillMove(),t.getFoodConsumption());
+					,t.getFuelCells(),t.getDestX(),t.getDestY(),t.getTicksTillMove(),t.getFoodConsumption(),t.getVassalRate(),lord,vassalFrom);
 			}
 			i++;
 
@@ -10916,6 +10984,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 		
 		String leagueName = null;
+		int lord = 0; Timestamp vassalFrom=new Timestamp((new Date()).getTime());
+		if(p.getLord()!=null) lord = p.getLord().ID;
+		if(p.getVassalFrom()!=null) vassalFrom = p.getVassalFrom();
 		if(p.getLeague()!=null) leagueName=p.getLeague().getUsername();
 		return new UserPlayer(p.ID,p.getInfrastructureTech(),p.getBloodMetalPlating(),au,
 				p.isThrustVectoring(),p.getKnowledge(),p.getConstructionResearch(),
@@ -10928,7 +10999,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				p.isClockworkAugments(),
 				p.isAttackAPI(),p.isAdvancedAttackAPI(),p.isTradingAPI(),p.isAdvancedTradingAPI(),p.isSmAPI(),p.isResearchAPI(),
 				p.isBuildingAPI(),p.isAdvancedBuildingAPI(),p.isMessagingAPI(),p.isZeppelinAPI(),p.isCompleteAnalyticAPI(),
-				p.isNukeAPI(),p.isWorldMapAPI(),p.isdigAPI(),p.getScoutTech(),p.getBloodMetalArmor());
+				p.isNukeAPI(),p.isWorldMapAPI(),p.isdigAPI(),p.getScoutTech(),p.getBloodMetalArmor(),lord,vassalFrom,p.getVassalHash());
 
 		
 	}
@@ -11571,6 +11642,23 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 */
 	public int getPID() {
 		return pid;
+	}
+	/**
+	 * Returns the username of a player given by the pid. Returns Id if it
+	 * can't find one.
+	 * @param username
+	 * @return
+	 */
+	public String getUsername(int pid) {
+		return g.getPlayer(pid).getUsername();
+	}/**
+	 * Returns the pid of a player given by the username. Returns 5(Id's pid) if it
+	 * can't find one.
+	 * @param username
+	 * @return
+	 */
+	public int getPID(String username) {
+		return g.getPlayerId(username);
 	}
 	public boolean pingQuest(String questname) {
 	 int i =0;
@@ -12777,6 +12865,150 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			 return true;
 		} else {
 			setError("You are either a forced vassal of a different lord, or are already a voluntary vassal of this one!");
+			return false;
+		}
+	}
+	/**
+	 * UI Implemented.
+	 * If you are a lord and no longer want the vassal denoted by the Username, you can cancel it here. This will
+	 * also de-vassal any towns of theirs that you had at the town-level before player-vassalification.
+	 * 
+	 * @param msgID
+	 * @return
+	 */
+	public boolean cancelVassalage(String username) {
+		return cancelVassalage(g.getPlayerId(username));
+	}
+	/**
+	 * If you are a lord and no longer want the vassal denoted by the player ID, you can cancel it here.
+	 * 
+	 * @param msgID
+	 * @return
+	 */
+	public boolean cancelVassalage(int pid) {
+		
+		
+		Player vassal = g.getPlayer(pid);
+		if(vassal==null||vassal.ID==5||(vassal!=null&&vassal.getLord()==null)||(vassal!=null&&vassal.getLord()!=null&&vassal.getLord().ID!=p.ID)) {
+			setError("Invalid player!");
+			return false;
+		}
+		
+			
+			 vassal.makeVassalOf(null,false);
+			 return true;
+		
+	}
+	/**
+	 * Returns a list of pids of your player-level vassals. Note the difference here:
+	 * You can have influence over some of a player's towns, but if you have influence over enough of them,
+	 * you are lord over all of them(ie, lord over the player.) This is a list of player-level
+	 * vassals.
+	 */
+	
+	public int[] getPlayerLevelVassalPids() {
+		ArrayList<Integer> players = new ArrayList<Integer>();
+		for(Player pl: g.getPlayers()) {
+			
+			if(pl.getLord()!=null&&pl.getLord().ID==p.ID) {
+				players.add(pl.ID);
+			}
+		}
+		
+		int pids[] = new int[players.size()];
+		int i = 0;
+		while(i<pids.length) {
+			pids[i]=players.get(i);
+			i++;
+		}
+		
+		return pids;
+	}
+	/**
+	 * Returns a list of usernames of your player-level vassals. Note the difference here:
+	 * You can have influence over some of a player's towns, but if you have influence over enough of them,
+	 * you are lord over all of them(ie, lord over the player.) This is a list of player-level
+	 * vassals.
+	 */
+	
+	public String[] getPlayerLevelVassalUsernames() {
+		ArrayList<String> players = new ArrayList<String>();
+		for(Player pl: g.getPlayers()) {
+			
+			if(pl.getLord()!=null&&pl.getLord().ID==p.ID) {
+				players.add(pl.getUsername());
+			}
+		}
+		
+		String pids[] = new String[players.size()];
+		int i = 0;
+		while(i<pids.length) {
+			pids[i]=players.get(i);
+			i++;
+		}
+		
+		return pids;
+	}
+	
+	/**
+	 * UI Implemented.
+	 * Reset the tax rates on voluntary player-level vassals given by their usernames.
+	 * 
+	 * @param msgID
+	 * @return
+	 */
+	public boolean resetVassalTax(String username, double rate) {
+		
+		
+		return resetVassalTax(g.getPlayerId(username),rate);
+		
+	}
+	/**
+	 * Reset the tax rates on voluntary player-level vassals given by their PIDs.
+	 * 
+	 * @param msgID
+	 * @return
+	 */
+	public boolean resetVassalTax(int pid, double rate) {
+		
+		
+		Player vassal = g.getPlayer(pid);
+		if(vassal==null||vassal.ID==5||(vassal!=null&&vassal.getLord()==null)||(vassal!=null&&vassal.getLord()!=null&&vassal.getLord().ID!=p.ID)) {
+			setError("Invalid player!");
+			return false;
+		}
+		
+			if(rate>.5&&vassal.isVoluntaryVassal()) {
+				setError("You may not set greater than 50% tax on voluntary vassals!");
+				return false;
+			} else if(!vassal.isVoluntaryVassal()) {
+				setError("The tax rate on forced vassals is constant!");
+				return false;
+			}
+			 vassal.setTaxRate(rate);
+			 return true;
+		
+	}
+	/**
+	 * UI Implemented.
+	 * If you are a voluntary player-level vassal, you can cancel player-level vassalage here. This also releases
+	 * all towns that you have that were previously vassaled to your player-level lord.
+	 * 
+	 * @param msgID
+	 * @return
+	 */
+	public boolean cancelVassalage() {
+		
+		
+		
+		if(p.getLord()!=null&&p.isVoluntaryVassal()) {
+				
+			
+			
+			 p.makeVassalOf(null,false);
+			 return true;
+		} else {
+			setError("You are either a forced vassal, or not a vassal at all.");
 			return false;
 		}
 	}
