@@ -33,6 +33,12 @@ public class Id extends Player {
 		}
 		
 		incomingRoutine();
+		for(Town t: towns()) {
+			if(t.getInfluence()>God.startingTownInfluence) {
+				t.setInfluence(God.startingTownInfluence);
+				t.saveInfluence(); // just in case.
+			}
+		}
 	}
 	
 	public void dailyRoutine() {

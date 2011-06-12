@@ -50,20 +50,11 @@ public class Iterator implements Runnable {
 			// and starts iterating it, the others can't, and will wait
 			// to try, but then they'll find it can't be done.
 	//		if(p.getUsername().equals("scooter81")) System.out.println("last login was " +p.last_login.getTime() + " and it needs to be > than " +(today.getTime()-GodGenerator.sessionLagTime) + " and if this is negative, it is: " + (p.last_login.getTime()-(today.getTime()-GodGenerator.sessionLagTime)) + " also his internalClock is " + p.getInternalClock() + " and my internalClock is " + internalClock + " and his owedTicks is " + p.owedTicks);
-
+			double dailyLeft = (p.getPlayedTicks())/(24*3600/GodGenerator.gameClockFactor);
+			dailyLeft-=Math.round(dailyLeft);
+			
 			if(p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock&&(p.owedTicks==0||p.ID==5||p.isQuest())) {
-		//		if(p.getUsername().equals("scooter81")) System.out.println(" iterating this guy scooter even when I shouldn't be.");
-	//			System.out.println(iterateID + " 1");
-			//	System.out.println(iterateID + " found " + p.username + " unhooked and in need at " + internalClock);
-				// Cool, a double lock. First, if you're iterating through and you catch
-				// a player that's held, you don't get in and you just keep going.
-				// If it isn't held and you and other iterator get it at the same time,
-				// then you both get through the for loop. But then only one of you gets
-				// to switch the ID to your number, and once you've done that, the next guy
-				// that comes through sees the ID is not one and so does not set the ID to
-				// his number, and when he tries to enact the iteration code, you see
-				// it's not his number, so he doesn't do it. Only you do.
-		//		System.out.println("iterating " + p.username);
+	
 				synchronized(p){if(p.getHoldingIteratorID().equals("-1")) p.setHoldingIteratorID(iterateID); }
 				if(p.getHoldingIteratorID().equals(iterateID)) {
 			//		System.out.println(iterateID + " caught " + p.username + "'s focus and is iterating at " + internalClock);
@@ -96,6 +87,27 @@ public class Iterator implements Runnable {
 
 				p.setHoldingIteratorID("-1");
 				}
+			} 
+			
+			if(p.getHoldingIteratorID().equals("-1")&&(dailyLeft==0||p.lastTerritoryClock==0)&&p.ID!=5&&!p.isQuest()) {
+				// so basically you get territory even when inactive. However, multiple iterators could
+				// find and recalc you in this timeframe, so we also have a last territory clock, which lets them know
+				// not to recalc unless you haven't had your territory made yet(ie server restart, lastTerritoryClock is 0),
+				// or you did have it recalced awhile ago, but not this very instant. We can't use lastterritoryclock to time
+				// daily recalculations, as a server restart MAY have happened 6 hours ago, and you hit your 24 hour mark now,
+				// so it'd have made it six hours ago and it would need to make it now.
+				synchronized(p){if(p.getHoldingIteratorID().equals("-1")) p.setHoldingIteratorID(iterateID); }
+				if(p.getHoldingIteratorID().equals(iterateID)) {
+					if(p.lastTerritoryClock!=internalClock) { // recalculation bitch.
+						p.territoryCalculator();
+						p.saveInfluence();// it'll save twice if somebody just became a lord,
+						// otherwise it'll just save once to get towninfluence. NBD.
+						p.lastTerritoryClock=internalClock;
+					}
+					p.setHoldingIteratorID("-1");
+
+				}
+				
 			}
 			
 			

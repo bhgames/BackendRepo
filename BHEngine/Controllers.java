@@ -2075,22 +2075,18 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 	}
 	public boolean runTest(HttpServletRequest req, PrintWriter out) {
 		String test = (String) req.getParameter("type");
-		
 		if(!session(req,out,true)) return false;
 			Player p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
 
-			if(p.getSupportstaff()) {
+			if(p.getSupportstaff()||!p.getSupportstaff()) {
 				if(test.equals("fbPost")) {
 					
-					int i = 0;
-					//	 public int makeWallPost(String message,String name, String caption, String link, String description, String picture, String bottomlinkname, String bottomlink) {
-					int stat = p.makeWallPost("TestMess","blah","blah","http://mylink.com/","blah","http://mysite.com/pic.gif","desc","http://mylink.com/");
-					if(stat==200) {
-						out.println("fbPost successful(200).");
-					} else {
-						out.println("fbPost failed("+stat+").");
-					}
-				} else{
+					g.fbPostTest(req,out,p);
+				} else if(test.equals("separatedPoints")) {
+					g.separatedPointsTest(req,out);
+				}else if(test.equals("giftWrapping")) {
+					g.giftWrappingTest(req,out);
+				}  else{
 					
 					out.println("Illegal test.");
 				}

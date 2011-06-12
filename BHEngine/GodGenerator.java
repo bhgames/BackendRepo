@@ -4638,7 +4638,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	public static int teslaTechPrice=50;
 	public static int bloodMetalArmorPrice=750;
 
-
+	public static int startingTownInfluence=140;
 
 
 	
@@ -4997,9 +4997,13 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		}
 		
 		//Maelstrom = new Maelstrom(iteratorTowns.size(),maxX,maxY,this);
+	
+		status+="Loading territories...";
+		for(Player p: getPlayers()) {
+			p.territoryCalculator();
+		}
 		Maelstrom = new Maelstrom(0,maxX,maxY,this);
 		Trader = new Trader(this);
-		
 		status+="Loading Maelstrom and Trader...\n";
 		serverLoaded=true;
 		
@@ -6375,7 +6379,10 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			if(type==2) {
 				p.save(); // Seeing as this player is about to die and be reloaded as a quest, best to save it first!
 			}
-	
+			if(type!=2) {
+				// quests do not need this.
+				p.territoryCalculator();
+			}
 			return p;
 			} catch(MySQLTransactionRollbackException exc) { } 
 			}
@@ -12689,8 +12696,8 @@ public boolean checkForGenocides(Town t) {
 		  }
 		 
 		  int newSizes[] = new int[0];
-		  stmt.execute("insert into town (pid,townName,x,y,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,auSizes) values (5,\"" + randomTownName()+/*"Town" + (x+xmod) + "-" + (y+ymod) +*/ "\","
-				  +(x+xmod)+","+(y+ymod)+",0,0,0,0,1," + resEffects[0] + "," + resEffects[1] + "," + resEffects[2] + "," + resEffects[3] + "," + resEffects[4] + ",'"+PlayerScript.toJSONString(newSizes)+"')");
+		  stmt.execute("insert into town (pid,townName,x,y,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,auSizes,influence) values (5,\"" + randomTownName()+/*"Town" + (x+xmod) + "-" + (y+ymod) +*/ "\","
+				  +(x+xmod)+","+(y+ymod)+",0,0,0,0,1," + resEffects[0] + "," + resEffects[1] + "," + resEffects[2] + "," + resEffects[3] + "," + resEffects[4] + ",'"+PlayerScript.toJSONString(newSizes)+"',"+startingTownInfluence+")");
 		  rs = stmt.executeQuery("select tid from town where x = " + (x+xmod) + " and y = " + (y+ymod) + ";");
 		  rs.next();
 		  int tid = rs.getInt(1);
@@ -12875,6 +12882,7 @@ public boolean checkForGenocides(Town t) {
 		 UserBuilding bldg[];
 		while(p.towns().size()>0) {
 			ptown = p.towns().get(0);
+			ptown.setInfluence(startingTownInfluence);
 			giveNewTown(Id,ptown.townID,0,true,0,0); // we strip the town of support AU
 			// and make it ready to go for Id.
 			ptown.setTownName("Town"+ptown.getX()+"-"+ptown.getY());
@@ -13895,6 +13903,403 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			e.printStackTrace();
 		}
 		return -1;
+	}
+	public boolean giftWrappingTest(HttpServletRequest req, PrintWriter out) {
+	ArrayList<Hashtable> points = new ArrayList<Hashtable>();
+		
+		points.add(newPoint(0,0));
+		points.add(newPoint(1,0));
+		points.add(newPoint(0,1));
+		points.add(newPoint(1,1));
+		points.add(newPoint(-1,0));
+		points.add(newPoint(0,-1));
+		points.add(newPoint(-1,-1));
+		points.add(newPoint(1,-1));
+		points.add(newPoint(-1,1)); // a cube.
+		
+		ArrayList<Hashtable> border = Player.giftWrapping(points);
+		
+		ArrayList<Hashtable> properBorder = new ArrayList<Hashtable>();
+		properBorder.add(newPoint(1,0));
+		properBorder.add(newPoint(0,1));
+		properBorder.add(newPoint(1,1));
+		properBorder.add(newPoint(-1,0));
+		properBorder.add(newPoint(0,-1));
+		properBorder.add(newPoint(-1,-1));
+		properBorder.add(newPoint(1,-1));
+		properBorder.add(newPoint(-1,1)); 
+		
+		for(Hashtable p: properBorder) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			int x = 0; 
+			while(x<border.size()) {
+				if(px==((Integer) points.get(x).get("x"))&&py==((Integer) points.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("giftWrapping test failed because the border was not correct for the cube. The point not part of the border, that should have been, was " + px + "," + py);
+				printPointSet(border,out);
+				return false;
+			}
+
+		}
+		
+		// begin half-circle test
+		points = new ArrayList<Hashtable>();
+		
+		int x = 10;
+		while(x<20) {
+			int y = -7;
+			while(y<7) {
+				double dist = Math.sqrt(Math.pow(x-10,2) + Math.pow(y,2));
+				if(dist<=5) {
+					points.add(newPoint(x,y)); // so anything within the raidus of 5 on the right side of the circle.
+				}
+				y++;
+			}
+			x++;
+		}
+		
+		border = Player.giftWrapping(points);
+		
+		properBorder = new ArrayList<Hashtable>();
+		x = 10;
+		while(x<20) {
+			int y = -7;
+			while(y<7) {
+				double dist = Math.sqrt(Math.pow(x-10,2) + Math.pow(y,2));
+				if(dist==5) {
+					properBorder.add(newPoint(x,y)); // so anything within the raidus of 5 on the right side of the circle.
+				}
+				y++;
+			}
+			x++;
+		}
+		
+		for(Hashtable p: properBorder) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			 x = 0; 
+			while(x<border.size()) {
+				if(px==((Integer) points.get(x).get("x"))&&py==((Integer) points.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("giftWrapping test failed because the border was not correct for the half-circle. The point not part of the border, that should have been, was " + px + "," + py);
+				out.println("borders calculated by giftwrapper for half-circle:");
+				printPointSet(border,out);
+				out.println("proper Border calculations(we didn't insert them manually, so we print them here):");
+				printPointSet(properBorder,out);
+
+				return false;
+			}
+
+		}
+		 // begin four-point test.
+		
+		points = new ArrayList<Hashtable>();
+		
+		points.add(newPoint(0,0));
+		points.add(newPoint(1,0));
+		points.add(newPoint(0,1));
+		points.add(newPoint(1,1)); // four points.
+	
+		
+		border = Player.giftWrapping(points);
+		
+		properBorder = new ArrayList<Hashtable>();
+		properBorder.add(newPoint(0,0));
+		properBorder.add(newPoint(1,0));
+		properBorder.add(newPoint(0,1));
+		properBorder.add(newPoint(1,1)); // four points.
+		
+		for(Hashtable p: properBorder) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			 x = 0; 
+			while(x<border.size()) {
+				if(px==((Integer) points.get(x).get("x"))&&py==((Integer) points.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("giftWrapping test failed because the border was not correct for the four points only test. The point not part of the border, that should have been, was " + px + "," + py);
+				printPointSet(border,out);
+				return false;
+			}
+
+		}
+		
+		// begin three points test.
+		points = new ArrayList<Hashtable>();
+		
+		points.add(newPoint(0,0));
+		points.add(newPoint(1,0));
+		points.add(newPoint(0,1));
+	
+		
+		border = Player.giftWrapping(points);
+		
+		properBorder = new ArrayList<Hashtable>();
+		properBorder.add(newPoint(0,0));
+		properBorder.add(newPoint(1,0));
+		properBorder.add(newPoint(0,1));
+		
+		for(Hashtable p: properBorder) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			 x = 0; 
+			while(x<border.size()) {
+				if(px==((Integer) points.get(x).get("x"))&&py==((Integer) points.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("giftWrapping test failed because the border was not correct for the three points only test. The point not part of the border, that should have been, was " + px + "," + py);
+				printPointSet(border,out);
+				return false;
+			}
+
+		}
+		// two point test.
+		points = new ArrayList<Hashtable>();
+		
+		points.add(newPoint(0,0));
+		points.add(newPoint(1,0));
+
+	
+		
+		border = Player.giftWrapping(points);
+		
+		properBorder = new ArrayList<Hashtable>();
+		properBorder.add(newPoint(0,0));
+		properBorder.add(newPoint(1,0));
+
+		
+		for(Hashtable p: properBorder) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			 x = 0; 
+			while(x<border.size()) {
+				if(px==((Integer) points.get(x).get("x"))&&py==((Integer) points.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("giftWrapping test failed because the border was not correct for the two points only test. The point not part of the border, that should have been, was " + px + "," + py);
+				printPointSet(border,out);
+				return false;
+			}
+
+		}
+		
+		points = new ArrayList<Hashtable>();
+		
+		points.add(newPoint(0,0));
+	
+		
+		border = Player.giftWrapping(points);
+		
+		properBorder = new ArrayList<Hashtable>();
+		properBorder.add(newPoint(0,0));
+
+		
+		for(Hashtable p: properBorder) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			 x = 0; 
+			while(x<border.size()) {
+				if(px==((Integer) points.get(x).get("x"))&&py==((Integer) points.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("giftWrapping test failed because the border was not correct for the one point only test. The point not part of the border, that should have been, was " + px + "," + py);
+				printPointSet(border,out);
+				return false;
+			}
+
+		}
+		out.println("giftWrapping test successful.");
+		return true;
+	}
+	public boolean separatedPointsTest(HttpServletRequest req, PrintWriter out) {
+		// let's make some separated points...
+		ArrayList<Hashtable> points = new ArrayList<Hashtable>();
+		
+		points.add(newPoint(0,0));
+		points.add(newPoint(1,0));
+		points.add(newPoint(0,1));
+		points.add(newPoint(1,1));
+		points.add(newPoint(-1,0));
+		points.add(newPoint(0,-1));
+		points.add(newPoint(-1,-1));
+		points.add(newPoint(1,-1));
+		points.add(newPoint(-1,1)); // a cube.
+		
+		// make a half-circle.
+		int x = 10;
+		while(x<20) {
+			int y = -7;
+			while(y<7) {
+				double dist = Math.sqrt(Math.pow(x-10,2) + Math.pow(y,2));
+				if(dist<=5) {
+					points.add(newPoint(x,y)); // so anything within the raidus of 5 on the right side of the circle.
+				}
+				y++;
+			}
+			x++;
+		}
+	
+		// now let us count the separated territories and check them.
+		ArrayList<ArrayList<Hashtable>> separated = Player.separatePoints(points);
+		if(separated.size()!=2) {
+			out.println("separatedPoints test failed due to there not being two distinct territorial lines.");
+			printPointSets(separated,out);
+
+			return false;
+		} 
+		//out.println("separated size is " + separated.size());
+		//	printPointSets(separated,out);
+			// do they have the right points in them?
+			 ArrayList<Hashtable> pointset = separated.get(0);
+			for(Hashtable p: pointset) {
+				int px = (Integer) p.get("x");
+				int py = (Integer) p.get("y");
+				boolean foundPoint=false;
+				x = 0; // there are 9 points in the original point set, then comes the circle.
+				// so we just start at the 0th index, and go from there.
+				while(x<9) {
+					if(px==((Integer) points.get(x).get("x"))&&py==((Integer) points.get(x).get("y"))) {
+						foundPoint=true;
+						break;
+					}
+					x++;
+				}
+				if(!foundPoint) {
+					out.println("separatedPoints test failed because the first territory was not the cube.");
+					printPointSets(separated,out);
+					return false;
+				}
+
+			}
+			 
+			pointset = separated.get(1);
+			for(Hashtable p: pointset) {
+				int px = (Integer) p.get("x");
+				int py = (Integer) p.get("y");
+				boolean foundPoint=false;
+				x = 9; // there are 9 points in the original point set, then comes the circle.
+				// so we just start at the ninth index, and go from there.
+				while(x<points.size()) {
+					if(px==((Integer) points.get(x).get("x"))&&py==((Integer) points.get(x).get("y"))) {
+						foundPoint=true;
+						break;
+					}
+					x++;
+				}
+				if(!foundPoint) {
+					out.println("separatedPoints test failed because the second territory was not the half-circle. The point not part of the original circle was " + px + "," + py);
+					printPointSets(separated,out);
+					return false;
+				}
+
+			}
+		
+		// okay so if we got this far, now we can make a connection.
+			points.add(newPoint(2,0));
+			points.add(newPoint(3,0));
+			points.add(newPoint(4,0));
+			points.add(newPoint(5,0));
+			points.add(newPoint(6,0));
+			points.add(newPoint(7,0));
+			points.add(newPoint(8,0));
+			points.add(newPoint(9,0));
+			
+			separated = Player.separatePoints(points); 
+			if(separated.size()!=1) {
+				out.println("spearatedPoints test failed because the bridged territories were not one set.");
+				printPointSets(separated,out);
+				return false;
+			}
+			
+			for(Hashtable p: separated.get(0)) {
+				int px = (Integer) p.get("x");
+				int py = (Integer) p.get("y");
+				boolean foundPoint=false;
+				for(Hashtable point:points) {
+					if(px==((Integer) point.get("x"))&&py==((Integer) point.get("y"))) {
+						
+						foundPoint=true;
+						break;
+					}
+					
+				}
+				
+				if(!foundPoint) {
+					out.println("separatedPoints test failed because the single territory returned by the bridged half-circle cube did not contain all the necessary points, or more points.");
+					printPointSets(separated,out);
+					return false;
+				}
+			}
+			out.println("separatedPoints test successful.");
+		return true;
+	}
+	public void printPointSets(ArrayList<ArrayList<Hashtable>> separated, PrintWriter out) {
+		out.println("in fact, there were " + separated.size() + " territory sets, and the points in them are:<br />");
+		 int x = 0;
+		for(ArrayList<Hashtable> pset:separated) {
+			out.println("Territory: " + x+"<br />");
+			for(Hashtable r: pset) {
+				out.println(((Integer) r.get("x")) + "," + ((Integer) r.get("y")) + "<br />");
+			}
+			x++;
+
+		}
+	}
+	public void printPointSet(ArrayList<Hashtable> pset, PrintWriter out) {
+	
+			for(Hashtable r: pset) {
+				out.println(((Integer) r.get("x")) + "," + ((Integer) r.get("y")) + "<br />");
+			}
+			
+	}
+	public Hashtable newPoint(int x,int y) {
+		Hashtable r = new Hashtable();
+		r.put("x",x);
+		r.put("y",y);
+		return r;
+	}
+	public void fbPostTest(HttpServletRequest req, PrintWriter out, Player p) {
+		int i = 0;
+		//	 public int makeWallPost(String message,String name, String caption, String link, String description, String picture, String bottomlinkname, String bottomlink) {
+		int stat = p.makeWallPost("TestMess","blah","blah","http://mylink.com/","blah","http://mysite.com/pic.gif","desc","http://mylink.com/");
+		if(stat==200) {
+			out.println("fbPost successful(200).");
+		} else {
+			out.println("fbPost failed("+stat+").");
+		}
 	}
 }
 

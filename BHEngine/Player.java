@@ -50,6 +50,7 @@ public class Player  {
 	 private double taxRate;
 	public Timestamp last_session;
 	private int lordInternalClock=0;
+	int lastTerritoryClock=0;
 	public int owedTicks =0;
 	private String version;
 	private ArrayList<Hashtable> achievements;
@@ -109,6 +110,45 @@ public class Player  {
 			   facsimile=true;
 			   ID = 5; // this means a test player, and we'll use Id as our example player for both sides.
 		   }
+		   
+		   if(ID>999999900) {
+			   stmt.close(); // not a real player, no need.
+			   facsimile=false; // this is a more sophisticated test player, capable of generating it's own attackunits.
+			   // this means we're in the special testing zone.
+			   this.ID=ID;
+			   this.God=God;
+		       internalClock = God.gameClock;
+			   username = "Test-"+ID;
+		       password = "4p5v3sxQ";
+		       playedTicks=0;
+		       owedTicks = 0;
+		       version = "new";
+		       fuid = 0;
+		       knowledge = 0;
+		       flicker = "noflick";
+		       last_login=new Timestamp((new Date()).getTime());
+		       // EVENT LISTENER STUFF	
+				eventListenerLists.put("onProgramLoad",new ArrayList<QuestListener>());
+				eventListenerLists.put("onRaidSent",new ArrayList<QuestListener>());
+
+		       try {
+		       last_session=new Timestamp((new Date()).getTime());
+		       } catch(Exception exc) { last_session = new Timestamp((new Date()).getTime());}
+		       numLogins = 0;
+		       totalTimePlayed = 0;
+		       
+		       
+
+
+		  
+				if(!facsimile) { // you must set them yourself if you are.
+					au = getAu(); 
+					try {
+					getAchievements();
+					} catch(Exception exc) { exc.printStackTrace(); System.out.println("No idea why this error happened, but player load saved."); } 
+				}
+			   
+		   } else {
 		   this.ID=ID;
 		   this.God=God;
 		   stmt.setInt(1,ID);
@@ -209,9 +249,9 @@ public class Player  {
 				getAchievements();
 				} catch(Exception exc) { exc.printStackTrace(); System.out.println("No idea why this error happened, but player load saved."); } 
 			}
-			
+		   }
 			ps = new PlayerScript(this);
-
+		   
 		} catch(SQLException exc) { exc.printStackTrace(); }
 
 	}
@@ -848,8 +888,8 @@ public class Player  {
 				
 				// now we calculate to see what the max block this guy should have is.
 				
-				int maxR = (int) Math.round(Math.sqrt(t.getInfluence()/20.5));
-				
+				double maxR =Math.sqrt(t.getInfluence()/10.0)/2.5;
+			//	System.out.println("t " + t.getTownName() + " infl is " +t.getInfluence() + " maxR is " + maxR);
 				/*
 				 * Now we need to figure out the "boundaries" of the parcel. What I suggest is starting with the point -maxR,maxR
 				 * relative to the town, and scanning down the square, picking up everything that is within a distance maxR of the
@@ -857,18 +897,20 @@ public class Player  {
 				 */
 				ArrayList<Hashtable> points = new ArrayList<Hashtable>();
 				Hashtable pt;
-				int startX = t.getX()-maxR;
+				int startX = t.getX()-(int) Math.ceil(maxR);
 				while(startX<=t.getX()+maxR) {
-					int startY = t.getY()+maxR;
+					double startY = t.getY()+(int) Math.ceil(maxR);
 					while(startY>=t.getY()-maxR) {
 						double dist = Math.sqrt(Math.pow((t.getX()-startX),2)+Math.pow((t.getY()-startY),2));
+					//	System.out.println("Trying " + startX + "," + startY + ", who's dist is " + dist);
 						if(dist<=maxR) {
 							pt = new Hashtable();
-							pt.put("x",startX);
-							pt.put("y",startY);
+							pt.put("x",(int)startX);
+							pt.put("y",(int) startY);
+					//		System.out.println("Adding "+ startX+","+startY);
 							points.add(pt);
 						}
-						startY++;
+						startY--;
 					}
 					startX++;
 				}
@@ -891,6 +933,7 @@ public class Player  {
 					int y = (Integer) point.get("y");
 					int j = k+1; // for each point, we check for a copy of the point in the remaining territories, to see if connection is
 					// necessary.
+					System.out.println("Looking to connect points from " + k + " to " + j);
 					while(j<townPointLists.size()) {
 							ArrayList<Hashtable> otherPoints = (ArrayList<Hashtable>) townPointLists.get(j);
 							int z = 0;
@@ -899,7 +942,7 @@ public class Player  {
 								int otherX = (Integer) otherPoint.get("x");
 								int otherY = (Integer) otherPoint.get("y");
 								if(x==otherX&&y==otherY) {
-									
+									System.out.println(j + " and " + k + " share " + otherX + "," + otherY);
 									// WE HAVE A CONNECTION, CONNECT THE TERRITORIES!
 									// now we must remember that k need not change, it's
 									// at a lower entry than j, but entry j does need to be kicked out
@@ -933,6 +976,10 @@ public class Player  {
 											points.add(otherPoint);
 										}
 										l++;
+									}
+									System.out.println("The newly collapsed territory contains:");
+									for(Hashtable p: points) {
+										System.out.println((Integer) p.get("x") + "," + (Integer) p.get("y"));
 									}
 									townPointLists.remove(j);
 									j--;
@@ -997,6 +1044,7 @@ public class Player  {
 								int ourX = (Integer) ourPoint.get("x");
 								int ourY = (Integer) ourPoint.get("y");
 								if(ourX==theirX&&ourY==theirY) {
+									System.out.println("I may lose " + ourX +"," + ourY + " to " + owner.getUsername());
 									// CHECK IT OUT!
 									//Sum(townInfluence/town_r^2)
 									double myInfluence=0;
@@ -1014,7 +1062,7 @@ public class Player  {
 											theirInfluence +=t.getInfluence()/(Math.pow(t.getX()-ourX,2)+Math.pow(t.getY()-ourY,2));
 										else theirInfluence+=t.getInfluence();
 									}
-									
+									System.out.println("My influence over " + ourX +"," + ourY + " is " + myInfluence + ", theirs is " + theirInfluence);
 									if(myInfluence>theirInfluence) {
 										// they lose the point.
 											// each territory has a "corners" version and a "points" version.
@@ -1061,6 +1109,7 @@ public class Player  {
 					}
 					}
 				}
+				
 				// now we need to make sure our territories weren't cut in half.
 				ArrayList<ArrayList<Hashtable>> newTerritories = new ArrayList<ArrayList<Hashtable>>();
 				for(ArrayList<Hashtable> points:ourTerritories) {
@@ -1070,13 +1119,14 @@ public class Player  {
 					}
 
 				}
-				
+				System.out.println("All this shit is done with, and we end with:");
+				for(Hashtable p: ourTerritories.get(0)) {
+					System.out.println((Integer) p.get("x") + "," + (Integer) p.get("y"));
+				}
 				// now with newTerritories, we can actually add them.
 				synchronized(getTerritories()) {
 					setTerritories(new ArrayList<Hashtable>());
-					if(getLord()!=null) {
-						
-					}
+				
 					for(ArrayList<Hashtable> points: newTerritories) {
 						
 						getTerritories().add(returnTerritory(points));
@@ -1240,7 +1290,7 @@ public class Player  {
 				 }
 			 }
 		 }
-		 save();
+		 saveInfluence();
 	}
 	 public void checkForNewlyVassaledTowns() {
 		 /*
@@ -1370,7 +1420,7 @@ public class Player  {
 			 
 		 }
 	 
-	 public ArrayList<ArrayList<Hashtable>> separatePoints(ArrayList<Hashtable> points) {
+	 public static ArrayList<ArrayList<Hashtable>> separatePoints(ArrayList<Hashtable> truepoints) {
 		 // if a set of points has points a,b and c,d such that a,b cannot be connected
 		 // directly to point c,d, then we separate the collections of points connected to a,b and c,d and return them
 		 // as separate arraylists.
@@ -1381,24 +1431,34 @@ public class Player  {
 		 // Add them, and remove them from pile. Then go back through and find all points that can connect to any points in the list.
 		 // Keep doing this till you can't find any more such points. Then add it to your arraylist of arraylists.
 		 // Repeat until empty.
+		 ArrayList<Hashtable> points = new ArrayList<Hashtable>(); Hashtable newP;
+		 for(Hashtable p: truepoints) {
+			 
+			  newP = new Hashtable();
+			 newP.put("x",p.get("x"));
+			 newP.put("y",p.get("y"));
+			 points.add(newP); //clone.
+		 }
 		 ArrayList<ArrayList<Hashtable>> pointSets = new ArrayList<ArrayList<Hashtable>>();
 		 while(points.size()>0) {
 			 ArrayList<Hashtable> newPoints = new ArrayList<Hashtable>();
 			 newPoints.add(points.get(0));
 			 points.remove(0);
 			int i = 0;
+			boolean removedThisTime=false;
 			while(i<points.size()) { // it'll basically go through this shit till all connected points are found.
 				Hashtable point = points.get(i);
 				 int candidateX = (Integer) point.get("x");
 				 int candidateY = (Integer) point.get("y");
-				 boolean canAdd=false;
+				 boolean canAdd=false; 
 				 for(Hashtable newPoint:newPoints) {
-					 int partX = (Integer) point.get("x");
-					 int partY = (Integer) point.get("y");
+					 int partX = (Integer) newPoint.get("x");
+					 int partY = (Integer) newPoint.get("y");
 					 int xdiff = Math.abs(partX-candidateX);
 					 int ydiff = Math.abs(partY-candidateY);
 					 // so qualifying candidates are (x,y+/-1), and (x+/-1, y),
 					// and (x+/-1,y+/-1). 
+				//	 System.out.println("Do " + partX + "," + partY + " and candidate " + candidateX + "," + candidateY + " connect? xdiff: " + xdiff + " ydiff: " + ydiff);
 					 if((xdiff==0&&ydiff==1)||(xdiff==1&&ydiff==0)||(xdiff==1&&ydiff==1)) {
 						 canAdd=true;
 						 break;
@@ -1407,9 +1467,18 @@ public class Player  {
 				 if(canAdd) {
 					 newPoints.add(point);
 					 points.remove(i);
+					 removedThisTime=true;
 					 i--;
 				 }
 				 i++;
+				 if(i>=points.size()) {
+					 if(removedThisTime) { // this means that at least one point has been removed from the set,
+						 // meaning the set needs rescanning to compare this new point against points that were
+						 // compared earlier in the set.
+						 i = 0; // reset switch.
+						 removedThisTime=false;
+					 }
+				 }
 			 }
 			
 			pointSets.add(newPoints); // we add the point set, and recycle.
@@ -1439,7 +1508,9 @@ public class Player  {
 			just any point that has the highest x and highest y.
 
 		  */
-		 
+		 for(Hashtable p:points) {
+			 System.out.println("x: " + ((Integer) p.get("x"))+", y:"+((Integer) p.get("y")));
+		 }
 		 ArrayList<Hashtable> borders = giftWrapping(points);
 		 
 		 // so now i must take this code and turn it into Markus' corner code. F-THAT-SHIT
@@ -1551,7 +1622,7 @@ public class Player  {
 		 */
 		 return newTerr;
 	 }
-	 private ArrayList<Hashtable> giftWrapping(ArrayList<Hashtable> points)
+	 static ArrayList<Hashtable> giftWrapping(ArrayList<Hashtable> points)
 	 	{
 				// random
 				 
@@ -1575,13 +1646,13 @@ public class Player  {
 				    }
 				    else if ( yPoints[i] < yPoints[min] )
 					min = i;
-				}
-				//System.out.println("min: " + min);
+				} // doesn't seem to account for negative x,y. Need to change that, first.
+				System.out.println("min: " + min + "("+ xPoints[min] +"," + yPoints[min] + ")");
 		
 				int	num = 0;
 				int smallest;
 				int current = min;
-				do {
+				while ( current != min ) {
 				 //   xPoints2[num] = xPoints[current];
 				  //  yPoints2[num] = yPoints[current];
 				    toAdd = new Hashtable();
@@ -1589,7 +1660,7 @@ public class Player  {
 				    toAdd.put("y",yPoints[current]);
 				    toRet.add(toAdd);
 				    num++;
-				    //System.out.println("num: " + num + ", current: " + current + "(" + xPoints[current] + ", " + yPoints[current] + ")");
+				    System.out.println("num: " + num + ", current: " + current + "(" + xPoints[current] + ", " + yPoints[current] + ")");
 				    smallest = 0;
 				    if ( smallest == current )
 					smallest = 1;
@@ -1600,7 +1671,7 @@ public class Player  {
 					    smallest = i;
 				    }
 				    current = smallest;
-				} while ( current != min );
+				} 
 				
 				c = 0;
 		
@@ -1608,23 +1679,25 @@ public class Player  {
 				
 		 }
 
-	    private boolean small(int current, int smallest, int i, int[] xPoints, int[] yPoints)
+	    private static boolean small(int current, int smallest, int i, int[] xPoints, int[] yPoints)
 	    {int xa, ya, xb, yb, val;
 		xa = xPoints[smallest] - xPoints[current];
 		xb = xPoints[i] - xPoints[current];
 		ya = yPoints[smallest] - yPoints[current];
 		yb = yPoints[i] - yPoints[current];
 		
-		val = xa * yb - xb * ya;
-		if ( val > 0 )
+		val = xa * yb - xb * ya; // a cross product
+		if ( val > 0 ) // means that index i is further out then the current smallest, so we reset it.
+			//This is because it's theta is in the top quadrant, absin(theta), turned on it's side.
 		    return true;
-		else if ( val < 0 )
+		else if ( val < 0 ) // i is not further out, return false.
 		    return false;
 		else {
-		    if ( xa * xb + ya * yb < 0 )
+		    if ( xa * xb + ya * yb < 0 ) // if cross is equal to zero, we have problem. Dot product a.b = abcos(theta) 
+		    	/// if it's less than zero, that means theta is  90-270, which you think would be good.
 			return false;
 		    else {
-			if ( xa * xa + ya * ya > xb * xb + yb * yb )
+			if ( xa * xa + ya * ya > xb * xb + yb * yb ) // if it's > 0, 0-90 and 270-360, I don't get it.
 			    return true;
 			else
 			    return false;
@@ -1933,6 +2006,42 @@ public class Player  {
 		if(getPs().b.isAlive()) return true; // program running means the player keeps cycling.
 		return false;
 	}
+	public Player[] generateFakePlayers(int number, int[] numberTownsEach, int startingPidOffset, int startingTidOffset) {
+		// generates fake players and fake towns with extremely high pids.
+		// the offset is to allow for previous calls.
+		Player[] fakes = new Player[number];
+		int x = 0;
+		while(x<fakes.length) {
+			int startingTid = 999999900+startingTidOffset; 
+			int y = 0;
+		
+			fakes[x] = new Player(startingPidOffset+999999900+x,God);
+			ArrayList<Town> ptowns = new ArrayList<Town>();
+
+			while(y<numberTownsEach.length) {
+				Town t = new Town(startingTid+y,God);
+				t.setPlayer(fakes[x]);
+				
+				ptowns.add(t);
+				God.getTowns().add(t);
+				y++;
+			}
+			
+			fakes[x].setTowns(ptowns);
+			God.getPlayers().add(fakes[x]);
+
+			x++;
+		}
+		return fakes;
+	}
+	public void deleteFakePlayers(Player[] fakes) {
+		for(Player fake:fakes) {
+			God.getPlayers().remove(fake);
+			for(Town t: fake.towns()) {
+				God.getTowns().remove(t);
+			}
+		}
+	}
 	public boolean completedQuest(int qid) {
 		try {
 			UberPreparedStatement stmt = con.createStatement("select complete from qpc where qid = ? and pid = ?;");
@@ -2150,6 +2259,7 @@ public class Player  {
 		ArrayList<AttackUnit> au = getAu();
 		ArrayList<Building> bldg;
 		while(i<au.size()) {
+
 			totalpopulation+=God.getTotalSize(au.get(i),this)*au.get(i).getExpmod();
 			i++;
 		}
@@ -2227,6 +2337,27 @@ public class Player  {
 		// this method is now only for Id.
 		
 		
+	}
+	synchronized public void saveInfluence() {
+		// special save function that just saves influence related stuff for towns. Used when territoryCalculator is called.
+		try {
+			UberPreparedStatement stmt = con.createStatement("update player set lord = ?, vassalFrom = ?, taxRate = ?, voluntaryVassal = ? where pid = ?;");
+			if(getLord()!=null) stmt.setInt(1,getLord().ID);
+			else stmt.setInt(1,0);
+			if(getVassalFrom()!=null) stmt.setString(2,getVassalFrom().toString());
+			else 	stmt.setString(2,new Timestamp((new Date()).getTime()).toString());
+
+			stmt.setDouble(3,getTaxRate());
+			stmt.setBoolean(4,isVoluntaryVassal());
+			stmt.setInt(5,ID);
+			stmt.execute();
+			stmt.close();
+			for(Town t: towns()) {
+				t.saveInfluence();
+			}
+		} catch(SQLException exc) {
+			
+		}
 	}
 	synchronized public void save() {
 		// saves everything but AUTemplates, which alter themselves on change.
@@ -3935,12 +4066,16 @@ public class Player  {
 				stmt.setInt(1,ID);
 				ResultSet rs = stmt.executeQuery();
 				if(rs.next()) {
-		
+					try {
 					resBuff[0]=rs.getLong(1);
 					resBuff[1]=rs.getLong(2);
 					resBuff[2]=rs.getLong(3);
 					resBuff[3]=rs.getLong(4);
 					resBuff[4] = 0;
+					} catch(Exception exc) {
+						System.out.println("secondaryResBuff not properly initialized by SQL db. Saved.");
+						exc.printStackTrace();
+					}
 				}
 				rs.close();
 			stmt.close();
@@ -3973,8 +4108,11 @@ public class Player  {
 				stmt.setInt(1,ID);
 				ResultSet rs = stmt.executeQuery();
 				if(rs.next()) {
-					if(rs.getTimestamp(1)!=null)
+					if(rs.getTimestamp(1)!=null) {
+						
 				       vassalFrom=rs.getTimestamp(1);
+				       
+					}
 
 				}
 				rs.close();

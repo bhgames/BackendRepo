@@ -81,10 +81,20 @@ public class Town {
 		String sizeString = getMemString("auSizes");
 		int[] auSizes = PlayerScript.decodeStringIntoIntArray(sizeString);
 		try {
+			int max=au.size();
+			if(auSizes.length<au.size()) {
+				max = auSizes.length;
+			}
 		while(i<au.size()) { 
 			 ha = au.get(i).returnCopy();
 		//	ha.setSize(getMemInt("au" + (i+1)));
 			 try {
+			 // if you got given a town and the former player had a different dimension auSize array in db, if the 
+				// server was unexpectedly shutdown so a save couldn't occur and the old auSize wasn't overwritten, you'll
+				// load up with a different dimension auSize array than au! in that event that auSize is SHORTER, because we don't
+				// need to /can't do much about it being bigger, we stop loading up numbers of au after that i and instead
+				// just add units with size = 0 onto the stack as the db attackunit table says to do so.
+				 if(i<max)
 			 ha.setSize(auSizes[i]);
 			 } catch(ArrayIndexOutOfBoundsException exc) {
 				 exc.printStackTrace();
@@ -155,14 +165,14 @@ public class Town {
 		this.God=God; this.con=God.con;
 		this.townID=townID;
 		setInternalClock(God.gameClock);
-		if(townID!=0){
+		if(townID!=0&&townID<999999900){
 		 getTownName();
 		if(getPlayer()!=null) { // sometimes when we build towns for Quests, they don't have a player yet on the list of iteratorPlayers.
 	
-				getTradeServer(); getTradeSchedules();
+				tradeServer(); tradeSchedules(); attackServer();
 				getRes(); getResBuff();  getResEffects();
 				getAu();
-				bldg();
+				bldg(); 
 		}
 		probTimer = getMemInt("probTimer");
 		findTime = getMemInt("findTime");
@@ -185,7 +195,9 @@ public class Town {
 		ticksTillMove = getMemInt("ticksTillMove");
 		}
 		x = getMemX();
-		y = getMemY();}
+		y = getMemY();} else {
+			
+		}
 	}
 	synchronized public void synchronize() {
 		// The only town related thing that is referenced by another thing is uh...
@@ -1690,6 +1702,24 @@ public class Town {
 		}
 		}
 	 }
+	 synchronized public void saveInfluence() {
+			try {
+				UberPreparedStatement stmt = con.createStatement("update town set lord = ?, vassalFrom = ?, influence = ? where tid = ?;");
+				if(getLord()!=null)
+				stmt.setInt(1,getLord().ID);
+				else stmt.setInt(1,0);
+				if(getVassalFrom()!=null) stmt.setString(2,getVassalFrom().toString());
+				else stmt.setString(2,new Timestamp((new Date()).getTime()).toString());
+				stmt.setInt(3,getInfluence());
+				stmt.setInt(4,townID);
+				stmt.execute();
+				stmt.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+	 }
 	 synchronized public void save() {
 		 // for towns we save AU and then it's stats, then we call the save method of attached objects.
 		 // raidSupportAU are deleted when a raid returns.
@@ -1703,7 +1733,9 @@ public class Town {
 		 stmt.setLong(5,getRes()[1]);
 		 stmt.setLong(6,getRes()[2]);
 		 stmt.setLong(7,getRes()[3]);
-		 stmt.setString(8,PlayerScript.toJSONString(au));
+		
+		 stmt.setString(8,PlayerScript.toJSONString(getAu()));
+
 		 stmt.setInt(9,owedTicks);
 		 stmt.setBoolean(10,zeppelin);
 		 stmt.setInt(11,fuelCells);
@@ -2360,7 +2392,12 @@ public class Town {
 
 			 */
 
-			
+			 setLord(null);
+			setVassalFrom(new Timestamp((new Date()).getTime()));
+			setInfluence((int) Math.round(getInfluence()*.5));
+			if(getInfluence()<GodGenerator.startingTownInfluence) {
+				setInfluence(GodGenerator.startingTownInfluence);
+			}
 			try {
 
 		
@@ -2897,7 +2934,7 @@ public class Town {
 		// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
 		// Then F = !(R!T) = !R + T;
 		while(rrs.next()) {
-	
+	 
 			tres.add(new Trade(UUID.fromString(rrs.getString(15)),getPlayer().God));
 	
 		}

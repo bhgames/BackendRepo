@@ -635,9 +635,16 @@ public class BattlehardFunctions {
 				newTiles[i]=tileHash.get(i);
 				i++;
 			}
+			Hashtable[] newTerr = new Hashtable[territoryArray.size()];
+			i = 0;
+			while(i<newTerr.length) {
+				newTerr[i]=territoryArray.get(i);
+				i++;
+			}
 			totalHash.put("townHash",newT);
 			totalHash.put("cloudHash",newC);
 			totalHash.put("tileHash",newTiles);
+			totalHash.put("territoryArray",newTerr);
 			totalHash.put("ulcy",ulcy);
 			totalHash.put("ulcx",ulcx);
 			totalHash.put("llcy",llcy);
