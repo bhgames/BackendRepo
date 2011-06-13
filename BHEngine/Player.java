@@ -1101,7 +1101,8 @@ public class Player  {
 						
 							owner.getTerritories().remove(actualTerritory);
 							for(ArrayList<Hashtable> points:separatedPoints) {
-								owner.getTerritories().add(owner.returnTerritory(points));
+								if(points.size()>=1) // no zero-space territories.
+								owner.getTerritories().add(owner.returnTerritory(points,owner));
 							}
 						
 						// so in one fell swoop, we redo the corners.
@@ -1119,17 +1120,17 @@ public class Player  {
 					}
 
 				}
-				System.out.println("All this shit is done with, and we end with:");
+				/*System.out.println("All this shit is done with, and we end with:");
 				for(Hashtable p: ourTerritories.get(0)) {
 					System.out.println((Integer) p.get("x") + "," + (Integer) p.get("y"));
-				}
+				}*/
 				// now with newTerritories, we can actually add them.
 				synchronized(getTerritories()) {
 					setTerritories(new ArrayList<Hashtable>());
 				
 					for(ArrayList<Hashtable> points: newTerritories) {
 						
-						getTerritories().add(returnTerritory(points));
+						getTerritories().add(returnTerritory(points,this));
 					}
 				}
 				checkForNewlyVassaledTowns();  // Id cannot have towns vassaled.
@@ -1486,7 +1487,7 @@ public class Player  {
 		 }
 		 return pointSets;
 	 }
-	 public Hashtable returnTerritory(ArrayList<Hashtable> points) {
+	 public static Hashtable returnTerritory(ArrayList<Hashtable> points, Player player) {
 		 
 		 /*
 		  * This method takes an assemblage of points and returns a polygon out of it.
@@ -1599,18 +1600,18 @@ public class Player  {
 		 Hashtable newTerr = new Hashtable();
 		 newTerr.put("id",id);
 		 Hashtable corners = new Hashtable();
-		 corners.put("owner",getUsername());
-		 if(getLord()==null) {
+		 corners.put("owner",player.getUsername());
+		 if(player.getLord()==null) {
 			 corners.put("lord","none");
 		 }
 		 else {
-			 corners.put("lord",getLord().getUsername());
+			 corners.put("lord",player.getLord().getUsername());
 		 }
 		 int corner[] = new int[2];
 		 corner[0] =(Integer)  borders.get(0).get("x");
 		 corner[1] =(Integer)  borders.get(0).get("y");
 
-		 corners.put("corner",corner);
+		 corners.put("start",corner);
 		 corners.put("sides",sides);
 		 newTerr.put("corners",corners);
 
@@ -1625,7 +1626,26 @@ public class Player  {
 	 static ArrayList<Hashtable> giftWrapping(ArrayList<Hashtable> points)
 	 	{
 				// random
-				 
+		 	if(points.size()==1||points.size()==0) return points; // degenerate cases.
+				int xoff=0;
+				int yoff=0;
+				int lowestX=0;
+				int lowestY=0;
+				for(Hashtable p:points) {
+					int px = (Integer) p.get("x");
+					int py = (Integer) p.get("y");
+					if(px<lowestX) lowestX=px;
+					if(py<lowestY) lowestY=py;
+	
+				}
+				xoff=lowestX-1; // so that 0,0 would be 1,1 if we did have 0,0 as the lowest point.
+				yoff =lowestY-1;
+				for(Hashtable p: points){
+					int px = (Integer) p.get("x");
+					int py = (Integer) p.get("y");
+					p.put("x",px-xoff); // offset is negative, so we make it positive.
+					p.put("y",py-yoff);
+				}
 				 int xPoints[] = new int[points.size()];
 				 int yPoints[] = new int[points.size()];
 				 ArrayList<Hashtable> toRet = new ArrayList<Hashtable>();
@@ -1636,6 +1656,7 @@ public class Player  {
 					 yPoints[c] = (Integer) r.get("y");
 					 c++;
 				 }
+			
 				
 				// convex hull
 				int min = 0;
@@ -1646,13 +1667,13 @@ public class Player  {
 				    }
 				    else if ( yPoints[i] < yPoints[min] )
 					min = i;
-				} // doesn't seem to account for negative x,y. Need to change that, first.
+				} // doesn't seem to account for negative x,y. So we move all the points into the positive with a shift.
 				System.out.println("min: " + min + "("+ xPoints[min] +"," + yPoints[min] + ")");
 		
 				int	num = 0;
 				int smallest;
 				int current = min;
-				while ( current != min ) {
+				do {
 				 //   xPoints2[num] = xPoints[current];
 				  //  yPoints2[num] = yPoints[current];
 				    toAdd = new Hashtable();
@@ -1671,10 +1692,24 @@ public class Player  {
 					    smallest = i;
 				    }
 				    current = smallest;
-				} 
+				}  while ( current != min );
 				
 				c = 0;
-		
+				for(Hashtable p: points){
+					int px = (Integer) p.get("x");
+					int py = (Integer) p.get("y");
+					p.put("x",px+xoff); 
+					p.put("y",py+yoff);
+				}
+				
+				for(Hashtable p: toRet){
+					int px = (Integer) p.get("x");
+					int py = (Integer) p.get("y");
+					p.put("x",px+xoff); 
+					p.put("y",py+yoff);
+				}
+				
+				
 				return toRet;
 				
 		 }

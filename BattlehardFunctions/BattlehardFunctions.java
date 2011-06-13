@@ -454,7 +454,7 @@ public class BattlehardFunctions {
 							 corners =(Hashtable) pterr.get("corners");
 							cornClone.put("owner",pterr.get("owner"));
 							cornClone.put("lord",pterr.get("lord"));
-							cornerArray = (int[]) corners.get("corner");
+							cornerArray = (int[]) corners.get("start");
 							sidesArray = (int[]) corners.get("sides");
 							cornerArrayClone = new int[cornerArray.length];
 							sidesArrayClone = new int[sidesArray.length];
@@ -469,7 +469,7 @@ public class BattlehardFunctions {
 								sidesArrayClone[le]=sidesArray[le];
 								le++;
 							}
-							cornClone.put("corner",cornerArrayClone);
+							cornClone.put("start",cornerArrayClone);
 							cornClone.put("sides",sidesArrayClone);
 							
 							clone.put("corners",cornClone);

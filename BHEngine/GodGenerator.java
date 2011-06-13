@@ -13904,6 +13904,60 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 		return -1;
 	}
+	
+	public boolean returnTerritoryTest(HttpServletRequest req, PrintWriter out, Player player) {
+		ArrayList<Hashtable> points = new ArrayList<Hashtable>();
+		
+		points.add(newPoint(1,0));
+		points.add(newPoint(0,1));
+		points.add(newPoint(1,1));
+		points.add(newPoint(-1,0));
+		points.add(newPoint(0,-1));
+		points.add(newPoint(-1,-1));
+		points.add(newPoint(1,-1));
+		points.add(newPoint(-1,1)); // a cube border.
+/*
+ *  {
+							
+							owner : "SomeGuy"
+							start : [6,2]
+							sides : [-3, -3, 3, 3]
+							}
+				
+				So corner 1 is 3,2
+				 corner 2 is 3,-1
+				  corner 3 is 6,-1
+				  corner 4 is 6,2
+
+ */
+		Hashtable terr = Player.returnTerritory(points,player);
+		ArrayList<Hashtable> pointsInHash =(ArrayList<Hashtable>) terr.get("points");
+		// just a simple test to make sure points aren't changed.
+		for(Hashtable p: points) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			int x = 0; 
+			while(x<pointsInHash.size()) {
+				if(px==((Integer) pointsInHash.get(x).get("x"))&&py==((Integer) pointsInHash.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("returnTerritory test failed because the points in the territory representing the border was not correct for the cube. The point not part of the border, that should have been, was " + px + "," + py);
+				printPointSet(pointsInHash,out);
+				return false;
+			}
+		}
+		
+		Hashtable corner = (Hashtable) terr.get("start");
+		int start[] = (int[]) terr.get("start");
+			
+		out.println("returnTerritory test successful.");
+		return true;
+	}
 	public boolean giftWrappingTest(HttpServletRequest req, PrintWriter out) {
 	ArrayList<Hashtable> points = new ArrayList<Hashtable>();
 		
@@ -13935,7 +13989,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			boolean foundPoint=false;
 			int x = 0; 
 			while(x<border.size()) {
-				if(px==((Integer) points.get(x).get("x"))&&py==((Integer) points.get(x).get("y"))) {
+				if(px==((Integer) border.get(x).get("x"))&&py==((Integer) border.get(x).get("y"))) {
 					foundPoint=true;
 					break;
 				}
@@ -13949,8 +14003,9 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 
 		}
 		
-		// begin half-circle test
-		points = new ArrayList<Hashtable>();
+		// begin half-circle test(not possible to test...too complex. We eyeballed it, and it looked to be better at getting borders
+		// than we were for circles.
+	/*	points = new ArrayList<Hashtable>();
 		
 		int x = 10;
 		while(x<20) {
@@ -13968,18 +14023,14 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		border = Player.giftWrapping(points);
 		
 		properBorder = new ArrayList<Hashtable>();
-		x = 10;
-		while(x<20) {
-			int y = -7;
-			while(y<7) {
-				double dist = Math.sqrt(Math.pow(x-10,2) + Math.pow(y,2));
-				if(dist==5) {
-					properBorder.add(newPoint(x,y)); // so anything within the raidus of 5 on the right side of the circle.
-				}
-				y++;
-			}
-			x++;
-		}
+		properBorder.add(newPoint(10,5));
+		properBorder.add(newPoint(10,-5));
+		properBorder.add(newPoint(13,-4));
+		properBorder.add(newPoint(13,4));
+		properBorder.add(newPoint(14,-3));
+		properBorder.add(newPoint(14,3));
+		properBorder.add(newPoint(15,0));
+
 		
 		for(Hashtable p: properBorder) {
 			int px = (Integer) p.get("x");
@@ -13987,7 +14038,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			boolean foundPoint=false;
 			 x = 0; 
 			while(x<border.size()) {
-				if(px==((Integer) points.get(x).get("x"))&&py==((Integer) points.get(x).get("y"))) {
+				if(px==((Integer) border.get(x).get("x"))&&py==((Integer) border.get(x).get("y"))) {
 					foundPoint=true;
 					break;
 				}
@@ -13995,6 +14046,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			}
 			if(!foundPoint) {
 				out.println("giftWrapping test failed because the border was not correct for the half-circle. The point not part of the border, that should have been, was " + px + "," + py);
+				out.println();
 				out.println("borders calculated by giftwrapper for half-circle:");
 				printPointSet(border,out);
 				out.println("proper Border calculations(we didn't insert them manually, so we print them here):");
@@ -14003,7 +14055,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 				return false;
 			}
 
-		}
+		}*/
 		 // begin four-point test.
 		
 		points = new ArrayList<Hashtable>();
@@ -14026,9 +14078,9 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			int px = (Integer) p.get("x");
 			int py = (Integer) p.get("y");
 			boolean foundPoint=false;
-			 x = 0; 
+			int x = 0; 
 			while(x<border.size()) {
-				if(px==((Integer) points.get(x).get("x"))&&py==((Integer) points.get(x).get("y"))) {
+				if(px==((Integer) border.get(x).get("x"))&&py==((Integer) border.get(x).get("y"))) {
 					foundPoint=true;
 					break;
 				}
@@ -14061,9 +14113,9 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			int px = (Integer) p.get("x");
 			int py = (Integer) p.get("y");
 			boolean foundPoint=false;
-			 x = 0; 
+			int x = 0; 
 			while(x<border.size()) {
-				if(px==((Integer) points.get(x).get("x"))&&py==((Integer) points.get(x).get("y"))) {
+				if(px==((Integer) border.get(x).get("x"))&&py==((Integer) border.get(x).get("y"))) {
 					foundPoint=true;
 					break;
 				}
@@ -14095,9 +14147,9 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			int px = (Integer) p.get("x");
 			int py = (Integer) p.get("y");
 			boolean foundPoint=false;
-			 x = 0; 
+			int x = 0; 
 			while(x<border.size()) {
-				if(px==((Integer) points.get(x).get("x"))&&py==((Integer) points.get(x).get("y"))) {
+				if(px==((Integer) border.get(x).get("x"))&&py==((Integer) border.get(x).get("y"))) {
 					foundPoint=true;
 					break;
 				}
@@ -14126,9 +14178,9 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			int px = (Integer) p.get("x");
 			int py = (Integer) p.get("y");
 			boolean foundPoint=false;
-			 x = 0; 
+			int x = 0; 
 			while(x<border.size()) {
-				if(px==((Integer) points.get(x).get("x"))&&py==((Integer) points.get(x).get("y"))) {
+				if(px==((Integer) border.get(x).get("x"))&&py==((Integer) border.get(x).get("y"))) {
 					foundPoint=true;
 					break;
 				}
@@ -14141,6 +14193,18 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			}
 
 		}
+		
+		points = new ArrayList<Hashtable>();
+		
+	
+		
+		border = Player.giftWrapping(points);
+		if(border.size()!=0) {
+			out.println("giftWrapping test failed because there was a border for a zero-point test.");
+			return false;
+			
+		}
+		
 		out.println("giftWrapping test successful.");
 		return true;
 	}

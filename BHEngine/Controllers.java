@@ -135,9 +135,9 @@ public class Controllers {
 					k++;
 				}
 				j.endArray();
-				j.key("corner").array();
+				j.key("start").array();
 				k = 0;
-				array = (int[]) corners.get("corner");
+				array = (int[]) corners.get("start");
 				while(k<array.length) {
 					j.value(array[k]);
 					k++;
