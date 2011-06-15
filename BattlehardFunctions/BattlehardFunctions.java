@@ -362,7 +362,8 @@ public class BattlehardFunctions {
 		ArrayList<Hashtable> cloudHash = new ArrayList<Hashtable>();
 		ArrayList<Hashtable> territoryArray = new ArrayList<Hashtable>();
 		int[] cornerArray,cornerArrayClone,sidesArrayClone,sidesArray;
-		ArrayList<Hashtable> points,pointsClone;
+		ArrayList<Hashtable> points;
+		Hashtable[] pointsClone;
 		 int counter=0;
 		 Hashtable totalHash = new Hashtable(); // reverse all of them, so we always get lower.
 		int urcx=-1000000000,urcy=-1000000000,ulcx=+1000000000,ulcy=-1000000000,lrcx=-1000000000,lrcy=+1000000000,llcx=1000000000,llcy=1000000000;
@@ -452,8 +453,8 @@ public class BattlehardFunctions {
 							 */
 							 cornClone = new Hashtable();
 							 corners =(Hashtable) pterr.get("corners");
-							cornClone.put("owner",pterr.get("owner"));
-							cornClone.put("lord",pterr.get("lord"));
+							cornClone.put("owner",corners.get("owner"));
+							cornClone.put("lord",corners.get("lord"));
 							cornerArray = (int[]) corners.get("start");
 							sidesArray = (int[]) corners.get("sides");
 							cornerArrayClone = new int[cornerArray.length];
@@ -475,15 +476,17 @@ public class BattlehardFunctions {
 							clone.put("corners",cornClone);
 							
 							points = (ArrayList<Hashtable>) pterr.get("points");
-							pointsClone = new ArrayList<Hashtable>();
+							pointsClone = new Hashtable[points.size()];
+							int iek=0;
 							for(Hashtable point:points) {
 								cornClone = new Hashtable();
 								cornClone.put("x",point.get("x"));
 								cornClone.put("y",point.get("y"));
-								pointsClone.add(cornClone);
+								pointsClone[iek]=(cornClone);
+								iek++;
 							}
 
-							clone.put("points",cornClone);
+							clone.put("points",pointsClone);
 
 							territoryArray.add(clone);
 						}

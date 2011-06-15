@@ -196,7 +196,7 @@ public class Town {
 		}
 		x = getMemX();
 		y = getMemY();} else {
-			
+			setTownName("TestTown-"+townID);
 		}
 	}
 	synchronized public void synchronize() {
@@ -1758,7 +1758,7 @@ public class Town {
 		 else stmt.setInt(26,0);
 		 if(getVassalFrom()!=null)
 			 stmt.setString(27,getVassalFrom().toString());
-			 else stmt.setString(27,null);
+			 else stmt.setString(27,"2011-01-01 00:00:01");
 		 stmt.setInt(28,townID);
 
     	   	  stmt.executeUpdate();
@@ -3817,8 +3817,8 @@ public class Town {
 			UberPreparedStatement stmt = con.createStatement("select " + togetMem + " from town where tid = ?;");
 			stmt.setInt(1,townID);
 			ResultSet rs = stmt.executeQuery();
-			rs.next();
-			int toRet=rs.getInt(1);
+			int toRet=0;
+			if(rs.next()) toRet=rs.getInt(1);
 			rs.close();
 			stmt.close();
 			return toRet;
@@ -3834,8 +3834,8 @@ public class Town {
 			UberPreparedStatement stmt = con.createStatement("select " + togetMem + " from town where tid = ?;");
 			stmt.setInt(1,townID);
 			ResultSet rs = stmt.executeQuery();
-			rs.next();
-			double toRet=rs.getDouble(1);
+			double toRet=0;
+			if(rs.next()) toRet=rs.getDouble(1);
 			rs.close();
 			stmt.close();
 			return toRet;
@@ -3850,8 +3850,8 @@ public class Town {
 			UberPreparedStatement stmt = con.createStatement("select " + togetMem + " from town where tid = ?;");
 			stmt.setInt(1,townID);
 			ResultSet rs = stmt.executeQuery();
-			rs.next();
-			long toRet=rs.getLong(1);
+			long toRet=0;
+			if(rs.next()) toRet=rs.getLong(1);
 			rs.close();
 			stmt.close();
 			return toRet;
@@ -3866,8 +3866,8 @@ public class Town {
 			UberPreparedStatement stmt = con.createStatement("select " + togetMem + " from town where tid = ?;");
 			stmt.setInt(1,townID);
 			ResultSet rs = stmt.executeQuery();
-			rs.next();
-			boolean toRet=rs.getBoolean(1);
+			boolean toRet=false;
+			if(rs.next()) toRet=rs.getBoolean(1);
 			rs.close();
 			stmt.close();
 			return toRet;
@@ -3881,8 +3881,8 @@ public class Town {
 			UberPreparedStatement stmt = con.createStatement("select " + togetMem + " from town where tid = ?;");
 			stmt.setInt(1,townID);
 			ResultSet rs = stmt.executeQuery();
-			rs.next();
-			String toRet=rs.getString(1);
+			String toRet=null;
+			if(rs.next()) toRet=rs.getString(1);
 			rs.close();
 			stmt.close();
 			return toRet;
@@ -3999,10 +3999,14 @@ public class Town {
 				stmt.setInt(1,townID);
 				ResultSet rs = stmt.executeQuery();
 				if(rs.next()) {
+					try {
 					if(rs.getTimestamp(1)!=null)
 				       vassalFrom=rs.getTimestamp(1);
-
+					} catch(SQLException exc) {
+						vassalFrom=null;
+					}
 				}
+				
 				rs.close();
 				stmt.close();
 			} catch(SQLException exc) {

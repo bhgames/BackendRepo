@@ -4889,23 +4889,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		Router.compileProgram(req,out);
 	} 
 	else {
-		ArrayList<Hashtable> tp = new ArrayList<Hashtable>();
-		int x = -10;
-		while(x<-1){ 
-			int y = 10;
-			while(y<20) {
-				if(Math.pow(x+10,2)+Math.pow(y-10,2)<25) {
-					Hashtable p = new Hashtable();
-					p.put("y",y);
-					p.put("x",x);
-					tp.add(p);
-				}
-				y++;
-			}
-			x++;
-		}
-		getPlayer(5).returnTerritory(tp);
-		out.println("Completed test.");
+		
 		out.println(status);
 	}
 	else 
@@ -13904,10 +13888,388 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 		return -1;
 	}
-	
+	public boolean intermediateTerritoryTest(HttpServletRequest req, PrintWriter out, Player player) { 
+		
+		int numTowns[] = {1,1,1};
+		Player[] players = player.generateFakePlayers(3,numTowns,0,0);
+		
+		Town t1 = players[0].towns().get(0);
+		t1.setInfluence(startingTownInfluence);
+		t1.setX(1111100);
+		t1.setY(1111100);
+
+		Town t2 = players[1].towns().get(0);
+
+		t2.setInfluence(startingTownInfluence);
+		t2.setX(1111103);// so it should be x = 1 where the limit is...we want
+		// this guy then centered on 3, and we give him enough to calculate into that shit.
+		t2.setY(1111100);
+		Town t3 = players[2].towns().get(0);
+
+		t3.setInfluence(startingTownInfluence);
+		t3.setX(1111102);
+		t3.setY(1111102);
+		
+		
+		players[0].territoryCalculator();
+		players[1].territoryCalculator(); // we should see no territorial overlap.
+		players[2].territoryCalculator();
+		
+		ArrayList<Hashtable> expectedTerritoryt1 = new ArrayList<Hashtable>();
+		expectedTerritoryt1.add(newPoint(1111100,1111100));
+		expectedTerritoryt1.add(newPoint(1111101,1111100));
+		expectedTerritoryt1.add(newPoint(1111099,1111100));
+		expectedTerritoryt1.add(newPoint(1111100,1111101));
+		expectedTerritoryt1.add(newPoint(1111101,1111101));
+		expectedTerritoryt1.add(newPoint(1111099,1111101));
+		expectedTerritoryt1.add(newPoint(1111100,1111099));
+		expectedTerritoryt1.add(newPoint(1111101,1111099));
+		expectedTerritoryt1.add(newPoint(1111099,1111099));
+		
+		ArrayList<Hashtable> expectedTerritoryt2 = new ArrayList<Hashtable>();
+		expectedTerritoryt2.add(newPoint(1111103,1111100));
+		expectedTerritoryt2.add(newPoint(1111104,1111100));
+		expectedTerritoryt2.add(newPoint(1111102,1111100));
+		expectedTerritoryt2.add(newPoint(1111103,1111101));
+		expectedTerritoryt2.add(newPoint(1111104,1111101));
+		expectedTerritoryt2.add(newPoint(1111103,1111099));
+		expectedTerritoryt2.add(newPoint(1111104,1111099));
+		expectedTerritoryt2.add(newPoint(1111102,1111099));
+		
+		ArrayList<Hashtable> expectedTerritoryt3 = new ArrayList<Hashtable>();
+		expectedTerritoryt3.add(newPoint(1111102,1111102));
+		expectedTerritoryt3.add(newPoint(1111103,1111102));
+		expectedTerritoryt3.add(newPoint(1111101,1111102));
+		expectedTerritoryt3.add(newPoint(1111102,1111103));
+		expectedTerritoryt3.add(newPoint(1111103,1111103));
+		expectedTerritoryt3.add(newPoint(1111102,1111101));
+
+		ArrayList<Hashtable> pointsT1 = (ArrayList<Hashtable>) players[0].getTerritories().get(0).get("points");
+		for(Hashtable p: expectedTerritoryt1) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			int x = 0; 
+			while(x<pointsT1.size()) {
+				if(px==((Integer) pointsT1.get(x).get("x"))&&py==((Integer) pointsT1.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("intermediate territory test failed because the points in the territory was not correct for the first town. The point not part of the territory, that should have been, was " + px + "," + py);
+				printPointSet(pointsT1,out);
+				out.println("Expected:");
+				printPointSet(expectedTerritoryt1,out);
+
+				return false;
+			}
+		}
+		ArrayList<Hashtable> pointsT2 = (ArrayList<Hashtable>) players[1].getTerritories().get(0).get("points");
+		for(Hashtable p: expectedTerritoryt2) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			int x = 0; 
+			while(x<pointsT2.size()) {
+				if(px==((Integer) pointsT2.get(x).get("x"))&&py==((Integer) pointsT2.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("intermediate territory test failed because the points in the territory was not correct for the second town. The point not part of the territory, that should have been, was " + px + "," + py);
+				printPointSet(pointsT2,out);
+				out.println("Expected:");
+				printPointSet(expectedTerritoryt2,out);
+
+				return false;
+			}
+		}
+		ArrayList<Hashtable> pointsT3 = (ArrayList<Hashtable>) players[2].getTerritories().get(0).get("points");
+		for(Hashtable p: expectedTerritoryt3) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			int x = 0; 
+			while(x<pointsT3.size()) {
+				if(px==((Integer) pointsT3.get(x).get("x"))&&py==((Integer) pointsT3.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("intermediate territory test failed because the points in the territory was not correct for the third town. The point not part of the territory, that should have been, was " + px + "," + py);
+				printPointSet(pointsT3,out);
+				out.println("Expected:");
+				printPointSet(expectedTerritoryt3,out);
+
+				return false;
+			}
+		}
+		out.println("intermediateTerritory test successful.");
+		return true;
+	}
+	public boolean basicTerritoryTest(HttpServletRequest req, PrintWriter out, Player player) {
+		/*
+		 * 
+				 	Basic test:
+				Put one player with enough influence for 3 squares against another
+				 with a town that has 4 squares, such that there is no distance between territories.
+				  Then have the 3 square one upgrade to 4 squares, and see what happens with a territory recalc.
+				   Run territory calculator manually.
+		 */
+			int numTowns[] = {1,1};
+			Player[] players = player.generateFakePlayers(2,numTowns,0,0);
+			
+			Town t1 = players[0].towns().get(0);
+			t1.setInfluence(startingTownInfluence);
+			t1.setX(1111100);
+			t1.setY(1111100);
+
+			Town t2 = players[1].towns().get(0);
+
+			t2.setInfluence(startingTownInfluence);
+			t2.setX(1111103);// so it should be x = 1 where the limit is...we want
+			// this guy then centered on 3, and we give him enough to calculate into that shit.
+			t2.setY(1111100);
+			
+			
+			players[0].territoryCalculator();
+			players[1].territoryCalculator(); // we should see no territorial overlap.
+
+			
+			ArrayList<Hashtable> expectedTerritoryt1 = new ArrayList<Hashtable>();
+			expectedTerritoryt1.add(newPoint(1111100,1111100));
+			expectedTerritoryt1.add(newPoint(1111101,1111100));
+			expectedTerritoryt1.add(newPoint(1111099,1111100));
+			expectedTerritoryt1.add(newPoint(1111100,1111101));
+			expectedTerritoryt1.add(newPoint(1111101,1111101));
+			expectedTerritoryt1.add(newPoint(1111099,1111101));
+			expectedTerritoryt1.add(newPoint(1111100,1111099));
+			expectedTerritoryt1.add(newPoint(1111101,1111099));
+			expectedTerritoryt1.add(newPoint(1111099,1111099));
+			
+			ArrayList<Hashtable> expectedTerritoryt2 = new ArrayList<Hashtable>();
+			expectedTerritoryt2.add(newPoint(1111103,1111100));
+			expectedTerritoryt2.add(newPoint(1111104,1111100));
+			expectedTerritoryt2.add(newPoint(1111102,1111100));
+			expectedTerritoryt2.add(newPoint(1111103,1111101));
+			expectedTerritoryt2.add(newPoint(1111104,1111101));
+			expectedTerritoryt2.add(newPoint(1111102,1111101));
+			expectedTerritoryt2.add(newPoint(1111103,1111099));
+			expectedTerritoryt2.add(newPoint(1111104,1111099));
+			expectedTerritoryt2.add(newPoint(1111102,1111099));
+
+			ArrayList<Hashtable> pointsT1 = (ArrayList<Hashtable>) players[0].getTerritories().get(0).get("points");
+			for(Hashtable p: expectedTerritoryt1) {
+				int px = (Integer) p.get("x");
+				int py = (Integer) p.get("y");
+				boolean foundPoint=false;
+				int x = 0; 
+				while(x<pointsT1.size()) {
+					if(px==((Integer) pointsT1.get(x).get("x"))&&py==((Integer) pointsT1.get(x).get("y"))) {
+						foundPoint=true;
+						break;
+					}
+					x++;
+				}
+				if(!foundPoint) {
+					out.println("basic territory test failed because the points in the territory was not correct for the first town in the 3x3 non-interacting test. The point not part of the territory, that should have been, was " + px + "," + py);
+					printPointSet(pointsT1,out);
+					out.println("Expected:");
+					printPointSet(expectedTerritoryt1,out);
+
+					return false;
+				}
+			}
+			ArrayList<Hashtable> pointsT2 = (ArrayList<Hashtable>) players[1].getTerritories().get(0).get("points");
+			for(Hashtable p: expectedTerritoryt2) {
+				int px = (Integer) p.get("x");
+				int py = (Integer) p.get("y");
+				boolean foundPoint=false;
+				int x = 0; 
+				while(x<pointsT2.size()) {
+					if(px==((Integer) pointsT2.get(x).get("x"))&&py==((Integer) pointsT2.get(x).get("y"))) {
+						foundPoint=true;
+						break;
+					}
+					x++;
+				}
+				if(!foundPoint) {
+					out.println("basic territory test failed because the points in the territory was not correct for the second town in the 3x3 noninteracting test. The point not part of the territory, that should have been, was " + px + "," + py);
+					printPointSet(pointsT2,out);
+					out.println("Expected:");
+					printPointSet(expectedTerritoryt2,out);
+
+					return false;
+				}
+			}
+			
+			t1.setInfluence(startingTownInfluence);
+		
+
+			t2.setInfluence(startingTownInfluence);
+			t2.setX(1111102);// so it should be x = 1 where the limit is...we want
+			// this guy then centered on 2, so it'll be a tiebreaker and goto the other guy.
+			t2.setY(1111100);
+			
+			
+			players[0].territoryCalculator();
+			players[1].territoryCalculator(); // we should see no territorial overlap.
+
+			
+			expectedTerritoryt1 = new ArrayList<Hashtable>();
+			expectedTerritoryt1.add(newPoint(1111100,1111100));
+			expectedTerritoryt1.add(newPoint(1111101,1111100));
+			expectedTerritoryt1.add(newPoint(1111099,1111100));
+			expectedTerritoryt1.add(newPoint(1111100,1111101));
+			expectedTerritoryt1.add(newPoint(1111101,1111101));
+			expectedTerritoryt1.add(newPoint(1111099,1111101));
+			expectedTerritoryt1.add(newPoint(1111100,1111099));
+			expectedTerritoryt1.add(newPoint(1111101,1111099));
+			expectedTerritoryt1.add(newPoint(1111099,1111099));
+			
+			expectedTerritoryt2 = new ArrayList<Hashtable>();
+			expectedTerritoryt2.add(newPoint(1111102,1111100));
+			expectedTerritoryt2.add(newPoint(1111103,1111100));
+			expectedTerritoryt2.add(newPoint(1111102,1111101));
+			expectedTerritoryt2.add(newPoint(1111103,1111101));
+			expectedTerritoryt2.add(newPoint(1111102,1111099));
+			expectedTerritoryt2.add(newPoint(1111103,1111099));
+
+			 pointsT1 = (ArrayList<Hashtable>) players[0].getTerritories().get(0).get("points");
+			for(Hashtable p: expectedTerritoryt1) {
+				int px = (Integer) p.get("x");
+				int py = (Integer) p.get("y");
+				boolean foundPoint=false;
+				int x = 0; 
+				while(x<pointsT1.size()) {
+					if(px==((Integer) pointsT1.get(x).get("x"))&&py==((Integer) pointsT1.get(x).get("y"))) {
+						foundPoint=true;
+						break;
+					}
+					x++;
+				}
+				if(!foundPoint) {
+					out.println("basic territory test failed because the points in the territory was not correct for the first town in the 3x3 interacting tie breaker test. The point not part of the territory, that should have been, was " + px + "," + py);
+					printPointSet(pointsT1,out);
+					out.println("Expected:");
+					printPointSet(expectedTerritoryt1,out);
+
+					return false;
+				}
+			}
+			 pointsT2 = (ArrayList<Hashtable>) players[1].getTerritories().get(0).get("points");
+			for(Hashtable p: expectedTerritoryt2) {
+				int px = (Integer) p.get("x");
+				int py = (Integer) p.get("y");
+				boolean foundPoint=false;
+				int x = 0; 
+				while(x<pointsT2.size()) {
+					if(px==((Integer) pointsT2.get(x).get("x"))&&py==((Integer) pointsT2.get(x).get("y"))) {
+						foundPoint=true;
+						break;
+					}
+					x++;
+				}
+				if(!foundPoint) {
+					out.println("basic territory test failed because the points in the territory was not correct for the second town in the 3x3 interacting tie breaker test. The point not part of the territory, that should have been, was " + px + "," + py);
+					printPointSet(pointsT2,out);
+					out.println("Expected:");
+					printPointSet(expectedTerritoryt2,out);
+
+					return false;
+				}
+			}
+			
+			t1.setInfluence(startingTownInfluence);
+
+
+			t2.setInfluence(1000); // required to get four.
+			t2.setX(1111103);// so it should be x = 1 where the limit is...we want
+			// this guy then centered on 3, and we give him enough to calculate into that shit.
+			t2.setY(1111100);
+			
+			
+			players[0].territoryCalculator();
+			players[1].territoryCalculator(); // we should see no territorial overlap.
+
+			
+			 expectedTerritoryt1 = new ArrayList<Hashtable>();
+			expectedTerritoryt1.add(newPoint(1111100,1111100));
+			expectedTerritoryt1.add(newPoint(1111099,1111100));
+			expectedTerritoryt1.add(newPoint(1111100,1111101));
+			expectedTerritoryt1.add(newPoint(1111099,1111101));
+			expectedTerritoryt1.add(newPoint(1111100,1111099));
+			expectedTerritoryt1.add(newPoint(1111099,1111099));
+			
+			 expectedTerritoryt2 = new ArrayList<Hashtable>();
+			expectedTerritoryt2.add(newPoint(1111103,1111100));
+			expectedTerritoryt2.add(newPoint(1111104,1111100));
+			expectedTerritoryt2.add(newPoint(1111102,1111100));
+			expectedTerritoryt2.add(newPoint(1111103,1111101));
+			expectedTerritoryt2.add(newPoint(1111104,1111101));
+			expectedTerritoryt2.add(newPoint(1111102,1111101));
+			expectedTerritoryt2.add(newPoint(1111103,1111099));
+			expectedTerritoryt2.add(newPoint(1111104,1111099));
+			expectedTerritoryt2.add(newPoint(1111102,1111099));
+
+			pointsT1 = (ArrayList<Hashtable>) players[0].getTerritories().get(0).get("points");
+			for(Hashtable p: expectedTerritoryt1) {
+				int px = (Integer) p.get("x");
+				int py = (Integer) p.get("y");
+				boolean foundPoint=false;
+				int x = 0; 
+				while(x<pointsT1.size()) {
+					if(px==((Integer) pointsT1.get(x).get("x"))&&py==((Integer) pointsT1.get(x).get("y"))) {
+						foundPoint=true;
+						break;
+					}
+					x++;
+				}
+				if(!foundPoint) {
+					out.println("basic territory test failed because the points in the territory was not correct for the first town in the 3x3 vs 4x4 test. The point not part of the territory, that should have been, was " + px + "," + py);
+					printPointSet(pointsT1,out);
+					out.println("Expected:");
+					printPointSet(expectedTerritoryt1,out);
+
+					return false;
+				}
+			}
+			pointsT2 = (ArrayList<Hashtable>) players[1].getTerritories().get(0).get("points");
+			for(Hashtable p: expectedTerritoryt2) {
+				int px = (Integer) p.get("x");
+				int py = (Integer) p.get("y");
+				boolean foundPoint=false;
+				int x = 0; 
+				while(x<pointsT2.size()) {
+					if(px==((Integer) pointsT2.get(x).get("x"))&&py==((Integer) pointsT2.get(x).get("y"))) {
+						foundPoint=true;
+						break;
+					}
+					x++;
+				}
+				if(!foundPoint) {
+					out.println("basic territory test failed because the points in the territory was not correct for the second town in the 3x3 vs 4x4 test. The point not part of the territory, that should have been, was " + px + "," + py);
+					printPointSet(pointsT2,out);
+					out.println("Expected:");
+					printPointSet(expectedTerritoryt2,out);
+
+					return false;
+				}
+			}
+			
+			player.deleteFakePlayers(players);
+			out.println("basicTerritoryTest successful.");
+			return true;
+	}
 	public boolean returnTerritoryTest(HttpServletRequest req, PrintWriter out, Player player) {
 		ArrayList<Hashtable> points = new ArrayList<Hashtable>();
-		
+		points.add(newPoint(0,0));
 		points.add(newPoint(1,0));
 		points.add(newPoint(0,1));
 		points.add(newPoint(1,1));
@@ -13915,7 +14277,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		points.add(newPoint(0,-1));
 		points.add(newPoint(-1,-1));
 		points.add(newPoint(1,-1));
-		points.add(newPoint(-1,1)); // a cube border.
+		points.add(newPoint(-1,1)); // a cube.
 /*
  *  {
 							
@@ -13929,6 +14291,8 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 				  corner 3 is 6,-1
 				  corner 4 is 6,2
 
+
+							
  */
 		Hashtable terr = Player.returnTerritory(points,player);
 		ArrayList<Hashtable> pointsInHash =(ArrayList<Hashtable>) terr.get("points");
@@ -13946,15 +14310,353 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 				x++;
 			}
 			if(!foundPoint) {
-				out.println("returnTerritory test failed because the points in the territory representing the border was not correct for the cube. The point not part of the border, that should have been, was " + px + "," + py);
+				out.println("returnTerritory test failed because the points in the territory was not correct for the cube. The point not part of the cube, that should have been, was " + px + "," + py);
 				printPointSet(pointsInHash,out);
 				return false;
 			}
 		}
 		
-		Hashtable corner = (Hashtable) terr.get("start");
-		int start[] = (int[]) terr.get("start");
+		Hashtable corner = (Hashtable) terr.get("corners");
+		int start[] = (int[]) corner.get("start");
+		
+		int sides[] = (int[]) corner.get("sides");
+		
+		ArrayList<Hashtable> rederivedPoints = new ArrayList<Hashtable>();
+			ArrayList<Hashtable> borders = new ArrayList<Hashtable>();
+			borders.add(newPoint(1,1));
+			borders.add(newPoint(1,-1));
+			borders.add(newPoint(-1,1));
+			borders.add(newPoint(-1,-1));
+
+			rederivedPoints.add(newPoint(start[0],start[1]));
+		int	x = 0;
+			while(x<sides.length) {
+				int lastX = (Integer) rederivedPoints.get(x).get("x");
+				int lastY = (Integer) rederivedPoints.get(x).get("y");
+				if(x%2==0) 
+				rederivedPoints.add(newPoint(lastX+sides[x],lastY));
+				else 
+				rederivedPoints.add(newPoint(lastX,lastY+sides[x]));
+				
+				x++;
+			}
+		for(Hashtable p: borders) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			x = 0; 
+			while(x<rederivedPoints.size()) {
+				if(px==((Integer) rederivedPoints.get(x).get("x"))&&py==((Integer) rederivedPoints.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("returnTerritory test failed because the points in the territory representing the border, as depicted by Markus' gay sides thing, was not correct for the cube borders. The point not part of the real border, that should have been, was " + px + "," + py);
+				out.println("Rederived:");
+				printPointSet(rederivedPoints,out);
+				out.println("Actual:");
+				printPointSet(borders,out);
+				out.println("Start:"+ start[0]+","+start[1]);
+				out.println("Sides:");
+				for(int y:sides) {
+					out.println(y);
+				}
+				return false;
+			}
+		}
+		// now do it with the half-circle.
+		points = new ArrayList<Hashtable>();
+		points.add(newPoint(0,0));
+		points.add(newPoint(0,1));
+		points.add(newPoint(1,0));
+		points.add(newPoint(1,1));
+
+		
+		terr = Player.returnTerritory(points,player);
+		
+		 corner = (Hashtable) terr.get("corners");
+		 start = (int[]) corner.get("start");
+		
+		 sides = (int[]) corner.get("sides");
+		
+		rederivedPoints = new ArrayList<Hashtable>();
+		borders = new ArrayList<Hashtable>();
+		
+		borders.add(newPoint(0,0));
+		borders.add(newPoint(0,1));
+		borders.add(newPoint(1,0));
+		borders.add(newPoint(1,1));
+		
+		rederivedPoints.add(newPoint(start[0],start[1]));
+		x = 0;
+		while(x<sides.length) {
+			int lastX = (Integer) rederivedPoints.get(x).get("x");
+			int lastY = (Integer) rederivedPoints.get(x).get("y");
+			if(x%2==0) 
+			rederivedPoints.add(newPoint(lastX+sides[x],lastY));
+			else 
+			rederivedPoints.add(newPoint(lastX,lastY+sides[x]));
 			
+			x++;
+		}
+		for(Hashtable p: borders) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			x = 0; 
+			while(x<rederivedPoints.size()) {
+				if(px==((Integer) rederivedPoints.get(x).get("x"))&&py==((Integer) rederivedPoints.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("returnTerritory test failed because the points in the territory representing the border, as depicted by Markus' gay sides thing, was not correct for the four-point borders. The point not part of the real border, that should have been, was " + px + "," + py);
+				out.println("Rederived:");
+				printPointSet(rederivedPoints,out);
+				out.println("Actual:");
+				printPointSet(borders,out);
+				out.println("Start:"+ start[0]+","+start[1]);
+				out.println("Sides:");
+				for(int y:sides) {
+					out.println(y);
+				}
+				return false;
+			}
+		}
+		// three point.
+		points = new ArrayList<Hashtable>();
+		points.add(newPoint(0,0));
+		points.add(newPoint(0,1));
+		points.add(newPoint(1,0));
+
+		
+		terr = Player.returnTerritory(points,player);
+		
+		 corner = (Hashtable) terr.get("corners");
+		 start = (int[]) corner.get("start");
+		
+		 sides = (int[]) corner.get("sides");
+		
+		rederivedPoints = new ArrayList<Hashtable>();
+		borders = new ArrayList<Hashtable>();
+		
+		borders.add(newPoint(0,0));
+		borders.add(newPoint(0,1));
+		borders.add(newPoint(1,0));
+		
+		rederivedPoints.add(newPoint(start[0],start[1]));
+		x = 0;
+		while(x<sides.length) {
+			int lastX = (Integer) rederivedPoints.get(x).get("x");
+			int lastY = (Integer) rederivedPoints.get(x).get("y");
+			if(x%2==0) 
+			rederivedPoints.add(newPoint(lastX+sides[x],lastY));
+			else 
+			rederivedPoints.add(newPoint(lastX,lastY+sides[x]));
+			
+			x++;
+		}
+		for(Hashtable p: borders) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			x = 0; 
+			while(x<rederivedPoints.size()) {
+				if(px==((Integer) rederivedPoints.get(x).get("x"))&&py==((Integer) rederivedPoints.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("returnTerritory test failed because the points in the territory representing the border, as depicted by Markus' gay sides thing, was not correct for the three-point borders. The point not part of the real border, that should have been, was " + px + "," + py);
+				out.println("Rederived:");
+				printPointSet(rederivedPoints,out);
+				out.println("Actual:");
+				printPointSet(borders,out);
+				out.println("Start:"+ start[0]+","+start[1]);
+				out.println("Sides:");
+				for(int y:sides) {
+					out.println(y);
+				}
+				return false;
+			}
+		}
+		
+		points = new ArrayList<Hashtable>();
+		points.add(newPoint(0,0));
+		points.add(newPoint(0,1));
+
+
+		
+		terr = Player.returnTerritory(points,player);
+		
+		 corner = (Hashtable) terr.get("corners");
+		 start = (int[]) corner.get("start");
+		
+		 sides = (int[]) corner.get("sides");
+		
+		rederivedPoints = new ArrayList<Hashtable>();
+		borders = new ArrayList<Hashtable>();
+		
+		borders.add(newPoint(0,0));
+		borders.add(newPoint(0,1));
+
+		
+		rederivedPoints.add(newPoint(start[0],start[1]));
+		x = 0;
+		while(x<sides.length) {
+			int lastX = (Integer) rederivedPoints.get(x).get("x");
+			int lastY = (Integer) rederivedPoints.get(x).get("y");
+			if(x%2==0) 
+			rederivedPoints.add(newPoint(lastX+sides[x],lastY));
+			else 
+			rederivedPoints.add(newPoint(lastX,lastY+sides[x]));
+			
+			x++;
+		}
+		for(Hashtable p: borders) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			x = 0; 
+			while(x<rederivedPoints.size()) {
+				if(px==((Integer) rederivedPoints.get(x).get("x"))&&py==((Integer) rederivedPoints.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("returnTerritory test failed because the points in the territory representing the border, as depicted by Markus' gay sides thing, was not correct for the two-point borders with only y changing. The point not part of the real border, that should have been, was " + px + "," + py);
+				out.println("Rederived:");
+				printPointSet(rederivedPoints,out);
+				out.println("Actual:");
+				printPointSet(borders,out);
+				out.println("Start:"+ start[0]+","+start[1]);
+				out.println("Sides:");
+				for(int y:sides) {
+					out.println(y);
+				}
+				return false;
+			}
+		}
+		
+		points = new ArrayList<Hashtable>();
+		points.add(newPoint(0,0));
+		points.add(newPoint(1,0));
+
+		
+		terr = Player.returnTerritory(points,player);
+		
+		 corner = (Hashtable) terr.get("corners");
+		 start = (int[]) corner.get("start");
+		
+		 sides = (int[]) corner.get("sides");
+		
+		rederivedPoints = new ArrayList<Hashtable>();
+		borders = new ArrayList<Hashtable>();
+		
+		borders.add(newPoint(0,0));
+		borders.add(newPoint(1,0));
+		
+		rederivedPoints.add(newPoint(start[0],start[1]));
+		 x = 0;
+		while(x<sides.length) {
+			int lastX = (Integer) rederivedPoints.get(x).get("x");
+			int lastY = (Integer) rederivedPoints.get(x).get("y");
+			if(x%2==0) 
+			rederivedPoints.add(newPoint(lastX+sides[x],lastY));
+			else 
+			rederivedPoints.add(newPoint(lastX,lastY+sides[x]));
+			
+			x++;
+		}
+		for(Hashtable p: borders) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			x = 0; 
+			while(x<rederivedPoints.size()) {
+				if(px==((Integer) rederivedPoints.get(x).get("x"))&&py==((Integer) rederivedPoints.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("returnTerritory test failed because the points in the territory representing the border, as depicted by Markus' gay sides thing, was not correct for the two-point borders with only x changing. The point not part of the real border, that should have been, was " + px + "," + py);
+				out.println("Rederived:");
+				printPointSet(rederivedPoints,out);
+				out.println("Actual:");
+				printPointSet(borders,out);
+				out.println("Start:"+ start[0]+","+start[1]);
+				out.println("Sides:");
+				for(int y:sides) {
+					out.println(y);
+				}
+				return false;
+			}
+		}
+		
+		points = new ArrayList<Hashtable>();
+		points.add(newPoint(0,0));
+
+		
+		terr = Player.returnTerritory(points,player);
+		
+		 corner = (Hashtable) terr.get("corners");
+		 start = (int[]) corner.get("start");
+		
+		 sides = (int[]) corner.get("sides");
+		
+		rederivedPoints = new ArrayList<Hashtable>();
+		borders = new ArrayList<Hashtable>();
+		
+		borders.add(newPoint(0,0));
+		
+		rederivedPoints.add(newPoint(start[0],start[1]));
+		x = 0;
+		while(x<sides.length) {
+			int lastX = (Integer) rederivedPoints.get(x).get("x");
+			int lastY = (Integer) rederivedPoints.get(x).get("y");
+			if(x%2==0) 
+			rederivedPoints.add(newPoint(lastX+sides[x],lastY));
+			else 
+			rederivedPoints.add(newPoint(lastX,lastY+sides[x]));
+			
+			x++;
+		}
+		for(Hashtable p: borders) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			x = 0; 
+			while(x<rederivedPoints.size()) {
+				if(px==((Integer) rederivedPoints.get(x).get("x"))&&py==((Integer) rederivedPoints.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("returnTerritory test failed because the points in the territory representing the border, as depicted by Markus' gay sides thing, was not correct for the one-point borders. The point not part of the real border, that should have been, was " + px + "," + py);
+				out.println("Rederived:");
+				printPointSet(rederivedPoints,out);
+				out.println("Actual:");
+				printPointSet(borders,out);
+				out.println("Start:"+ start[0]+","+start[1]);
+				out.println("Sides:");
+				for(int y:sides) {
+					out.println(y);
+				}
+				return false;
+			}
+		}
 		out.println("returnTerritory test successful.");
 		return true;
 	}
@@ -14156,13 +14858,45 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 				x++;
 			}
 			if(!foundPoint) {
-				out.println("giftWrapping test failed because the border was not correct for the two points only test. The point not part of the border, that should have been, was " + px + "," + py);
+				out.println("giftWrapping test failed because the border was not correct for the two points only test with xchange. The point not part of the border, that should have been, was " + px + "," + py);
+				printPointSet(border,out);
+				return false;
+			}
+
+		} // two points with y change
+		points = new ArrayList<Hashtable>();
+		
+		points.add(newPoint(0,0));
+		points.add(newPoint(0,1));
+
+	
+		
+		border = Player.giftWrapping(points);
+		
+		properBorder = new ArrayList<Hashtable>();
+		properBorder.add(newPoint(0,0));
+		properBorder.add(newPoint(0,1));
+
+		
+		for(Hashtable p: properBorder) {
+			int px = (Integer) p.get("x");
+			int py = (Integer) p.get("y");
+			boolean foundPoint=false;
+			int x = 0; 
+			while(x<border.size()) {
+				if(px==((Integer) border.get(x).get("x"))&&py==((Integer) border.get(x).get("y"))) {
+					foundPoint=true;
+					break;
+				}
+				x++;
+			}
+			if(!foundPoint) {
+				out.println("giftWrapping test failed because the border was not correct for the two points only test with y change. The point not part of the border, that should have been, was " + px + "," + py);
 				printPointSet(border,out);
 				return false;
 			}
 
 		}
-		
 		points = new ArrayList<Hashtable>();
 		
 		points.add(newPoint(0,0));
@@ -14357,6 +15091,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 	}
 	public void fbPostTest(HttpServletRequest req, PrintWriter out, Player p) {
 		int i = 0;
+		if(p.getFuid()==0) out.println("Logged player does not have fuid to complete fbPost test with!");
 		//	 public int makeWallPost(String message,String name, String caption, String link, String description, String picture, String bottomlinkname, String bottomlink) {
 		int stat = p.makeWallPost("TestMess","blah","blah","http://mylink.com/","blah","http://mysite.com/pic.gif","desc","http://mylink.com/");
 		if(stat==200) {

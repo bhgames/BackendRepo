@@ -53,7 +53,7 @@ public class Iterator implements Runnable {
 			double dailyLeft = (p.getPlayedTicks())/(24*3600/GodGenerator.gameClockFactor);
 			dailyLeft-=Math.round(dailyLeft);
 			
-			if(p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock&&(p.owedTicks==0||p.ID==5||p.isQuest())) {
+			if(p.ID<999999900&&p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock&&(p.owedTicks==0||p.ID==5||p.isQuest())) {
 	
 				synchronized(p){if(p.getHoldingIteratorID().equals("-1")) p.setHoldingIteratorID(iterateID); }
 				if(p.getHoldingIteratorID().equals(iterateID)) {
@@ -139,7 +139,7 @@ public class Iterator implements Runnable {
 			// and starts iterating it, the others can't, and will wait
 			// to try, but then they'll find it can't be done.
 
-			if(p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock&&(p.owedTicks==0||p.stuffOut())) { 
+			if(p.getTownID()<999999900&&p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock&&(p.owedTicks==0||p.stuffOut())) { 
 	//			if(p.getPlayer().getUsername().contains("testman")) System.out.println("Iterating a "+ p.getPlayer().getUsername());
 			//	System.out.println(iterateID + " found " + p.username + " unhooked and in need at " + internalClock);
 				// Cool, a double lock. First, if you're iterating through and you catch
@@ -199,7 +199,7 @@ public class Iterator implements Runnable {
 				// basically, if one grabs this player,
 			// and starts iterating it, the others can't, and will wait
 			// to try, but then they'll find it can't be done.
-			if(p.getHoldingLordIteratorID().equals("-1")&&p.getLordInternalClock()<internalClock-GodGenerator.lordLagTime) {
+			if(p.ID<999999900&&p.getHoldingLordIteratorID().equals("-1")&&p.getLordInternalClock()<internalClock-GodGenerator.lordLagTime) {
 			
 			
 				synchronized(p){if(p.getHoldingLordIteratorID().equals("-1")) p.setHoldingLordIteratorID(iterateID); }
@@ -242,7 +242,7 @@ public class Iterator implements Runnable {
 			// and starts iterating it, the others can't, and will wait
 			// to try, but then they'll find it can't be done.
 				 p = (League) pl;
-			if(p.getLeagueHoldingIteratorID().equals("-1")&&p.getLeagueInternalClock()<internalClock-GodGenerator.leagueLagTime) {
+			if(p.ID<999999900&&p.getLeagueHoldingIteratorID().equals("-1")&&p.getLeagueInternalClock()<internalClock-GodGenerator.leagueLagTime) {
 			
 			//	System.out.println(iterateID + " found " + p.username + " unhooked and in need at " + internalClock);
 				// Cool, a double lock. First, if you're iterating through and you catch

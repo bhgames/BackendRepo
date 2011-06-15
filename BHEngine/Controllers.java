@@ -2086,7 +2086,13 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.separatedPointsTest(req,out);
 				}else if(test.equals("giftWrapping")) {
 					g.giftWrappingTest(req,out);
-				}  else{
+				}else if(test.equals("returnTerritory")) {
+					g.returnTerritoryTest(req,out,p);
+				}else if(test.equals("basicTerritory")) {
+					g.basicTerritoryTest(req,out,p);
+				}else if(test.equals("intermediateTerritory")) {
+					g.intermediateTerritoryTest(req,out,p);
+				}   else{
 					
 					out.println("Illegal test.");
 				}

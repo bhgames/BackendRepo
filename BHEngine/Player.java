@@ -79,7 +79,7 @@ public class Player  {
 	private League  league=null;
 	
 	public GodGenerator God;
-	private int bodyArmor,teslaTech,ordinanceResearch,scholTicks,scholTicksTotal,capitaltid,infrastructureTech,townTech,firearmResearch,knowledge,architecture,scoutTech,clockworkComputers,constructionResearch,structuralIntegrity,bloodMetalPlating,totalScholars,totalPopulation;
+	private int bodyArmor,teslaTech,ordinanceResearch,scholTicks,scholTicksTotal,capitaltid,infrastructureTech,townTech=1,firearmResearch,knowledge,architecture,scoutTech,clockworkComputers,constructionResearch,structuralIntegrity,bloodMetalPlating,totalScholars,totalPopulation;
 	private boolean supportstaff,personalShields,hydraulicAssistors,thrustVectoring,advancedFortifications,bloodMetalArmor,isQuest=false;
 	private ArrayList<QuestListener> activeQuests;
 	private ArrayList<AttackUnit> au;
@@ -111,7 +111,7 @@ public class Player  {
 			   ID = 5; // this means a test player, and we'll use Id as our example player for both sides.
 		   }
 		   
-		   if(ID>999999900) {
+		   if(ID>=999999900) {
 			   stmt.close(); // not a real player, no need.
 			   facsimile=false; // this is a more sophisticated test player, capable of generating it's own attackunits.
 			   // this means we're in the special testing zone.
@@ -250,9 +250,9 @@ public class Player  {
 				} catch(Exception exc) { exc.printStackTrace(); System.out.println("No idea why this error happened, but player load saved."); } 
 			}
 		   }
-			ps = new PlayerScript(this);
 		   
 		} catch(SQLException exc) { exc.printStackTrace(); }
+		ps = new PlayerScript(this);
 
 	}
 
@@ -891,23 +891,29 @@ public class Player  {
 				double maxR =Math.sqrt(t.getInfluence()/10.0)/2.5;
 			//	System.out.println("t " + t.getTownName() + " infl is " +t.getInfluence() + " maxR is " + maxR);
 				/*
+				 * 10(2.5r)^2
 				 * Now we need to figure out the "boundaries" of the parcel. What I suggest is starting with the point -maxR,maxR
 				 * relative to the town, and scanning down the square, picking up everything that is within a distance maxR of the
 				 * town. So we carve a circle out and store the points in like an arraylist.
 				 */
 				ArrayList<Hashtable> points = new ArrayList<Hashtable>();
 				Hashtable pt;
+				System.out.println("maxR is " + maxR + " for " + t.getTownName());
 				int startX = t.getX()-(int) Math.ceil(maxR);
 				while(startX<=t.getX()+maxR) {
-					double startY = t.getY()+(int) Math.ceil(maxR);
+					int startY = t.getY()+(int) Math.ceil(maxR);
 					while(startY>=t.getY()-maxR) {
+					//	System.out.println("Looking into " + startX+ "," + startY);
+
 						double dist = Math.sqrt(Math.pow((t.getX()-startX),2)+Math.pow((t.getY()-startY),2));
-					//	System.out.println("Trying " + startX + "," + startY + ", who's dist is " + dist);
+					//	System.out.println("Trying " + startX + "," + startY + ", who's dist is " + dist + " tx is " + t.getX() + " ty is " + t.getY() 
+						//		+ " diff in x is " + (t.getX()-startX)+" diff in y is " + (t.getY()-startY) + " pow in x is " + Math.pow((t.getX()-startX),2) + 
+							//	" pow in y is " +Math.pow((t.getY()-startY),2) );
 						if(dist<=maxR) {
 							pt = new Hashtable();
 							pt.put("x",(int)startX);
 							pt.put("y",(int) startY);
-					//		System.out.println("Adding "+ startX+","+startY);
+							System.out.println("Adding "+ startX+","+startY + " to " + getUsername());
 							points.add(pt);
 						}
 						startY--;
@@ -933,7 +939,7 @@ public class Player  {
 					int y = (Integer) point.get("y");
 					int j = k+1; // for each point, we check for a copy of the point in the remaining territories, to see if connection is
 					// necessary.
-					System.out.println("Looking to connect points from " + k + " to " + j);
+				//	System.out.println("Looking to connect points from " + k + " to " + j);
 					while(j<townPointLists.size()) {
 							ArrayList<Hashtable> otherPoints = (ArrayList<Hashtable>) townPointLists.get(j);
 							int z = 0;
@@ -942,7 +948,7 @@ public class Player  {
 								int otherX = (Integer) otherPoint.get("x");
 								int otherY = (Integer) otherPoint.get("y");
 								if(x==otherX&&y==otherY) {
-									System.out.println(j + " and " + k + " share " + otherX + "," + otherY);
+							//		System.out.println(j + " and " + k + " share " + otherX + "," + otherY);
 									// WE HAVE A CONNECTION, CONNECT THE TERRITORIES!
 									// now we must remember that k need not change, it's
 									// at a lower entry than j, but entry j does need to be kicked out
@@ -977,10 +983,10 @@ public class Player  {
 										}
 										l++;
 									}
-									System.out.println("The newly collapsed territory contains:");
-									for(Hashtable p: points) {
-										System.out.println((Integer) p.get("x") + "," + (Integer) p.get("y"));
-									}
+						//			System.out.println("The newly collapsed territory contains:");
+						//			for(Hashtable p: points) {
+							//			System.out.println((Integer) p.get("x") + "," + (Integer) p.get("y"));
+								//	}
 									townPointLists.remove(j);
 									j--;
 									break;
@@ -1025,7 +1031,7 @@ public class Player  {
 							break;
 						}
 					}
-				
+					if(owner.ID!=ID)
 					for(Hashtable theirPoint: theirPoints) {
 						int theirX = (Integer) theirPoint.get("x");
 						int theirY = (Integer) theirPoint.get("y");
@@ -1487,7 +1493,7 @@ public class Player  {
 		 }
 		 return pointSets;
 	 }
-	 public static Hashtable returnTerritory(ArrayList<Hashtable> points, Player player) {
+	/* public static Hashtable returnTerritory(ArrayList<Hashtable> points, Player player) {
 		 
 		 /*
 		  * This method takes an assemblage of points and returns a polygon out of it.
@@ -1508,7 +1514,7 @@ public class Player  {
 			It does this by finding the farthest point in the +x,+y direction as a starting "corner", which is
 			just any point that has the highest x and highest y.
 
-		  */
+		  
 		 for(Hashtable p:points) {
 			 System.out.println("x: " + ((Integer) p.get("x"))+", y:"+((Integer) p.get("y")));
 		 }
@@ -1517,7 +1523,7 @@ public class Player  {
 		 // so now i must take this code and turn it into Markus' corner code. F-THAT-SHIT
 		 
 		 int i = 0;
-		 while(i<borders.size()) { // sort border points by distance.
+		 while(i<borders.size()-1) { // sort border points by distance.
 			 Hashtable p1 = borders.get(i);
 			 int x1 = (Integer) p1.get("x");
 			 int y1 = (Integer) p1.get("y");
@@ -1546,6 +1552,7 @@ public class Player  {
 			 
 			 i++;
 		 }
+		
 		 ArrayList<Integer> xdiffs = new ArrayList<Integer>();
 		 ArrayList<Integer> ydiffs = new ArrayList<Integer>();
 		  i = 1;
@@ -1556,18 +1563,25 @@ public class Player  {
 			 int y1 = (Integer) p1.get("y");
 			 int x2 = (Integer) p2.get("x");
 			 int y2 = (Integer) p2.get("y");
+			 System.out.println("x1: " + x1 + " y1: " + y1 + " x2: "+ x2 + " y2: " + y2 + " xdiff " + (x2-x1) + " ydiff " + (y2-y1));
 			 xdiffs.add(x2-x1);
 			 ydiffs.add(y2-y1);
 			 i++;
 		 }
 		 
 		 i = 0;
+		 /*
+		  * We can only collapse points if it wasn't like a switch. If xdiffs is zero, indicating moving in y direction,
+		  * and we collapse, then next point is ydiffs is zero, indicating a change in direction, a corner, we CANNOT collapse
+		  * that. We need to have some way to detect and to save that, and then to somehow remove the zeroes.
+		  
 		 while(i<xdiffs.size()) {
 			 if(xdiffs.get(i)==0||ydiffs.get(i)==0) {
 				 // if it equals zero, this means we're either going in the straight y dir, or the straight x dir,
 				 // so we may as well compound here.
 				if(i!=0) {
 					// we need to take this entry and add it to the previous one, then move everything down.
+					System.out.println("Collapsing "+ i + " into "+(i-1)+" because xdiff is " + xdiffs.get(i) + " and ydiff is " + ydiffs.get(i));
 					xdiffs.set(i-1,xdiffs.get(i-1)+xdiffs.get(i));
 					xdiffs.remove(i);
 					ydiffs.set(i-1,ydiffs.get(i-1)+ydiffs.get(i));
@@ -1576,6 +1590,8 @@ public class Player  {
 				} else {
 					// in the event this is the FIRST entry, then we must just move everything down, and add the first entry
 					// to the second.
+					System.out.println("Collapsing "+ 0 + " into 1 because xdiff is " + xdiffs.get(0) + " and ydiff is " + ydiffs.get(0));
+
 					xdiffs.set(1,xdiffs.get(1)+xdiffs.get(0));
 					xdiffs.remove(0);
 					ydiffs.set(1,ydiffs.get(1)+ydiffs.get(0));
@@ -1589,6 +1605,7 @@ public class Player  {
 		 int sides[] = new int[xdiffs.size()*2];
 		 i = 0; int k =0;
 		 while(i<xdiffs.size()) {
+			 System.out.println("xdiff "+ i + " is " + xdiffs.get(i) + " ydiffs is" + ydiffs.get(i));
 			 sides[k]=xdiffs.get(i);
 			 k++;
 			 sides[k]=ydiffs.get(i);
@@ -1620,13 +1637,157 @@ public class Player  {
 		 for(Hashtable p:borders) {
 			 System.out.println("x: "+( (Integer) p.get("x")) + " y: "+( (Integer) p.get("y")));
 		 }
-		 */
+		 
 		 return newTerr;
-	 }
+	 }*/
+	 public static Hashtable returnTerritory(ArrayList<Hashtable> points, Player player) {
+		  
+		  /*
+		   * This method takes an assemblage of points and returns a polygon out of it.
+		   * It does this:
+		   * 
+		   *  {
+		      
+		      owner : "SomeGuy"
+		      start : [6,2]
+		      sides : [-3, -3, 3, 3]
+		      }
+		   
+		   So corner 1 is 3,2
+		    corner 2 is 3,-1
+		     corner 3 is 6,-1
+		     corner 4 is 6,2
+
+		  It does this by finding the farthest point in the +x,+y direction as a starting "corner", which is
+		  just any point that has the highest x and highest y.
+
+		   */
+		  for(Hashtable p:points) {
+		   System.out.println("x: " + ((Integer) p.get("x"))+", y:"+((Integer) p.get("y")));
+		  }
+		  ArrayList<Hashtable> borders = giftWrapping(points);
+		  
+		  // so now i must take this code and turn it into Markus' corner code. F-THAT-SHIT
+		  
+		  int i = 0;
+		  while(i<borders.size()-1) { // sort border points by distance.
+		   Hashtable p1 = borders.get(i);
+		   int x1 = (Integer) p1.get("x");
+		   int y1 = (Integer) p1.get("y");
+
+		   int j = i+1;
+		   int minEntry=i+1;
+		   double minDist=99999;
+		   while(j<borders.size()) {
+		    Hashtable p2 = borders.get(j);
+		    int x2 = (Integer) p2.get("x");
+		    int y2 = (Integer) p2.get("y");
+		    double dist = Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1-y2,2));
+		    if(dist<minDist) {
+		     minDist=dist;
+		     minEntry=j;
+		    }
+		    j++;
+		   }
+		   
+		   Hashtable swapPoint = borders.get(i+1);
+		   Hashtable toPutInThere = borders.get(minEntry);
+		   
+		   borders.set(i+1,toPutInThere);
+		   borders.set(minEntry,swapPoint); // should eventually swap them all correctly.
+		   
+		   
+		   i++;
+		  }
+		 
+		  ArrayList<Integer> xdiffs = new ArrayList<Integer>();
+		  ArrayList<Integer> ydiffs = new ArrayList<Integer>();
+		   i = 1;
+		  while(i<borders.size()) {
+		   Hashtable p1 = borders.get(i-1);
+		   Hashtable p2 = borders.get(i);
+		   int x1 = (Integer) p1.get("x");
+		   int y1 = (Integer) p1.get("y");
+		   int x2 = (Integer) p2.get("x");
+		   int y2 = (Integer) p2.get("y");
+		//   System.out.println("x1: " + x1 + " y1: " + y1 + " x2: "+ x2 + " y2: " + y2 + " xdiff " + (x2-x1) + " ydiff " + (y2-y1));
+		   xdiffs.add(x2-x1);
+		   ydiffs.add(y2-y1);
+		   i++;
+		  }
+		  Hashtable p1 = borders.get(borders.size()-1);
+		   Hashtable p2 = borders.get(0);
+		   int x1 = (Integer) p1.get("x");
+		   int y1 = (Integer) p1.get("y");
+		   int x2 = (Integer) p2.get("x");
+		   int y2 = (Integer) p2.get("y");
+		   xdiffs.add(x2-x1);
+		   ydiffs.add(y2-y1);
+		  
+	
+		  i=0;
+		  ArrayList<Integer> sides = new ArrayList<Integer>();
+		  while(i<xdiffs.size()) {
+		//   System.out.println("xdiff "+ i + " is " + xdiffs.get(i) + " ydiffs is" + ydiffs.get(i));
+		   sides.add(xdiffs.get(i));
+		   sides.add(ydiffs.get(i));
+		   i++;
+		  }
+		  
+		  for( i = 0; i<sides.size()-1;i++) {
+			   if(sides.get(i+1)==0) {
+			    if(i<sides.size()-2) {
+			  if(sides.get(i)+sides.get(i+2) == 0) {
+			      i++;
+			  } else {
+			      sides.set(i,sides.get(i)+sides.get(i+2));
+			      sides.remove(i+1);
+			   sides.remove(i+1);
+			   i--;
+			  }
+			    } else {
+			     sides.remove(i+1);
+			     break;
+			    }  
+			   }
+			  }
+		  UUID id = UUID.randomUUID();
+		  
+		  Hashtable newTerr = new Hashtable();
+		  newTerr.put("id",id);
+		  Hashtable corners = new Hashtable();
+		  corners.put("owner",player.getUsername());
+		  if(player.getLord()==null) {
+		   corners.put("lord","none");
+		  }
+		  else {
+		   corners.put("lord",player.getLord().getUsername());
+		  }
+		  int corner[] = new int[2];
+		  corner[0] =(Integer)  borders.get(0).get("x");
+		  corner[1] =(Integer)  borders.get(0).get("y");
+
+		  corners.put("start",corner);
+		  int[] newSides = new int[sides.size()];
+		 int x = 0;
+		  while(x<newSides.length) {
+			  newSides[x]=sides.get(x);
+			  x++;
+		  }
+		  corners.put("sides",newSides);
+		  newTerr.put("corners",corners);
+		  newTerr.put("points",points);
+		  /*
+		  for(Hashtable p:borders) {
+		   System.out.println("x: "+( (Integer) p.get("x")) + " y: "+( (Integer) p.get("y")));
+		  }
+		  */
+		  return newTerr;
+		 }
 	 static ArrayList<Hashtable> giftWrapping(ArrayList<Hashtable> points)
 	 	{
 				// random
-		 	if(points.size()==1||points.size()==0) return points; // degenerate cases.
+		 	if(points.size()<=4) return points; // degenerate cases.
 				int xoff=0;
 				int yoff=0;
 				int lowestX=0;
@@ -1668,7 +1829,7 @@ public class Player  {
 				    else if ( yPoints[i] < yPoints[min] )
 					min = i;
 				} // doesn't seem to account for negative x,y. So we move all the points into the positive with a shift.
-				System.out.println("min: " + min + "("+ xPoints[min] +"," + yPoints[min] + ")");
+				//System.out.println("min: " + min + "("+ xPoints[min] +"," + yPoints[min] + ")");
 		
 				int	num = 0;
 				int smallest;
@@ -1681,7 +1842,8 @@ public class Player  {
 				    toAdd.put("y",yPoints[current]);
 				    toRet.add(toAdd);
 				    num++;
-				    System.out.println("num: " + num + ", current: " + current + "(" + xPoints[current] + ", " + yPoints[current] + ")");
+				//    System.out.println("num: " + num + ", current: " + current + "(" + xPoints[current] + ", " + yPoints[current] + ")");
+				 //   if(num>xPoints.length) break;
 				    smallest = 0;
 				    if ( smallest == current )
 					smallest = 1;
@@ -2046,6 +2208,7 @@ public class Player  {
 		// the offset is to allow for previous calls.
 		Player[] fakes = new Player[number];
 		int x = 0;
+		int totalTownsAdded=0;
 		while(x<fakes.length) {
 			int startingTid = 999999900+startingTidOffset; 
 			int y = 0;
@@ -2053,12 +2216,13 @@ public class Player  {
 			fakes[x] = new Player(startingPidOffset+999999900+x,God);
 			ArrayList<Town> ptowns = new ArrayList<Town>();
 
-			while(y<numberTownsEach.length) {
-				Town t = new Town(startingTid+y,God);
+			while(y<numberTownsEach[x]) {
+				Town t = new Town(startingTid+totalTownsAdded,God);
 				t.setPlayer(fakes[x]);
 				
 				ptowns.add(t);
 				God.getTowns().add(t);
+				totalTownsAdded++;
 				y++;
 			}
 			
@@ -2503,7 +2667,7 @@ public class Player  {
 			       }
 			       if(getVassalFrom()!=null)
 						 stmt.setString(66,getVassalFrom().toString());
-						 else stmt.setString(66,null);
+						 else stmt.setString(66,"2011-01-01 00:00:01");
 			       stmt.setInt(67,ID);
 	  /*   String  updatePlayer = "update player set bodyArmor = " + bodyArmor +", personalShields = " + personalShields + 
 	    		  ", hydraulicAssistors = " + hydraulicAssistors +  ", thrustVectoring = " + thrustVectoring + ", bloodMetalPlating = " + bloodMetalPlating +", bloodMetalArmor = " + bloodMetalArmor+ ", advancedFortifications = " + advancedFortifications + ", constructionResearch = " + constructionResearch + ", firearmResearch = " + firearmResearch +
@@ -4143,10 +4307,14 @@ public class Player  {
 				stmt.setInt(1,ID);
 				ResultSet rs = stmt.executeQuery();
 				if(rs.next()) {
+					try {
 					if(rs.getTimestamp(1)!=null) {
 						
 				       vassalFrom=rs.getTimestamp(1);
 				       
+					}
+					} catch(SQLException exc) {
+						vassalFrom = null;
 					}
 
 				}
