@@ -13888,6 +13888,152 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 		return -1;
 	}
+public boolean basicVassalageTest(HttpServletRequest req, PrintWriter out, Player player) {
+	/*
+	 * 
+Basic Vassal Test:
+Set up a town who is a vassal to another player, make sure that the tax rates expected are seen and given to the lord accordingly 
+and taken accordingly. 
+Speed up time to one week, two weeks, and make sure the rate maxes out properly.
+	 */
+	
+	int numTowns[] = {1,3};
+	Player[] players = player.generateFakePlayers(3,numTowns,0,0);
+	Town t1 = players[0].towns().get(0);
+	t1.setInfluence(1000);
+	t1.setX(1111100);
+	t1.setY(1111102);
+	Town t2 = players[1].towns().get(0);
+	t2.setInfluence(0);
+	t2.setX(1111101);// so it should be x = 1 where the limit is...we want
+	// this guy then centered on 3, and we give him enough to calculate into that shit.
+	t2.setY(1111100); // this means t2 should be vassaled to t1's player in the next round of territory calcs.
+	
+	 players[1].towns().get(1).setX(1111111);
+	 players[1].towns().get(1).setY(1111111);
+	 players[1].towns().get(2).setX(1111112);
+	 players[1].towns().get(2).setY(1111112); // we add these towns so a player-level vassaling doesn't occur. fuck that shit.
+
+	players[0].territoryCalculator();
+	players[1].territoryCalculator();
+
+	if(players[1].getLord()!=null) {
+		out.println("basicVassalage test failed because the second player became a player-level vassal to the first.");
+		return false;
+	}
+	if(t2.getLord()!=null&&t2.getLord().ID!=players[0].ID) {
+		out.println("basicVassalage test failed because the second player's town did not become a vassal of the correct player.");
+		return false;
+	}
+	if(t2.getLord()==null) {
+		out.println("basicVassalage test failed because the second player's town did not become a vassal.");
+		return false;
+	}
+	if(players[1].towns().get(1).getLord()!=null||players[1].towns().get(2).getLord()!=null) {
+		out.println("basicVassalage test failed because the other two towns player two owns got vassaled for no reason.");
+		return false;
+	}
+	if(players[0].getLord()!=null) {
+		out.println("basicVassalage test failed because player 1 became a vassal.");
+		return false;
+	}
+	if(t1.getLord()!=null) {
+		out.println("basicVassalage test failed because player 1's town became a vassal.");
+		return false;
+	}
+	Timestamp today = new Timestamp((new Date()).getTime());
+	Timestamp vassalFrom = t2.getVassalFrom();
+	if(vassalFrom==null) {
+		out.println("basicVassalage test failed because player 2's vassalFrom date wasn't set.");
+		return false;
+	}
+	long diff = today.getTime()-vassalFrom.getTime();
+	if(diff>100) {
+		// if greater than 10s, obviously the date wasn't set correctly.
+		out.println("basicVassalage test failed because player 2's vassalFrom date wasn't set right. It is " + vassalFrom.toString() + " and right now is " + today.toString());
+		return false;
+	}
+	t1.getRes()[0]=0;
+	t2.getResInc()[0]=100;
+	
+	double rate = t2.getVassalRate();
+	if(rate!=0) {
+		out.println("basicVassalage test failed because player 2's tax rate at week 0 was incorrect, it was " + rate);
+		return false;
+	}
+	
+	// SPEED UP TIME!
+	t2.setVassalFrom(new Timestamp(today.getTime()-3*7*24*3600000)); // 3 weeks!
+	
+	rate = t2.getVassalRate();
+	if(rate!=.45) {
+		out.println("basicVassalage test failed because player 2's tax rate at week 3 was incorrect, it was " + rate);
+		return false;
+	}
+	
+	t2.setVassalFrom(new Timestamp(today.getTime()-8*7*24*3600000)); // 3 weeks!
+	rate = t2.getVassalRate();
+	if(rate!=.75) {
+		out.println("basicVassalage test failed because player 2's tax rate at week 8 was incorrect, it was " + rate);
+		return false;
+	}
+	
+	t2.doMyResources(1); // not gonna work so well...need to figure out actual resinc, by giving him a mine.
+	if(t2.getRes()[0]!=25) {
+		
+	}
+	player.deleteFakePlayers(players);
+	out.println("basicVassalage test successful.");
+	return true;
+}
+public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Player player) { 
+		
+		int numTowns[] = {2,1,1};
+		Player[] players = player.generateFakePlayers(3,numTowns,0,0);
+		
+		Town t1 = players[0].towns().get(0);
+		t1.setInfluence(1000);
+		t1.setX(1111100);
+		t1.setY(1111102);
+		Town t4 = players[0].towns().get(1);
+		t4.setInfluence(1000);
+		t4.setX(1111100);
+		t4.setY(1111098);
+
+		Town t2 = players[1].towns().get(0);
+
+		t2.setInfluence(1000);
+		t2.setX(1111101);// so it should be x = 1 where the limit is...we want
+		// this guy then centered on 3, and we give him enough to calculate into that shit.
+		t2.setY(1111100);
+		Town t3 = players[2].towns().get(0);
+
+		t3.setInfluence(1000);
+		t3.setX(1111099);
+		t3.setY(1111100);
+		
+		
+		players[0].territoryCalculator();
+		players[1].territoryCalculator(); // we should see no territorial overlap.
+		players[2].territoryCalculator();
+		if(players[0].getTerritories().size()!=2) {
+			out.println("advancedTerritory test failed because the first player doesn't have two territories as expected.");
+			return false;
+		} if(players[1].getTerritories().size()!=1) {
+			out.println("advancedTerritory test failed because the second player doesn't have one territory as expected.");
+			return false;
+
+		}
+		if(players[2].getTerritories().size()!=1) {
+			out.println("advancedTerritory test failed because the third player doesn't have one territory as expected.");
+			return false;
+
+		}
+		
+		player.deleteFakePlayers(players);
+		out.println("advancedTerritory test successful.");
+		return true;
+	}
 	public boolean intermediateTerritoryTest(HttpServletRequest req, PrintWriter out, Player player) { 
 		
 		int numTowns[] = {1,1,1};
@@ -14010,6 +14156,8 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 				return false;
 			}
 		}
+		player.deleteFakePlayers(players);
+
 		out.println("intermediateTerritory test successful.");
 		return true;
 	}
