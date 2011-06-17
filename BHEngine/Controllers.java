@@ -2094,7 +2094,11 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.intermediateTerritoryTest(req,out,p);
 				} else if(test.equals("advancedTerritory")) {
 					g.advancedTerritoryTest(req,out,p);
-				}   else{
+				} else if(test.equals("basicVassalage")) {
+					g.basicVassalageTest(req,out,p);
+				} else if(test.equals("advancedVassalage")) {
+					g.advancedVassalageTest(req,out,p);
+				}    else{
 					
 					out.println("Illegal test.");
 				}

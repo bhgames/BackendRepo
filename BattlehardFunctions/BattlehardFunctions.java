@@ -795,7 +795,7 @@ public class BattlehardFunctions {
 		     UserMessage myM = new UserMessage(id,pid_to,pid_from,userArray,p.getUsername(),body,subject,0, false, 0, original_subject_id,time.toString(),id,false);
 			p.addMessage(myM);
 			stmt.close();
-			
+			i=0;
 			stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id,id) values (?,?,?,?,?,?,?,?,?);");
 			if(pid_to.length==1&&pid_to[0]==p.ID) {
 				// no second copy sent, but if you are not a program, your program should know.
@@ -954,7 +954,7 @@ public class BattlehardFunctions {
 			stmt.close();
 			
 			//stmt.executeUpdate("update messages set subject_id = " + msgid+  " where message_id = " + msgid);
-			
+			i=0;
 			stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id,id) values (?,?,?,?,?,?,?,?,?);");
 			while(i<pid_to.length) {
 				
@@ -970,7 +970,7 @@ public class BattlehardFunctions {
 					if(original_subject_id!=null)
 						stmt.setString(6,original_subject_id.toString());
 						else
-							stmt.setString(7,"none");
+							stmt.setString(6,"none");
 					stmt.setInt(7,pid_to[i]);
 					stmt.setString(8,id.toString());
 					 UUID thisMsgID = UUID.randomUUID();
@@ -1080,7 +1080,7 @@ public class BattlehardFunctions {
 			stmt.close();
 			
 			//stmt.executeUpdate("update messages set subject_id = " + msgid+  " where message_id = " + msgid);
-			
+			i=0;
 			stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id,id) values (?,?,?,?,?,?,?,?,?);");
 			while(i<pid_to.length) {
 				
@@ -1096,7 +1096,7 @@ public class BattlehardFunctions {
 					if(original_subject_id!=null)
 						stmt.setString(6,original_subject_id.toString());
 						else
-							stmt.setString(7,"none");
+							stmt.setString(6,"none");
 					stmt.setInt(7,pid_to[i]);
 					stmt.setString(8,id.toString());
 					 UUID thisMsgID = UUID.randomUUID();
@@ -1334,7 +1334,7 @@ public class BattlehardFunctions {
 
 			stmt = g.con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,subject_id,tsid,id) values (?,?,?,?,?,?,?,?,?,?);");
 			
-		
+			i=0;
 			while(i<pid_to.length) {
 				
 				if(pid_to[i]!=-1) {
@@ -12903,7 +12903,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("Invalid player!");
 			return false;
 		}
-		
+			if(!vassal.isVoluntaryVassal()) {
+				setError("You cannot devassal an involuntary vassal!");
+				return false;
+			}
 			
 			 vassal.makeVassalOf(null,false);
 			 return true;

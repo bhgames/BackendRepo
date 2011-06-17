@@ -89,7 +89,7 @@ public class Iterator implements Runnable {
 				}
 			} 
 			
-			if(p.getHoldingIteratorID().equals("-1")&&(dailyLeft==0||p.lastTerritoryClock==0)&&p.ID!=5&&!p.isQuest()) {
+			if(p.ID<999999900&&p.getHoldingIteratorID().equals("-1")&&(dailyLeft==0||p.lastTerritoryClock==0)&&p.ID!=5&&!p.isQuest()) {
 				// so basically you get territory even when inactive. However, multiple iterators could
 				// find and recalc you in this timeframe, so we also have a last territory clock, which lets them know
 				// not to recalc unless you haven't had your territory made yet(ie server restart, lastTerritoryClock is 0),
@@ -103,6 +103,8 @@ public class Iterator implements Runnable {
 						p.saveInfluence();// it'll save twice if somebody just became a lord,
 						// otherwise it'll just save once to get towninfluence. NBD.
 						p.lastTerritoryClock=internalClock;
+						if(p.owedTicks>0) System.out.println(p.getUsername() + " is inactive and I am still doing his territories.");
+						else System.out.println(p.getUsername() + " is active and I am doing his territories.");
 					}
 					p.setHoldingIteratorID("-1");
 

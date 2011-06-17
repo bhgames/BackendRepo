@@ -411,8 +411,8 @@ public class Player  {
 		
 				 */
 				
-				
 				getMessages().get(getMessages().size()-1).addMessage(m);
+			//	System.out.println("Added the message size is " + getMessages().size() + " to " + getUsername());
 			} else {
 				int i = 0; boolean found = false;
 				UserMessagePack umpPiece;
@@ -450,9 +450,9 @@ public class Player  {
 	 public ArrayList<UserMessagePack> getMessages() {
 		 if(currMessages==null) {
 		// return all messages.
+		//	 System.out.println("Getmessage was called and is null for " +getUsername());
 				UserMessagePack umpPiece; UserMessage m;
 				ArrayList<UserMessagePack> ump = new ArrayList<UserMessagePack>();
-
 			try {
 		/*		UberPreparedStatement stmt = g.con.createStatement("select count(*) from messages where pid = ?;");
 				stmt.setInt(1,p.ID);
@@ -898,7 +898,7 @@ public class Player  {
 				 */
 				ArrayList<Hashtable> points = new ArrayList<Hashtable>();
 				Hashtable pt;
-				System.out.println("maxR is " + maxR + " for " + t.getTownName());
+			//	System.out.println("maxR is " + maxR + " for " + t.getTownName());
 				int startX = t.getX()-(int) Math.ceil(maxR);
 				while(startX<=t.getX()+maxR) {
 					int startY = t.getY()+(int) Math.ceil(maxR);
@@ -913,7 +913,7 @@ public class Player  {
 							pt = new Hashtable();
 							pt.put("x",(int)startX);
 							pt.put("y",(int) startY);
-							System.out.println("Adding "+ startX+","+startY + " to " + getUsername());
+						//	System.out.println("Adding "+ startX+","+startY + " to " + getUsername());
 							points.add(pt);
 						}
 						startY--;
@@ -1662,9 +1662,9 @@ public class Player  {
 		  just any point that has the highest x and highest y.
 
 		   */
-		  for(Hashtable p:points) {
-		   System.out.println("x: " + ((Integer) p.get("x"))+", y:"+((Integer) p.get("y")));
-		  }
+		//  for(Hashtable p:points) {
+		  // System.out.println("x: " + ((Integer) p.get("x"))+", y:"+((Integer) p.get("y")));
+		 // }
 		  ArrayList<Hashtable> borders = giftWrapping(points);
 		  
 		  // so now i must take this code and turn it into Markus' corner code. F-THAT-SHIT

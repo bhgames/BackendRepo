@@ -13888,6 +13888,244 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 		return -1;
 	}
+	public boolean advancedVassalageTest(HttpServletRequest req, PrintWriter out, Player player) {
+		/*
+		 * 
+	Basic Vassal Test:
+	Set up a town who is a vassal to another player, make sure that the tax rates expected are seen and given to the lord accordingly 
+	and taken accordingly. 
+	Speed up time to one week, two weeks, and make sure the rate maxes out properly.
+		 */
+		
+		int numTowns[] = {2,3};
+		Player[] players = player.generateFakePlayers(2,numTowns,0,0);
+		Town t1 = players[0].towns().get(0);
+		t1.setInfluence(1000);
+		t1.setX(1111100);
+		t1.setY(1111102);
+		Town t3 = players[0].towns().get(1);
+		t3.setInfluence(1000);
+		t3.setX(1111100);
+		t3.setY(1111104);
+		
+		Town t2 = players[1].towns().get(0);
+		t2.setInfluence(0);
+		t2.setX(1111101);// so it should be x = 1 where the limit is...we want
+		// this guy then centered on 3, and we give him enough to calculate into that shit.
+		t2.setY(1111100); // this means t2 should be vassaled to t1's player in the next round of territory calcs.
+		Town t4 = players[1].towns().get(1);
+		t4.setInfluence(0);
+		t4.setX(1111100);// so it should be x = 1 where the limit is...we want
+		// this guy then centered on 3, and we give him enough to calculate into that shit.
+		t4.setY(1111101); // this means t2 should be vassaled to t1's player in the next round of territory calcs.
+		
+		Town t5 = players[1].towns().get(2); // should have it's own rule, no lord.
+		t5.setInfluence(0);
+		t5.setX(1111110);// so it should be x = 1 where the limit is...we want
+		// this guy then centered on 3, and we give him enough to calculate into that shit.
+		t5.setY(1111101); // this means t2 should be vassaled to t1's player in the next round of territory calcs.
+		
+		players[0].territoryCalculator();
+		players[1].territoryCalculator(); // now both towns should be lorded.
+		
+		if(players[1].getLord()!=null) {
+			out.println("advancedVassalage test failed because the second player became a player-level vassal to the first before it was time.");
+			return false;
+		}
+		if((t2.getLord()!=null&&t2.getLord().ID!=players[0].ID)
+				||(t4.getLord()!=null&&t4.getLord().ID!=players[0].ID)) {
+			out.println("advancedVassalage test failed because the second player's town did not become a vassal of the correct player.");
+			return false;
+		}
+		if(t2.getLord()==null||t2.getLord()==null) {
+			out.println("advancedVassalage test failed because the second player's towns in p1 territory did not become a vassalized.");
+			return false;
+		}
+		if(t5.getLord()!=null) {
+			out.println("advancedVassalage test failed because the other two towns player two owns got vassaled for no reason.");
+			return false;
+		}
+		if(players[0].getLord()!=null) {
+			out.println("advancedVassalage test failed because player 1 became a vassal.");
+			return false;
+		}
+		if(t1.getLord()!=null||t3.getLord()!=null) {
+			out.println("advancedVassalage test failed because player 1's towns became vassals.");
+			return false;
+		}
+		long time = 8*7*24;
+		time*=3600000;
+		Date today = new Date();
+		t2.setVassalFrom(new Timestamp(today.getTime()-time)); // 8 weeks!
+		t4.setVassalFrom(new Timestamp(today.getTime()-time)); // 8 weeks!
+
+		
+		players[0].territoryCalculator();
+		players[1].territoryCalculator(); // now the player should be lorded.
+
+				if(players[1].getLord()==null) {
+					out.println("advancedVassalage test failed because the second player did not become a player-level vassal to the first when it was time.");
+					return false;
+				}
+				if((t2.getLord()!=null&&t2.getLord().ID!=players[0].ID)
+						||(t4.getLord()!=null&&t4.getLord().ID!=players[0].ID)) {
+					out.println("advancedVassalage test failed because the second player's towns in the p1 territory did not become a vassal of the correct player when p2 became a player-level vassal.");
+					return false;
+				}
+				if(players[1].getLord()!=null&&players[1].getLord().ID!=players[0].ID) {
+					out.println("advancedVassalage test failed because the second player did not become a vassal of the first player.");
+					return false;
+				}
+				if(t2.getLord()==null||t4.getLord()==null) {
+					out.println("advancedVassalage test failed because the second player's couple of towns in p1 territory became not-vassalized once p2 became a player-level vassal!");
+					return false;
+				}
+				if(players[1].towns().get(2).getLord()!=null) {
+					out.println("advancedVassalage test failed because the other town player two owns got vassaled for no reason.");
+					return false;
+				}
+				if(players[0].getLord()!=null) {
+					out.println("advancedVassalage test failed because player 1 became a vassal.");
+					return false;
+				}
+				if(t1.getLord()!=null||t3.getLord()!=null) {
+					out.println("advancedVassalage test failed because player 1's town became a vassal.");
+					return false;
+				}
+				Timestamp vassalFrom = players[1].getVassalFrom();
+				if(vassalFrom==null) {
+					out.println("advancedVassalage test failed because player 2's vassalFrom date wasn't set.");
+					return false;
+				}
+				long diff = today.getTime()-vassalFrom.getTime();
+				if(diff>100) {
+					// if greater than 10s, obviously the date wasn't set correctly.
+					out.println("advancedVassalage test failed because player 2's vassalFrom date wasn't set right. It is " + vassalFrom.toString() + " and right now is " + today.toString());
+					return false;
+				}
+
+		
+		double rate = t2.getVassalRate();
+		if(rate!=.5) {
+			out.println("advancedVassalage test failed because player 2's tax rate at beginning of player-level vassalage was incorrect, it was " + rate);
+			return false;
+		}
+		if(players[0].getPs().b.resetVassalTax(players[1].ID,.7)) {
+			out.println("advancedVassalage test failed because player 2's tax rate was set artificially by p1 without a problem, even though not voluntary.");
+			return false;
+		}
+		if(players[1].getPs().b.cancelVassalage()) {
+			out.println("advancedVassalage test failed because p2 was able to cancel involuntary vassalage.");
+			return false;
+		}
+		// alright, now let's see if we can make him a voluntary vassal.
+		//	public boolean sendVassalInvitationMessage(int pid_to[],String body, String subject, UUID original_subject_id) {
+		int[] to = {players[1].ID};
+		if(!players[0].getPs().b.sendVassalInvitationMessage(to,"hi","there",null)) {
+			out.println("advancedVassalage test failed because of p1 being unable to send vassal invite: " + players[0].getPs().b.getError());
+			return false;
+		}
+		if(!players[1].getPs().b.acceptVassalage(players[1].getMessages().get(0).getMessage(0).getId())) {
+			out.println("advancedVassalage test failed because of p2 being unable to accept it: " + players[1].getPs().b.getError());
+			return false;
+		}
+		
+		rate = t2.getVassalRate();
+		if(rate!=0) {
+			out.println("advancedVassalage test failed because player 2's tax rate at beginning of VOLUNTARY player-level vassalage was incorrect, it was " + rate);
+			return false;
+		}
+		
+		if(players[0].getPs().b.resetVassalTax(players[1].ID,.7)) {
+			out.println("advancedVassalage test failed because player 1 was able to set > .5 tax on player 2 when in voluntary mode.");
+			return false;
+		}
+
+		if(!players[0].getPs().b.resetVassalTax(players[1].ID,.3)) {
+			out.println("advancedVassalage test failed because player 1 was unable to set < .5 (.3) tax on player 2 when in voluntary mode.");
+			return false;
+		}
+		
+		// now we test taxes.
+		t2.addBuilding("Metal Mine",0,1,0);
+		t4.addBuilding("Metal Mine",0,1,0);
+
+		double toGet = t2.getResInc()[0]; // That's what we expect he'd normally get. We look at the resbuffers. With a level 1 mine,
+		// we do not expect to get >1, so it'll be in the resbuffer.
+		
+		t2.doMyResources(1);
+		t4.doMyResources(1);
+
+		double gotten = t2.getResBuff()[0]+t4.getResBuff()[0];
+		
+		
+		players[0].doVassalTaxes(1);
+		
+		double gottenByLord = t1.getResBuff()[0]+t3.getResBuff()[0];
+		
+		double total = gotten+gottenByLord;
+		
+		if(Math.abs(total-toGet)>.0001) {
+			out.println("advancedVassalage test failed because the difference between expected resources taxed and actual is off by > .0001. Player 1 received " 
+					+ gottenByLord + " and 2 received " + gotten + " but expected was " + toGet + ". t1's metal count is currently " + t1.getRes()[0] + " and t2's is " + t2.getRes()[0] + ", and they should both be zero, only their resBuffers"
+					 + " should be full.");
+			return false;
+		}
+		
+		// right now we try and break the vassalage.
+		if(!players[1].getPs().b.cancelVassalage()) {
+			out.println("advancedVassalage test failed because p2 was unable to cancel voluntary vassalage.");
+			return false;
+		}
+		
+		if(players[1].getLord()!=null) {
+			out.println("advancedVassalage test failed because p2 was not de-vassaled when he canceled it the first time.");
+			return false;
+		}
+		if(!players[0].getPs().b.sendVassalInvitationMessage(to,"hi","there",null)) {
+			out.println("advancedVassalage test failed because of p1 being unable to send second vassal invite: " + players[0].getPs().b.getError());
+			return false;
+		}
+		if(!players[1].getPs().b.acceptVassalage(players[1].getMessages().get(0).getMessage(0).getId())) {
+			out.println("advancedVassalage test failed because of p2 being unable to accept it a second time: " + players[1].getPs().b.getError());
+			return false;
+		}
+		if(!players[0].getPs().b.cancelVassalage(players[1].ID)) {
+			out.println("advancedVassalage test failed because p1 was unable to cancel the second voluntary vassalage.");
+			return false; 
+		}
+		if(players[1].getLord()!=null) {
+			out.println("advancedVassalage test failed because p2 was still a vassal after it was cancelled the second time.");
+			return false;
+		}
+		
+		// now, seeing as they were just freed, there should be a cooldown.
+		players[1].territoryCalculator();
+		players[0].territoryCalculator(); // so now we should have no lords created here.
+		
+		if(players[1].getLord()!=null) {
+			out.println("advancedVassalage test failed because p2 was able to become a vassal after just getting free of it.");
+			return false;
+		}
+		
+		players[1].setVassalFrom(new Timestamp(today.getTime()-time));
+		players[1].territoryCalculator();
+		players[0].territoryCalculator(); // so now we should have lorded p1.
+		
+		if(players[1].getLord()==null) {
+			out.println("advancedVassalage test failed because p2 was unable to become a vassal after the cooldown period had expired.");
+			return false;
+		}
+		
+		if(players[0].getPs().b.cancelVassalage(players[1].ID)) {
+			out.println("advancedVassalage test failed because p1 was able to cancel the involuntary vassalage. p2 is a involuntaryvassal: " +players[1].isVoluntaryVassal());
+			return false; 
+		}				
+		
+		player.deleteFakePlayers(players);
+		out.println("advancedVassalage test successful.");
+		return true;
+	}
 public boolean basicVassalageTest(HttpServletRequest req, PrintWriter out, Player player) {
 	/*
 	 * 
@@ -13898,7 +14136,7 @@ Speed up time to one week, two weeks, and make sure the rate maxes out properly.
 	 */
 	
 	int numTowns[] = {1,3};
-	Player[] players = player.generateFakePlayers(3,numTowns,0,0);
+	Player[] players = player.generateFakePlayers(2,numTowns,0,0);
 	Town t1 = players[0].towns().get(0);
 	t1.setInfluence(1000);
 	t1.setX(1111100);
@@ -13954,7 +14192,7 @@ Speed up time to one week, two weeks, and make sure the rate maxes out properly.
 		return false;
 	}
 	t1.getRes()[0]=0;
-	t2.getResInc()[0]=100;
+	t2.getRes()[0]=0;
 	
 	double rate = t2.getVassalRate();
 	if(rate!=0) {
@@ -13966,22 +14204,42 @@ Speed up time to one week, two weeks, and make sure the rate maxes out properly.
 	t2.setVassalFrom(new Timestamp(today.getTime()-3*7*24*3600000)); // 3 weeks!
 	
 	rate = t2.getVassalRate();
-	if(rate!=.45) {
+	if(Math.abs(rate-.45)>.0001) {
 		out.println("basicVassalage test failed because player 2's tax rate at week 3 was incorrect, it was " + rate);
 		return false;
 	}
-	
-	t2.setVassalFrom(new Timestamp(today.getTime()-8*7*24*3600000)); // 3 weeks!
+	long othertime = 8*7*24; // can't be done all at once.
+	othertime*=3600000;
+	t2.setVassalFrom(new Timestamp(today.getTime()-othertime)); // 8 weeks!
 	rate = t2.getVassalRate();
-	if(rate!=.75) {
-		out.println("basicVassalage test failed because player 2's tax rate at week 8 was incorrect, it was " + rate);
+	if(Math.abs(rate-.75)>.0001) {
+		out.println("basicVassalage test failed because player 2's tax rate at week 8 was incorrect, it was " + rate +" other time was " + othertime);
+		return false;
+	}
+	//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
+
+	t2.addBuilding("Metal Mine",0,1,0);
+	double toGet = t2.getResInc()[0]; // That's what we expect he'd normally get. We look at the resbuffers. With a level 1 mine,
+	// we do not expect to get >1, so it'll be in the resbuffer.
+	
+	t2.doMyResources(1);
+	double gotten = t2.getResBuff()[0];
+	
+	
+	players[0].doVassalTaxes(1);
+	
+	double gottenByLord = t1.getResBuff()[0];
+	
+	double total = gotten+gottenByLord;
+	
+	if(Math.abs(total-toGet)>.0001) {
+		out.println("basicVassalage test failed because the difference between expected resources taxed and actual is off by > .0001. Player 1 received " 
+				+ gottenByLord + " and 2 received " + gotten + " but expected was " + toGet + ". t1's metal count is currently " + t1.getRes()[0] + " and t2's is " + t2.getRes()[0] + ", and they should both be zero, only their resBuffers"
+				 + " should be full.");
 		return false;
 	}
 	
-	t2.doMyResources(1); // not gonna work so well...need to figure out actual resinc, by giving him a mine.
-	if(t2.getRes()[0]!=25) {
-		
-	}
+	
 	player.deleteFakePlayers(players);
 	out.println("basicVassalage test successful.");
 	return true;

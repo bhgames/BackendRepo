@@ -1645,6 +1645,7 @@ public class Town {
 					long diff = (new Timestamp((new Date()).getTime())).getTime()-getVassalFrom().getTime();
 					double weeks = (int) Math.floor(((double) diff)/604800000);
 					double toAdd = weeks*.15;
+
 					if(toAdd>.75) toAdd=.75;
 					taxRate+=toAdd;
 				
