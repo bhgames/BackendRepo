@@ -878,7 +878,7 @@ public class Player  {
 				
 			 
 			 */
-			if(!isQuest()&&ID!=5) { // Id does not have territories, neither do Quests.
+			if(!isQuest()&&ID!=5) { // Id does not have territories, neither do Quests, nor can their towns be taken by others this way.
 
 			ArrayList<ArrayList<Hashtable>> townPointLists = new ArrayList<ArrayList<Hashtable>>(); // holds the points each town possesses before
 			// transformation into territory lists.
@@ -1050,7 +1050,7 @@ public class Player  {
 								int ourX = (Integer) ourPoint.get("x");
 								int ourY = (Integer) ourPoint.get("y");
 								if(ourX==theirX&&ourY==theirY) {
-									System.out.println("I may lose " + ourX +"," + ourY + " to " + owner.getUsername());
+								//	System.out.println("I may lose " + ourX +"," + ourY + " to " + owner.getUsername());
 									// CHECK IT OUT!
 									//Sum(townInfluence/town_r^2)
 									double myInfluence=0;
@@ -1068,7 +1068,7 @@ public class Player  {
 											theirInfluence +=t.getInfluence()/(Math.pow(t.getX()-ourX,2)+Math.pow(t.getY()-ourY,2));
 										else theirInfluence+=t.getInfluence();
 									}
-									System.out.println("My influence over " + ourX +"," + ourY + " is " + myInfluence + ", theirs is " + theirInfluence);
+								//	System.out.println("My influence over " + ourX +"," + ourY + " is " + myInfluence + ", theirs is " + theirInfluence);
 									if(myInfluence>theirInfluence) {
 										// they lose the point.
 											// each territory has a "corners" version and a "points" version.
@@ -1191,8 +1191,8 @@ public class Player  {
 			 
 			 
 		 }
-		 
-		 if((int) Math.round(yourPerc/towns().size())>=.5&&getLord()!=null&&!isVoluntaryVassal()) {
+		 System.out.println("I am " + getUsername() + " and the percent of towns I control is " + ((double) yourPerc)/((double) towns().size()) + ". Possible lords size: " + possibleLords.size());
+		 if(((double) yourPerc)/((double) towns().size())>=.5&&getLord()!=null&&!isVoluntaryVassal()) {
 			 getLord().makeWallPost("","Vassal Lost!",getUsername()+"'s empire has freed itself from my grasp!",
 						"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
 						"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
@@ -1215,12 +1215,17 @@ public class Player  {
 				double weeks = (int) Math.floor(((double) diff)/604800000);
 				if(weeks<1) canVassal=false; // possible safe measure to keep from vassaldom.
 			 }
-			 
+			 if(possibleLords.size()>=1)
+			 System.out.println("I am " + getUsername() + " and I am concerned that " + possibleLords.get(0).getUsername() + " will own me soon. They own " + ((double) possibleLordTownsOwned.get(0))/(((double) towns().size())));
 			 if(canVassal) {
 				  int i = 0;
 				 while(i<possibleLordTownsOwned.size()) {
-					 if(((double) possibleLordTownsOwned.get(i))/(((double) towns().size()))>=.5) {
+					// System.out.println(possibleLords.get(i).getUsername() + "  has "+ (((double) possibleLordTownsOwned.get(i))/(((double) towns().size()))) + " percent.");
+					 if(((double) possibleLordTownsOwned.get(i))/(((double) towns().size()))>=.5&&possibleLords.get(i).getLord()==null) { // also, possibleLords cannot be bitches.
 						 // this is the guy who gets it.
+						 if(getLord()!=null&&getLord().ID==possibleLords.get(i).ID) {
+							  // do nothing if your lord is already your lord...
+						 } else {
 						 if(getLord()!=null&&getLord().ID!=possibleLords.get(i).ID) {
 							 //  this is the case where one lord gives it to another
 							 getLord().makeWallPost("","Vassal Lost!",getUsername()+"'s empire has freed itself from my grasp!",
@@ -1241,7 +1246,7 @@ public class Player  {
 									"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
 									"Play Now!","http://www.steampunkwars.com/");
 						 makeVassalOf(possibleLords.get(i),false);
-						 
+						 }
 							
 					 }
 					 i++;
@@ -1265,12 +1270,12 @@ public class Player  {
 			 ((Hashtable) terr.get("corners")).put("lord",lord.getUsername());
 		 }
 	
-		 
+		 System.out.println("I, "+  getUsername() + " am being vassaled. Am I lord? " + isLord());
 		 if(isLord()&&lord!=null) { // don't need to do this if you're being freed.
 			 for(Player p:God.getPlayers()) {
 				 boolean becameVassal=false;
 				 if(p.getLord()!=null&&p.getLord().ID==ID) {
-					
+					System.out.println("I am releasing " + p.getUsername()); // obviously player level vassalage breaks.
 					 p.makeWallPost("","Freedom!","After a long period of vassalage under "+getUsername()+", my people are now free once more!",
 								"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
 								"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
@@ -1281,17 +1286,18 @@ public class Player  {
 				 }
 				 for(Town t:p.towns()) {
 					 if(t.getLord()!=null&&t.getLord().ID==ID){
-						 if(!becameVassal) {
+					/*	 if(!becameVassal) { If we're getting lorded, town gets passed up so it's not free.
 							 // no need to send extra FB messages for towns getting switched over.
-							
+								System.out.println("I am releasing " + t.getTownName());
+								
 							 p.makeWallPost("","Territory Freed!","The people of my town are free from "+t.getLord().getUsername()+"'s tyranny!",
 										"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
 										"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
 										"Play Now!","http://www.steampunkwars.com/");
 
 								
-						 }
-						 t.setLord(null); 
+						 }*/
+						 t.setLord(lord); 
 						t.setVassalFrom(new Timestamp((new Date()).getTime()));
 					}
 				 }
@@ -1356,6 +1362,7 @@ public class Player  {
 											"Play Now!","http://www.steampunkwars.com/");
 									// presumably this is also called if they just got online, so it's possible
 									// that they already have a timer set up.
+								//	System.out.println(t.getTownName() + " was just lorded to " + owner.getUsername());
 										t.setLord(owner);
 										t.setVassalFrom(new Timestamp((new Date()).getTime()));
 								}

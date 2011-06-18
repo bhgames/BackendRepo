@@ -6449,6 +6449,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				  &&haveBldg("Arms Factory",10,holdT.townID)&&haveBldg("Manufacturing Plant",5,holdT.townID)
 				  ) {
 			  reqsMet=true;
+		  } else if(type.equals("Command Center")&&!haveBldg("Command Center",1,holdT.townID)) {
+			  reqsMet=true; // if you don't have one, you meet reqs.
 		  } else if((type.equals("Missile Silo"))&&haveBldg("Manufacturing Plant",15,holdT.townID)
 				  &&haveBldg("Institute",15,holdT.townID)) {
 			  reqsMet=true;
@@ -10894,7 +10896,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			toRet[i] = new UserTown(r,au,b,p.ID,p.getUsername(),res,resCaps,resInc,resEffects,t.getTotalEngineers(),
 					t.getTotalTraders(),t.townID,t.getTownName(),ts,tr,t.getX(),t.getY(),getCSL(t.townID),getCS(t.townID),t.isZeppelin()
-					,t.getFuelCells(),t.getDestX(),t.getDestY(),t.getTicksTillMove(),t.getFoodConsumption(),t.getVassalRate(),lord,vassalFrom);
+					,t.getFuelCells(),t.getDestX(),t.getDestY(),t.getTicksTillMove(),t.getFoodConsumption(),t.getVassalRate(),lord,vassalFrom,t.getInfluence());
 			}
 			i++;
 

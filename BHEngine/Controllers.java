@@ -54,7 +54,7 @@ public class Controllers {
 		Hashtable[] townHash = (Hashtable[]) totalHash.get("townHash");
 		Hashtable[] cloudHash = (Hashtable[]) totalHash.get("cloudHash");
 		Hashtable[] tileHash = (Hashtable[]) totalHash.get("tileHash");
-		Hashtable[] terrHash = (Hashtable[]) totalHash.get("territoryHash");
+		Hashtable[] terrHash = (Hashtable[]) totalHash.get("territoryArray");
 
 	/*	int ulcy = (Integer) totalHash.get("ulcy");
 		int llcy = (Integer) totalHash.get("llcy");
@@ -120,13 +120,15 @@ public class Controllers {
 			while(y<terrHash.length) {
 				j.object()
 				.key("id")
-				.value((Integer) terrHash[y].get("id"));
+				.value(((UUID) terrHash[y].get("id")).toString());
 				corners =(Hashtable) terrHash[y].get("corners");
 				j.key("corners").object();
+				
 				if(((String) corners.get("lord")).equals("none"))
 					j.key("owner").value((String) corners.get("owner"));
 				else 
 					j.key("owner").value((String) corners.get("lord"));
+				
 				j.key("sides").array();
 				int k = 0;
 				array = (int[]) corners.get("sides");
@@ -135,6 +137,7 @@ public class Controllers {
 					k++;
 				}
 				j.endArray();
+				
 				j.key("start").array();
 				k = 0;
 				array = (int[]) corners.get("start");
@@ -143,6 +146,7 @@ public class Controllers {
 					k++;
 				}
 				j.endArray()
+				.endObject()
 				.endObject();
 				
 				y++;
@@ -1105,6 +1109,10 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		//	.value(p.getBrkthrus())
 			.key("firearmResearch")
 			.value(p.getFirearmResearch())
+			.key("ordinanceResearch")
+			.value(p.getOrdinanceResearch())
+			.key("teslaTech")
+			.value(p.getTeslaTech())
 			.key("attackAPI")
 			.value(p.isAttackAPI())
 			.key("advancedAttackAPI")
@@ -1265,6 +1273,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			        .value(t.getTownName())
 			        .key("townID")
 			        .value(t.getTownID())
+			        .key("influence")
+			        .value(t.getInfluence())
 			        .key("playerName")
 			        .value(t.getPlayerName())
 			          .key("CSL")
@@ -2098,7 +2108,26 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.basicVassalageTest(req,out,p);
 				} else if(test.equals("advancedVassalage")) {
 					g.advancedVassalageTest(req,out,p);
-				}    else{
+				} else if(test.equals("breakVassalage")) {
+					g.breakVassalageTest(req,out,p);
+				} else if(test.equals("lordvlord")) {
+					g.lordvlordTest(req,out,p);
+				} else if(test.equals("vassalThatIsLord")) {
+					g.vassalThatIsLordTest(req,out,p);
+				}else if(test.equals("allVassalAndTerritories")) {
+					g.fbPostTest(req,out,p);
+					g.separatedPointsTest(req,out);
+					g.giftWrappingTest(req,out);
+					g.returnTerritoryTest(req,out,p);
+					g.basicTerritoryTest(req,out,p);
+					g.intermediateTerritoryTest(req,out,p);
+					g.advancedTerritoryTest(req,out,p);
+					g.basicVassalageTest(req,out,p);
+					g.advancedVassalageTest(req,out,p);
+					g.breakVassalageTest(req,out,p);
+					g.lordvlordTest(req,out,p);
+					g.vassalThatIsLordTest(req,out,p);
+				}      else{
 					
 					out.println("Illegal test.");
 				}

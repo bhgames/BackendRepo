@@ -19,7 +19,7 @@ public class UserTown {
 	private int lord=0;
 	private double taxRate=0;
 	private Timestamp vassalFrom;
-	private int CSL,CS;
+	private int CSL,CS,influence;
 
 	volatile long resCaps[] = new long[5];
 	private UserTradeSchedule[] tradeSchedules;
@@ -29,7 +29,7 @@ public class UserTown {
 			long[] resCaps, double[] resInc, double[] resEffects, int totalEngineers,
 			int totalTraders, int townID, String townName,
 			UserTradeSchedule[] tradeSchedules, UserTrade[] tradeServer, int x,
-			int y,int CSL, int CS, boolean zeppelin, int fuelCells, int destX,int destY, int ticksTillMove, int foodConsumption, double taxRate, int lord, Timestamp vassalFrom) {
+			int y,int CSL, int CS, boolean zeppelin, int fuelCells, int destX,int destY, int ticksTillMove, int foodConsumption, double taxRate, int lord, Timestamp vassalFrom, int influence) {
 		this.attackServer = attackServer;
 		this.au = au;
 		this.bldg = bldg;
@@ -186,6 +186,12 @@ public class UserTown {
 	}
 	public Timestamp getVassalFrom() {
 		return vassalFrom;
+	}
+	public void setInfluence(int influence) {
+		this.influence = influence;
+	}
+	public int getInfluence() {
+		return influence;
 	}
 	
 }

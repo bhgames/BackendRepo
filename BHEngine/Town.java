@@ -187,10 +187,11 @@ public class Town {
 		digTownID = getMemInt("digTownID");
 		owedTicks = getMemInt("owedTicks");
 		digAmt = getMemInt("digAmt");
+		influence = getMemInt("influence");
+
 		if(isZeppelin()) {
 		destX = getMemInt("destX");
 		destY = getMemInt("destY");
-
 		fuelCells = getMemInt("fuelcells");
 		ticksTillMove = getMemInt("ticksTillMove");
 		}

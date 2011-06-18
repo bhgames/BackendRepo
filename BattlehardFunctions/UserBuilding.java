@@ -140,7 +140,7 @@ private static int baseResourceAmt = 1000;
 	
 	public static UserBuilding[] getBuildings() {
 		UserBuilding to[] = new UserBuilding[23];
-		to[0] = new UserBuilding("Headquarters");
+		to[0] = new UserBuilding("Command Center");
 		to[1] = new UserBuilding("Arms Factory");
 		to[2] = new UserBuilding("Storage Yard");
 		to[3] = new UserBuilding("Institute");
@@ -148,9 +148,9 @@ private static int baseResourceAmt = 1000;
 		to[5] = new UserBuilding("Trade Center");
 		to[6] = new UserBuilding("Fortification");
 		to[7] = new UserBuilding("Metal Warehouse");
-		to[8] = new UserBuilding("Timber Warehouse");
-		to[9] = new UserBuilding("Crystal Warehouse");
-		to[10] = new UserBuilding("Food Warehouse");
+		to[8] = new UserBuilding("Lumber Yard");
+		to[9] = new UserBuilding("Crystal Repository");
+		to[10] = new UserBuilding("Granary");
 	
 		to[11] = new UserBuilding("Missile Silo");
 		to[12] = new UserBuilding("Recycling Center");
@@ -162,7 +162,7 @@ private static int baseResourceAmt = 1000;
 		to[18] = new UserBuilding("Metal Mine");
 		to[19] = new UserBuilding("Timber Field");
 		to[20] = new UserBuilding("Crystal Mine");
-		to[21] = new UserBuilding("Food Farm");
+		to[21] = new UserBuilding("Farm");
 		to[22] = new UserBuilding("Manufacturing Plant");
 
 		return to;
