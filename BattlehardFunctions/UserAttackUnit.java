@@ -7,7 +7,7 @@ public class UserAttackUnit {
 
 private String originalPlayer;
 private int hp=0,attackDamage=0,attackType=1,originalPlayerID,originalTID,originalSlot,slot,support,lvl,size;
-private double armor=0,armorType=0,speed=0,cargo=0,expmod=1,type=0;
+private double armor=0,armorType=0,speed=0,cargo=0,expmod=1; private int type=0;
 
 public int getOriginalPlayerID() {
 	return originalPlayerID;
@@ -69,10 +69,10 @@ public double getExpmod() {
 public void setExpmod(double expmod) {
 	this.expmod = expmod;
 }
-public double getType() {
+public int getType() {
 	return type;
 }
-public void setType(double type) {
+public void setType(int type) {
 	this.type = type;
 }
 public String getName() {

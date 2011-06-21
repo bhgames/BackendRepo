@@ -244,7 +244,7 @@ public int getLvl() {
 		String name = a.getName();
 		int lvl = a.getLvl();
 		int hp=0,attackDamage=0,attackType=1;
-		double armor=0,armorType=0,speed=0,cargo=0,expmod=1,type=0;
+		double armor=0,armorType=0,speed=0,cargo=0,expmod=1; int type=0;
 		if(name.equals("Archaeologist")||
 				name.equals("Civilian")){
 			hp = 30;

@@ -29,12 +29,12 @@ public class Id extends Player {
 		double weeklyLeft = (getPlayedTicks())/(7*24*3600/GodGenerator.gameClockFactor);
 		weeklyLeft-=Math.round(weeklyLeft);
 		if(weeklyLeft==0) {
-			weeklyRoutine();
+	//		weeklyRoutine();
 		}
 		
 		incomingRoutine();
 		for(Town t: towns()) {
-			if(t.getInfluence()>God.startingTownInfluence) {
+			if(!t.isResourceOutcropping()&&t.getInfluence()>God.startingTownInfluence) {
 				t.setInfluence(God.startingTownInfluence);
 				t.saveInfluence(); // just in case.
 			}
@@ -134,7 +134,7 @@ public class Id extends Player {
 			}
 			
 			// SETTING NEW SOLDIER DATA
-			
+			if(!myT.isResourceOutcropping())
 			myT.setSize(0,(int) Math.round(avgTroopNumber*.1));
 			
 			
@@ -292,7 +292,7 @@ public class Id extends Player {
 						
 						 i = 0; 
 							while(i<cslHash.size()) {
-								System.out.println("total rank " + i + " is " + ((Double) cslHash.get(i).get("totalRank")) + " with townName of "+  ((String) cslHash.get(i).get("townName")));
+							//	System.out.println("total rank " + i + " is " + ((Double) cslHash.get(i).get("totalRank")) + " with townName of "+  ((String) cslHash.get(i).get("townName")));
 							//	System.out.println("mine rank score is " + ((Integer) cslHash.get(i).get("mineRank")) + " with townName of "+  ((String) cslHash.get(i).get("townName")));
 								//System.out.println("troop rank score is " + ((Integer) cslHash.get(i).get("troopRank")) + " with townName of "+  ((String) cslHash.get(i).get("townName")));
 								//System.out.println("csl rank score is " + ((Integer) cslHash.get(i).get("cslRank")) + " with townName of "+  ((String) cslHash.get(i).get("townName")));
@@ -304,7 +304,7 @@ public class Id extends Player {
 					if(cslHash.size()>0)
 					while(i<towns().size()) {
 						idT = towns().get(i);
-						if(Math.abs(idT.getX()-x)<=idInfluenceDistance&&Math.abs(idT.getY()-y)<=idInfluenceDistance) { // FIND ANY ID TOWN THAT CAN SEND THE ATTACK.
+						if(Math.abs(idT.getX()-x)<=idInfluenceDistance&&Math.abs(idT.getY()-y)<=idInfluenceDistance&&!idT.isResourceOutcropping()) { // FIND ANY ID TOWN THAT CAN SEND THE ATTACK.
 							
 							// NOW WE HAVE OUR PLACE TO SEND THE RAID
 							//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {

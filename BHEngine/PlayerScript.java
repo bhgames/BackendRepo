@@ -278,13 +278,33 @@ public class PlayerScript implements Runnable {
     		 
     		 toRet+=b.setUpTradeSchedule(num1,num2,num3,num4,num5,num6,num7,num8,num9);
     		 }
-    	 } else if(holdCmd.equals("bf.completeResearches")||holdCmd.equals("bf.canCompleteResearches")) { 
+    	 } else if(holdCmd.equals("bf.completeResearches")||holdCmd.equals("bf.canCompleteResearches")
+    			 ) { 
     		 // string[]
     		 String arr1[] =  decodeStringIntoStringArray(holdPart);
     		 if(holdCmd.equals("bf.completeResearches"))
     		 toRet+=b.completeResearches(arr1);
     		 else
              toRet+=b.canCompleteResearches(arr1);
+
+    	 }else if(holdCmd.equals("bf.buildableBuildings")) { 
+    		 // string[]
+    		 int tid =  Integer.parseInt(holdPart);
+    		String[] rt = b.buildableBuildings(tid); String bld;
+    		int i = 0;
+    		str = new JSONStringer();
+
+    		 try {
+        		 str.array();
+	    		 while(i<rt.length) {
+	    			 bld = rt[i];
+	    			 str.value((String) bld);
+	    			 i++;
+	    		 }
+    		 
+    		 str.endArray();
+			 } catch(JSONException exc) { exc.printStackTrace();  toRet+="internalservererror";}
+			toRet+=str.toString();
 
     	 }
     	 else if(holdCmd.equals("bf.setUpStockMarketTrade")) {

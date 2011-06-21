@@ -14,7 +14,7 @@ public class UserTown {
 	private UserTrade[] tradeServer;
 	private double[] resEffects;
 	private int destX,destY,fuelCells,ticksTillMove;
-	private boolean zeppelin;
+	private boolean zeppelin, resourceOutcropping;
 	private int foodConsumption;
 	private int lord=0;
 	private double taxRate=0;
@@ -29,13 +29,14 @@ public class UserTown {
 			long[] resCaps, double[] resInc, double[] resEffects, int totalEngineers,
 			int totalTraders, int townID, String townName,
 			UserTradeSchedule[] tradeSchedules, UserTrade[] tradeServer, int x,
-			int y,int CSL, int CS, boolean zeppelin, int fuelCells, int destX,int destY, int ticksTillMove, int foodConsumption, double taxRate, int lord, Timestamp vassalFrom, int influence) {
+			int y,int CSL, int CS, boolean zeppelin, int fuelCells, int destX,int destY, int ticksTillMove, int foodConsumption, double taxRate, int lord, Timestamp vassalFrom, int influence, boolean resourceOutcropping) {
 		this.attackServer = attackServer;
 		this.au = au;
 		this.bldg = bldg;
 		this.CSL=CSL; this.CS=CS;
 		this.taxRate=taxRate;
 		this.lord=lord;
+		this.resourceOutcropping=resourceOutcropping;
 		this.foodConsumption=foodConsumption;
 		this.zeppelin=zeppelin; this.fuelCells=fuelCells; this.destX=destX; this.destY=destY; this.ticksTillMove=ticksTillMove;
 		this.pid = pid;
@@ -192,6 +193,12 @@ public class UserTown {
 	}
 	public int getInfluence() {
 		return influence;
+	}
+	public void setResourceOutcropping(boolean resourceOutcropping) {
+		this.resourceOutcropping = resourceOutcropping;
+	}
+	public boolean isResourceOutcropping() {
+		return resourceOutcropping;
 	}
 	
 }

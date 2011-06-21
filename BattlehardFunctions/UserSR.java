@@ -315,9 +315,12 @@ public int bp; public boolean premium;
 		String toret="";
 		String townOff = this.townOff;
 		String townDef = this.townDef;
-		if(offdig) townOff = " The dig team from " + townOff;
-		if(defdig) townDef = " the dig team on " + townDef;
-
+		
+		if(offdig&&!townDef.contains("Outcropping")) townOff = " The dig team from " + townOff;
+		if(defdig&&!townDef.contains("Outcropping")) townDef = " the dig team on " + townDef;
+		if(offdig&&townDef.contains("Outcropping")) townOff = " The excavation team from " + townOff;
+		if(defdig&&townDef.contains("Outcropping")) townDef = " the excavation team on " + townDef;
+		
 		if(genocide&&bomb) toret= townOff + " bombs " + townDef+" as part of a Glassing campaign.";
 		else if(genocide) toret= townOff + " attacks " + townDef+" as part of a Siege campaign.";
 		else if(!genocide&&bomb&&!debris) toret = townOff + " strafes " + townDef;

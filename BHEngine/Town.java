@@ -13,7 +13,9 @@ import java.util.Hashtable;
 import java.util.UUID;
 
 import BattlehardFunctions.BattlehardFunctions;
+import BattlehardFunctions.UserAttackUnit;
 import BattlehardFunctions.UserBuilding;
+import BattlehardFunctions.UserTown;
 
 import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 
@@ -44,7 +46,7 @@ public class Town {
 	 private int destX,destY;
 	 private int fuelCells;
 	 private int ticksTillMove;
-	 private boolean msgSent;
+	 private boolean msgSent, resourceOutcropping;
 	 private int digTownID;
 	 private Hashtable eventListenerLists = new Hashtable();
 	 public static int zeppelinTicksPerMove= (int) Math.round(((double) Math.sqrt(1)*10/(500*GodGenerator.speedadjust))/GodGenerator.gameClockFactor);
@@ -188,6 +190,7 @@ public class Town {
 		owedTicks = getMemInt("owedTicks");
 		digAmt = getMemInt("digAmt");
 		influence = getMemInt("influence");
+		resourceOutcropping = getMemBoolean("resourceOutcropping");
 
 		if(isZeppelin()) {
 		destX = getMemInt("destX");
@@ -224,6 +227,7 @@ public class Town {
 		digTownID = getMemInt("digTownID");
 		digAmt = getMemInt("digAmt");
 		msgSent = getMemBoolean("msgSent");
+		resourceOutcropping = getMemBoolean("resourceOutcropping");
 
 
 		probTimer = getMemInt("probTimer");
@@ -1398,7 +1402,7 @@ public class Town {
 	 }
 	 public void resetDig(int newTownID, int digAmt, boolean findTime) {
 		 update();
-		 System.out.println("Resetting town ID to " + newTownID);
+		// System.out.println("Resetting town ID to " + newTownID);
 		 if(newTownID==0)
 		 setDigCounter(-1); // making it go away.
 		 else setDigCounter(0);
@@ -1411,6 +1415,15 @@ public class Town {
 		 setDigAmt(digAmt);
 		 save(); // the second dig counter is false, this thing won't save anymore!
 	 }
+	 public boolean resourcesZeroed() {
+		 boolean zeroed=true;
+		 int i = 0;
+		 while(i <getRes().length-1) {
+			 if(getRes()[i]>0) zeroed=false;
+			 i++;
+		 }
+		 return zeroed;
+	 }
 	 public void iterate(int num) {
 		 if(getDigCounter()>=0) {
 			
@@ -1419,7 +1432,7 @@ public class Town {
 			 //5. In iterate, if dig timer is >=0, it goes up, and so does probability. If dig timer is <0, probability goes down towards 0.
 		//	 When the random message send time hits, send the message, and then return them manually when the counter goes down.
 			 // 
-
+			 if(!isResourceOutcropping()) // all this dig shit only happens if this is not a  resource outcropping.
 			 if(getDigCounter()>=getFindTime()) {
 				 
 				 if(getDigCounter()>=getFindTime()+24*3600/GodGenerator.gameClockFactor) {
@@ -1602,37 +1615,77 @@ public class Town {
 			
 		 
 	 }
-	 
+	 public static int getFoodConsumption(AttackUnit a) {
+		 // LINKED TO THE USERATTACKUNIT VERSION AS WELL
+		double sizeMod=1;
+		 switch(a.getType()) {
+			case 1:
+				if(a.getArmorType()==4) {
+					// 4 is civvie armor
+					sizeMod=2;
+				}
+				break;
+			case 2:
+				sizeMod=.75;
+				break;
+			case 3:
+				sizeMod=.5;
+				break;
+			case 4:
+				sizeMod=.5;
+				break;
+			case 5:
+				sizeMod=0;
+				break;
+			}
+		return (int) Math.ceil(5*a.getSize()*a.getExpmod()*sizeMod);
+	 }
+	 public static int getFoodConsumption(UserAttackUnit a) {
+		 // lINKED TO NORMAL ATTACKUNIT VERSION
+			double sizeMod=1;
+			 switch(a.getType()) {
+				case 1:
+					if(a.getArmorType()==4) {
+						// 4 is civvie armor
+						sizeMod=2;
+					}
+					break;
+				case 2:
+					sizeMod=.75;
+					break;
+				case 3:
+					sizeMod=.5;
+					break;
+				case 4:
+					sizeMod=.5;
+					break;
+				case 5:
+					sizeMod=0;
+					break;
+				}
+			return (int) Math.ceil(5*a.getSize()*a.getExpmod()*sizeMod);
+		 }
+	 public static int getCivvieFoodConsumption(int pop) {
+		 double sizeMod = 2;
+			return (int) Math.ceil(5*pop*sizeMod);  // civilians!!!
+	 }
 	 public int getFoodConsumption() {
 		 int foodConsumed=0;
 			double sizeMod=1;
 			for(AttackUnit a:getAu()) {
-					switch(a.getType()) {
-					case 1:
-						if(a.getArmorType()==4) {
-							// 4 is civvie armor
-							sizeMod=2;
-						}
-						break;
-					case 2:
-						sizeMod=.75;
-						break;
-					case 3:
-						sizeMod=.5;
-						break;
-					case 4:
-						sizeMod=.5;
-						break;
-					case 5:
-						sizeMod=0;
-						break;
-					}
-				foodConsumed+=5*a.getSize()*a.getExpmod()*sizeMod;
+				if(a.getSupport()==0||(a.getSupport()>0&&getPlayer().ID!=5&&!getPlayer().isQuest())) // we only food tax our own or supportau
+					// present if we are not Id or a quest.
+				foodConsumed+=getFoodConsumption(a);
 				//System.out.println("Adding for " + a.getName() + " which has expmod of " + a.getExpmod() + " and sizeMod of " + sizeMod + " so total addition of " + 5*a.getSize()*a.getExpmod()*sizeMod);
 			}
-			
-			sizeMod = 2;
-			foodConsumed+=5*getPop()*sizeMod;  // civilians!!!
+				UserTown supportTowns[] = getPlayer().getPs().b.getUserTownsWithSupportAbroad(townID);
+				for(UserTown t: supportTowns) {
+					if(t.getPid()==5) // we only do the food tax on supportau stationed on id towns.
+					for(UserAttackUnit a: t.getAu()) {
+						foodConsumed+=getFoodConsumption(a);
+					}
+				}
+			foodConsumed+=getCivvieFoodConsumption((int) getPop());  // civilians!!!
 			//System.out.println("With a pop of " + getPop() + ", we add another " +5*getPop()*sizeMod );
 			return foodConsumed-10; // one of those civvies ain't real.
 	 }
@@ -1645,7 +1698,11 @@ public class Town {
 				if(getVassalFrom()!=null) {
 					long diff = (new Timestamp((new Date()).getTime())).getTime()-getVassalFrom().getTime();
 					double weeks = (int) Math.floor(((double) diff)/604800000);
-					double toAdd = weeks*.15;
+					double toAdd=0;
+					if(isResourceOutcropping())
+						toAdd=weeks*.25;
+					else
+					 toAdd = weeks*.15;
 
 					if(toAdd>.75) toAdd=.75;
 					taxRate+=toAdd;
@@ -1727,7 +1784,7 @@ public class Town {
 		 // raidSupportAU are deleted when a raid returns.
 		 // supportAU are deleted by the AU Check method when there are no further raid support AU out nor supportAU at home.
 	 try {
-		 UberPreparedStatement stmt = con.createStatement("update town set townName = ?, x = ?, y = ?, m = ?, t = ?, mm = ?, f = ?, auSizes = ?, owedTicks = ?, zeppelin = ?,  fuelcells = ?, ticksTillMove = ?, digTownID = ?, msgSent = ?, digAmt = ?, destX = ?, destY = ?, probTimer =  ?, findTime = ?, digCounter = ?, debm = ?, debt = ?, debmm = ?, debf = ?, influence = ?, lord = ?, vassalFrom = ? where tid = ?;");
+		 UberPreparedStatement stmt = con.createStatement("update town set townName = ?, x = ?, y = ?, m = ?, t = ?, mm = ?, f = ?, auSizes = ?, owedTicks = ?, zeppelin = ?,  fuelcells = ?, ticksTillMove = ?, digTownID = ?, msgSent = ?, digAmt = ?, destX = ?, destY = ?, probTimer =  ?, findTime = ?, digCounter = ?, debm = ?, debt = ?, debmm = ?, debf = ?, influence = ?, lord = ?, vassalFrom = ?, resourceOutcropping=? where tid = ?;");
 		 stmt.setString(1,townName);
 		 stmt.setInt(2,x);
 		 stmt.setInt(3,y);
@@ -1761,7 +1818,8 @@ public class Town {
 		 if(getVassalFrom()!=null)
 			 stmt.setString(27,getVassalFrom().toString());
 			 else stmt.setString(27,"2011-01-01 00:00:01");
-		 stmt.setInt(28,townID);
+		 stmt.setBoolean(28,isResourceOutcropping());
+		 stmt.setInt(29,townID);
 
     	   	  stmt.executeUpdate();
 	    	  
@@ -3348,27 +3406,32 @@ public class Town {
 				resIncs[0]=((double) GodGenerator.gameClockFactor)*((double) Town.baseResourceGrowthRate)*Math.pow(b.getLvl()+1,2)/3600;
 				resIncs[0]*=(1+additions[0]);
 				if(getPlayer().getMineTimer()>0) resIncs[0]*=1.25;
+				if(isResourceOutcropping()&&!getTownName().startsWith("MetalOutcropping")) resIncs[0]=0;
 			} else if(b.getType().equals("Timber Field")) {
 				resIncs[1]=((double) GodGenerator.gameClockFactor)*((double) Town.baseResourceGrowthRate)*Math.pow(b.getLvl()+1,2)/3600;
 				resIncs[1]*=(1+additions[1]);
 
 				if(getPlayer().getTimberTimer()>0) resIncs[1]*=1.25;
+				if(isResourceOutcropping()&&!getTownName().startsWith("TimberOutcropping")) resIncs[1]=0;
 
 			}else if(b.getType().equals("Crystal Mine")) {
 				resIncs[2]=((double) GodGenerator.gameClockFactor)*((double) Town.baseResourceGrowthRate)*Math.pow(b.getLvl()+1,2)/3600;
 				resIncs[2]*=(1+additions[2]);
 
 				if(getPlayer().getMmTimer()>0) resIncs[2]*=1.25;
+				if(isResourceOutcropping()&&!getTownName().startsWith("CrystalOutcropping")) resIncs[2]=0;
 
 			}else if(b.getType().equals("Farm")) {
 				resIncs[3]=((double) GodGenerator.gameClockFactor)*((double) Town.baseResourceGrowthRate)*Math.pow(b.getLvl()+1,2)/3600;
 				resIncs[3]*=(1+additions[3]);
 
 				if(getPlayer().getFTimer()>0) resIncs[3]*=1.25;
+				if(isResourceOutcropping()) resIncs[0]=0;
 
 			}
 			i++;
 		}
+		
 		if(getPlayer().getPremiumTimer()>0) {
 		i=0;
 		while(i<resIncs.length) {
@@ -4032,6 +4095,14 @@ public class Town {
 			
 		}
 		return lord;
+	}
+
+	public void setResourceOutcropping(boolean resourceOutcropping) {
+		this.resourceOutcropping = resourceOutcropping;
+	}
+
+	public boolean isResourceOutcropping() {
+		return resourceOutcropping;
 	}
 	
 	

@@ -3014,7 +3014,7 @@ public long[] returnPrice(int lotNum, int tid) {
 					 cost[0] = (long)Math.round(17*factor);
 					 cost[1] = (long) Math.round(17*factor);
 					 cost[2] = (long) Math.round(12*factor);
-				//	 cost[3] = (long) Math.round(24*factor); //  // need a 10, 25, 15, 30
+					 cost[3] = Town.getCivvieFoodConsumption(number);
 					 cost[4] = -1;
 					 return cost;
 
@@ -3044,7 +3044,7 @@ public long[] returnPrice(int lotNum, int tid) {
 						 cost[0] = (long) Math.round(15*factor);
 				 cost[1] = (long) Math.round(23*factor);
 				 cost[2] = (long) Math.round(12*factor);
-				// cost[3] = (long) Math.round(20*factor);// // need a 10, 25, 15, 30
+				 cost[3] = Town.getCivvieFoodConsumption(number);
 				 cost[4] = -1; // These are citizens, add one to the population! This doesn't actually do anything the way I programmed it.
 				 return cost;
 
@@ -3077,7 +3077,7 @@ public long[] returnPrice(int lotNum, int tid) {
 				 cost[0] = (long) Math.round(13*factor);
 				 cost[1] = (long) Math.round(20*factor);
 				 cost[2] = (long) Math.round(20*factor);
-			//	 cost[3] = (long) Math.round(17*factor); // need a 10, 25, 15, 30
+				 cost[3] = Town.getCivvieFoodConsumption(number);
 				 cost[4] = -1; // These are citizens, add one to the population!
 				 return cost;
 				 
@@ -3136,7 +3136,8 @@ public long[] returnPrice(int lotNum, int tid) {
 						 cost[0] = (long)Math.round(25*factor); // metal
 						 cost[1] = (long) Math.round(10*factor); // timber
 						 cost[2] = (long) Math.round(26*factor);//manmat
-					//	 cost[3] = (long) Math.round(9*factor); //food
+						 AttackUnit copy = AU.returnCopy(); copy.setSize(number);
+						 cost[3] = Town.getFoodConsumption(copy);
 						 cost[4] = -AU.getExpmod(); // // need a 10, 25, 15, 30
 						 
 						 return cost;
@@ -4882,16 +4883,22 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		if(totalsize==0&&!attackType.equals("dig")) {
 			setError("Can't send zero troops!");
 			return false;
+		}else if(totalsize==0&&!attackType.equals("excavation")) {
+			setError("Can't send zero troops!");
+			return false;
 		}
 		holdLowSpeed/=totalsize;
 		if(zeroes&&!attackType.equals("dig")) {
 			setError("Can't send an empty raid.");
 			return false; // not sending a raid of nada.
 		}
+		
 		if(negatives) {
 			setError("No such thing as negative units.");
 			return false;
 		}
+		Town Town2 = g.findTown(x,y);
+
 		boolean Genocide = false; boolean Bomb = false; int support = 0; int scout = 0;
 		boolean invade = false;  boolean debris = false; boolean dig = false;
 		if(attackType.equals("invasion")&&t1.isZeppelin()) {
@@ -4939,15 +4946,22 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 		}
 		else if(attackType.equals("support")) {support = 1;}
-		else if(attackType.equals("dig")) {support = 1; dig = true;
+		else if(attackType.equals("dig")||attackType.equals("excavation")) {support = 1; dig = true;
 			int z=0;
-			UserBuilding b[] = getUserBuildings(t1.townID, "Institute");
+			UserBuilding b[];
+			if(attackType.equals("excavation"))
+				b= getUserBuildings(t1.townID, "Command Center");
+			else
+			b= getUserBuildings(t1.townID, "Institute");
 			int totalScholars=0;
 			while(z<b.length) {
 				totalScholars+=b[z].getPeopleInside();
 				z++;
 			}
 			if(totalScholars<GodGenerator.digScholarRequirement&&!(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian"))) {
+				if(attackType.equals("excavation"))
+					setError("You do not have enough Engineers!");
+				else
 				setError("You do not have enough Scholars!");
 				return false;
 			}
@@ -4989,7 +5003,6 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		
 
-		Town Town2 = g.findTown(x,y);
 		if(Town2.townID==0) {
 			setError("Town doesn't exist!");
 			return false;
@@ -4998,7 +5011,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("You must dig in an Id town!");
 			return false;
 		}
-		
+		if(attackType.equals("excavation")&&!Town2.isResourceOutcropping()) {
+			
+			setError("You can only excavate in a Resource Outcropping!");
+			return false;
+		}
 		if(Town2.getX()==t1.getX()&&Town2.getY()==t1.getY()&&attackType.contains("support")) {
 			// This means zeppelin is directly overhead. 
 			Town possZepp = g.findZeppelin(x,y);
@@ -5058,7 +5075,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			// support. See, since support is >0 this is a supporting run, and you can't move other player's supporting
 			// units(foreign aus identified by au.support>0) from their original destination protection place.
 			if(addThis.getSupport()==1&&addThis.getSize()>0){
-				setError("Not a offensive support unit.");
+				setError("Not an offensive support unit.");
 				return false;
 			}
 			// If this is a support unit, but it's not an offensive one(i.e. support=2), then this
@@ -5090,7 +5107,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * offsupport
 	 * support
 	 * debris
-	 * dig(this type can only be sent if you also have the dig api!)
+	 * dig
+	 * excavation
 	 *
 		 For the target string array, just send in an array of building names, like {"Command Center", "Storage Yard"},
 		 and your bombing mission will focus on buildings of that type.
@@ -5131,7 +5149,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 * offsupport
 		 * support
 		 * debris
-		 * dig(this type can only be sent if you also have the dig api!)
+		 * dig
+		 * excavation
 		 * 
 		 * 
 		 For the target string array, just send in an array of building names, like {"Command Center", "Storage Yard"},
@@ -5195,6 +5214,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		if(totalsize==0&&!attackType.equals("dig")) {
 			setError("Can't send zero troops!");
 			return false;
+		} else if(totalsize==0&&!attackType.equals("excavation")) {
+			setError("Can't send zero troops!");
+			return false;
 		}
 		holdLowSpeed/=totalsize;
 		if(zeroes&&!attackType.equals("dig")) {
@@ -5205,6 +5227,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("No such thing as negative units.");
 			return false;
 		}
+		Town Town2 = g.findTown(x,y); // findTown auto detects the town at the x,y, not the Zeppelin, if there is one.
+
 		boolean Genocide = false; boolean Bomb = false; int support = 0; int scout = 0;
 		boolean invade = false;  boolean debris = false; boolean dig=false; int digAmt=0;
 		if(attackType.equals("invasion")&&t1.isZeppelin()) {
@@ -5252,20 +5276,26 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 		}
 		else if(attackType.equals("support")) {support = 1;}
-		else if(attackType.equals("dig")) {
+		else if(attackType.equals("dig")||attackType.equals("excavation")) {
 			if(prog&&!p.isdigAPI()) {
 				setError("You need the Dig API in order to use this!");
 				return false;
 			}
 			support = 1; dig=true;
-			int z=0;
-			UserBuilding b[] = getUserBuildings(t1.townID, "Institute");
+			int z=0;UserBuilding b[];
+			if(attackType.equals("excavation"))
+				b= getUserBuildings(t1.townID, "Command Center");
+			else	
+			b= getUserBuildings(t1.townID, "Institute");
 			int totalScholars=0;
 			while(z<b.length) {
 				totalScholars+=b[z].getPeopleInside();
 				z++;
 			}
 			if(totalScholars<GodGenerator.digScholarRequirement&&!(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian"))) {
+				if(attackType.equals("excavation"))
+					setError("You do not have enough Engineers!");
+				else
 				setError("You do not have enough Scholars!");
 				return false;
 			}
@@ -5333,15 +5363,21 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		if(keep) prog = true;
 		// The only two cases that matter: You find the town at the x,y, or you'll find a Zeppelin.
 		// If it's a zeppelin, it's easy to deal with, if it's a town, it's easy to deal with.
-		Town Town2 = g.findTown(x,y); // findTown auto detects the town at the x,y, not the Zeppelin, if there is one.
 		if(Town2.townID==0) {
 			setError("Town doesn't exist!");
 			return false;
 		}
 		if(dig&&Town2.getPlayer().ID!=5) {
-			setError("You must dig in an Id town!");
+			setError("You can only dig in an Id town!");
 			return false;
 		}
+		if(attackType.equals("excavation")&&!Town2.isResourceOutcropping()) {
+			
+			setError("You can only excavate in a Resource Outcropping!");
+			return false;
+		}
+		
+
 		if(Town2.getX()==t1.getX()&&Town2.getY()==t1.getY()&&attackType.contains("support")) {
 			// This means zeppelin is directly overhead. 
 			Town possZepp = g.findZeppelin(x,y);
@@ -5491,6 +5527,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 		if(name.contains("'")){
 			setError("Error. Nobody loves you. (Don't use apostrophes!)");
+			return false;
+		}
+		if(name.contains("Outcropping")&&p.ID!=5&&!p.isQuest()) {
+			setError("Outcropping is a special name reserved for resource outcroppings.");
 			return false;
 		}
 		if(name.contains("DATA CORRUPT-ID")){
@@ -6386,7 +6426,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * @deprecated
 	 * UI Implemented.
 	 * Returns true if you can build a building in the desired lotNum.(ie, if you have
-	 * the resources, open lot spot, and a few other requirements are met.)
+	 * the resources, open lot spot, and a few other requirements are met.) If you put -1 as a lotNum,
+	 * it will tell you if you have the right to build that building anywhere.
 	 * 
 	 * @param type -  Type of building, can be:
 	 * Command Center
@@ -6606,6 +6647,38 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		
 		return false; // if it gets here, it's failed.
+	}
+	/**
+	 * UI Implemented.
+	 * Returns a list of buildings buildable in the town given by this tid.
+	 * @param tid
+	 * @return
+	 */
+	public String[] buildableBuildings(int tid) {
+		for(Town t: p.towns()) {
+			
+			if(t.townID==tid) {
+				
+				ArrayList<String> to = new ArrayList<String>();
+			
+				for(UserBuilding possible: getBuildings()) {
+					if(canBuild(possible.getType(),-1,tid)) {
+						to.add(possible.getType());
+					}
+				}
+				String[] toRet = new String[to.size()];
+				int i =0;
+				while(i<toRet.length) {
+					toRet[i]=to.get(i);
+					i++;
+				}
+				resetError();
+				return toRet;
+			}
+		}
+		
+		setError("Invalid tid!");
+		return null;
 	}
 	/**
 	 * UI Implemented.
@@ -9861,7 +9934,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					if(invade) raidType="invasion";
 					if(resupplyID!=null) raidType="resupply";
 					if(r.isDebris()) raidType="debris";
-					if(r.getDigAmt()>0) raidType = "dig";
+					if(r.getDigAmt()>0&&!r.getTown2().isResourceOutcropping()) raidType = "dig";
+					if(r.getDigAmt()>0&&r.getTown2().isResourceOutcropping()) raidType = "excavation";
 
 
 					
@@ -10033,7 +10107,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					if(invade) raidType="invasion";
 					if(resupplyID!=null) raidType="resupply";
 					if(r.isDebris()) raidType="debris";
-					if(r.getDigAmt()>0) raidType = "dig";
+					if(r.getDigAmt()>0&&!r.getTown2().isResourceOutcropping()) raidType = "dig";
+					if(r.getDigAmt()>0&&r.getTown2().isResourceOutcropping()) raidType = "excavation";
 					int ie = 0;int totalCheckedSize=0;
 					while(ie<r.getAu().size()) { // This is to check to see if the raids accidentally loaded AU
 						// before the DB got it.
@@ -10896,7 +10971,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			toRet[i] = new UserTown(r,au,b,p.ID,p.getUsername(),res,resCaps,resInc,resEffects,t.getTotalEngineers(),
 					t.getTotalTraders(),t.townID,t.getTownName(),ts,tr,t.getX(),t.getY(),getCSL(t.townID),getCS(t.townID),t.isZeppelin()
-					,t.getFuelCells(),t.getDestX(),t.getDestY(),t.getTicksTillMove(),t.getFoodConsumption(),t.getVassalRate(),lord,vassalFrom,t.getInfluence());
+					,t.getFuelCells(),t.getDestX(),t.getDestY(),t.getTicksTillMove(),t.getFoodConsumption(),t.getVassalRate(),lord,vassalFrom,t.getInfluence(),t.isResourceOutcropping());
 			}
 			i++;
 

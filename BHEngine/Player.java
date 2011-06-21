@@ -1191,7 +1191,7 @@ public class Player  {
 			 
 			 
 		 }
-		 System.out.println("I am " + getUsername() + " and the percent of towns I control is " + ((double) yourPerc)/((double) towns().size()) + ". Possible lords size: " + possibleLords.size());
+	//	 System.out.println("I am " + getUsername() + " and the percent of towns I control is " + ((double) yourPerc)/((double) towns().size()) + ". Possible lords size: " + possibleLords.size());
 		 if(((double) yourPerc)/((double) towns().size())>=.5&&getLord()!=null&&!isVoluntaryVassal()) {
 			 getLord().makeWallPost("","Vassal Lost!",getUsername()+"'s empire has freed itself from my grasp!",
 						"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
@@ -1270,12 +1270,12 @@ public class Player  {
 			 ((Hashtable) terr.get("corners")).put("lord",lord.getUsername());
 		 }
 	
-		 System.out.println("I, "+  getUsername() + " am being vassaled. Am I lord? " + isLord());
+	//	 System.out.println("I, "+  getUsername() + " am being vassaled. Am I lord? " + isLord());
 		 if(isLord()&&lord!=null) { // don't need to do this if you're being freed.
 			 for(Player p:God.getPlayers()) {
 				 boolean becameVassal=false;
 				 if(p.getLord()!=null&&p.getLord().ID==ID) {
-					System.out.println("I am releasing " + p.getUsername()); // obviously player level vassalage breaks.
+				//	System.out.println("I am releasing " + p.getUsername()); // obviously player level vassalage breaks.
 					 p.makeWallPost("","Freedom!","After a long period of vassalage under "+getUsername()+", my people are now free once more!",
 								"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
 								"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
@@ -1311,82 +1311,95 @@ public class Player  {
 		  * and are not yet "vassaled" to someone else with a counter set, then they get that shit.
 		  */
 		 for(Town t: towns()) {
-			 boolean found=false;
-			 for(Hashtable terr:getTerritories()) {
-				 for(Hashtable point:(ArrayList<Hashtable>) terr.get("points")) {
-					 int x = (Integer) point.get("x");
-					 int y = (Integer) point.get("y");
-					 if(x==t.getX()&&y==t.getY()) {
-						 found=true;
-						 break;
+			 if(ID!=5||(ID==5&&t.isResourceOutcropping())) {
+				 boolean found=false;
+				 for(Hashtable terr:getTerritories()) {
+					 for(Hashtable point:(ArrayList<Hashtable>) terr.get("points")) {
+						 int x = (Integer) point.get("x");
+						 int y = (Integer) point.get("y");
+						 if(x==t.getX()&&y==t.getY()) {
+							 found=true;
+							 break;
+						 }
 					 }
 				 }
-			 }
-			 if(!found) {
-				 
-				
-					Hashtable[] r = (Hashtable[]) getPs().b.getWorldMap().get("territoryArray");
+				 if(!found) {
+					 
 					
-					// Presumably, the world map will gather territories that matter and send them down!
-					// If we just go straight by player, we will have to analyze each territory, ALL of them.
-					// GetWorldMAP has the ability to sort through territories of relevance and return ONLY those.
-					
-					for(Hashtable h:r) {
+						Hashtable[] r = (Hashtable[]) getPs().b.getWorldMap().get("territoryArray");
 						
-						Hashtable[] theirPoints = (Hashtable[]) h.get("points"); // get the point format, but this is a copy of the actual storage.
-						Hashtable theirTerritory = (Hashtable) h.get("corners");
-						int pid = God.getPlayerId((String) theirTerritory.get("owner"));
-						Player owner = God.getPlayer(pid);
+						// Presumably, the world map will gather territories that matter and send them down!
+						// If we just go straight by player, we will have to analyze each territory, ALL of them.
+						// GetWorldMAP has the ability to sort through territories of relevance and return ONLY those.
 						
-						for(Hashtable theirPoint:theirPoints) {
+						for(Hashtable h:r) {
 							
-							int theirX = (Integer) theirPoint.get("x");
-							int theirY = (Integer) theirPoint.get("y");
+							Hashtable[] theirPoints = (Hashtable[]) h.get("points"); // get the point format, but this is a copy of the actual storage.
+							Hashtable theirTerritory = (Hashtable) h.get("corners");
+							int pid = God.getPlayerId((String) theirTerritory.get("owner"));
+							Player owner = God.getPlayer(pid);
 							
-							if(theirX==t.getX()&&theirY==t.getY()) {
+							for(Hashtable theirPoint:theirPoints) {
 								
-								// now we have a winner.
-								if(owner.getLord()!=null) owner = owner.getLord(); // they goto your lord.
-								if(t.getLord()==null||(t.getLord()!=null&&t.getLord().ID!=owner.ID)) { // we only reset
-									// if you're a new lord, or t doesn't got one.
+								int theirX = (Integer) theirPoint.get("x");
+								int theirY = (Integer) theirPoint.get("y");
 								
-
-									owner.makeWallPost("","Territory Conquered!",getUsername()+"'s town " + t.getTownName() + " has just fallen under my influence in Steampunk Wars!",
-											"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
-											"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
-											"Play Now!","http://www.steampunkwars.com/");
-	
-									makeWallPost("","Territory Conquered!","My town " + t.getTownName() + " has just fallen under " + owner.getUsername() + "'s influence in Steampunk Wars!",
-											"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
-											"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
-											"Play Now!","http://www.steampunkwars.com/");
-									// presumably this is also called if they just got online, so it's possible
-									// that they already have a timer set up.
-								//	System.out.println(t.getTownName() + " was just lorded to " + owner.getUsername());
-										t.setLord(owner);
-										t.setVassalFrom(new Timestamp((new Date()).getTime()));
+								if(theirX==t.getX()&&theirY==t.getY()) {
+									
+									// now we have a winner.
+									if(owner.getLord()!=null) owner = owner.getLord(); // they goto your lord.
+									if(t.getLord()==null||(t.getLord()!=null&&t.getLord().ID!=owner.ID)) { // we only reset
+										// if you're a new lord, or t doesn't got one.
+									
+										if(ID==5)
+											owner.makeWallPost("","Resource Outcropping Acquired!","The resource outcropping " + t.getTownName() + " has just fallen under my influence in Steampunk Wars!",
+													"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+													"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+													"Play Now!","http://www.steampunkwars.com/");
+										else
+										owner.makeWallPost("","Territory Conquered!",getUsername()+"'s town " + t.getTownName() + " has just fallen under my influence in Steampunk Wars!",
+												"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+												"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+												"Play Now!","http://www.steampunkwars.com/");
+										if(ID!=5)
+										makeWallPost("","Territory Conquered!","My town " + t.getTownName() + " has just fallen under " + owner.getUsername() + "'s influence in Steampunk Wars!",
+												"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+												"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+												"Play Now!","http://www.steampunkwars.com/");
+										// presumably this is also called if they just got online, so it's possible
+										// that they already have a timer set up.
+									//	System.out.println(t.getTownName() + " was just lorded to " + owner.getUsername());
+											t.setLord(owner);
+											t.setVassalFrom(new Timestamp((new Date()).getTime()));
+									}
 								}
+	
 							}
-
+							
+							
+							
 						}
-						
-						
-						
-					}
-			 } else if(found&&t.getLord()!=null) {
-				 // so now it's under it's own power again, but there is still a lord - RESET!
-				// this happens whether you belong to the person who just owned you, or to their lord.
-				 t.getLord().makeWallPost("","Territory Freed!",getUsername()+"'s town has freed itself from my influence.... for now.",
-							"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
-							"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
-							"Play Now!","http://www.steampunkwars.com/");
-				 makeWallPost("","Territory Freed!","The people of my town are free from "+t.getLord().getUsername()+"'s tyranny!",
-							"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
-							"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
-							"Play Now!","http://www.steampunkwars.com/");
-					 t.setLord(null);
-					t.setVassalFrom(new Timestamp((new Date()).getTime()));
-
+				 } else if(found&&t.getLord()!=null) {
+					 // so now it's under it's own power again, but there is still a lord - RESET!
+					// this happens whether you belong to the person who just owned you, or to their lord.
+					 if(ID==5)
+						 t.getLord().makeWallPost("","Resource Outcropping Lost!","The Resource Outcropping " + t.getTownName() + " has fallen outside my influence.... for now.",
+									"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+									"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+									"Play Now!","http://www.steampunkwars.com/"); 
+					 else
+					 t.getLord().makeWallPost("","Territory Freed!",getUsername()+"'s town has freed itself from my influence.... for now.",
+								"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+								"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+								"Play Now!","http://www.steampunkwars.com/");
+					 makeWallPost("","Territory Freed!","The people of my town are free from "+t.getLord().getUsername()+"'s tyranny!",
+								"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+								"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+								"Play Now!","http://www.steampunkwars.com/");
+						 t.setLord(null);
+						t.setVassalFrom(new Timestamp((new Date()).getTime()));
+	
+				 }
 			 }
 		 }
 	 }
