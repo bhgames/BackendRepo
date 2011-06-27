@@ -15,6 +15,7 @@ import java.util.UUID;
 import BattlehardFunctions.BattlehardFunctions;
 import BattlehardFunctions.UserAttackUnit;
 import BattlehardFunctions.UserBuilding;
+import BattlehardFunctions.UserSR;
 import BattlehardFunctions.UserTown;
 
 import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
@@ -1196,6 +1197,12 @@ public class Town {
 			totalEngineers+=bldg.get(i).getPeopleInside();
 			i++;
 		}
+		UserTown towns[] = getPlayer().getPs().b.getUserTownsWithSupportAbroad(townID);
+		for(UserTown t: towns) {
+			Town realT = getPlayer().God.getTown(t.getTownID());
+			if(realT.isResourceOutcropping())
+			totalEngineers+=realT.getDigAmt();
+		}
 		return totalEngineers;
 		/*
 		try {
@@ -1220,6 +1227,12 @@ public class Town {
 			if(bldg.get(i).getType().equals("Institute"))
 			totalEngineers+=bldg.get(i).getPeopleInside();
 			i++;
+		}
+		UserTown towns[] = getPlayer().getPs().b.getUserTownsWithSupportAbroad(townID);
+		for(UserTown t: towns) {
+			Town realT = getPlayer().God.getTown(t.getTownID());
+			if(!realT.isResourceOutcropping())
+			totalEngineers+=realT.getDigAmt();
 		}
 		return totalEngineers;
 		/*
@@ -1400,7 +1413,7 @@ public class Town {
 		 if(theI<0) theI=0;
 		 return messages[theI];
 	 }
-	 public void resetDig(int newTownID, int digAmt, boolean findTime) {
+	 public void resetDig(int newTownID, int digAmt, boolean findTime, Raid r) {
 		 update();
 		// System.out.println("Resetting town ID to " + newTownID);
 		 if(newTownID==0)
@@ -1413,8 +1426,74 @@ public class Town {
 		 else
 			 setFindTime((int) Math.floor(Math.random()*24*3600/GodGenerator.gameClockFactor));
 		 setDigAmt(digAmt);
+		 if(r!=null&&newTownID!=0) {
+				 if(!isResourceOutcropping()) {
+					 double diff = ((double) (God.gameClock-getFindTime()))/(1000.0*((double) GodGenerator.gameClockFactor));
+					 r.setDockingFinished(new Timestamp((new Date()).getTime()+Math.round(diff)));
+				 } else {
+					 r.setDockingFinished(returnEngineerFinishROTimestamp());
+					 if(getLord()!=null&&getLord().ID!=r.getTown1().getPlayer().ID) {
+						 setLord(r.getTown1().getPlayer());
+						 setInfluence((int) Math.round(.5*getInfluence()));
+						 setVassalFrom(new Timestamp(new Date().getTime()));
+					 }
+			 }
+		 }
 		 save(); // the second dig counter is false, this thing won't save anymore!
 	 }
+	public Timestamp returnEngineerFinishROTimestamp() {
+		
+		 // we know the rate of resource gain is there.
+		 double[] resInc=getResInc();
+		 double[] resEffects=getResEffects();
+		long[] res = getRes();
+		double[] newIncs = God.Maelstrom.getResEffects(resInc,getX(),getY());
+		Player p = getPlayer();
+		League l =p.getLeague();
+		int j = 0;
+		double taxRate=0;
+		if(l!=null)
+		 taxRate += l.getTaxRate(p.ID);
+		taxRate+=getVassalRate();
+		if(taxRate>.99) taxRate=.99;
+		
+		if(getTownName().startsWith("MetalOutcropping")) {
+			j=0;
+		} else if(getTownName().startsWith("TimberOutcropping")) {
+			j=1;
+		}else if(getTownName().startsWith("CrystalOutcropping")) {
+			j=2;
+		}
+		// this is how much is added per clocktick.
+		double eachAdd = (newIncs[j]*(1-taxRate)*(resEffects[j]+1)); 
+		 // we know the engineers suck shit out at this rate
+		 double engRate = getDigAmt()*GodGenerator.engineerRORate;
+		 // we know the amount we have is
+		 long amtTheyHave = res[j];
+		 double t = ((double) amtTheyHave)/(eachAdd-engRate);
+
+		 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
+		 if(t>0&&amtTheyHave<amtWeCanHold) {
+			 // so now we need to figure out how many ticks it takes to get it done.
+			 // we know that amtTheyHave(t) = amtTheyHave_0 + eachAdd*t - engRate*t;
+			 // then to find out when amtTheyHave(t) = 0, what is t, we just do some arithmetic.
+			 //t(eachAdd-engRate)+amt_0=0, t = -amt_0/(eachAdd-engRate); engRate>eachAdd, then t > 0.
+			 // if engRate<eachAdd, it's like this thing has infiniresources, in which case we don't 
+			 // need to calculate the date THIS way.
+			 
+		 } else {
+			 // in this case, we can hold less than what is already present, so calculating
+			 // growth of resources is irrelevant.
+			 t = (amtWeCanHold)/engRate; // and that's about it.
+		 }
+		 // seeing as engRate is already in ticks, then t is the amount of ticks.
+		 t*=GodGenerator.gameClockFactor*1000; // so if it's 10 ticks, and GCF is 10,
+		 // then we've got 100 s * 1000 to make it 100000 ms.
+		 
+		 return new Timestamp((long) ((new Date()).getTime()+Math.round(t)));
+		 
+		
+	}
 	 public boolean resourcesZeroed() {
 		 boolean zeroed=true;
 		 int i = 0;
@@ -1556,6 +1635,7 @@ public class Town {
 				//	System.out.println("Now numToDie is " + numToDie + " in " + getTownName());
 					//now we go for units.
 						int type=1;
+						UserTown supportTowns[] = getPlayer().getPs().b.getUserTownsWithSupportAbroad(townID);
 						while(type<=4&&numToDie>0) { 
 							// so we start with unit type 1, and add up total soldiers,
 							// then go through each one and knock out units until we run out.
@@ -1566,6 +1646,13 @@ public class Town {
 							for(AttackUnit a:getAu()) { 
 								if(a.getType()==type)
 								totalUnits+=a.getSize();
+							}
+							for(UserTown t: supportTowns) {
+								if(t.getPid()==5) // we only do the food tax on supportau stationed on id towns.
+								for(UserAttackUnit a: t.getAu()) {
+									if(a.getType()==type)
+									totalUnits+=a.getSize();
+								}
 							}
 							while(numToDie>0&&totalUnits>0) {
 								for(AttackUnit a:getAu()) {
@@ -1597,6 +1684,40 @@ public class Town {
 									}
 								}
 								
+								for(UserTown t: supportTowns) {
+									if(t.getPid()==5) {// we only do the food tax on supportau stationed on id towns.
+										Town real = getPlayer().God.findTown(t.getTownID());
+										for(AttackUnit a: real.getAu()) {
+											if(a.getType()==type&&a.getSize()>0) {
+												switch(type) {
+													case 1:
+														if(a.getArmorType()==4) {
+															// 4 is civvie armor
+															sizeMod=2;
+														}
+														break;
+													case 2:
+														sizeMod=.75;
+														break;
+													case 3:
+														sizeMod=.5;
+														break;
+													case 4:
+														sizeMod=.5;
+														break;
+													case 5:
+														sizeMod=0;
+														break;
+												}
+											//	System.out.println("Eating some " + a.getType() + " of name " + a.getName() + " from " + getTownName());
+												a.setSize(a.getSize()-1);
+												numToDie-=a.getExpmod()*sizeMod; // killing off one unit.
+												totalUnits--;
+											}									
+										}
+									}
+								}
+								
 							}
 							type++;
 						}
@@ -1616,7 +1737,7 @@ public class Town {
 		 
 	 }
 	 public static int getFoodConsumption(AttackUnit a) {
-		 // LINKED TO THE USERATTACKUNIT VERSION AS WELL
+		 // LINKED TO THE USERATTACKUNIT VERSION AS WELL, ALSO LINKED TO FOODCHECK
 		double sizeMod=1;
 		 switch(a.getType()) {
 			case 1:
@@ -1641,7 +1762,7 @@ public class Town {
 		return (int) Math.ceil(5*a.getSize()*a.getExpmod()*sizeMod);
 	 }
 	 public static int getFoodConsumption(UserAttackUnit a) {
-		 // lINKED TO NORMAL ATTACKUNIT VERSION
+		 // lINKED TO NORMAL ATTACKUNIT VERSION, ALSO LINKED TO FOODCHECK()
 			double sizeMod=1;
 			 switch(a.getType()) {
 				case 1:
@@ -1666,7 +1787,7 @@ public class Town {
 			return (int) Math.ceil(5*a.getSize()*a.getExpmod()*sizeMod);
 		 }
 	 public static int getCivvieFoodConsumption(int pop) {
-		 double sizeMod = 2;
+		 double sizeMod = 2; // LINKED TO FOODCHECK
 			return (int) Math.ceil(5*pop*sizeMod);  // civilians!!!
 	 }
 	 public int getFoodConsumption() {
@@ -1691,6 +1812,7 @@ public class Town {
 	 }
 	 public double getVassalRate() {
 		 double taxRate=0;
+		
 		 if(getLord()!=null) {
 				if(getPlayer().getLord()!=null&&getPlayer().getLord().ID==getLord().ID) {
 					taxRate+=getPlayer().getTaxRate();
@@ -1713,6 +1835,125 @@ public class Town {
 			}
 		 return taxRate;
 	 }
+	 public void returnDigOrRO(Raid r) {
+		 // so this is how it will return.
+		 //	public int getAttackETA(int yourTownID, int enemyx, int enemyy, int holdNumbers[]) {
+		 // now we must remove those units from support that were here from this mission...
+		 // not with a recall, as we're used to doing before, but with direct intervention.
+		 for(AttackUnit a: getAu()) {
+			 if(a.getSupport()>0&&a.getOriginalTID()==r.getTown1().getTownID()) {
+				 // now we thin the ranks.
+				 if(a.getSize()<r.getAu().get(a.getOriginalSlot()).getSize()) {
+					 r.getAu().get(a.getOriginalSlot()).setSize(a.getSize());
+					 a.setSize(0);
+				 } else {
+					 a.setSize(a.getSize()-r.getAu().get(a.getOriginalSlot()).getSize());
+				 }
+			 }
+		 }
+		 
+		 r.setDigAmt(getDigAmt());
+		 
+		 int numbers[] = new int[r.getAu().size()];
+		 int i = 0;
+		 for(AttackUnit a: r.getAu()) {
+			 numbers[i] = a.getSize();
+			 i++;
+		 }
+		 
+		 	String unitStart=""; String unitNames="";String unitEnd="";
+			int k = 0;
+		
+			while(k<r.getAu().size()) {
+				unitStart+=","+r.getAu().get(k).getSize();
+				unitNames+=","+r.getAu().get(k).getName();
+				unitEnd+=",0";
+
+				k++;
+			}
+			unitStart+=","+r.getDigAmt();
+			String msg = "";
+			if(r.getTown2().isResourceOutcropping()) {
+				msg = "The resource outcropping was successfully harvested.";
+				unitNames+=",Engineer";
+			}
+			else {
+				msg = "The dig site was evacuated after a successful mission.";
+				unitNames+=",Scholar";
+			}
+			unitEnd+=",0";
+			try {
+			UberPreparedStatement stmt = getPlayer().God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,ax,ay,dx,dy,digend,id) values" +
+			      		"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,true,?);");
+			stmt.setInt(1,r.getTown1().getPlayer().ID);
+			stmt.setInt(2,r.getTown1().townID);
+			stmt.setInt(3,r.getTown2().townID);
+			stmt.setString(4,unitStart);
+			stmt.setString(5,unitEnd);
+			stmt.setString(6,unitNames);
+			stmt.setLong(7,r.getMetal());
+			stmt.setLong(8,r.getTimber());
+			stmt.setLong(9,r.getManmat());
+			stmt.setLong(10,r.getFood());
+			stmt.setString(11,r.getTown1().getTownName());
+			stmt.setString(12,r.getTown2().getTownName());
+			stmt.setString(13,msg);
+			stmt.setInt(14,r.getTown1().getX());
+			stmt.setInt(15,r.getTown1().getY());
+			stmt.setInt(16,r.getTown2().getX());
+			stmt.setInt(17,r.getTown2().getY());
+			UUID id = UUID.randomUUID();
+			stmt.setString(18,id.toString());
+
+			 stmt.execute();
+			 stmt.close();
+			 Date today = new Date();
+			  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
+			 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+				//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage, boolean digend)
+				  r.getTown1().getPlayer().addUserSR(new UserSR(id,unitStart,unitEnd,null,null,unitNames,null,r.getTown1().getTownName(),r.getTown2().getTownName(),false,false,false,false,(int)r.getMetal(),(int) r.getTimber(),(int)r.getManmat(),(int)r.getFood(),
+						  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,true,r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getX(),r.getTown2().getY(),"none",0,0,0,0,false,false,false,false,false,msg,true));
+			} catch(SQLException exc) { exc.printStackTrace(); }
+		 r.setTicksToHit(getPlayer().getPs().b.getAttackETA(townID,r.getTown1().getX(),r.getTown1().getY(),numbers));
+		 r.setRaidOver(true);
+		 resetDig(0,0,false,null); // so now we reset the dig to it's original form.
+	 }
+	 public void giveResourcesToRO(int toAdd, int j) {
+		 // here we make sure that our lads digging get their resources piled onto their raid.
+		 // we don't worry about taxing because when the raid returns, it'll get taxed.
+		 Town origin = getPlayer().God.getTown(getTownID());
+		 for(Raid r:origin.attackServer()) {
+			 if(r.getDigAmt()>0&&r.getTown2().townID==townID) {
+				 // this is the one we add to.
+				 if(j==0) {
+					 r.setMetal(r.getMetal()+toAdd);
+					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
+					 if(r.getMetal()>amtWeCanHold) {
+						 r.setMetal(amtWeCanHold);
+						 returnDigOrRO(r);
+					 }
+				 } else if(j==1) {
+					 r.setTimber(r.getTimber()+toAdd);
+					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
+					 if(r.getTimber()>amtWeCanHold) {
+						 r.setTimber(amtWeCanHold);
+						 returnDigOrRO(r);
+					 }
+				 } else if(j==2) {
+					 r.setManmat(r.getManmat()+toAdd);
+					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
+					 if(r.getManmat()>amtWeCanHold) {
+						 r.setManmat(amtWeCanHold);
+						 returnDigOrRO(r);
+					 }
+				 }
+				 
+				 getResBuff()[j]-=toAdd;
+
+				break;
+			 }
+		 }
+	 }
 	 public void doMyResources(int num) {
 		 double[] resInc=getResInc();
 		 double[] resEffects=getResEffects();
@@ -1729,11 +1970,13 @@ public class Town {
 		taxRate+=getVassalRate();
 		if(taxRate>.99) taxRate=.99;
 		Town zepp = getPlayer().God.findZeppelin(getX(),getY());
-		if(getPlayer().ID==5&&zepp.townID!=0){
+		if(getPlayer().ID==5&&zepp.townID!=0&&!isResourceOutcropping()){
+			// zeppelins can't excavate.
 			resBuff = zepp.getResBuff(); // SUCKLEPOWA
 			res = zepp.getRes();
 			resCaps = zepp.getResCaps(); // HOLY SHIT YOU JUST HIJACKED THAT SHIT!
 		}
+		
 		synchronized(resBuff) {
 		do {
 			
@@ -1749,18 +1992,80 @@ public class Town {
 		while(j<res.length) {
 			if(resBuff[j]>=1) {
 				int toAdd = (int) Math.floor(resBuff[j]);
-				res[j]+=toAdd;
-				resBuff[j]-=toAdd;
-				if(res[j]>(resCaps[j]+Building.baseResourceAmt))
-					res[j]=resCaps[j]+Building.baseResourceAmt; // SAME OBJECT! BUT NOT REALLY...
-				// works even if you lose the building and suddenly have a massive over the limit
-				// amount of resources! HAHA :D
+				
+				 if(getPlayer().ID==5&&getDigAmt()>0&&getTownID()!=0&&isResourceOutcropping()) {
+					giveResourcesToRO(toAdd,j);
+				 } else {
+					res[j]+=toAdd; //	IF YU CHANGE THIS, CHANGE GIVERESOURCESTORO AS WELL!
+					resBuff[j]-=toAdd;
+					if(res[j]>(resCaps[j]+Building.baseResourceAmt))
+						res[j]=resCaps[j]+Building.baseResourceAmt; // SAME OBJECT! BUT NOT REALLY...
+					// works even if you lose the building and suddenly have a massive over the limit
+					// amount of resources! HAHA :D
+				
+				 }
 				
 			}
 			j++;
 		}
 		}
 	 }
+	 
+	/* public void drainResourcesFromOutcroppings(double[] resInc, int num) {
+		 // this one here drains resources from outcroppings you have missions at.
+		 // The outcroppings you own are naturally vassaled to you, they get done elsewhere.
+		 // What it does is it essentially just adds to the resInc of the player, so that
+		 // it's like their mines have just been improved by the resource outcroppings, so we don't
+		 // have to worry about taxes and what not.. the leagues and the lords get the taxes
+		 // automatically by draining them on their own time every 200 s or so using the resincs
+		 // of the towns(which are modified)! So some tax money will certainly be lost this way,
+		 // but consider it the cost of doing business.
+		 
+		 // In the case of resource outcroppings, taxes get taken out of the resincs for the lord...
+		 // but parties present take it out of the resource stores, while resincs keep on adding in.
+		
+		 UserTown[] towns = getPlayer().getPs().b.getUserTownsWithSupportAbroad(townID);
+		 for(UserTown t: towns) {
+			 Town realT = getPlayer().God.getTown(t.getTownID());
+			 if(realT.isResourceOutcropping()) {
+				 // this means we have a mission present. Now, of course, if we have a lord and/or a league, we are going to have to pay him, too.
+				 int numEngineers = realT.getDigAmt();
+				 double toAdd = ((double) numEngineers)*.277; // 1000 per hour.
+				 if(realT.getTownName().startsWith("MetalOutcropping")) {
+					 resInc[0]+=toAdd;
+					 synchronized(realT.getRes()) {
+						 double toTake = num*toAdd;
+						 if(realT.getRes()[0]-num*toAdd<0) {
+							 toTake=realT.getRes()[0];
+						 }
+						 realT.getRes()[0]-=toTake;
+
+					 }
+				 }
+				 else  if(realT.getTownName().startsWith("TimberOutcropping")) {
+					 double toTake = num*toAdd;
+					 if(realT.getRes()[1]-num*toAdd<0) {
+						 toTake=realT.getRes()[1];
+					 }
+					 realT.getRes()[1]-=toTake;
+				 }
+				 else  if(realT.getTownName().startsWith("CrystalOutcropping")) {
+					 double toTake = num*toAdd;
+					 if(realT.getRes()[2]-num*toAdd<0) {
+						 toTake=realT.getRes()[2];
+					 }
+					 realT.getRes()[2]-=toTake;
+				 }
+				
+			 }
+					
+			 		
+					
+				 
+			 }
+			 
+		 
+	 }*/
 	 synchronized public void saveInfluence() {
 			try {
 				UberPreparedStatement stmt = con.createStatement("update town set lord = ?, vassalFrom = ?, influence = ? where tid = ?;");
@@ -3439,6 +3744,7 @@ public class Town {
 			i++;
 		}
 		}
+	
 		return resIncs;
 			}
 
@@ -3515,6 +3821,10 @@ public class Town {
 			if(bldg.get(i).getType().equals("Trade Center"))
 			totalEngineers+=bldg.get(i).getPeopleInside();
 			i++;
+		}
+		
+		for(Trade t: tradeServer()) {
+			totalEngineers+=t.getTraders();
 		}
 		return totalEngineers;
 	}

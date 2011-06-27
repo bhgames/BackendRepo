@@ -18,7 +18,7 @@ public class UserSR {
 	 */
 	public boolean read = false; ArrayList<String> offList, defList,bldgList,lvlList; String combatHeader;
 	String createdAt; String name;
-	private boolean blastable;
+	private boolean blastable, digend;
 	private int ax,ay,dx,dy;
 	public int debm,debt,debmm,debf;
 	private String zeppText;
@@ -30,13 +30,14 @@ public class UserSR {
 public int bp; public boolean premium;
 	public int ppllost=0; public boolean support = false;public int m,t,mm,f; public boolean invade=false;public boolean invsucc=false;
 	public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
-			,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage) {
+			,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage, boolean digend) {
 		this.defNames = defNames; this.offNames=offNames; this.offst=offst; this.offfi = offfi;this.read=read;this.digMessage=digMessage;
 		this.defst = defst; this.deffi = deffi; this.townOff = townOff; this.townDef = townDef;
 		this.setOffdig(offdig); this.setDefdig(defdig);
 		this.nuke=nuke;
 		this.nukeSucc=nukeSucc;
 		this.debris=debris;
+		this.digend=digend;
 		this.id = sid; this.genocide=genocide; 
 		this.name=name;
 		this.blastable=blastable;
@@ -96,7 +97,7 @@ public int bp; public boolean premium;
 	//	public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
 		//		,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage) 
 		return new UserSR(id,offst,offfi,defst,deffi,offNames,defNames,townOff,townDef,genocide,read,bomb,defender,m,t,mm,f,scout,invade,invsucc,resupplyID,archived,combatHeader,createdAt,name,bp,premium,blastable,ax,ay,dx,dy,
-				zeppText,debm,debt,debmm,debf,debris,nuke,nukeSucc,offdig,defdig,digMessage);
+				zeppText,debm,debt,debmm,debf,debris,nuke,nukeSucc,offdig,defdig,digMessage,digend);
 		
 	}
 	public String getCreatedDate() {
@@ -319,7 +320,7 @@ public int bp; public boolean premium;
 		if(offdig&&!townDef.contains("Outcropping")) townOff = " The dig team from " + townOff;
 		if(defdig&&!townDef.contains("Outcropping")) townDef = " the dig team on " + townDef;
 		if(offdig&&townDef.contains("Outcropping")) townOff = " The excavation team from " + townOff;
-		if(defdig&&townDef.contains("Outcropping")) townDef = " the excavation team on " + townDef;
+		if(defdig&&townDef.contains("Outcropping")) townDef = " The excavation team on " + townDef;
 		
 		if(genocide&&bomb) toret= townOff + " bombs " + townDef+" as part of a Glassing campaign.";
 		else if(genocide) toret= townOff + " attacks " + townDef+" as part of a Siege campaign.";
@@ -339,14 +340,37 @@ public int bp; public boolean premium;
 		if(invade&&!invsucc) toret = townOff + " fails to invade " + townDef;
 		else if(invade&&invsucc) toret = townOff + " successfully invades " + townDef;
 		
-		if(support) toret = townOff + " supplies " + townDef; // separate from other ifs,
+		if(support&&!townDef.contains("Outcropping")) toret = townOff + " supplies " + townDef; // separate from other ifs,
 		// support changes the entire thing, no matter the other boolean variables.
+		if(support&&townDef.contains("Outcropping")) {
+			int totalDef=0;
+			for(int x: getDefBeginArray()) {
+				totalDef+=x;
+			}	
+			for(int x: getDefEndArray()) {
+				totalDef-=x;
+			}
+			int totalOff = 0;
+			for(int x: getOffBeginArray()) {
+				totalOff+=x;
+			}
+			for(int x: getOffEndArray()) {
+				totalOff-=x;
+			}
+			if(totalOff>0&&totalDef==0) toret = townOff + " takes over " + townDef;
+			if(totalDef>0||totalOff==0) toret = townOff + " fails to take " + townDef;
+		}
+
 		
 		if(resupplyID!=-1&&bomb) toret=townOff + " resupplies a Glassing campaign raid.";
 		else if(resupplyID!=-1) toret=townOff+" resupplies a Siege campaign raid.";
 			// so we do the least stuff last, so specifics get checked first.
 		if(scout==1) toret=townOff + " spies on " + townDef;
 		else if(scout==2) toret=townOff + "'s spies discovered by " + townDef;
+		
+		if(digend&&townDef.contains("Outcropping")) toret = townOff + " successfully excavates " + townDef;
+		if(digend&&!townDef.contains("Outcropping")) toret = townOff + " successfully evacuates a dig site at " + townDef;
+
 		// scouting block, 0 yields nothing, 1 means a good scouting run and
 		// we should format appropriately, 2 means it became a violent conflict.
 		//if(!read) toret+=" (Unread)";
@@ -1353,6 +1377,14 @@ public int bp; public boolean premium;
 	}
 	public String getDigMessage() {
 		return digMessage;
+	}
+
+	public void setDigend(boolean digend) {
+		this.digend = digend;
+	}
+
+	public boolean isDigend() {
+		return digend;
 	}
 
 }

@@ -4613,7 +4613,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	public static double zeppelinCtr = 9;
 	public static double zeppelinWidth = 2; // 2 days homes.
 	public static double zeppelinHeight = .3;
-	
+	public static double engineerRORate=1000*gameClockFactor/3600; // 1000 per hour.
 	public static int digScholarRequirement=10;
 	public static int constructionResearchPrice=10; // how much it costs to buy this research.
 	public static int infrastructureTechPrice=20;
@@ -4672,6 +4672,9 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	public static double speedadjust = .001; //down raises timers //283 s for .001 for a trade between adjacent towns
 
 	public static int traderCarryAmount=300;
+	public static int scholarCarryAmount=10000;
+	public static int engineerCarryAmount=500;
+
 	public static int traderSpeed = 100; 
 	public static int infrastructureTechLimit=18; // how many lots you can have maximum.
 	public static int tradeDistance = 20;
@@ -6720,7 +6723,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 					  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
 					//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
 					  t1p.addUserSR(new UserSR(id,auoffst,auofffi,audefst,"",auoffnames,audefnames,t1.getTownName(),t2.getTownName(),false,false,false,false,(int) m,(int)t,(int)mm,(int)f,
-							  1,false,false,0,false,combatHeader,today.toString(),holdAttack.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,false,false,"none"));
+							  1,false,false,0,false,combatHeader,today.toString(),holdAttack.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,false,false,"none",false));
 			     // stmt.execute("insert into statreports (defender,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,combatHeader,offTownName,defTownName) values" +
 			      	//	"(false," + 1 + "," + m + "," + t + "," + mm + "," + f +","
 			      	//	+ t1p.ID + ","+ t1.townID + "," + t2.townID + ",\"" + auoffst + "\",\"" + auofffi + "\",\"" 
@@ -6889,7 +6892,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 						 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
 							//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
 							  t1.getPlayer().addUserSR(new UserSR(id,unitStart,unitEnd,null,null,unitNames,null,t1.getTownName(),t2.getTownName(),false,false,false,false,(int)r.getMetal(),(int) r.getTimber(),(int)r.getManmat(),(int)r.getFood(),
-									  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,true,true,msg));
+									  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,true,true,msg,false));
 				
 						r.setRaidOver(true);
 						r.setTicksToHit(r.getTotalTicks());
@@ -6955,18 +6958,18 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 								 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
 									//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
 									  t1.getPlayer().addUserSR(new UserSR(id,unitStart,unitEnd,null,null,unitNames,null,t1.getTownName(),t2.getTownName(),false,false,false,false,(int)r.getMetal(),(int)r.getTimber(),(int)r.getManmat(),(int)r.getFood(),
-											  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,true,true,msg));
+											  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,true,true,msg,false));
 						
 						
 						
 					
-					t2.resetDig(r.getTown1().townID,r.getDigAmt(),true);
-					supportLogicBlock(r,true);
+					t2.resetDig(r.getTown1().townID,r.getDigAmt(),true,r);
+					supportLogicBlock(r,true); // BUT NOW WE MUST KEEP THE RAID PRESENT!
 					
 				}
 				
 			} else {
-				t2.resetDig(r.getTown1().townID,r.getDigAmt(),true);
+				t2.resetDig(r.getTown1().townID,r.getDigAmt(),true,r);
 			//	System.out.println("dig town id is " + t2.getDigTownID() + 
 			//	" and dig counter is " + t2.getDigCounter() + " and findTime is " + t2.getFindTime() + 
 			//	" and digAmt is " +t2.getDigAmt() + " and I am " + t2.townID + " and townName of  " +t2.getTownName());
@@ -7407,8 +7410,14 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		
 
 		}
-		
-		
+		      if(t2.isResourceOutcropping()&&((t2.getLord()!=null&&t2.getLord().ID!=t1p.ID)||t2.getLord()==null)) {
+		    		 // if it's a resource outcropping, you're now a lord!
+		    	 
+					 t2.setLord(t1p);
+					 t2.setInfluence((int) Math.round(t2.getInfluence()*.5));
+					 t2.setVassalFrom(new Timestamp(new Date().getTime()));
+		    	  
+		      }
 		
 		
 		      stmt.close();
@@ -7440,7 +7449,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
 				//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
 				  t1.getPlayer().addUserSR(new UserSR(id,supportUnitsGained,supportUnitsReturned,null,null,supportUnitNames,null,t1.getTownName(),t2.getTownName(),false,false,false,false,0,0,0,0,
-						  0,false,false,0,false,"No data on this yet.",today.toString(),actattack.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,offdig,false,"none"));
+						  0,false,false,0,false,"No data on this yet.",today.toString(),actattack.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,offdig,false,"none",false));
 	
 		      if(!suppressSR) {
 		    	  
@@ -7452,7 +7461,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		    	  id = UUID.randomUUID();
 		    	  stmt.setString(14,id.toString());
 		    	  t2.getPlayer().addUserSR(new UserSR(id,supportUnitsGained,supportUnitsReturned,null,null,supportUnitNames,null,t1.getTownName(),t2.getTownName(),false,false,false,false,0,0,0,0,
-						  0,false,false,0,false,"No data on this yet.",today.toString(),actattack.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,offdig,false,"none"));
+						  0,false,false,0,false,"No data on this yet.",today.toString(),actattack.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,offdig,false,"none",false));
 	
 		    	  stmt.execute();
 		      }
@@ -7827,9 +7836,9 @@ public static boolean debrisLogicBlock(Raid r) {
 		 Date today = new Date();
 		  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
 		 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
-			//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
+			//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage, boolean digend)
 			  t1.getPlayer().addUserSR(new UserSR(id,unitStart,unitEnd,null,null,unitEnd,null,t1.getTownName(),t2.getTownName(),false,false,false,false,(int) r.getMetal(),(int) r.getTimber(),(int) r.getManmat(),(int) r.getFood(),
-					  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,true,false,false,false,false,"none"));
+					  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,true,false,false,false,false,"none",false));
 
 		   stmt.close();
 		
@@ -9499,6 +9508,32 @@ public boolean checkForGenocides(Town t) {
 						
 											
 				} 
+					 Player theLord=null;
+					 if(t1.getLord()!=null) theLord = t1.getLord();
+					 else if(t1.getPlayer().getLord()!=null) theLord=t1.getPlayer().getLord();
+					if(theLord!=null) {
+					
+					
+					double afterTax = (1-t1.getVassalRate());
+					double tax = 1-afterTax;
+				//	System.out.println("raid gets "+r.getMetal()*afterTax + " and leagues gets " + r.getMetal()*tax + " of total " + r.getMetal() + " due to tax being " + tax + " and aftertax being " + afterTax);
+					 i = 0;
+					
+					long secbuff[] = theLord.getSecondaryResBuff();
+					double tmodifier = 1;
+					if(theLord.getPremiumTimer()>0) tmodifier=.5;
+					synchronized(secbuff) {
+					while(i<toAdd.length-1) {
+						secbuff[i]+=toAdd[i]*tax*tmodifier;
+						toAdd[i]=(long) Math.round(toAdd[i]*afterTax);
+						i++;
+					}
+					
+					}
+					
+										
+				} 
+				
 				
 				
 				actattack.setMetal(actattack.getMetal()+toAdd[0]);
@@ -9591,7 +9626,30 @@ public boolean checkForGenocides(Town t) {
 							
 												
 					} 
-					
+						 Player theLord=null;
+						 if(t2.getLord()!=null) theLord = t2.getLord();
+						 else if(t2.getPlayer().getLord()!=null) theLord=t2.getPlayer().getLord();
+						 if(theLord!=null) {
+								
+								
+								double afterTax = (1-t2.getVassalRate());
+								double tax = 1-afterTax;
+							//	System.out.println("raid gets "+r.getMetal()*afterTax + " and leagues gets " + r.getMetal()*tax + " of total " + r.getMetal() + " due to tax being " + tax + " and aftertax being " + afterTax);
+								 i = 0;
+								long secbuff[] = theLord.getSecondaryResBuff();
+								double tmodifier = 1;
+								if(theLord.getPremiumTimer()>0) tmodifier=.5;
+								synchronized(secbuff) {
+								while(i<toAdd.length-1) {
+									secbuff[i]+=toAdd[i]*tax*tmodifier;
+									toAdd[i]=(long) Math.round(toAdd[i]*afterTax);
+									i++;
+								}
+								
+								}
+								
+													
+						} 
 						i = 0;
 						synchronized(t2.getRes()) {
 							while(i<t2.getRes().length-1) {
@@ -9611,7 +9669,6 @@ public boolean checkForGenocides(Town t) {
 						digMessage = "The defensive party repelled the attackers!";
 				//		System.out.println("Fuck you all.");
 					} else if(digOffSucc&&!digDefSucc&&actattack.getDigAmt()>0){ // raid needs to be a dig for this to happen. This is the annihilation if - if defenders all dead, failed to defend and offenders arent.
-						t2.resetDig(actattack.getTown1().townID,actattack.getDigAmt(),true);
 
 					
 						actattack.setRaidOver(false);
@@ -9622,6 +9679,8 @@ public boolean checkForGenocides(Town t) {
 						digMessage = "The offensive party took over the dig site!";
 
 						supportLogicBlock(actattack,true);
+						t2.resetDig(actattack.getTown1().townID,actattack.getDigAmt(),true,actattack);
+
 					} else if(!digOffSucc&&!digDefSucc) { // raid needs to be a dig for this to happen(digOffSucc can only be false if it is that way, same with digDefSucc). if both offenders and defenders got killed, then defenders return and so do offenders.
 						// clearly this dig must go home. and the attackers lost.
 						Town otherT = t2.getPlayer().God.findTown(t2.getDigTownID());
@@ -9633,7 +9692,7 @@ public boolean checkForGenocides(Town t) {
 						else
 							digMessage = "The offensive party failed to take over the dig site, but managed to kill all of the defenders Scholars!";
 
-						t2.resetDig(0,0,false);
+						t2.resetDig(0,0,false,actattack);
 						
 					} else if(!digOffSucc&&digDefSucc&&t2.getDigAmt()>0) { // if the raid was a dig raid, and failed to ge through, and there was a dig here, which I guess would only happen if there
 						// had been one here to defend in the first place...so we don't need to check for it. But we do! What if we killed the dig incoming civvies!
@@ -9644,7 +9703,7 @@ public boolean checkForGenocides(Town t) {
 
 						otherT.getPlayer().getPs().b.recall(t2.townID,t2.getPlayer().ID,otherT.townID);
 						
-						t2.resetDig(0,0,false);
+						t2.resetDig(0,0,false,actattack);
 						if(t2.isResourceOutcropping())
 							digMessage = "The offensive army destroyed the excavation site.";
 						else
@@ -9686,7 +9745,7 @@ public boolean checkForGenocides(Town t) {
 					  if(raidType.equals("invasion")) invade = true;
 					  if(raidType.equals("scout")) scout = 2; // means failed scouting.
 					  try {
-				  stmt =t1p.con.createStatement("insert into statreports (invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,combatdata,combatheader,bp,premium,ax,ay,dx,dy,offTownName,defTownName,zeppText,debm,debt,debmm,debf,offdig,defdig,digMessage,bomb,defender,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
+				  stmt =t1p.con.createStatement("insert into statreports (invade,invsucc,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,genocide,combatdata,combatheader,bp,premium,ax,ay,dx,dy,offTownName,defTownName,zeppText,debm,debt,debmm,debf,offdig,defdig,digMessage,bomb,defender,support,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
 				  int offbp=0,defbp=0;
 				  if(percentlossdiff<0) { defbp=bp; offbp=bp/2;} else {offbp=bp; defbp=bp/2;} // >-30 means that positive means incoming won,
 				  // so we know what to set!
@@ -9721,8 +9780,9 @@ public boolean checkForGenocides(Town t) {
 				  stmt.setString(35,digMessage);
 				  stmt.setBoolean(36,bomb);
 				  stmt.setBoolean(37,false);
+				  stmt.setInt(38,actattack.getSupport());
 				  UUID id = UUID.randomUUID();
-				  stmt.setString(38,id.toString());
+				  stmt.setString(39,id.toString());
 				  UserSR offSR = null;
 				  UserSR defSR=null;
 				 if(percentlossdiff>(-30)) { 
@@ -9737,9 +9797,9 @@ public boolean checkForGenocides(Town t) {
 					  stmt.execute();
 					  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
 					 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
-						//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
+						//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage, boolean digend)
 						offSR = new UserSR(id,offUnitsBefore,offUnitsAfter,defUnitsBefore,defUnitsAfter,offNames,defNames,t1.getTownName(),t2.getTownName(),genocide,false,bomb,false,(int) actattack.getMetal(),(int) actattack.getTimber(),(int) actattack.getManmat(),(int) actattack.getFood(),
-								  actattack.getScout(),invade,invsucc,0,false,combatHeader,today.toString(),actattack.getName(),offbp,premium,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),zeppText,(int) totalCost[0],(int) totalCost[1],(int) totalCost[2],(int) totalCost[3],false,false,false,offdig,defdig,digMessage);
+								  actattack.getScout(),invade,invsucc,0,false,combatHeader,today.toString(),actattack.getName(),offbp,premium,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),zeppText,(int) totalCost[0],(int) totalCost[1],(int) totalCost[2],(int) totalCost[3],false,false,false,offdig,defdig,digMessage,false);
 
 					  t1.getPlayer().addUserSR(offSR);
 				 }
@@ -9755,10 +9815,10 @@ public boolean checkForGenocides(Town t) {
 					  stmt.execute();
 					  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
 						 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
-							//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
+							//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage, boolean digend)
 							
 					  	offSR = new UserSR(id,offUnitsBefore,offUnitsAfter,",0,0,0,0,0,0",",0,0,0,0,0,0",offNames,",???,???,???,???,???,???",t1.getTownName(),t2.getTownName(),genocide,false,bomb,false,(int) actattack.getMetal(),(int) actattack.getTimber(),(int) actattack.getManmat(),(int) actattack.getFood(),
-								  actattack.getScout(),invade,invsucc,0,false,combatHeader,today.toString(),actattack.getName(),offbp,premium,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),zeppText,0,0,0,0,false,false,false,offdig,defdig,digMessage);
+								  actattack.getScout(),invade,invsucc,0,false,combatHeader,today.toString(),actattack.getName(),offbp,premium,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),zeppText,0,0,0,0,false,false,false,offdig,defdig,digMessage,false);
 					  	t1.getPlayer().addUserSR(offSR);
 
 					
@@ -9790,7 +9850,7 @@ public boolean checkForGenocides(Town t) {
 					 // System.out.println("my percentlossdiff is " + percentlossdiff);
 					  stmt.setInt(8,holdForP.get(o).ID);
 					  id = UUID.randomUUID();
-					  stmt.setString(38,id.toString());
+					  stmt.setString(39,id.toString());
 
 					  stmt.execute();
 					 offSR.id=id;
@@ -9815,13 +9875,13 @@ public boolean checkForGenocides(Town t) {
 				  stmt.setBoolean(37,true);
 
 				 id = UUID.randomUUID();
-				  stmt.setString(38,id.toString());
+				  stmt.setString(39,id.toString());
 				  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
 					 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
-						//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
+						//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage, boolean digend)
 				
 				  defSR = new UserSR(id,offUnitsBefore,offUnitsAfter,defUnitsBefore,defUnitsAfter,offNames,defNames,t1.getTownName(),t2.getTownName(),genocide,false,bomb,true,(int) actattack.getMetal(),(int) actattack.getTimber(),(int) actattack.getManmat(),(int) actattack.getFood(),
-						  actattack.getScout(),invade,invsucc,0,false,combatHeader,today.toString(),actattack.getName(),defbp,premium,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),zeppText,(int) totalCost[0],(int) totalCost[1],(int) totalCost[2],(int) totalCost[3],false,false,false,offdig,defdig,digMessage);
+						  actattack.getScout(),invade,invsucc,0,false,combatHeader,today.toString(),actattack.getName(),defbp,premium,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),zeppText,(int) totalCost[0],(int) totalCost[1],(int) totalCost[2],(int) totalCost[3],false,false,false,offdig,defdig,digMessage,false);
 				  t2p.addUserSR(defSR);
 				 stmt.execute();
 				 
@@ -9858,7 +9918,7 @@ public boolean checkForGenocides(Town t) {
 				  while(o<holdForP.size()) {
 					  stmt.setInt(8,holdForP.get(o).ID);
 					  id = UUID.randomUUID();
-					  stmt.setString(38,id.toString());
+					  stmt.setString(39,id.toString());
 					  defSR.id=id;
 					  holdForP.get(o).addUserSR(defSR.clone());
 					  stmt.execute();
@@ -10110,14 +10170,16 @@ public boolean checkForGenocides(Town t) {
 						   Date today = new Date();
 							  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
 							 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
-								//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
+								//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage, boolean digend)
 								  otherT.getPlayer().addUserSR(new UserSR(id,unitStart,unitEnd,null,null,unitNames,null,t1.getTownName(),t2.getTownName(),false,false,false,false,(int) r.getMetal(),(int) r.getFood(),(int) r.getManmat(),(int) r.getFood(),
-										  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,false,true,msg));
+										  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,false,true,msg,false));
 					
 						   
 					stmt.close();
 					} catch(SQLException exc) {  exc.printStackTrace(); } 
-					r.getTown2().resetDig(r.getTown1().townID,r.getDigAmt(),true);}
+					
+					r.getTown2().resetDig(0,0,false,r);
+					}
 					}
 					combatLogicBlock(r,"");
 	
@@ -10129,8 +10191,14 @@ public boolean checkForGenocides(Town t) {
 				}
 				else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("support")||holdAttack.raidType().equals("offsupport"))) {
 					// this means it's a supporting run. Scout will always be 0 for this.
-					
-					supportLogicBlock(r,false);
+					if(r.getTown2().isResourceOutcropping()&&r.getTown2().getLord()!=null&&r.getTown2().getLord().ID!=r.getTown1().getPlayer().ID&&r.getTown2().getPlayer().getPs().b.getCS(r.getTown2().townID)>0) {
+						combatLogicBlock(r,"Another army had already occupied this resource outcropping, and a fight ensued.");
+						if(r.getTown2().getPlayer().getPs().b.getCS(r.getTown2().townID)==0) {
+							supportLogicBlock(r,true); // suppress the SR from supportlogic, we do not want this report to show up.
+						}
+
+					} else
+					supportLogicBlock(r,false); // 
 					
 				}else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("dig")||holdAttack.raidType().equals("excavation"))) {
 					digLogicBlock(r);
@@ -10420,33 +10488,20 @@ public boolean checkForGenocides(Town t) {
 						 * dumping resources on them, ie, a one way trade, this
 						 * trade needs to be taxed!
 						 */
-						double tax = 0;
-
-						if(t2.getLord()!=null) {
-							if(otherP.getLord()!=null&&otherP.getLord().ID==t2.getLord().ID) {
-								tax+=otherP.getTaxRate();
-							} else
-							if(t2.getVassalFrom()!=null) {
-								long diff = (new Timestamp((new Date()).getTime())).getTime()-t2.getVassalFrom().getTime();
-								double weeks = (int) Math.floor(((double) diff)/604800000);
-								double toAdd = weeks*.15;
-								if(toAdd>.75) toAdd=.75;
-								tax+=toAdd;
-							
-							}
-						} else if(t2.getLord()==null&&otherP.getLord()!=null) {
-							tax+=otherP.getTaxRate();
-						}
+						double tax = t2.getVassalRate();
+						Player theLord = t2.getLord();
+						if(theLord==null) theLord = otherP.getLord();
+						
 							double afterTax = (1-tax);
 							actt.setMetal((long) Math.round(t.getMetal()*afterTax));
 							actt.setTimber((long) Math.round(t.getTimber()*afterTax));
 							actt.setManmat((long) Math.round(t.getManmat()*afterTax));
 							actt.setFood((long) Math.round(t.getFood()*afterTax));
 							
-							long[] secbuff = otherP.getLeague().getSecondaryResBuff();
+							long[] secbuff = theLord.getSecondaryResBuff();
 							synchronized(secbuff) {
 								double modifier=1;
-								if(otherP.getLeague().getPremiumTimer()>0) modifier=.5;
+								if(theLord.getPremiumTimer()>0) modifier=.5;
 								secbuff[0]+=t.getMetal()*tax*modifier;
 								secbuff[1]+=t.getTimber()*tax*modifier;
 								secbuff[2]+=t.getManmat()*tax*modifier;
@@ -11036,7 +11091,72 @@ public boolean checkForGenocides(Town t) {
 
 		return size;
 	}
-	
+	public static long returnCargoOfSupportAndEngineers(Town t) {
+		long totalCargo = 0; int totalSize=0;
+		int i = 0;
+		while(i<t.getAu().size()) {
+			if(t.getAu().get(i).getSupport()>0) {
+				int n = t.getAu().get(i).getSize();
+				totalSize+=Math.round(((double) n*(n+1)*t.getAu().get(i).getCargo())/2);// OLD CARGO
+			//	totalSize+=Math.round(((double) n*r.getAu().get(i).getPopSize()*r.getAu().get(i).getCargo())); // NEW CARGO :)
+				// popsizes are 5 and 10 for juggers and tanks, so you get 5x as many cargo for a tank that's worth 10 men, but it's
+				// 2x as fast, so there's your tradeoff!
+			}
+			i++;
+		}
+		
+		totalSize+=t.getDigAmt()*(t.getDigAmt()+1)*engineerCarryAmount;
+		return totalSize;
+	}
+	public static long returnCargoOfSupportAndScholars(Town t) {
+		long totalCargo = 0; int totalSize=0;
+		int i = 0;
+		while(i<t.getAu().size()) {
+			if(t.getAu().get(i).getSupport()>0) {
+				int n = t.getAu().get(i).getSize();
+				totalSize+=Math.round(((double) n*(n+1)*t.getAu().get(i).getCargo())/2);// OLD CARGO
+			//	totalSize+=Math.round(((double) n*r.getAu().get(i).getPopSize()*r.getAu().get(i).getCargo())); // NEW CARGO :)
+				// popsizes are 5 and 10 for juggers and tanks, so you get 5x as many cargo for a tank that's worth 10 men, but it's
+				// 2x as fast, so there's your tradeoff!
+			}
+			i++;
+		}
+		
+		totalSize+=t.getDigAmt()*(t.getDigAmt()+1)*scholarCarryAmount;
+		return totalSize;
+
+	}
+	public static long returnCargo(Raid r) {
+		long totalCargo = 0; int totalSize=0;
+		int i = 0;
+		while(i<r.getAu().size()) {
+			int n = r.getAu().get(i).getSize();
+			totalSize+=Math.round(((double) n*(n+1)*r.getAu().get(i).getCargo())/2);// OLD CARGO
+		//	totalSize+=Math.round(((double) n*r.getAu().get(i).getPopSize()*r.getAu().get(i).getCargo())); // NEW CARGO :)
+			// popsizes are 5 and 10 for juggers and tanks, so you get 5x as many cargo for a tank that's worth 10 men, but it's
+			// 2x as fast, so there's your tradeoff!
+			
+			i++;
+		}
+		
+		int dividingfactor=1; // basic attack dividing factor.
+		if(r.isGenocide()) {
+			//dividingfactor*=r.getGenoRounds(); // this is for the special requirements of foreshortening cargo on genocides.
+			// I do timesing so that doing a bombing run knocks it down by an extra factor of four!
+			// Shitty, no?
+			dividingfactor*=2; //divide by two because of genocide.
+			if(dividingfactor==0) dividingfactor=1; // just in case.
+		}
+		
+		if(r.isInvade()) dividingfactor*=4; // this will discourage invasions as a standard
+		// method of attack since one only gets one fourth the resources.
+		double factor = totalSize;
+		// extra factor of 2
+		// is a scale to make it 100 total taken instead of 200 for average 50 cargo thing.
+		 totalCargo = Math.round(factor/dividingfactor); 
+		
+		return totalCargo;
+	}
 	static public boolean moveResources(Raid r, Town t, double percentlossdiff, boolean debris) {
 
 		/*
@@ -11081,17 +11201,9 @@ public boolean checkForGenocides(Town t) {
 		}
 		
 		i=0;
-		long totalCargo = 0; int totalSize=0;
-		while(i<r.getAu().size()) {
-			int n = r.getAu().get(i).getSize();
-			totalSize+=Math.round(((double) n*(n+1)*r.getAu().get(i).getCargo())/2);// OLD CARGO
-		//	totalSize+=Math.round(((double) n*r.getAu().get(i).getPopSize()*r.getAu().get(i).getCargo())); // NEW CARGO :)
-			// popsizes are 5 and 10 for juggers and tanks, so you get 5x as many cargo for a tank that's worth 10 men, but it's
-			// 2x as fast, so there's your tradeoff!
-			
-			i++;
-		}
-		
+		long totalCargo = returnCargo(r);
+		if(r.getTown2().isResourceOutcropping()) totalCargo=0; 
+
 		
 		i = 0; long totalTRes = 0;
 		while(i<4) {
@@ -11103,21 +11215,7 @@ public boolean checkForGenocides(Town t) {
 			i++;
 		}
 		if(totalTRes==0) return false; // just to make sure no divide by zero occurs. Why take resources otherwise?
-		int dividingfactor=1; // basic attack dividing factor.
-		if(r.isGenocide()) {
-			//dividingfactor*=r.getGenoRounds(); // this is for the special requirements of foreshortening cargo on genocides.
-			// I do timesing so that doing a bombing run knocks it down by an extra factor of four!
-			// Shitty, no?
-			dividingfactor*=2; //divide by two because of genocide.
-			if(dividingfactor==0) dividingfactor=1; // just in case.
-		}
 		
-		if(r.isInvade()) dividingfactor*=4; // this will discourage invasions as a standard
-		// method of attack since one only gets one fourth the resources.
-		double factor = totalSize;
-		// extra factor of 2
-		// is a scale to make it 100 total taken instead of 200 for average 50 cargo thing.
-		totalCargo = Math.round(factor/dividingfactor); 
 
 		//boolean done[] = new boolean[4]; // default is false. Goodie.
 		
@@ -11202,24 +11300,12 @@ public boolean checkForGenocides(Town t) {
 			
 
 			}
-			if(r.getTown1().getPlayer().getLeague()!=null) {
-				double tax = 0;
-
-				if(r.getTown1().getLord()!=null) {
-					if(r.getTown1().getPlayer().getLord()!=null&&r.getTown1().getPlayer().getLord().ID==r.getTown1().getLord().ID) {
-						tax+=r.getTown1().getPlayer().getTaxRate();
-					} else
-					if(r.getTown1().getVassalFrom()!=null) {
-						long diff = (new Timestamp((new Date()).getTime())).getTime()-r.getTown1().getVassalFrom().getTime();
-						double weeks = (int) Math.floor(((double) diff)/604800000);
-						double toAdd = weeks*.15;
-						if(toAdd>.75) toAdd=.75;
-						tax+=toAdd;
-					
-					}
-				} else if(r.getTown1().getLord()==null&&r.getTown1().getPlayer().getLord()!=null) {
-					tax+=r.getTown1().getPlayer().getTaxRate();
-				}
+			if(r.getTown1().getPlayer().getLord()!=null||
+					r.getTown1().getLord()!=null) {
+				double tax = r.getTown1().getVassalRate();
+				Player theLord = r.getTown1().getLord();
+				if(theLord==null) theLord=r.getTown1().getPlayer().getLord();
+				
 					double afterTax = (1-tax);
 				long oldM = r.getMetal();
 				long oldT = r.getTimber();
@@ -11231,9 +11317,9 @@ public boolean checkForGenocides(Town t) {
 				r.setManmat((long) Math.round(r.getManmat()*afterTax));
 				r.setFood((long) Math.round(r.getFood()*afterTax));
 				
-				long secbuff[] = r.getTown1().getPlayer().getLeague().getSecondaryResBuff();
+				long secbuff[] = theLord.getSecondaryResBuff();
 				double tmodifier = 1;
-				if(r.getTown1().getPlayer().getLeague().getPremiumTimer()>0) tmodifier=.5;
+				if(theLord.getPremiumTimer()>0) tmodifier=.5;
 				synchronized(secbuff){ 
 					secbuff[0]+=oldM*tax*tmodifier;
 					secbuff[1]+=oldT*tax*tmodifier;
@@ -12287,6 +12373,23 @@ public boolean checkForGenocides(Town t) {
 		return toRet;
 		
 	}
+	public int returnTileTypeAt(int x, int y) {
+		String type="";
+		for(Hashtable r:getMapTileHashes()) {
+			 type = (String) r.get("mapName");
+			 int centerx = (Integer) r.get("centerx");
+			 int centery = (Integer) r.get("centery");
+			 int diffx = Math.abs(centerx-x);
+			 int diffy = Math.abs(centery-y);
+			 if(diffx<mapTileWidthX&&diffy<mapTileWidthY) break;
+
+		}
+		if(type.equals("sand")) return 0;
+		else if(type.equals("rock")) return 1;
+		else if(type.equals("grass")) return 2;
+		return 2;
+
+	}
 	public void growId() {
 		
 		// First adds a vertical strip, then a horizontal strip, of Id towns.
@@ -12730,10 +12833,51 @@ public boolean checkForGenocides(Town t) {
 		  if(findTown(x+xmod,y+ymod).townID!=0) {
 			  return false; // Means there is a town there.
 		  }
-		 
+		  boolean resourceOutcropping=false;
+		  String townName = randomTownName();
+		  rand = Math.random();
+		  /*
+		   * Desert:
+				Crystal: 70%
+				Metal: 25%
+				Timber: 5%
+				
+				Mountain:
+				Metal: 70%
+				Crystal: 20%
+				Timber: 10%
+				
+				Grass:
+				Timber: 70%
+				Metal: 25%
+				Crystal: 5%
+		   */
+		  if(rand<.2) {
+			  resourceOutcropping=true;
+		  		rand = Math.random();
+			  switch(returnTileTypeAt(x+xmod,y+ymod)) {
+			  case 0: //desert
+			  		if(rand<.7) townName = "CrystalOutcropping";
+			  		else if(rand>=.7&&rand<.95) townName = "MetalOutcropping";
+			  		else townName="TimberOutcropping";
+			  	break;
+			  case 1: //mtn
+				  if(rand<.7) townName = "MetalOutcropping";
+			  		else if(rand>=.7&&rand<.9) townName = "CrystalOutcropping";
+			  		else townName="TimberOutcropping";
+				  break;
+			  case 2: //grass
+				  if(rand<.7) townName = "TimberOutcropping";
+			  		else if(rand>=.7&&rand<.95) townName = "MetalOutcropping";
+			  		else townName="CrystalOutcropping";
+				  break;
+			  }
+			  
+		  }
+		  townName+="-"+(x+xmod)+"-"+(y+ymod);
 		  int newSizes[] = new int[0];
-		  stmt.execute("insert into town (pid,townName,x,y,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,auSizes,influence) values (5,\"" + randomTownName()+/*"Town" + (x+xmod) + "-" + (y+ymod) +*/ "\","
-				  +(x+xmod)+","+(y+ymod)+",0,0,0,0,1," + resEffects[0] + "," + resEffects[1] + "," + resEffects[2] + "," + resEffects[3] + "," + resEffects[4] + ",'"+PlayerScript.toJSONString(newSizes)+"',"+startingTownInfluence+")");
+		  stmt.execute("insert into town (pid,townName,x,y,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,auSizes,influence,resourceOutcropping) values (5,\"" + townName+/*"Town" + (x+xmod) + "-" + (y+ymod) +*/ "\","
+				  +(x+xmod)+","+(y+ymod)+",0,0,0,0,1," + resEffects[0] + "," + resEffects[1] + "," + resEffects[2] + "," + resEffects[3] + "," + resEffects[4] + ",'"+PlayerScript.toJSONString(newSizes)+"',"+startingTownInfluence+","+resourceOutcropping+")");
 		  rs = stmt.executeQuery("select tid from town where x = " + (x+xmod) + " and y = " + (y+ymod) + ";");
 		  rs.next();
 		  int tid = rs.getInt(1);
@@ -12932,7 +13076,7 @@ public boolean checkForGenocides(Town t) {
 					int k = 0;
 					t = towns.get(j);
 					if(t.getDigTownID()==ptown.townID) { // reset all digs.
-						t.resetDig(0,0,false);
+						t.resetDig(0,0,false,null);
 					}
 					tres = t.tradeServer();
 					while(k<tres.size()) {

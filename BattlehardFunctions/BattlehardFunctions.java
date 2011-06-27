@@ -3552,7 +3552,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	
 	
-	/** UI Implemented. Returns the current Alamo Size of your army.
+	/** UI Implemented. Returns the current Cover Size of your army.
 	 * 
 	 */
 	
@@ -3589,7 +3589,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					}
 			k++;
 		}
-		return currentExpAdvSizeDefWithDivMods;
+		return currentExpAdvSizeDefWithDivMods+t.getDigAmt();
 	}
 	/**
 	 * Causes the current thread to stall and wait.
@@ -4863,32 +4863,33 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 		int k = 0; // to make sure can only go up to six.
 				
-		double holdLowSpeed=0; AttackUnit hau; int totalsize=0;
+		 AttackUnit hau; int totalsize=0;
 		boolean zeroes = true; boolean negatives = false;
-		ArrayList<AttackUnit> t1au = t1.getAu();
-		while(k<holdNumbers.length) {
+		ArrayList<AttackUnit> t1au = t1.getAu(); int limit = holdNumbers.length;
+		if(attackType.equals("excavation")) limit--; // last guy is engineers number.
+		while(k<limit) {
 			
 
 			// Next we need to check if these numbers go over the max units in
 			// the town. If they do, send the max units instead.
-			  hau =t1au.get(k);
-			if(hau.getSize()<holdNumbers[k]) holdNumbers[k]=hau.getSize();
-			 if(holdNumbers[k]>0) zeroes=false; // needs to be after the size-mod if overflowing.
-			if(holdNumbers[k]<0) negatives = true; // No less than zero crap..
-			 // Simple as cake.
-			holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getTrueSpeed(t1.getPlayer()));
-			totalsize+=holdNumbers[k]*hau.getExpmod();
+				  hau =t1au.get(k);
+				  if(attackType.equals("dig")||attackType.contains("support")||attackType.equals("excavation")
+						  &&hau.getSupport()>0&&holdNumbers[k]>0) {
+					  setError("You cannot send other players' support units on supporting, dig, or excavation missions!");
+					  return false;
+				  }
+				if(hau.getSize()<holdNumbers[k]) holdNumbers[k]=hau.getSize();
+				 if(holdNumbers[k]>0) zeroes=false; // needs to be after the size-mod if overflowing.
+				if(holdNumbers[k]<0) negatives = true; // No less than zero crap..
+				 // Simple as cake.
+			//	holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getTrueSpeed(t1.getPlayer()));
+				totalsize+=holdNumbers[k]*hau.getExpmod();
+			
 			k++;
 		}
-		if(totalsize==0&&!attackType.equals("dig")) {
-			setError("Can't send zero troops!");
-			return false;
-		}else if(totalsize==0&&!attackType.equals("excavation")) {
-			setError("Can't send zero troops!");
-			return false;
-		}
-		holdLowSpeed/=totalsize;
-		if(zeroes&&!attackType.equals("dig")) {
+	
+		if(zeroes&&((!attackType.equals("dig")&&!attackType.equals("excavation"))
+				||(holdNumbers[holdNumbers.length-1]==0&&attackType.equals("dig")||attackType.equals("excavation")))) {
 			setError("Can't send an empty raid.");
 			return false; // not sending a raid of nada.
 		}
@@ -4958,17 +4959,24 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				totalScholars+=b[z].getPeopleInside();
 				z++;
 			}
-			if(totalScholars<GodGenerator.digScholarRequirement&&!(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian"))) {
+			int req = GodGenerator.digScholarRequirement;
+			if(attackType.equals("excavation")) req = holdNumbers[holdNumbers.length-1];
+			if(totalScholars<req&&!(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian"))) {
 				if(attackType.equals("excavation"))
 					setError("You do not have enough Engineers!");
 				else
 				setError("You do not have enough Scholars!");
 				return false;
 			}
+			
 		}
 		else if(attackType.equals("offsupport")) { support=2;}
 		else if(attackType.equals("scout")) { scout = 1; }
 		else if(attackType.equals("invasion")&&(p.getTownTech()-p.towns().size())>0) {
+			if(Town2.isResourceOutcropping()) {
+				setError("You cannot invade a Resource Outcropping!");
+				return false;
+			}
 			 int z = 0; int aggregate=0; 
 			 /*
 				try {
@@ -5060,30 +5068,31 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 		ArrayList<AttackUnit> au = new ArrayList<AttackUnit>();
 		
-		k = 0; AttackUnit addThis;
-		while(k<holdNumbers.length) { // making sure it satisfies  reqs here is all.
+		k = 0; AttackUnit addThis; 
+		while(k<limit) { // making sure it satisfies  reqs here is all.
 			// if we combined this loop then units would be lost if later in the loop there was an
 			// error found. If the user only sends his own aus, he won't address supp aus in his array.
 			// so this loop is set up to either goto the holdnumbers max. If
 			// not, then index out of bounds on holdnumbers occurs.
-			 addThis = t1au.get(k).returnCopy();
+				 addThis = t1au.get(k).returnCopy();
+				
+				addThis.setSize(holdNumbers[k]);
+	
+				if(addThis.getSupport()>0&&addThis.getOriginalPlayer().ID!=p.ID&&support>0&&addThis.getSize()>0) return false; 
+				// You cannot send another player's unit to another location as
+				// support. See, since support is >0 this is a supporting run, and you can't move other player's supporting
+				// units(foreign aus identified by au.support>0) from their original destination protection place.
+				if(addThis.getSupport()==1&&addThis.getSize()>0){
+					setError("Not an offensive support unit.");
+					return false;
+				}
+				// If this is a support unit, but it's not an offensive one(i.e. support=2), then this
+				// user cannot send it anywhere.
+				if(scout==1&&addThis.getSize()>0&&addThis.getType()!=1) {
+					setError("Can't send non-soldiers on scouting missions.");
+					return false; 
+				}
 			
-			addThis.setSize(holdNumbers[k]);
-
-			if(addThis.getSupport()>0&&addThis.getOriginalPlayer().ID!=p.ID&&support>0&&addThis.getSize()>0) return false; 
-			// You cannot send another player's unit to another location as
-			// support. See, since support is >0 this is a supporting run, and you can't move other player's supporting
-			// units(foreign aus identified by au.support>0) from their original destination protection place.
-			if(addThis.getSupport()==1&&addThis.getSize()>0){
-				setError("Not an offensive support unit.");
-				return false;
-			}
-			// If this is a support unit, but it's not an offensive one(i.e. support=2), then this
-			// user cannot send it anywhere.
-			if(scout==1&&addThis.getSize()>0&&addThis.getType()!=1) {
-				setError("Can't send non-soldiers on scouting missions.");
-				return false; 
-			}
 			// if this happens to be a scouting mission, and you are sending some of this unit type,
 			// and it is NOT a soldier unit, then please, go away!
 			k++;
@@ -5193,33 +5202,35 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 		int k = 0; // to make sure can only go up to six.
 				
-		double holdLowSpeed=0; AttackUnit hau; int totalsize=0;
+		 AttackUnit hau; int totalsize=0;
 		boolean zeroes = true; boolean negatives = false;
-		ArrayList<AttackUnit> t1au = t1.getAu();
-		while(k<holdNumbers.length) {
+		ArrayList<AttackUnit> t1au = t1.getAu(); int limit = holdNumbers.length;
+		if(attackType.equals("excavation")) limit--;
+		while(k<limit) {
 			
 
 			// Next we need to check if these numbers go over the max units in
 			// the town. If they do, send the max units instead.
-			  hau =t1au.get(k);
-			if(hau.getSize()<holdNumbers[k]) holdNumbers[k]=hau.getSize();
-			 if(holdNumbers[k]>0) zeroes=false; // needs to be after the size-mod if overflowing.
-			if(holdNumbers[k]<0) negatives = true; // No less than zero crap..
-			 // Simple as cake.
-			holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getTrueSpeed(t1.getPlayer()));
-			totalsize+=holdNumbers[k]*hau.getExpmod();
+			if(k<t1au.size()) {
+				  hau =t1au.get(k);
+				  if(attackType.equals("dig")||attackType.contains("support")||attackType.equals("excavation")
+						  &&hau.getSupport()>0&&holdNumbers[k]>0) {
+					  setError("You cannot send other players' support units on supporting, dig, or excavation missions!");
+					  return false;
+				  }
+				if(hau.getSize()<holdNumbers[k]) holdNumbers[k]=hau.getSize();
+				 if(holdNumbers[k]>0) zeroes=false; // needs to be after the size-mod if overflowing.
+				if(holdNumbers[k]<0) negatives = true; // No less than zero crap..
+				 // Simple as cake.
+			//	holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getTrueSpeed(t1.getPlayer()));
+				totalsize+=holdNumbers[k]*hau.getExpmod();
+			}
 			
 			k++;
 		}
-		if(totalsize==0&&!attackType.equals("dig")) {
-			setError("Can't send zero troops!");
-			return false;
-		} else if(totalsize==0&&!attackType.equals("excavation")) {
-			setError("Can't send zero troops!");
-			return false;
-		}
-		holdLowSpeed/=totalsize;
-		if(zeroes&&!attackType.equals("dig")) {
+		
+		if(zeroes&&((!attackType.equals("dig")&&!attackType.equals("excavation"))
+				||(holdNumbers[holdNumbers.length-1]==0&&attackType.equals("dig")||attackType.equals("excavation")))) {
 			setError("Can't send an empty raid.");
 			return false; // not sending a raid of nada.
 		}
@@ -5292,7 +5303,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				totalScholars+=b[z].getPeopleInside();
 				z++;
 			}
-			if(totalScholars<GodGenerator.digScholarRequirement&&!(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian"))) {
+			int req = GodGenerator.digScholarRequirement;
+			if(attackType.equals("excavation")) req = holdNumbers[holdNumbers.length-1];
+			if(totalScholars<req&&!(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian"))) {
 				if(attackType.equals("excavation"))
 					setError("You do not have enough Engineers!");
 				else
@@ -5300,7 +5313,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				return false;
 			}
 			z=0; Building actb; UserBuilding bl;
-			int digToTake = GodGenerator.digScholarRequirement;
+			int digToTake = req;
 			if(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian")) {
 				digToTake=1;
 			}
@@ -5323,6 +5336,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		else if(attackType.equals("offsupport")) { support=2;}
 		else if(attackType.equals("scout")) { scout = 1; }
 		else if(attackType.equals("invasion")&&(p.getTownTech()-p.towns().size())>0) {
+			if(Town2.isResourceOutcropping()) {
+				setError("You cannot invade a Resource Outcropping!");
+				return false;
+			}
 			int aggregate=0; int z = 0;
 			/*
 				try {
@@ -5421,7 +5438,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		ArrayList<AttackUnit> au = new ArrayList<AttackUnit>();
 		//System.out.println("Where do I die?");
 		k = 0; AttackUnit addThis;
-		while(k<holdNumbers.length) { // making sure it satisfies  reqs here is all.
+		while(k<limit) { // making sure it satisfies  reqs here is all.
 			// if we combined this loop then units would be lost if later in the loop there was an
 			// error found. If the user only sends his own aus, he won't address supp aus in his array.
 			// so this loop is set up to either goto the holdnumbers max. If
@@ -5467,7 +5484,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			// so if this is a supporting run, and you aren't sending to your own town, these units get
 			// marked as "foreign."
 			au.add(addThis);
-			if(k<holdNumbers.length) {
+			if(k<limit) {
 			addThis.setSize(holdNumbers[k]);
 
 			t1.setSize(k,t1au.get(k).getSize() - holdNumbers[k]);
@@ -6309,7 +6326,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						 digAmt=t.getDigAmt();
 //						 System.out.println("I am setting everything in " + t.getTownName());
 
-						 t.resetDig(0,0,false);// because the second you set dig counter
+						 t.resetDig(0,0,false,null);// because the second you set dig counter
 						 // to -1, the town becomes inactive!
 					//	 System.out.println("t's owed ticks are " + t.owedTicks + " and t is " +t.getTownName());
 					 }
@@ -7206,12 +7223,20 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						stmt.close();
 					} catch(SQLException exc) { exc.printStackTrace(); }*/
 					
-					int i = 0;
 					ArrayList<Building> bldg = holdT.bldg();
+					int i = 0;
+					int totalCap=0;
+					int currentlyBuilding=0;
 					while(i<bldg.size()) {
-						if(bldg.get(i).getLotNum()==slot&&bldg.get(i).getType().equals("Command Center")) {bid = bldg.get(i).bid; lvl = bldg.get(i).getLvl(); break; }
+						if(bldg.get(i).getType().equals("Command Center")){
+							totalCap+=bldg.get(i).getCap();
+							currentlyBuilding+=bldg.get(i).getNumLeftToBuild();
+						}
+						if(bldg.get(i).getLotNum()==slot&&bldg.get(i).getType().equals("Command Center")) {bid = bldg.get(i).bid; lvl = bldg.get(i).getLvl(); }
 						i++;
 					}
+					int maxNumber = totalCap-holdT.getTotalTraders()-currentlyBuilding; // this is the max amount that can be built
+
 					
 					if(lvl==0) { 
 						setError("No fully constructed Command Center on this lot!");
@@ -7224,6 +7249,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					UserBuilding b = getUserBuilding(bid);
 					if(keep) prog=true;
 					if(number>=(b.getCap()-(b.getPeopleInside()+b.getNumLeftToBuild()))) number = (int) (b.getCap()-(b.getPeopleInside()+b.getNumLeftToBuild()));
+					if(number>maxNumber) number = maxNumber;
 					k=0;
 					 long res[] = holdT.getRes();
 
@@ -7420,19 +7446,28 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							rs.close();
 							stmt.close();
 						} catch(SQLException exc) { exc.printStackTrace(); }*/
-						int i = 0;
 						ArrayList<Building> bldg = holdT.bldg();
+						int i = 0;
+						int totalCap=0;
+						int currentlyBuilding=0;
 						while(i<bldg.size()) {
-							if(bldg.get(i).getLotNum()==lotNum&&bldg.get(i).getType().equals("Trade Center")) {bid = bldg.get(i).bid; lvl = bldg.get(i).getLvl(); break; }
+							if(bldg.get(i).getType().equals("Trade Center")){
+								totalCap+=bldg.get(i).getCap();
+								currentlyBuilding+=bldg.get(i).getNumLeftToBuild();
+							}
+							if(bldg.get(i).getLotNum()==lotNum&&bldg.get(i).getType().equals("Trade Center")) {bid = bldg.get(i).bid; lvl = bldg.get(i).getLvl(); }
 							i++;
 						}
-						
+						int maxNumber = totalCap-holdT.getTotalTraders()-currentlyBuilding; // this is the max amount that can be built
 
 						if(lvl==0) { 
 							setError("No fully constructed trade center on this lot!");
 							return false;
 						}
-						
+						 b = holdT.findBuilding(bid);
+							if(number>=(b.getCap()-(b.getPeopleInside()+b.getNumLeftToBuild()))) number =(int) (b.getCap()-(b.getPeopleInside()+b.getNumLeftToBuild()));
+							if(number>maxNumber) number = maxNumber;
+
 						int k = 0;
 						 long res[] = holdT.getRes();
 						 synchronized(res) { 
@@ -7441,7 +7476,6 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							k++;
 						} while(k<cost.length-1);
 						 }
-						 b = holdT.findBuilding(bid);
 						b.addUnit(number);
 						//b.modifyPeopleTicks(holdT.getTotalEngineers(),holdT.getPlayer().God.Maelstrom.getEngineerEffect(holdT.getX(),holdT.getY()),holdT.getPlayer().engTech);
 
@@ -7604,8 +7638,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 		/**
 		 * @deprecated
-		 * Build a number of scholars in the town designated by townName. Will automatically find the
-		 * best building in which to build them, if possible.
+		 * Build a number of scholars in the town designated by townName. 
 		 */
 	public boolean buildSchol(String townName, int number, int lotNum) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -7648,10 +7681,18 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					
 					int i = 0;
 					ArrayList<Building> bldg = holdT.bldg();
+					int totalCap=0;
+					int currentlyBuilding=0;
 					while(i<bldg.size()) {
-						if(bldg.get(i).getLotNum()==lotNum&&bldg.get(i).getType().equals("Institute")) {bid = bldg.get(i).bid; lvl = bldg.get(i).getLvl(); break; }
+						if(bldg.get(i).getType().equals("Institute")){
+							totalCap+=bldg.get(i).getCap();
+							currentlyBuilding+=bldg.get(i).getNumLeftToBuild();
+						}
+						if(bldg.get(i).getLotNum()==lotNum&&bldg.get(i).getType().equals("Institute")) {bid = bldg.get(i).bid; lvl = bldg.get(i).getLvl(); }
 						i++;
 					}
+					int maxNumber = totalCap-holdT.getTotalTraders()-currentlyBuilding; // this is the max amount that can be built
+					// to still give room for scholars coming back from digs.
 					
 					
 				 boolean canBuild = true;
@@ -7663,6 +7704,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					if(lvl==0){  setError("Cannot build scholars in a level 0 Institute!"); return false; } 
 					b = getUserBuilding(bid);
 					if(number>=(b.getCap()-(b.getPeopleInside()+b.getNumLeftToBuild()))) number =(int) (b.getCap()-(b.getPeopleInside()+b.getNumLeftToBuild()));
+					if(number>maxNumber) number=maxNumber; // so a second check ensures you can only build up to your max.
 					k=0;
 					 long res[] = holdT.getRes();
 
@@ -9966,7 +10008,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
 					return new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt());
+							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),new Timestamp(r.getDockingFinished().getTime()));
 				}
 				j++;
 			}
@@ -10134,7 +10176,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
 					temp.add(new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt()));
+							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),new Timestamp(r.getDockingFinished().getTime())));
 					} catch(Exception exc) { exc.printStackTrace(); System.out.println("getUserRaids saved. The raid in question: " + r.getId().toString()); }
 				
 				j++;
@@ -10258,7 +10300,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
 					temp.add(new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt()));
+							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),new Timestamp(r.getDockingFinished().getTime())));
 					}
 			} catch(Exception exc) { exc.printStackTrace(); System.out.println("Raids saved from " + r.getId().toString());}
 				

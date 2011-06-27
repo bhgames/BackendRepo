@@ -686,24 +686,13 @@ public class Player  {
 							while(y<ptowns.size()) {
 								
 								t = ptowns.get(y);
-								double taxRate=0;
-								if(p.getLord()!=null&&p.getLord().ID==ID) {
-									// If you are the lord here,
-									if(t.getLord()==null||(t.getLord()!=null&&t.getLord().ID==ID)) //and the town has no town-level lord, or you are the 
-										// town level lord also, give them the player taxrate.
-										taxRate=p.getTaxRate();
-									else if(t.getLord()!=null&&t.getLord().ID!=ID) taxRate=0; // if you are the lord here but not over this town, someone else is, you get shit.
-								} else if((p.getLord()==null||(p.getLord()!=null&&p.getLord().ID!=ID))&&t.getLord()!=null&&t.getLord().ID==ID) {
-									// if this player has no lord, or has one that isn't you, and you are lord of this town, then you
-									// get slow growth.
-									long diff = (new Timestamp((new Date()).getTime())).getTime()-t.getVassalFrom().getTime();
-									double weeks = (int) Math.floor(((double) diff)/604800000);
-									double toAdd = weeks*.15;
-									if(toAdd>.75) toAdd=.75;
-									taxRate=toAdd;
-								}
+								double taxRate=t.getVassalRate();
+								 
+								if(t.getLord()!=null&&t.getLord().ID!=ID) taxRate=0; // so if this town belongs to another, it's 0 for you.
+								
 								
 								tresInc=t.getResInc();
+								// that's done by the town in question.
 								 tresEffects=t.getResEffects();
 								 newIncs = God.Maelstrom.getResEffects(tresInc,t.getX(),t.getY());
 								
@@ -878,50 +867,70 @@ public class Player  {
 				
 			 
 			 */
-			if(!isQuest()&&ID!=5) { // Id does not have territories, neither do Quests, nor can their towns be taken by others this way.
+			if(!isQuest()&&ID!=5) { //  Quests do not have territories, nor can their towns be taken by others this way.
 
 			ArrayList<ArrayList<Hashtable>> townPointLists = new ArrayList<ArrayList<Hashtable>>(); // holds the points each town possesses before
 			// transformation into territory lists.
+			ArrayList<Town> towns = new ArrayList<Town>();
 			for(Town t: towns()) {
+				towns.add(t);
+			
+			}
+			Player Id = God.getPlayer(5);
+			for(Town t: Id.towns()) {
+				if(t.isResourceOutcropping()&&t.getLord()!=null&&t.getLord().ID==ID) towns.add(t);
+			}
+			// now we add any ROs we're at.
+			for(Town t: towns) {
 				// so first we add influence.
-				t.setInfluence(t.getInfluence()+t.getPlayer().getPs().b.getCSL(t.townID));
-				
-				// now we calculate to see what the max block this guy should have is.
-				
-				double maxR =Math.sqrt(t.getInfluence()/10.0)/2.5;
-			//	System.out.println("t " + t.getTownName() + " infl is " +t.getInfluence() + " maxR is " + maxR);
-				/*
-				 * 10(2.5r)^2
-				 * Now we need to figure out the "boundaries" of the parcel. What I suggest is starting with the point -maxR,maxR
-				 * relative to the town, and scanning down the square, picking up everything that is within a distance maxR of the
-				 * town. So we carve a circle out and store the points in like an arraylist.
-				 */
-				ArrayList<Hashtable> points = new ArrayList<Hashtable>();
-				Hashtable pt;
-			//	System.out.println("maxR is " + maxR + " for " + t.getTownName());
-				int startX = t.getX()-(int) Math.ceil(maxR);
-				while(startX<=t.getX()+maxR) {
-					int startY = t.getY()+(int) Math.ceil(maxR);
-					while(startY>=t.getY()-maxR) {
-					//	System.out.println("Looking into " + startX+ "," + startY);
-
-						double dist = Math.sqrt(Math.pow((t.getX()-startX),2)+Math.pow((t.getY()-startY),2));
-					//	System.out.println("Trying " + startX + "," + startY + ", who's dist is " + dist + " tx is " + t.getX() + " ty is " + t.getY() 
-						//		+ " diff in x is " + (t.getX()-startX)+" diff in y is " + (t.getY()-startY) + " pow in x is " + Math.pow((t.getX()-startX),2) + 
-							//	" pow in y is " +Math.pow((t.getY()-startY),2) );
-						if(dist<=maxR) {
-							pt = new Hashtable();
-							pt.put("x",(int)startX);
-							pt.put("y",(int) startY);
-						//	System.out.println("Adding "+ startX+","+startY + " to " + getUsername());
-							points.add(pt);
+					if(t.isResourceOutcropping()) {
+						if(t.getPlayer().getPs().b.getCS(t.townID)>0)
+							t.setInfluence(t.getInfluence()+t.getPlayer().getPs().b.getCS(t.townID)); // soldiers on it generate territory.
+						else {
+							t.setInfluence(t.getInfluence()-(int)Math.round(.5*t.getInfluence()));
+							if(t.getInfluence()<0||t.getInfluence()==1) t.setInfluence(0);
+							
 						}
-						startY--;
 					}
-					startX++;
-				}
-				
-				townPointLists.add(points);
+					else
+						t.setInfluence(t.getInfluence()+t.getPlayer().getPs().b.getCSL(t.townID));
+					
+					// now we calculate to see what the max block this guy should have is.
+					
+					double maxR =Math.sqrt(t.getInfluence()/10.0)/2.5;
+				//	System.out.println("t " + t.getTownName() + " infl is " +t.getInfluence() + " maxR is " + maxR);
+					/*
+					 * 10(2.5r)^2
+					 * Now we need to figure out the "boundaries" of the parcel. What I suggest is starting with the point -maxR,maxR
+					 * relative to the town, and scanning down the square, picking up everything that is within a distance maxR of the
+					 * town. So we carve a circle out and store the points in like an arraylist.
+					 */
+					ArrayList<Hashtable> points = new ArrayList<Hashtable>();
+					Hashtable pt;
+				//	System.out.println("maxR is " + maxR + " for " + t.getTownName());
+					int startX = t.getX()-(int) Math.ceil(maxR);
+					while(startX<=t.getX()+maxR) {
+						int startY = t.getY()+(int) Math.ceil(maxR);
+						while(startY>=t.getY()-maxR) {
+						//	System.out.println("Looking into " + startX+ "," + startY);
+	
+							double dist = Math.sqrt(Math.pow((t.getX()-startX),2)+Math.pow((t.getY()-startY),2));
+						//	System.out.println("Trying " + startX + "," + startY + ", who's dist is " + dist + " tx is " + t.getX() + " ty is " + t.getY() 
+							//		+ " diff in x is " + (t.getX()-startX)+" diff in y is " + (t.getY()-startY) + " pow in x is " + Math.pow((t.getX()-startX),2) + 
+								//	" pow in y is " +Math.pow((t.getY()-startY),2) );
+							if(dist<=maxR) {
+								pt = new Hashtable();
+								pt.put("x",(int)startX);
+								pt.put("y",(int) startY);
+							//	System.out.println("Adding "+ startX+","+startY + " to " + getUsername());
+								points.add(pt);
+							}
+							startY--;
+						}
+						startX++;
+					}
+					
+					townPointLists.add(points);
 				
 				
 				
@@ -1139,10 +1148,11 @@ public class Player  {
 						getTerritories().add(returnTerritory(points,this));
 					}
 				}
-				checkForNewlyVassaledTowns();  // Id cannot have towns vassaled.
+				checkForNewlyVassaledTowns();
 				checkLordQualifications();
 	 	}	 else {
 	 		if(getTerritories()==null) setTerritories(new ArrayList<Hashtable>()); // Id has an empty hashtable.
+	 		checkForNewlyVassaledTowns(); // Id can lose ROs to people just by nature of them having territories there.
 	 	}
 				
 			}
@@ -1216,7 +1226,7 @@ public class Player  {
 				if(weeks<1) canVassal=false; // possible safe measure to keep from vassaldom.
 			 }
 			 if(possibleLords.size()>=1)
-			 System.out.println("I am " + getUsername() + " and I am concerned that " + possibleLords.get(0).getUsername() + " will own me soon. They own " + ((double) possibleLordTownsOwned.get(0))/(((double) towns().size())));
+		///	 System.out.println("I am " + getUsername() + " and I am concerned that " + possibleLords.get(0).getUsername() + " will own me soon. They own " + ((double) possibleLordTownsOwned.get(0))/(((double) towns().size())));
 			 if(canVassal) {
 				  int i = 0;
 				 while(i<possibleLordTownsOwned.size()) {
@@ -1310,6 +1320,7 @@ public class Player  {
 		  * This function checks to see if any of your towns are not in your territories. If they are not in your territories
 		  * and are not yet "vassaled" to someone else with a counter set, then they get that shit.
 		  */
+		 Hashtable[] r=null;
 		 for(Town t: towns()) {
 			 if(ID!=5||(ID==5&&t.isResourceOutcropping())) {
 				 boolean found=false;
@@ -1325,13 +1336,14 @@ public class Player  {
 				 }
 				 if(!found) {
 					 
-					
-						Hashtable[] r = (Hashtable[]) getPs().b.getWorldMap().get("territoryArray");
+					 	if(r==null) // saves memory to only call this badboy once.
+						 r = (Hashtable[]) getPs().b.getWorldMap().get("territoryArray");
 						
 						// Presumably, the world map will gather territories that matter and send them down!
 						// If we just go straight by player, we will have to analyze each territory, ALL of them.
 						// GetWorldMAP has the ability to sort through territories of relevance and return ONLY those.
-						
+						 boolean foundNobody=true;
+
 						for(Hashtable h:r) {
 							
 							Hashtable[] theirPoints = (Hashtable[]) h.get("points"); // get the point format, but this is a copy of the actual storage.
@@ -1350,55 +1362,78 @@ public class Player  {
 									if(owner.getLord()!=null) owner = owner.getLord(); // they goto your lord.
 									if(t.getLord()==null||(t.getLord()!=null&&t.getLord().ID!=owner.ID)) { // we only reset
 										// if you're a new lord, or t doesn't got one.
-									
-										if(ID==5)
-											owner.makeWallPost("","Resource Outcropping Acquired!","The resource outcropping " + t.getTownName() + " has just fallen under my influence in Steampunk Wars!",
+										
+										boolean outcroppingHasSoldiersPresent=false;
+										if(t.isResourceOutcropping())
+											for(AttackUnit a: t.getAu()) {
+												if(a.getSupport()>0&&a.getSize()>0&&a.getOriginalPlayer().ID!=owner.ID){
+													outcroppingHasSoldiersPresent=true; // soldiers trump territory, so engulfing it doesn't vassal it.
+													break;
+												}
+											}
+										if(!outcroppingHasSoldiersPresent) { // taking an outcropping via territorial overlap is worth talking about.
+											if(ID==5)
+												owner.makeWallPost("","Resource Outcropping Acquired!","The resource outcropping " + t.getTownName() + " has just fallen under my influence in Steampunk Wars!",
+														"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+														"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+														"Play Now!","http://www.steampunkwars.com/");
+											else
+											owner.makeWallPost("","Territory Conquered!",getUsername()+"'s town " + t.getTownName() + " has just fallen under my influence in Steampunk Wars!",
 													"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
 													"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
 													"Play Now!","http://www.steampunkwars.com/");
-										else
-										owner.makeWallPost("","Territory Conquered!",getUsername()+"'s town " + t.getTownName() + " has just fallen under my influence in Steampunk Wars!",
-												"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
-												"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
-												"Play Now!","http://www.steampunkwars.com/");
-										if(ID!=5)
-										makeWallPost("","Territory Conquered!","My town " + t.getTownName() + " has just fallen under " + owner.getUsername() + "'s influence in Steampunk Wars!",
-												"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
-												"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
-												"Play Now!","http://www.steampunkwars.com/");
-										// presumably this is also called if they just got online, so it's possible
-										// that they already have a timer set up.
-									//	System.out.println(t.getTownName() + " was just lorded to " + owner.getUsername());
-											t.setLord(owner);
-											t.setVassalFrom(new Timestamp((new Date()).getTime()));
+											if(ID!=5)
+											makeWallPost("","Territory Conquered!","My town " + t.getTownName() + " has just fallen under " + owner.getUsername() + "'s influence in Steampunk Wars!",
+													"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+													"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+													"Play Now!","http://www.steampunkwars.com/");
+											// presumably this is also called if they just got online, so it's possible
+											// that they already have a timer set up.
+										//	System.out.println(t.getTownName() + " was just lorded to " + owner.getUsername());
+												t.setLord(owner);
+												t.setVassalFrom(new Timestamp((new Date()).getTime()));
+										}
 									}
+									foundNobody=false; // this is set to false, because somebody was found who has a right to own this place.
 								}
 	
 							}
-							
+							// well holy shit, NOBODY WAS ABLE TO CLAIM THIS PLACE! now it's up for keeps for Id again. This means
+							// the player left with his troops and the influence dropped past the point that he had a territory.
+							if(foundNobody&&ID==5) {
+								// well now we need to see if there is anybody present.
+								if(getPs().b.getCS(t.townID)==0) {
+									//ah, nope, this town is lost.
+									// This sort of thing happens a lot, not worth FBing.
+
+								/*		 t.getLord().makeWallPost("","Resource Outcropping Lost!","The Resource Outcropping " + t.getTownName() + " has fallen outside my influence.... for now.",
+													"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+													"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+													"Play Now!","http://www.steampunkwars.com/"); */
+										 t.setLord(null);
+										t.setVassalFrom(new Timestamp((new Date()).getTime()));
+								}
+							}
 							
 							
 						}
 				 } else if(found&&t.getLord()!=null) {
 					 // so now it's under it's own power again, but there is still a lord - RESET!
 					// this happens whether you belong to the person who just owned you, or to their lord.
-					 if(ID==5)
-						 t.getLord().makeWallPost("","Resource Outcropping Lost!","The Resource Outcropping " + t.getTownName() + " has fallen outside my influence.... for now.",
+					 // if you're Id, you would never have territories to reach this point.
+					
+						
+						 t.getLord().makeWallPost("","Territory Freed!",getUsername()+"'s town has freed itself from my influence.... for now.",
 									"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
 									"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
-									"Play Now!","http://www.steampunkwars.com/"); 
-					 else
-					 t.getLord().makeWallPost("","Territory Freed!",getUsername()+"'s town has freed itself from my influence.... for now.",
-								"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
-								"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
-								"Play Now!","http://www.steampunkwars.com/");
-					 makeWallPost("","Territory Freed!","The people of my town are free from "+t.getLord().getUsername()+"'s tyranny!",
-								"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
-								"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
-								"Play Now!","http://www.steampunkwars.com/");
-						 t.setLord(null);
-						t.setVassalFrom(new Timestamp((new Date()).getTime()));
-	
+									"Play Now!","http://www.steampunkwars.com/");
+						 makeWallPost("","Territory Freed!","The people of my town are free from "+t.getLord().getUsername()+"'s tyranny!",
+									"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+									"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+									"Play Now!","http://www.steampunkwars.com/");
+							 t.setLord(null);
+							t.setVassalFrom(new Timestamp((new Date()).getTime()));
+					 
 				 }
 			 }
 		 }
@@ -1972,13 +2007,13 @@ public class Player  {
 	    		currSRs.add(new UserSR(currSID,rs.getString(4),rs.getString(5),rs.getString(6),rs.getString(7),rs.getString(8),
 	    				rs.getString(9),rs.getString(38),rs.getString(39),rs.getBoolean(10),rs.getBoolean(11),rs.getBoolean(51),defender,rs.getInt(18),rs.getInt(19),
 	    				rs.getInt(20),rs.getInt(21),rs.getInt(22),rs.getBoolean(23),rs.getBoolean(24),rs.getInt(25),rs.getBoolean(26),rs.getString(28),rs.getString(29),rs.getString(30),rs.getInt(31),rs.getBoolean(32),rs.getBoolean(33),rs.getInt(34),rs.getInt(35),rs.getInt(36),rs.getInt(37),rs.getString(40),
-	    				rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49),rs.getString(50)));
+	    				rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49),rs.getString(50),rs.getBoolean(53)));
 	    		else { 
 	    			bname = new String[1]; bname[0]= "null";
 	    			UserSR SR = new UserSR(currSID,rs.getString(4),rs.getString(5),"","",rs.getString(8),"",rs.getString(38),rs.getString(39),
 		    				false,rs.getBoolean(11),rs.getBoolean(51),defender,rs.getInt(18),rs.getInt(19),
 		    				rs.getInt(20),rs.getInt(21),rs.getInt(22),rs.getBoolean(23),rs.getBoolean(24),rs.getInt(25),rs.getBoolean(26),rs.getString(28),rs.getString(29),rs.getString(30),rs.getInt(31),rs.getBoolean(32),rs.getBoolean(33),rs.getInt(34),rs.getInt(35),rs.getInt(36),rs.getInt(37),rs.getString(40)
-		    				,rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49),rs.getString(50));
+		    				,rs.getInt(41),rs.getInt(42),rs.getInt(43),rs.getInt(44),rs.getBoolean(45),rs.getBoolean(46),rs.getBoolean(47),rs.getBoolean(48),rs.getBoolean(49),rs.getString(50),rs.getBoolean(53));
 	    			currSRs.add(SR);
 	    			SR.support=true;
 	    			

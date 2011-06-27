@@ -1,5 +1,6 @@
 package BattlehardFunctions;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 
@@ -7,7 +8,7 @@ public class UserRaid {
 	private String town1; private int x1; private int y1; 
 	private String town2; private int x2; private int y2; private int auAmts[]; private String auNames[];
 	private String raidType;
-	private boolean raidOver; private double ticksToHit;
+	private boolean raidOver; private double ticksToHit; private Timestamp dockingFinished;
 	private double distance; private long res[];
 	private UUID id;
 	private int tid1,tid2;
@@ -20,10 +21,11 @@ public class UserRaid {
 	private boolean allClear = false;
 	private int totalTicks=0;
 	public UserRaid(UUID id, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, String[] bombTarget,
-			int tid1,int tid2,String name, int genoRounds, boolean bomb, boolean debris, int digAmt) {
+			int tid1,int tid2,String name, int genoRounds, boolean bomb, boolean debris, int digAmt, Timestamp dockingFinished) {
 		this.town1=town1;this.town2=town2; this.x1=x1;this.y1=y1;
 		this.genoRounds=genoRounds;
 		this.digAmt=digAmt;
+		this.dockingFinished=dockingFinished;
 		this.bomb=bomb;
 		this.x2=x2;this.y2=y2;this.auAmts=auAmts;this.auNames=auNames;
 		this.raidType=raidType;
@@ -166,5 +168,11 @@ public class UserRaid {
 	}
 	public String[] getBombTargets() {
 		return bombTargets;
+	}
+	public void setDockingFinished(Timestamp dockingFinished) {
+		this.dockingFinished = dockingFinished;
+	}
+	public Timestamp getDockingFinished() {
+		return dockingFinished;
 	}
 }

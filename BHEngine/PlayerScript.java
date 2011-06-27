@@ -1751,6 +1751,8 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 .value(raid.id().toString())
     			 .key("name")
     			 .value(raid.name())
+    			 .key("dockingFinished")
+    			 .value(raid.getDockingFinished().toString())
     			 .key("header")
     			 .value(raid.toString())
     			 .key("raidType")

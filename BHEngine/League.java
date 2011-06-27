@@ -250,10 +250,16 @@ public class League extends Player {
 					if(p!=null) {
 						ptowns = p.towns();
 						checkForLeagueReference(p);
+						
+						
 					while(y<ptowns.size()) {
 						
 						t = ptowns.get(y);
+						
+						// so that we make sure we have exact rates.
 						tresInc=t.getResInc();
+						// that no resources are taken from the outcropping by this league, but that
+						// his resources are taken properly.
 						 tresEffects=t.getResEffects();
 						 newIncs = God.Maelstrom.getResEffects(tresInc,t.getX(),t.getY());
 						
@@ -264,7 +270,8 @@ public class League extends Player {
 					//	System.out.println("The internalclock is " + getLeagueInternalClock() + ". The tax rate is " + curr.taxRate + " for user " + curr.player.getUsername() + " from their town of " + t.getTownName() + ". The resInc is " + tresInc[j] + " and I am adding"  +
 						//		multiplier*num*newIncs[j]*(tresEffects[j]+1)*curr.taxRate*((double)(resCaps[j]+Building.baseResourceAmt-res[j])/(totalOpenSpace[j]))  + " because the difference is " + 
 							//	((double)(resCaps[j]+Building.baseResourceAmt-res[j])) + " and the open space is " + totalOpenSpace[j] + ", num: "+ num+ ", mult: "+  multiplier +", newIncs: " + newIncs[j]);
-						
+							
+							
 						 resBuff[j]+=multiplier*num*newIncs[j]*(tresEffects[j]+1)*curr.taxRate*((double)(resCaps[j]+Building.baseResourceAmt-res[j])/(totalOpenSpace[j]));
 						 }
 						 y++;

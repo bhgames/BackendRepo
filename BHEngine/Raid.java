@@ -7,7 +7,9 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.UUID;
 
 import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
@@ -20,6 +22,7 @@ public class Raid {
 		private boolean allClear = false; private long metal, timber, manmat, food;
 	private ArrayList<AttackUnit> au;
 	private UUID id;
+	private Timestamp dockingFinished;
 	private double distance; private UUID resupplyID; // for resupply runs.
 	private int ticksToHit; private Town town2; private Town town1; private boolean raidOver;
 	private boolean debris; private int digAmt;
@@ -81,11 +84,12 @@ public class Raid {
 	}
 	
 	public void setRaidValues(int raidID, double distance, int ticksToHit, Town town1, Town town2, boolean Genocide,boolean allClear,
-			int metal, int timber, int manmat, int food,boolean raidOver, boolean Bomb, boolean invade, int totalTicks,String name,int genoRounds, boolean debris, int digAmt, UUID id) {
+			int metal, int timber, int manmat, int food,boolean raidOver, boolean Bomb, boolean invade, int totalTicks,String name,int genoRounds, boolean debris, int digAmt, UUID id, Timestamp dockingFinished) {
 
 					this.distance=distance; this.ticksToHit=ticksToHit; this.town1=town1;
 					this.town2=town2; this.Genocide=Genocide; this.allClear=allClear;
 					this.metal=metal;this.timber=timber;this.manmat=manmat;this.food=food;
+					this.dockingFinished=dockingFinished;
 					this.setDebris(debris);
 					this.raidOver=raidOver;this.Bomb=Bomb;this.invade=invade;
 					this.totalTicks=totalTicks;this.name=name;this.genoRounds=genoRounds; this.digAmt=digAmt;
@@ -118,7 +122,7 @@ public class Raid {
 			int y = 0;
 		
 			 setRaidValues(rrs.getInt(3),rrs.getDouble(4),rrs.getInt(5),town1,town2Obj,rrs.getBoolean(6),
-					rrs.getBoolean(8), rrs.getInt(9),rrs.getInt(10),rrs.getInt(11),rrs.getInt(12),rrs.getBoolean(7), rrs.getBoolean(19),rrs.getBoolean(23),rrs.getInt(25),rrs.getString(26),rrs.getInt(27),rrs.getBoolean(28),rrs.getInt(29),UUID.fromString(rrs.getString(31))); // this one has no sql addition!
+					rrs.getBoolean(8), rrs.getInt(9),rrs.getInt(10),rrs.getInt(11),rrs.getInt(12),rrs.getBoolean(7), rrs.getBoolean(19),rrs.getBoolean(23),rrs.getInt(25),rrs.getString(26),rrs.getInt(27),rrs.getBoolean(28),rrs.getInt(29),UUID.fromString(rrs.getString(31)),new Timestamp((new Date(rrs.getString(32))).getTime())); // this one has no sql addition!
 			getAu();
 					
 			if(rrs.getBoolean(19)) bombTarget=PlayerScript.decodeStringIntoStringArray(rrs.getString(20));
@@ -717,7 +721,7 @@ public class Raid {
 	
 	synchronized public void save() {
    		  try {
-   			  UberPreparedStatement stmt = con.createStatement("update raid set distance = ?, ticksToHit = ?, genocide = ?, raidOver = ?, allClear = ?, m = ?, t = ?, mm = ?, f = ?, auSizes=?, bomb = ?, bombtarget = ?, support = ?, scout = ?, invade = ?, resupplyID = ?, totalTicks = ? where id = ?;");
+   			  UberPreparedStatement stmt = con.createStatement("update raid set distance = ?, ticksToHit = ?, genocide = ?, raidOver = ?, allClear = ?, m = ?, t = ?, mm = ?, f = ?, auSizes=?, bomb = ?, bombtarget = ?, support = ?, scout = ?, invade = ?, resupplyID = ?, totalTicks = ?, dockingFinished = ? where id = ?;");
    	   		  ArrayList<AttackUnit> au = getAu();
    	   		
    	   		  stmt.setDouble(1,distance);
@@ -739,8 +743,10 @@ public class Raid {
    	   		  stmt.setString(16,resupplyID.toString());
    	   		  else stmt.setString(16,"none");
    	   		  stmt.setInt(17,totalTicks);
-   	   		  stmt.setString(18,id.toString());
-   		  
+   	   		  if(getDockingFinished()!=null)
+			 stmt.setString(18,getDockingFinished().toString());
+			 else stmt.setString(18,"2011-01-01 00:00:01");
+   	   		  stmt.setString(19,id.toString());
    		  stmt.executeUpdate();
    		  
    		/*  int k = 6;
@@ -861,6 +867,12 @@ public class Raid {
 	}
 	public UUID getId() {
 		return id;
+	}
+	public void setDockingFinished(Timestamp dockingFinished) {
+		this.dockingFinished = dockingFinished;
+	}
+	public Timestamp getDockingFinished() {
+		return dockingFinished;
 	}
 	
 	
