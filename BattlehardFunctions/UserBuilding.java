@@ -1,5 +1,7 @@
 package BattlehardFunctions;
 
+import java.util.UUID;
+
 import BHEngine.Building;
 
 
@@ -9,7 +11,7 @@ public class UserBuilding {
 	String desc;
 	  private int lvl; private long cap; private int lotNum; private long cost[] = new long[5];
 	private int ticksToFinish, ticksToFinishTotal; private int peopleInside; // used to determine time to level up/build.
-private int bid;
+private UUID id;
 private int refuelTicks; private int fortArray[];
 //private	int ticksPerUnit[] = new int[6]; // for combat units ONLY.
 //private	int ticksLeftPerUnit[] = new int[6]; // for combat units ONLY.
@@ -27,14 +29,14 @@ private static int resourceAmt = 600; // increase this to get an increase in
 // then level ups cannot happen anymore.
 private static int baseResourceAmt = 1000;
 
-	public UserBuilding(UserQueueItem[] queue, int bid, int bunkerMode,
+	public UserBuilding(UserQueueItem[] queue, UUID id, int bunkerMode,
 		long cap, long[] cost, boolean deconstruct, int lotNum,
 		int lvl, int lvlUps, int numLeftToBuild,
 		int peopleInside, int ticksLeft, int ticksPerPerson,
 		int ticksToFinish, int ticksToFinishTotal, String type, int refuelTicks, int[] fortArray) {
 	
 	Queue = queue;
-	this.bid = bid;
+	this.id = id;
 	this.bunkerMode = bunkerMode;
 	this.cap = cap;
 	this.cost = cost;
@@ -77,8 +79,8 @@ private static int baseResourceAmt = 1000;
 		return peopleInside;
 	}
 
-	public int getBid() {
-		return bid;
+	public UUID getId() {
+		return id;
 	}
 
 	public UserQueueItem[] getQueue() {

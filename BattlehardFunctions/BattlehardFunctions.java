@@ -2834,7 +2834,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		i=0;
 		while(i<lvl) {
 			int j = 0;
-			while(j<basecost.length) {
+			while(j<cost.length) {
 				cost[j]+=basecost[j]*Math.pow(i+1,2+.03*(i+1));
 				j++;
 			}
@@ -2889,7 +2889,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		 double additive;
 		Town t = g.findTown(townName,p);
 		if(t.getPlayer().ID!=p.ID) return null;
-		int bid = 0;
+		UUID bid = null;
 		/*try {
 			UberStatement stmt = g.con.createStatement();
 			ResultSet rs = stmt.executeQuery("select bid from bldg where tid = " + t.townID + " and slot = "+ lotNum);
@@ -2900,10 +2900,10 @@ public long[] returnPrice(int lotNum, int tid) {
 		
 		int i = 0; ArrayList<Building> bldg = t.bldg();
 		while(i<bldg.size()) {
-			if(bldg.get(i).getLotNum()==lotNum) {bid = bldg.get(i).bid; break; }
+			if(bldg.get(i).getLotNum()==lotNum) {bid = bldg.get(i).getId(); break; }
 			i++;
 		}
-		if(bid==0) return null;
+		if(bid==null) return null;
 				UserBuilding b = getUserBuilding(bid);
 		
 						int k = 0;
@@ -3262,7 +3262,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * Cancel queue item identified by it's qid in an military production facility identified
 	 * by it's lotNum in a town specified by it's town id, tid.
 	 */
-	public boolean cancelQueueItem(int qid, int lotNum, int tid ) {
+	public boolean cancelQueueItem(UUID qid, int lotNum, int tid ) {
 		if(prog&&!p.isBuildingAPI()) {
 			setError("You do not have the Advanced Building API!");
 			return false;
@@ -3278,7 +3278,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 * Cancel queue item identified by it's qid in a military production facility identified
 		 * by it's lotNum in a town specified by it's townName.
 		 */
-	public boolean cancelQueueItem(int qid, int lotNum,String townName) {
+	public boolean cancelQueueItem(UUID qid, int lotNum,String townName) {
 		if(prog&&!p.isBuildingAPI()) {
 			setError("You do not have the Advanced Building API!");
 			return false;
@@ -3293,7 +3293,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 int i = 0;
 			if(!checkMP(holdT.townID)) return false;
 
-			int bid = 0;
+			UUID bid = null;
 			/*
 			try {
 				UberStatement stmt = g.con.createStatement();
@@ -3304,10 +3304,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			} catch(SQLException exc) { exc.printStackTrace(); }*/
 			ArrayList<Building> bldg = holdT.bldg();
 			while(i<bldg.size()) {
-				if(bldg.get(i).getLotNum()==lotNum) {bid = bldg.get(i).bid; break; }
+				if(bldg.get(i).getLotNum()==lotNum) {bid = bldg.get(i).getId(); break; }
 				i++;
 			}
-			if(bid==0) {
+			if(bid==null) {
 				setError("Invalid building lot!");
 				return false;
 			}
@@ -3319,7 +3319,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		long res[] = holdT.getRes();
 		while(i<queue.length) {
 			 q = queue[i];
-			if(q.getQid()==qid&&i!=0) { 
+			if(q.getId().equals(qid)&&i!=0) { 
 				int j = 0;
 				long cost[] = q.getCost();
 				synchronized(res) {
@@ -3330,7 +3330,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				}
 				QueueItem qu = b.findQueueItem(qid);
 				qu.deleteMe(); found = true; break; }
-			else if(q.getQid()==qid&&i==0) {
+			else if(q.getId().equals(qid)&&i==0) {
 
 				// this means shit has been building and we need to figure out what's
 				// left and then find the price for that given the starting
@@ -3462,7 +3462,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					// Like gone, done, deaderoo, holy crap we just lost one. etc. etc.
 					// Let's do the dirty work!
 					
-					if(b.getLvl()==0) holdT.killBuilding(b.bid);
+					if(b.getLvl()==0) holdT.killBuilding(b.getId());
 					
 				} else b.setLvlUps(lvlUps - 1);
 				
@@ -3661,7 +3661,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 		int slotsSpent = 0;
 		
-		int bid = 0;
+		UUID bid = null;
 	/*	try {
 			UberStatement stmt = g.con.createStatement();
 			ResultSet rs = stmt.executeQuery("select sum(lvlUp) from bldg where tid = " + holdT.townID + ";");
@@ -3677,15 +3677,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		ArrayList<Building> bldg = holdT.bldg();
 		while(i<bldg.size()) {
 			slotsSpent+=bldg.get(i).getLvlUps();
-			if(bldg.get(i).getLotNum()==lotNum) {bid = bldg.get(i).bid; }
+			if(bldg.get(i).getLotNum()==lotNum) {bid = bldg.get(i).getId(); }
 			i++;
 		}
 	if(slotsSpent>=p.getConstructionResearch()) {
-		setError("Need more building slots! Research them.");
+		setError("Need more construction research! Research it.");
 		return false; // simple. effective.
 	}
 	
-	if(bid==0) { 
+	if(bid==null) { 
 		setError("Bad building lot!"); return false;
 	}
 	boolean keep=false;
@@ -3717,10 +3717,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 			b.setDeconstruct(true); // use the real thing for this.
 			
-			 levelUp(b.getLotNum(),holdT.getTownName());
-				notifyViewer();
+			 if(levelUp(b.getLotNum(),holdT.getTownName()))  {
+				 notifyViewer();
+				 return true;			
 
-		return true;
+			 } else return false;
+
 		
 	}
 	/**
@@ -4172,7 +4174,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		 if(!checkMP(holdT.townID)) return false;
 		 if(holdT.getPlayer().ID!=p.ID) { setError("Not your town!"); return false; }
-			int bid = 0;
+			UUID bid = null;
 			/*try {
 				UberStatement stmt = g.con.createStatement();
 				ResultSet rs = stmt.executeQuery("select bid from bldg where tid = " + holdT.townID + " and slot = "+ lotNum);
@@ -4183,11 +4185,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			int i = 0;
 			ArrayList<Building> bldg = holdT.bldg();
 			while(i<bldg.size()) {
-				if(bldg.get(i).getLotNum()==lotNum) {bid = bldg.get(i).bid; break; }
+				if(bldg.get(i).getLotNum()==lotNum) {bid = bldg.get(i).getId(); break; }
 				i++;
 			}
 			
-			if(bid==0) { setError("Bad building lot!"); return false; }
+			if(bid==null) { setError("Bad building lot!"); return false; }
 				ArrayList<AttackUnit> AU = p.getAu();
 				boolean keep = false;
 				if(prog) keep=true;
@@ -4716,7 +4718,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						prog=false;
 						ArrayList<AttackUnit> theAU = p.getAu();
 
-						UserQueueItem[] que = getUserQueueItems(b.bid);
+						UserQueueItem[] que = getUserQueueItems(b.getId());
 						if(keep) prog = true;
 						  k = 0; int totalQueued=0;	
 						 while(k<que.length) {
@@ -4889,7 +4891,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 	
 		if(zeroes&&((!attackType.equals("dig")&&!attackType.equals("excavation"))
-				||(holdNumbers[holdNumbers.length-1]==0&&attackType.equals("dig")||attackType.equals("excavation")))) {
+				||(holdNumbers[holdNumbers.length-1]==0&&(attackType.equals("dig")||attackType.equals("excavation"))))) {
 			setError("Can't send an empty raid.");
 			return false; // not sending a raid of nada.
 		}
@@ -5230,7 +5232,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 		
 		if(zeroes&&((!attackType.equals("dig")&&!attackType.equals("excavation"))
-				||(holdNumbers[holdNumbers.length-1]==0&&attackType.equals("dig")||attackType.equals("excavation")))) {
+				||(holdNumbers[holdNumbers.length-1]==0&&(attackType.equals("dig")||attackType.equals("excavation"))))) {
 			setError("Can't send an empty raid.");
 			return false; // not sending a raid of nada.
 		}
@@ -5319,7 +5321,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			}
 			while(z<b.length) {
 				bl = b[z];
-				 actb = t1.findBuilding(bl.getBid());
+				 actb = t1.findBuilding(bl.getId());
 				if(actb.getPeopleInside()>digToTake-digAmt) {
 					actb.setPeopleInside(actb.getPeopleInside()-(digToTake-digAmt));
 					digAmt+=(digToTake-digAmt);
@@ -5499,6 +5501,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		k=0;
 		Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, Town2, Genocide, Bomb,support,invade,name,debris,au,digAmt); // digAmt may not be the requirement,
 		// but it'll always be zero if dig isn't on!
+		
 		if(Bomb) holdAttack.setBombTarget(target);
 		else holdAttack.setBombTarget(new String[0]);
 		if(scout==1) holdAttack.makeScoutRun(); // never going to be a bomb+scout run.
@@ -5671,7 +5674,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		double totalsize=0;
 		int k = 0;
 		ArrayList<AttackUnit> au = t.getAu();
-		while(k<holdNumbers.length) {
+		while(k<au.size()) {
 			hau = au.get(k);
 			 holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getTrueSpeed(t.getPlayer()));
 			 totalsize+=(holdNumbers[k]*hau.getExpmod());
@@ -6741,7 +6744,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			if(!checkMP(holdT.townID)) return false;
 
 			int slotsSpent = 0;
-			int bid = 0;
+			UUID bid = null;
 			int lvl = 0; int lvlUp =0;
 			boolean deconstruct=false;
 			String name = null;
@@ -6773,8 +6776,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			if(b==null) { setError("Invalid lotNum!"); return false; }
 			
-			bid = b.bid; deconstruct = b.isDeconstruct(); lvl = b.getLvl(); lvlUp = b.getLvlUps(); name = b.getType();
-			if(lvl+lvlUp+1>highLvl+2&&!b.getType().equals("Command Center")) {
+			bid = b.getId(); deconstruct = b.isDeconstruct(); lvl = b.getLvl(); lvlUp = b.getLvlUps(); name = b.getType();
+			if(lvl+lvlUp+1>highLvl+2&&!b.getType().equals("Command Center")&&!b.isDeconstruct()) {
 				setError("You cannot level a building greater than two levels above your highest command center level!");
 				return false;
 			}
@@ -6787,17 +6790,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							bldg.get(i).getType().equals("Granary")&&bldg.get(i).getLvl()>otherHighLvl) otherHighLvl=bldg.get(i).getLvl();
 					i++;
 				}
-				if(lvl+lvlUp+1>otherHighLvl) {
+				if(lvl+lvlUp+1>otherHighLvl&&!b.isDeconstruct()) {
 					setError("You cannot level a Storage Yard greater than your lowest level resource storage building level!");
 					return false;
 				}
 			}		
 			if((b.getType().equals("Foundry")||b.getType().equals("Sawmill")||b.getType().equals("Crystal Refinery")
-					||b.getType().equals("Hydroponics Bay"))&&(lvl+lvlUp+1)>20) {
+					||b.getType().equals("Hydroponics Bay"))&&(lvl+lvlUp+1)>20&&!b.isDeconstruct()) {
 				setError("You cannot level this building greater than level 20!");
 				return false;
 			}
-			bid = b.bid; deconstruct = b.isDeconstruct(); lvl = b.getLvl(); lvlUp = b.getLvlUps(); name = b.getType();
 			
 			
 			
@@ -6889,7 +6891,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		int i = 0;
 		int slotsSpent = 0;
-		int bid = 0;
+		UUID bid = null;
 		int lvl = 0; int lvlUp =0;
 		boolean deconstruct=false;
 		String name = null;
@@ -6922,7 +6924,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			if(b==null) { setError("Invalid lotNum!"); return false; }
 			
-			bid = b.bid; deconstruct = b.isDeconstruct(); lvl = b.getLvl(); lvlUp = b.getLvlUps(); name = b.getType();
+			bid = b.getId(); deconstruct = b.isDeconstruct(); lvl = b.getLvl(); lvlUp = b.getLvlUps(); name = b.getType();
 			if(lvl+lvlUp+1>highLvl+2&&!b.getType().equals("Command Center")) {
 				setError("You cannot level a building greater than two levels above your highest command center level!");
 				return false;
@@ -7009,7 +7011,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 			Town t = g.findTown(townID);
 			if(t.getPlayer().ID!=p.ID) { setError("Not your town!"); return -1; }
-			int bid = 0;
+			UUID bid = null;
 			/*
 			try {
 				UberStatement stmt = g.con.createStatement();
@@ -7021,11 +7023,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			int i = 0;
 			ArrayList<Building> bldg = t.bldg();
 			while(i<bldg.size()) {
-				if(bldg.get(i).getLotNum()==lotNum) {bid = bldg.get(i).bid; }
+				if(bldg.get(i).getLotNum()==lotNum) {bid = bldg.get(i).getId(); }
 				i++;
 			}
 			
-			if(bid==0) { setError("No building on this lot!"); return -1; }
+			if(bid==null) { setError("No building on this lot!"); return -1; }
 			Building b= t.findBuilding(bid);
 			return b.getTicksForLeveling(t.getTotalEngineers(),g.Maelstrom.getEngineerEffect(t.getX(),t.getY()),p.getArchitecture());
 			
@@ -7042,7 +7044,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 		Town t = g.findTown(townID);
 		if(t.getPlayer().ID!=p.ID) { setError("Not your town!"); return -1; }
-		int bid = 0;
+		UUID bid = null;
 		int ppl=0,lvl=0;
 		/*
 		try {
@@ -7063,7 +7065,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		while(i<bldg.size()) {
 			if(bldg.get(i).getLotNum()==lotNum) {
 				b = bldg.get(i);
-				bid = bldg.get(i).bid;
+				bid = bldg.get(i).getId();
 				ppl = bldg.get(i).getPeopleInside();
 				lvl = bldg.get(i).getLvl();
 				
@@ -7213,7 +7215,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					int k = 0;
 					boolean found=false; 
 					int lvl = 0;
-					int bid = 0;
+					UUID bid = null;
 					/*
 					try {
 						UberStatement stmt = g.con.createStatement();
@@ -7232,7 +7234,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							totalCap+=bldg.get(i).getCap();
 							currentlyBuilding+=bldg.get(i).getNumLeftToBuild();
 						}
-						if(bldg.get(i).getLotNum()==slot&&bldg.get(i).getType().equals("Command Center")) {bid = bldg.get(i).bid; lvl = bldg.get(i).getLvl(); }
+						if(bldg.get(i).getLotNum()==slot&&bldg.get(i).getType().equals("Command Center")) {bid = bldg.get(i).getId(); lvl = bldg.get(i).getLvl(); }
 						i++;
 					}
 					int maxNumber = totalCap-holdT.getTotalTraders()-currentlyBuilding; // this is the max amount that can be built
@@ -7437,7 +7439,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						// Don't add population here. It gets added by buildserver when they are actually
 						// built.
 						int lvl = 0;
-						int bid = 0;
+						UUID bid = null;
 						/*
 						try {
 							UberStatement stmt = g.con.createStatement();
@@ -7455,7 +7457,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 								totalCap+=bldg.get(i).getCap();
 								currentlyBuilding+=bldg.get(i).getNumLeftToBuild();
 							}
-							if(bldg.get(i).getLotNum()==lotNum&&bldg.get(i).getType().equals("Trade Center")) {bid = bldg.get(i).bid; lvl = bldg.get(i).getLvl(); }
+							if(bldg.get(i).getLotNum()==lotNum&&bldg.get(i).getType().equals("Trade Center")) {bid = bldg.get(i).getId(); lvl = bldg.get(i).getLvl(); }
 							i++;
 						}
 						int maxNumber = totalCap-holdT.getTotalTraders()-currentlyBuilding; // this is the max amount that can be built
@@ -7670,7 +7672,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 				  cost = returnPrice("Scholar",number,holdT.townID);
 				  int lvl = 0;
-					int bid = 0;
+					UUID bid = null;
 					/*try {
 						UberStatement stmt = g.con.createStatement();
 						ResultSet rs = stmt.executeQuery("select bid,lvl from bldg where tid = " + holdT.townID + " and slot = "+ lotNum + " and name = 'Institute'");
@@ -7688,7 +7690,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							totalCap+=bldg.get(i).getCap();
 							currentlyBuilding+=bldg.get(i).getNumLeftToBuild();
 						}
-						if(bldg.get(i).getLotNum()==lotNum&&bldg.get(i).getType().equals("Institute")) {bid = bldg.get(i).bid; lvl = bldg.get(i).getLvl(); }
+						if(bldg.get(i).getLotNum()==lotNum&&bldg.get(i).getType().equals("Institute")) {bid = bldg.get(i).getId(); lvl = bldg.get(i).getLvl(); }
 						i++;
 					}
 					int maxNumber = totalCap-holdT.getTotalTraders()-currentlyBuilding; // this is the max amount that can be built
@@ -9238,7 +9240,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			}else if(array[i].equals("clockworkComputers")) {
 				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.civEfficiencyPrice*Math.pow(2,(p.getClockworkComputers()/2))));
 
-				p.setArchitecture(p.getArchitecture() + 1);
+				p.setClockworkComputers(p.getClockworkComputers() + 1);
 			}else if(array[i].equals("constructionResearch")) {
 				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.constructionResearchPrice*Math.pow(2,(p.getConstructionResearch()/2))));
 
@@ -9473,7 +9475,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * @param bid - the unique building id of the Fortification.
 	 * @return
 	 */
-	public boolean setFortification(int auNumbers[], int bid) {
+	public boolean setFortification(int auNumbers[], UUID bid) {
 		if(prog&&!p.isBuildingAPI()) {
 			setError("You do not have the Building API!");
 			return false;
@@ -9536,7 +9538,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return UserBuilding.getBuildings();
 	}
 	
-	public UserBuilding getUserBuilding(int bid) {
+	public UserBuilding getUserBuilding(UUID bid) {
 		if(prog&&!p.isAdvancedBuildingAPI()) {
 			setError("You do not have the Advanced Building API!");
 			return null;
@@ -9551,7 +9553,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		ArrayList<Building> bldg = towns.get(k).bldg();
 		i=0;
 			while(i<bldg.size()) {
-				if(bldg.get(i).bid==bid) {t = towns.get(k);
+				if(bldg.get(i).getId().equals(bid)) {t = towns.get(k);
 				if(!checkMP(t.townID)) return null;
 				actb = bldg.get(i); }
 				i++;
@@ -9569,7 +9571,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		if(name.contains("Warehouse"))mineBldg=true;
 		int lvl = actb.getLvl();
 		int ppl = actb.getPeopleInside();
-		 bid = actb.bid;
+		 bid = actb.getId();
 
 		 b = new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),Building.getCap(lvl,mineBldg),
 			Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,
@@ -9666,7 +9668,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		int lvl = actb.getLvl();
 		int ppl = actb.getPeopleInside();
-		int  bid = actb.bid;
+		UUID  bid = actb.getId();
 
 		 tses.add(new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),Building.getCap(lvl,mineBldg),
 			Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,
@@ -9744,7 +9746,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		if(name.contains("Warehouse"))mineBldg=true;
 		int lvl = actb.getLvl();
 		int ppl = actb.getPeopleInside();
-		int  bid = actb.bid;
+		UUID  bid = actb.getId();
 
 		 tses.add(new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),Building.getCap(lvl,mineBldg),
 			Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,
@@ -9804,7 +9806,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * Returns an array of UserQueueItem objects from the building id.
 	 */
 	
-	public UserQueueItem[] getUserQueueItems(int bid) {
+	public UserQueueItem[] getUserQueueItems(UUID bid) {
 		if(prog&&!p.isAdvancedBuildingAPI()) {
 			setError("You do not have the Advanced Building API!");
 			return null;
@@ -9820,7 +9822,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		ArrayList<Building> bldg = towns.get(k).bldg();
 		i=0;
 			while(i<bldg.size()) {
-				if(bldg.get(i).bid==bid) {t = towns.get(k);
+				if(bldg.get(i).getId().equals(bid)) {t = towns.get(k);
 				if(!checkMP(t.townID)) return null;
 				actb = bldg.get(i); }
 				i++;
@@ -9845,7 +9847,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				k++;
 			}
 			//	public UserQueueItem(int qid, int bid, int AUtoBuild, int AUNumber, int currTicks, int ticksPerUnit, long cost[],int townsAtTime, int originalAUAmt, int totalNumber) {
-			tses.add(new UserQueueItem(q.qid,actb.bid,q.getAUtoBuild(),q.getAUNumber(), q.getCurrTicks(), q.getTicksPerUnit(), cost,q.getTownsAtTime(),q.getOriginalAUAmt(),q.getTotalNumber()));
+			tses.add(new UserQueueItem(q.getId(),actb.getId(),q.getAUtoBuild(),q.getAUNumber(), q.getCurrTicks(), q.getTicksPerUnit(), cost,q.getTownsAtTime(),q.getOriginalAUAmt(),q.getTotalNumber()));
 			i++;
 		}
 		
@@ -9987,6 +9989,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						// SuggestTitleVideoId
 						ie++;
 					}
+					totalCheckedSize+=r.getDigAmt();
 					if(totalCheckedSize==0) {
 						// this means we called getAu() for the first time before the au statements got to update and put
 						// the units into the raid!
@@ -10005,10 +10008,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 						k++;
 					}
+					
+					Timestamp dfin;
+					if(r.getDockingFinished()==null) dfin=null;
+					else dfin= new Timestamp(r.getDockingFinished().getTime());
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
 					return new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),new Timestamp(r.getDockingFinished().getTime()));
+							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),dfin);
 				}
 				j++;
 			}
@@ -10158,6 +10165,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						// SuggestTitleVideoId
 						ie++;
 					}
+					totalCheckedSize+=r.getDigAmt();
 					if(totalCheckedSize==0) {
 						// this means we called getAu() for the first time before the au statements got to update and put
 						// the units into the raid!
@@ -10173,10 +10181,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 						k++;
 					}
+					Timestamp dfin;
+					if(r.getDockingFinished()==null) dfin=null;
+					else dfin= new Timestamp(r.getDockingFinished().getTime());
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
 					temp.add(new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),new Timestamp(r.getDockingFinished().getTime())));
+							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),dfin));
 					} catch(Exception exc) { exc.printStackTrace(); System.out.println("getUserRaids saved. The raid in question: " + r.getId().toString()); }
 				
 				j++;
@@ -12657,7 +12668,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			int j = 0;
 			while(j<p.towns().get(i).bldg().size()) {
 				b = p.towns().get(i).bldg().get(j);
-				if(b.bid==bid) {
+				if(b.getId().equals(bid)) {
 					if(!b.getType().equals("Missile Silo")||(b.getType().equals("Missile Silo")&&b.getLvl()==0)) {
 						setError("This building must be a Missile Silo of at least level 1 to fire a Missile out from it!");
 						return false;
@@ -12714,7 +12725,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				int j = 0;
 				while(j<p.towns().get(i).bldg().size()) {
 					b = p.towns().get(i).bldg().get(j);
-					if(b.bid==bid) {
+					if(b.getId().equals(bid)) {
 						Town t = g.findTown(x,y);
 
 						double distance = Math.sqrt(Math.pow(t.getX()-p.towns().get(i).getX(),2) + Math.pow(t.getY()-p.towns().get(i).getY(),2));

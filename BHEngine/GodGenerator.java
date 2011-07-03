@@ -6977,6 +6977,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 
 			}
 		}
+		if(stmt!=null)
 		stmt.close();
 		} catch(SQLException exc) {
 			exc.printStackTrace();
@@ -7042,6 +7043,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			// SuggestTitleVideoId
 			ie++;
 		}
+		totalCheckedSize+=actattack.getDigAmt();
 		if(totalCheckedSize==0) {
 			// this means we called getAu() for the first time before the au statements got to update and put
 			// the units into the raid!
@@ -7488,6 +7490,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			} while(c<t1au.size());
 			lowSpeed/=totalsize;
 			
+			if(actattack.getDigAmt()==0) // we only go through the setting raid to return deal if  this isn't a dig, if it is, it's staying for some time.
 			if(lowSpeed>0) {
 				
 			actattack.setRaidOver(true);
@@ -8889,7 +8892,7 @@ public boolean checkForGenocides(Town t) {
 							else
 							while(i<t2bldg.length) {
 								b = t2bldg[i];
-								actb = t2.findBuilding(b.getBid());
+								actb = t2.findBuilding(b.getId());
 								if(b.getLotNum()==holdUnit.getLotNum()) actb.setPeopleInside((int) Math.round(b.getPeopleInside()-(holdOld-holdUnit.getSize())));
 								i++;
 							}
@@ -9094,7 +9097,7 @@ public boolean checkForGenocides(Town t) {
 						if(holdUnit.getLotNum()!=-1) { // we remove the civvie and bldg AFTER getting numUnitsRemaining, etc, or else it gets removed before we take data and
 							//it's all fucked up.
 							toDie = t2.findBuildingByLot(holdUnit.getLotNum());
-							if(holdUnit.getSize()==0&&!toDie.isResourceProducerBldg()) t2.killBuilding(toDie.bid);
+							if(holdUnit.getSize()==0&&!toDie.isResourceProducerBldg()) t2.killBuilding(toDie.getId());
 							else toDie.setLvl(holdUnit.getLvl());
 							t2au.remove(k);
 							k--;//remove the civilian unit, no further need for it.
@@ -9133,7 +9136,7 @@ public boolean checkForGenocides(Town t) {
 					if(bldgs.length>0) t2p.God.sendNukeMessage(t1p.getUsername(),t2,false);
 					while(l<bldgs.length) {
 						if(bldgs[l].getLvl()==0) {
-							t2.killBuilding(bldgs[l].getBid());
+							t2.killBuilding(bldgs[l].getId());
 						}
 						l++;
 					}
@@ -10101,12 +10104,12 @@ public boolean checkForGenocides(Town t) {
 				 holdAttack = attackServer[i];
 				 if(holdAttack.getTID1()==t1.townID) { // because we grab incomings also with userraids.
 					r = t1.findRaid(holdAttack.id());
-					if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&r.getTown2().owedTicks>0&&r.getTown2().getPlayer().ID!=r.getTown1().getPlayer().ID) {
+					if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&holdAttack.getDockingFinished()==null&&r.getTown2().owedTicks>0&&r.getTown2().getPlayer().ID!=r.getTown1().getPlayer().ID) {
 						r.getTown2().update();
 						
 
 					}
-					if(holdAttack.eta()<=0&&!holdAttack.raidOver()) {
+					if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&holdAttack.getDockingFinished()==null) {
 						
 						r.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidLandingCatch",holdAttack);
 						ArrayList<QuestListener> onRaidLandingList = r.getTown2().getEventListenerList("onRaidLanding");
@@ -10201,6 +10204,7 @@ public boolean checkForGenocides(Town t) {
 					supportLogicBlock(r,false); // 
 					
 				}else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("dig")||holdAttack.raidType().equals("excavation"))) {
+					if(holdAttack.getDockingFinished()==null)
 					digLogicBlock(r);
 					
 				}else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("debris"))) {
@@ -10252,7 +10256,7 @@ public boolean checkForGenocides(Town t) {
 						UserBuilding b;
 						while(j<bldg.length) {
 							b = bldg[j];
-							actb = t1.findBuilding(b.getBid());
+							actb = t1.findBuilding(b.getId());
 
 							//tradeDearth+=(b.getCap()-b.getPeopleInside());
 							if((b.getCap()-b.getPeopleInside()) >r.getDigAmt()-tradeDearth) {
@@ -10559,7 +10563,7 @@ public boolean checkForGenocides(Town t) {
 				bldg = p.getPs().b.getUserBuildings(t1.townID,"Trade Center");
 				while(j<bldg.length) {
 					b = bldg[j];
-					actb = t1.findBuilding(b.getBid());
+					actb = t1.findBuilding(b.getId());
 
 					//tradeDearth+=(b.getCap()-b.getPeopleInside());
 					if((b.getCap()-b.getPeopleInside()) >t.getTraders()-tradeDearth) {
@@ -10578,7 +10582,7 @@ public boolean checkForGenocides(Town t) {
 				j = 0; int popCheck=0;
 				while(j<bldg.length) {
 					b = bldg[j];
-					actb = t1.findBuilding(b.getBid());
+					actb = t1.findBuilding(b.getId());
 						if(tradeDearth>=0) {
 							int toAdd=(int) Math.floor(t.getTraders()*((double) (b.getCap()-b.getPeopleInside()))/((double) tradeDearth));
 							if(b.getPeopleInside()+toAdd>b.getCap()) toAdd = (int) (b.getCap()-b.getPeopleInside());
@@ -10604,7 +10608,7 @@ public boolean checkForGenocides(Town t) {
 					bldg = p.getPs().b.getUserBuildings(t1.townID,"Trade Center");
 					while(j<bldg.length) {
 						b = bldg[j];
-						actb = t1.findBuilding(b.getBid());
+						actb = t1.findBuilding(b.getId());
 
 							if((b.getCap()-b.getPeopleInside())>=popCheck) {
 								
@@ -10841,7 +10845,7 @@ public boolean checkForGenocides(Town t) {
 			Building actb;
 			while(i<bldg.length) {
 				 b = bldg[i];
-				 actb = t1.findBuilding(b.getBid());
+				 actb = t1.findBuilding(b.getId());
 				 
 					if(actb.getPeopleInside()>t1Required-totalT1TravTraders) {
 						actb.setPeopleInside(actb.getPeopleInside()-(t1Required-totalT1TravTraders));
@@ -10883,7 +10887,7 @@ public boolean checkForGenocides(Town t) {
 			
 			while(i<bldg.length) {
 				 b = bldg[i];
-				 actb = t2.findBuilding(b.getBid());
+				 actb = t2.findBuilding(b.getId());
 				 
 					if(actb.getPeopleInside()>t2Required-totalT2TravTraders) {
 						actb.setPeopleInside(actb.getPeopleInside()-(t2Required-totalT2TravTraders));
@@ -11566,7 +11570,7 @@ public boolean checkForGenocides(Town t) {
 					// so basically if peopleInside is not less than 0, then pplbombersleft = 0,
 					// if it is less than 0, then it's negative is what's left of pplbombersleft.
 					int peopleBef = b.getPeopleInside();
-					actb = new Building(b.getBid(), t1p.God);
+					actb = new Building(b.getId(), t1p.God);
 					actb
 							.setPeopleInside((int) (b.getPeopleInside()
 									- pplbombersleft));
@@ -11624,7 +11628,7 @@ public boolean checkForGenocides(Town t) {
 			// this means we did bomb something down.
 			
 			// return that shit.
-			 bombResultBldg = t2.levelDown(bldg[bestbldgbombindex].getBid()); 
+			 bombResultBldg = t2.levelDown(bldg[bestbldgbombindex].getId()); 
 			// complex logic deciding how to level down building.
 			// best handled at the town level.
 			
@@ -11907,7 +11911,7 @@ public boolean checkForGenocides(Town t) {
 							j++;
 						}
 					}
-					holdTown.killBuilding(b.bid);
+					holdTown.killBuilding(b.getId());
 				
 				}
 				else if(b.getLvlUps()>0){ 
@@ -11916,7 +11920,7 @@ public boolean checkForGenocides(Town t) {
 			
 				}
 				
-				holdTown.getPlayer().getPs().runMethod("onBuildingFinishedCatch",holdTown.getPlayer().getPs().b.getUserBuilding(b.bid));
+				holdTown.getPlayer().getPs().runMethod("onBuildingFinishedCatch",holdTown.getPlayer().getPs().b.getUserBuilding(b.getId()));
 				}
 				
 				if(b.getNumLeftToBuild()>0) {
@@ -11988,7 +11992,7 @@ public boolean checkForGenocides(Town t) {
 						q.deleteMe();
 						if(b.Queue().size()<=0) {
 							
-							holdTown.getPlayer().getPs().runMethod("onAttackUnitQueueEmptyCatch", holdTown.getPlayer().getPs().b.getUserBuilding(b.bid));
+							holdTown.getPlayer().getPs().runMethod("onAttackUnitQueueEmptyCatch", holdTown.getPlayer().getPs().b.getUserBuilding(b.getId()));
 						}
 						
 						// then the next one will be used next time around!
@@ -12017,7 +12021,7 @@ public boolean checkForGenocides(Town t) {
 				while(u<bldgserver.length) {
 					
 					 holdBldg = bldgserver[u];
-					 actb = new Building(holdBldg.getBid(),holdPlayer.God);
+					 actb = new Building(holdBldg.getId(),holdPlayer.God);
 					 int ticksToFinish = holdBldg.getTicksToFinish();
 				//	 if(holdBldg.getTicksToFinishTotal()==0) holdBldg.modifyTicksLevel(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().engTech);
 					 // if we just loaded, then ticksToFinishTotal isn't set and must be.
@@ -12033,7 +12037,7 @@ public boolean checkForGenocides(Town t) {
 				//	System.out.println(holdBldg.lvlUps + " is the way.");
 					 // not we use -1 on holdBldg because its now out of date on lvlUps by -1.
 					if((holdBldg.getLvlUps()-1)<=0&&!holdBldg.isDeconstruct()) { actb.setTicksToFinish(-1); }
-					else if((holdBldg.getLvlUps()-1)<=0&&holdBldg.isDeconstruct()) {  holdTown.killBuilding(holdBldg.getBid()); }
+					else if((holdBldg.getLvlUps()-1)<=0&&holdBldg.isDeconstruct()) {  holdTown.killBuilding(holdBldg.getId()); }
 					else if((holdBldg.getLvlUps()-1)>0){ 
 						actb.levelUp(totalEngineers,engEffect,engTech);
 				
@@ -12046,7 +12050,7 @@ public boolean checkForGenocides(Town t) {
 					bldg = ps.b.getUserBuildings(holdTown.townID,"all");
 					while(u<bldg.length) {
 					 b = bldg[u];
-					 actb = new Building(b.getBid(),holdPlayer.God);
+					 actb = new Building(b.getId(),holdPlayer.God);
 					if(b.getNumLeftToBuild()>0) {
 						// if(b.getTicksPerPerson()==0) actb.modifyPeopleTicks(totalEngineers,engEffect,engTech);
 						 // if we just loaded, then ticksPerPerson isn't set and must be.
@@ -12070,7 +12074,7 @@ public boolean checkForGenocides(Town t) {
 						queue = b.getQueue();
 						if(queue.length>0) {
 						 q = queue[0];
-						 actq = new QueueItem(q.getQid(), b.getBid(),holdPlayer.God);
+						 actq = new QueueItem(q.getQid(), b.getId(),holdPlayer.God);
 
 						 au = holdTown.getAu();
 						if(q.returnNumLeft()>0) {
@@ -12900,14 +12904,19 @@ public boolean checkForGenocides(Town t) {
 			| Metal Mine                   |    0 |   3 |     -1 |    0 |        0 |        0 | 2273 |     0 |           0 |         -1 |          0 | 598 |
 
 		  */
-		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-		  		"'Metal Mine',0,3,-1,0,0,0,"+tid+",0,0,-1,0);");
-		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-  		  		"'Timber Field',1,3,-1,0,0,0,"+tid+",0,0,-1,0);");
-		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-  		  		"'Crystal Mine',2,3,-1,0,0,0,"+tid+",0,0,-1,0);");
-		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (" +
-  		  		"'Farm',3,3,-1,0,0,0,"+tid+",0,0,-1,0);");
+		  UUID id = UUID.randomUUID();
+		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode,id) values (" +
+		  		"'Metal Mine',0,3,-1,0,0,0,"+tid+",0,0,-1,0,'"+id.toString()+"');");
+		  id = UUID.randomUUID();
+		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode,id) values (" +
+  		  		"'Timber Field',1,3,-1,0,0,0,"+tid+",0,0,-1,0,'"+id.toString()+"');");
+		  id = UUID.randomUUID();
+		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode,id) values (" +
+  		  		"'Crystal Mine',2,3,-1,0,0,0,"+tid+",0,0,-1,0,'"+id.toString()+"');");
+		  id = UUID.randomUUID();
+		  stmt.execute("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode,id) values (" +
+  		  		"'Farm',3,3,-1,0,0,0,"+tid+",0,0,-1,0,'"+id.toString()+"');");
+		  id = UUID.randomUUID();
 		  stmt.execute("commit;");
 		  Town t = new Town(tid,this);
 		  iteratorTowns.add(t);
@@ -13144,8 +13153,8 @@ public boolean checkForGenocides(Town t) {
 				if(!bldg[y].getType().equals("Metal Mine")&&
 						!bldg[y].getType().equals("Timber Field")&&
 						!bldg[y].getType().equals("Crystal Mine")&&
-						!bldg[y].getType().equals("Farm")) ptown.killBuilding(bldg[y].getBid());
-				else ptown.findBuilding(bldg[y].getBid()).setLvl(3);
+						!bldg[y].getType().equals("Farm")) ptown.killBuilding(bldg[y].getId());
+				else ptown.findBuilding(bldg[y].getId()).setLvl(3);
 				y++;
 			//	Id.getPs().b.demolish(ptown.bldg().get(y).getLotNum(),ptown.townID);
 			}
@@ -14083,7 +14092,341 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			e.printStackTrace();
 		}
 		return -1;
-	}public boolean vassalThatIsLordTest(HttpServletRequest req, PrintWriter out, Player player) {
+	}
+	public boolean basicROTest(HttpServletRequest req, PrintWriter out, Player player) {
+		/*
+		 * Send one excavation to an RO - do this by sending the raid, then setting it's ticker to 0, and running attackServerCheck. 
+		 * Make sure it lands safely, sets up lordhood,  territory, finishTime, and has the raid on the server just fine, 
+		 * then have the player who sent it iterate once to make sure the raid stays on the raid server. T
+		 * hen iterate the RO (via Id, I guess), and see how many iterations it takes for it to fill up the raid. 
+		 * When it does, make sure all the flags are set correctly on the raid. Then, with the player gone, 
+		 * iterate this thing until it's influence goes to zero and see if it is returned to Id.
+
+		 */
+		getPlayer(5).territoryCalculator(); // i need it to reset everything to no lord that can be reset.
+
+		int numTowns[] = {1};
+		Player[] players = player.generateFakePlayers(1,numTowns,0,0);
+		try {
+		Town t1 = players[0].towns().get(0);
+		//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
+		Town RO=null;
+		for(Town t: getPlayer(5).towns()) {
+			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+				RO=t;
+				break;
+			}
+		}
+		if(RO==null) {
+			growId();
+			getPlayer(5).territoryCalculator();
+
+			
+		}
+		for(Town t: getPlayer(5).towns()) {
+			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+				RO=t;
+				break;
+			} 
+		}
+		if(RO==null) {
+			out.println("basicRO test failed because even growing Id didn't produce a viable RO to use.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		t1.setX(RO.getX()+1);
+		t1.setY(RO.getY());
+		t1.addBuilding("Command Center",4,5,0);
+		t1.bldg().get(0).setPeopleInside(5);
+		t1.setAu(new ArrayList<AttackUnit>());
+		t1.getAu().add(new AttackUnit("Pillager",0,0));
+		RO.getRes()[0]=15000;
+		RO.getRes()[1]=15000;
+		RO.getRes()[2]=15000;
+		RO.getRes()[3]=15000;
+		//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
+		int amts[] = {0,5};
+		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname");
+		if(!worked) {
+			out.println("basicRO test failed because the attack didn't send, and the error was: " + players[0].getPs().b.getError());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(t1.attackServer().size()!=1) {
+			out.println("basicRO test failed because the raid didn't load.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		Raid r = t1.attackServer().get(0);
+		r.setTicksToHit(0);
+		attackServerCheck(t1,players[0]);
+		if(r.isRaidOver()) {
+			out.println("basicRO test failed because the raid was set to over after landing, it shouldn't be..");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(r.getDockingFinished()==null) {
+			out.println("basicRO test failed because the raid did not have it's docking finished date set, but it should have.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+
+		if(t1.attackServer().size()!=1) {
+			out.println("basicRO test failed because the raid didn't remain after landing.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(RO.getLord()==null) {
+			out.println("basicRO test failed because the RO didn't become owned by the player after landing.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(RO.getDigAmt()!=5) {
+			out.println("basicRO test failed because the RO didn't become inhabited by engineers.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+	
+		// well, we know we've got 1000 res. We've got 5 engineers.
+		long total= returnCargoOfSupportAndEngineers(RO);
+		
+		 // we expect total to be t.getDigAmt()*(t.getDigAmt()+1)*engineerCarryAmount
+		// which is 15000. Engineer rate is 5000 per hour, so we expect that in 3 hours, the dig should be done.
+		
+		if(total!=5*(5+1)*engineerCarryAmount) {
+			out.println("basicRO test failed because the total holding amount wasn't correct, it was " + total);
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		attackServerCheck(t1,players[0]);
+
+		if(t1.attackServer().size()!=1) {
+			out.println("basicRO test failed because the raid didn't remain after landing+1 tick.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(r.isRaidOver()||r.getDockingFinished()==null) {
+			out.println("basicRO test failed because the raid was set to over or it had no docking finished date.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		RO.doMyResources((int) Math.round(1*3600/GodGenerator.gameClockFactor));
+		// now we expect the raid not to be over, but a third loaded...
+		if(t1.attackServer().size()!=1) {
+			out.println("basicRO test failed because the raid didn't remain after landing+1/3rd time tick.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		
+		if(r.isRaidOver()||r.getDockingFinished()==null) {
+			out.println("basicRO test failed because the raid was set to over or it had no docking finished date after we went through a third of the ROexcavation.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		 total = r.getMetal()+r.getTimber()+r.getManmat()+r.getFood();
+		if(total!=5000) {
+			out.println("basicRO test failed because the excavation had not excavated 5000 by the time a third of time was up. It excavated " + total);
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		RO.doMyResources((int) Math.round(2*3600/GodGenerator.gameClockFactor+1)); // now we should be heading home.
+
+		if(t1.attackServer().size()!=1) {
+			out.println("basicRO test failed because the raid didn't remain after finishing time tick.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		
+		if(!r.isRaidOver()) {
+			out.println("basicRO test failed because the raid was set to not over even though it should be.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		 total = r.getMetal()+r.getTimber()+r.getManmat()+r.getFood();
+		if(total!=15000) {
+			out.println("basicRO test failed because the excavation had not excavated 15000 by the time the time was up. It excavated " + total);
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		
+		if(RO.getDigTownID()!=0) {
+			out.println("basicRO test failed because the excavation didn't end when it was supposed to.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		
+		r.setTicksToHit(0);
+		attackServerCheck(t1,players[0]);
+		if(t1.attackServer().size()!=0) {
+			out.println("basicRO test failed because the raid was still on the stack after arriving.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(t1.getTotalEngineers()!=5) {
+			out.println("basicRO test failed because the engineers were not returned safely.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		boolean haveSome=false;
+		for(AttackUnit a:RO.getAu()) {
+			if(a.getSize()>0) {
+				haveSome=true;
+				break;
+			}
+		}
+		// now we see if we still have the territory.
+		if(RO.getDigAmt()>0||haveSome) {
+			out.println("basicRO test failed because the RO had people on it after the raid should have left.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(RO.getInfluence()>0) {
+			out.println("basicRO test failed because the RO had influence BEFORE a territoryCalculator on player when nobody was present..");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		players[0].territoryCalculator();
+		if(RO.getInfluence()>0) {
+			out.println("basicRO test failed because the RO had influence after a territoryCalculator on player when nobody was present..");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		getPlayer(5).territoryCalculator();
+		if(RO.getLord()!=null) {
+			out.println("basicRO test failed because the RO didn't get delorded when it should have.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		player.deleteFakePlayers(players);
+		out.println("basicRO test successful.");
+		return true;
+		} catch(Exception exc) {
+			out.println("basicRO test failed because " + exc.toString());
+			for(StackTraceElement stackTrace: exc.getStackTrace()) {
+				out.println(stackTrace.toString());
+			}
+			player.deleteFakePlayers(players);
+			return false;
+		}
+	}
+	public boolean foodConsumptionTest(HttpServletRequest req, PrintWriter out, Player player) {
+		int numTowns[] = {1};
+		Player[] players = player.generateFakePlayers(1,numTowns,0,0);
+		try {
+		Town t1 = players[0].towns().get(0);
+		//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
+		ArrayList<AttackUnit> au = new ArrayList<AttackUnit>();
+		au.add(new AttackUnit("Pillager",0,1));
+		t1.setAu(au);
+		au = new ArrayList<AttackUnit>();
+		au.add(new AttackUnit("Pillager",0,1));
+		players[0].setAu(au);
+		t1.getAu().get(0).setSize(5);
+		t1.addBuilding("Command Center",4,4,0);
+		t1.bldg().get(0).setPeopleInside(4);
+		t1.getRes()[3]=100;
+		players[0].playedTicks=(3600);
+		players[0].populationCheck();
+		t1.foodCheck(); // expect 25 food to be eaten by pillagers, and 40 to be eaten by civilians.
+		if(t1.getRes()[3]!=35||t1.bldg().get(0).getPeopleInside()!=4||t1.getAu().get(0).getSize()!=5) {
+			out.println("foodConsumption test failed because the food the people left after the first check was " + t1.getRes()[3]
+			+ " and the people in the command center are "  + t1.bldg().get(0).getPeopleInside()
+			+ " and the au left after the first check is " + t1.getAu().get(0).getSize()+ "." 
+			+ " The expected food consumption is 25 by our count(5*5*1) for pillagers, your program says " + t1.getFoodConsumption(t1.getAu().get(0)) +
+			" The expected food consumption is (5*4*2) = 40 for civvies, your program says " + t1.getCivvieFoodConsumption(4));
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		players[0].populationCheck();
+		t1.foodCheck(); // expect 25 food to be eaten by pillagers, and 40 to be eaten by civilians, so this time someone should die.
+		// since we have 35, and we need 65, we have a gap of 30. 
+		// we expect numToDie to be 6, but civvies go first and their sizemod is 2, so we expect three to die.
+		
+		if(t1.bldg().get(0).getPeopleInside()!=1||t1.getRes()[3]>0||t1.getRes()[3]<0) {
+			
+			out.println("foodConsumption test failed because the food the people left after the second check was " 
+					+ t1.getRes()[3] + " and the people inside the CC after the second check was " + t1.bldg().get(0).getPeopleInside()
+					+ " and the au left after the second check was " + t1.getAu().get(0).getSize()
+					+ " The expected food consumption is 25 by our count(5*5*1) for pillagers, your program says " + t1.getFoodConsumption(t1.getAu().get(0)) +
+					" The expected food consumption is (5*1*2) = 10 for civvies, your program says " + t1.getCivvieFoodConsumption(1));
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		players[0].populationCheck();
+
+		t1.foodCheck(); // now 10+25=35 food is required, which is 7 numtoDie. We expect 1 civvie death to lower us to 5,
+		// and then ALL of the au should die.
+		
+		if(t1.bldg().get(0).getPeopleInside()!=0||t1.getRes()[3]>0||t1.getRes()[3]<0||t1.getAu().get(0).getSize()!=0) {
+			
+			out.println("foodConsumption test failed because the food the people left after the third check was " 
+					+ t1.getRes()[3] + " and the people inside the CC after the third check was " + t1.bldg().get(0).getPeopleInside() 
+					+ " and the au left after the third check was " + t1.getAu().get(0).getSize());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+
+		//	public AttackUnit(String name, int slot, int lvl) { // why is this here?
+
+		player.deleteFakePlayers(players);
+		out.println("foodConsumption test successful.");
+		return true;
+		} catch(Exception exc) {
+			out.println("foodConsumption test failed because " + exc.toString());
+			for(StackTraceElement stackTrace: exc.getStackTrace()) {
+				out.println(stackTrace.toString());
+			}
+			player.deleteFakePlayers(players);
+			return false;
+		}
+	}
+	public boolean deconstructBuildingTest(HttpServletRequest req, PrintWriter out, Player player) {
+		int numTowns[] = {1};
+		Player[] players = player.generateFakePlayers(1,numTowns,0,0);
+		try {
+		Town t1 = players[0].towns().get(0);
+		//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
+		t1.setBldg(new ArrayList<Building>());
+
+		t1.addBuilding("Resource Cache",5,4,0);
+		Building mine =t1.bldg().get(0);
+		mine.setLotNum(5);
+		mine.setLvl(4);
+		mine.setType("Resource Cache");
+		players[0].setInfrastructureTech(infrastructureTechLimit);
+		players[0].setConstructionResearch(1);
+		boolean dem = players[0].getPs().b.demolish(5,t1.getTownName());
+		if(!dem) {
+			out.println("deconstructBuilding test failed because demolish() didn't return true. The saved error was: " + players[0].getPs().b.getError());
+			player.deleteFakePlayers(players);
+
+			return false;
+		}
+		// now if we iterate the amount...
+		
+		for(int i = 0; i<mine.getTicksToFinishTotal()+1;i++) {
+			buildingServerCheck(t1);
+		}
+		
+		if(t1.bldg().size()!=0) {
+			out.println("deconstructBuilding test failed because the building was still present. It's ticksToFinish was " + mine.getTicksToFinish() + " and it's total is " + mine.getTicksToFinishTotal() + " and deconstruct is "+  mine.isDeconstruct());
+			player.deleteFakePlayers(players);
+
+			return false;
+		}
+		player.deleteFakePlayers(players);
+		out.println("deconstructBuilding test successful.");
+		return true;
+		} catch(Exception exc) {
+			out.println("deconstructBuilding test failed because " + exc.toString());
+			for(StackTraceElement stackTrace: exc.getStackTrace()) {
+				out.println(stackTrace.toString());
+			}
+			player.deleteFakePlayers(players);
+			return false;
+		}
+	}
+	public boolean vassalThatIsLordTest(HttpServletRequest req, PrintWriter out, Player player) {
 		int numTowns[] = {5,3,1};
 		Player[] players = player.generateFakePlayers(3,numTowns,0,0);
 		Town t1 = players[0].towns().get(0);
@@ -14134,7 +14477,6 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		
 		players[0].territoryCalculator();
 		players[1].territoryCalculator(); // now the player should be lorded.
-		System.out.println("This is here.");
 
 		if(players[1].getLord()==null) {
 			out.println("vassalThatIsLord test failed because p2 didn't get lorded like it should've.");
@@ -14147,7 +14489,6 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		t6.setX(1111201);
 		t6.setY(1111100);
 		t6.setInfluence(1000);
-		System.out.println("This is there.");
 
 		players[2].territoryCalculator(); // this needs to go first, to establish new territories...
 		// then 1 will detect it during it's calculations! This would happen eventually in game.

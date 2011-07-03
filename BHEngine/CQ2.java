@@ -75,7 +75,7 @@ public class CQ2 extends QuestListener {
 				t.getPlayer().getPs().b.attack(t.townID,cap.getX(),cap.getY(),auAmts,"attack",null,"");
 				 
 				 
-				 t.killBuilding(b.bid);
+				 t.killBuilding(b.getId());
 			
 
 			// So we give you the big factorial, and you have to work backwards to get the limit of the sum.

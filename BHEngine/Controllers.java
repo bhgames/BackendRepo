@@ -118,11 +118,10 @@ public class Controllers {
 			int y = 0;
 			Hashtable corners; int[] array;
 			while(y<terrHash.length) {
-				j.object()
-				.key("id")
-				.value(((UUID) terrHash[y].get("id")).toString());
+				j.object();
+				
 				corners =(Hashtable) terrHash[y].get("corners");
-				j.key("corners").object();
+			
 				
 				if(((String) corners.get("lord")).equals("none"))
 					j.key("owner").value((String) corners.get("owner"));
@@ -146,7 +145,6 @@ public class Controllers {
 					k++;
 				}
 				j.endArray()
-				.endObject()
 				.endObject();
 				
 				y++;
@@ -1389,11 +1387,16 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			        	j.object()
 			        	.key("type")
 			        	.value(b.getType())
-			        	.key("bid")
-			        	.value(b.getBid())
+			        	.key("id")
+			        	.value(b.getId())
 			        	.key("lvl")
-			        	.value(b.getLvl())
-			        	.key("lotNum")
+			        	.value(b.getLvl());
+			        	j.key("fortArray").array();
+			        	for(int num: b.getFortArray()) {
+			        		j.value(num);
+			        	}
+			        	
+			        	j.endArray().key("lotNum")
 			        	.value(b.getLotNum())
 			        	.key("refuelTicks")
 			        	.value(b.getRefuelTicks())
@@ -1470,19 +1473,19 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			        		q = queue[u];
 			        		try {
 			        		j.object().
-			        		key("qid").value(q.getQid()).
+			        		key("id").value(q.getId()).
 			        		key("AUtoBuild").value(q.returnAUtoBuild()).
 			        		key("AUNumber").value(q.returnNumLeft()).
 			        		key("currTicks").value(q.returnTicks()).
 			        		key("ticksPerUnit").value(q.returnTicksPerUnit()).
 			        		endObject();
-							} catch(Exception exc) { exc.printStackTrace(); System.out.println("Town load saved at " + towns[k].getTownID() + " in bid " + b.getBid() + " and queue " +q.getQid()); }
+							} catch(Exception exc) { exc.printStackTrace(); System.out.println("Town load saved at " + towns[k].getTownID() + " in bid " + b.getId().toString() + " and queue " +q.getId().toString()); }
 
 			        		u++;
 			        	}
 			        	j.endArray();
 			        	j.endObject(); // end building
-						} catch(Exception exc) { exc.printStackTrace(); System.out.println("Building load saved at " + towns[k].getTownID() + " and bid " + b.getBid()); }
+						} catch(Exception exc) { exc.printStackTrace(); System.out.println("Building load saved at " + towns[k].getTownID() + " and bid " + b.getId().toString()); }
 
 			        	i++;
 			        }
@@ -2114,6 +2117,12 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.lordvlordTest(req,out,p);
 				} else if(test.equals("vassalThatIsLord")) {
 					g.vassalThatIsLordTest(req,out,p);
+				}else if(test.equals("deconstructBuilding")) {
+					g.deconstructBuildingTest(req,out,p);
+				}else if(test.equals("foodConsumption")) {
+					g.foodConsumptionTest(req,out,p);
+				}else if(test.equals("basicRO")) {
+					g.basicROTest(req,out,p);
 				}else if(test.equals("allVassalAndTerritories")) {
 					g.fbPostTest(req,out,p);
 					g.separatedPointsTest(req,out);

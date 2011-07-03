@@ -883,6 +883,7 @@ public class Player  {
 			// now we add any ROs we're at.
 			for(Town t: towns) {
 				// so first we add influence.
+				if(God.serverLoaded) // this could be the loadup call, in which territory should not be incremented.
 					if(t.isResourceOutcropping()) {
 						if(t.getPlayer().getPs().b.getCS(t.townID)>0)
 							t.setInfluence(t.getInfluence()+t.getPlayer().getPs().b.getCS(t.townID)); // soldiers on it generate territory.
@@ -1150,7 +1151,7 @@ public class Player  {
 				}
 				checkForNewlyVassaledTowns();
 				checkLordQualifications();
-	 	}	 else {
+	 	}	 else if(ID==5) {
 	 		if(getTerritories()==null) setTerritories(new ArrayList<Hashtable>()); // Id has an empty hashtable.
 	 		checkForNewlyVassaledTowns(); // Id can lose ROs to people just by nature of them having territories there.
 	 	}
@@ -1343,21 +1344,21 @@ public class Player  {
 						// If we just go straight by player, we will have to analyze each territory, ALL of them.
 						// GetWorldMAP has the ability to sort through territories of relevance and return ONLY those.
 						 boolean foundNobody=true;
-
+						 Player foundP=null;
 						for(Hashtable h:r) {
 							
 							Hashtable[] theirPoints = (Hashtable[]) h.get("points"); // get the point format, but this is a copy of the actual storage.
 							Hashtable theirTerritory = (Hashtable) h.get("corners");
 							int pid = God.getPlayerId((String) theirTerritory.get("owner"));
 							Player owner = God.getPlayer(pid);
-							
 							for(Hashtable theirPoint:theirPoints) {
 								
 								int theirX = (Integer) theirPoint.get("x");
 								int theirY = (Integer) theirPoint.get("y");
 								
 								if(theirX==t.getX()&&theirY==t.getY()) {
-									
+									foundP=owner;
+
 									// now we have a winner.
 									if(owner.getLord()!=null) owner = owner.getLord(); // they goto your lord.
 									if(t.getLord()==null||(t.getLord()!=null&&t.getLord().ID!=owner.ID)) { // we only reset
@@ -1398,10 +1399,17 @@ public class Player  {
 								}
 	
 							}
+						
+							
+						}
+						
+						if(t.getLord()!=null)
+							System.out.println("my id is " + ID + " and my lord is " + t.getLord().ID + " and tid is " + t.getTownID()+" and foundNobody is " + foundNobody + " and the person I found was " + foundP.ID);
 							// well holy shit, NOBODY WAS ABLE TO CLAIM THIS PLACE! now it's up for keeps for Id again. This means
 							// the player left with his troops and the influence dropped past the point that he had a territory.
 							if(foundNobody&&ID==5) {
 								// well now we need to see if there is anybody present.
+								System.out.println("My ID is " + t.townID + " and my cs is " + getPs().b.getCS(t.townID));
 								if(getPs().b.getCS(t.townID)==0) {
 									//ah, nope, this town is lost.
 									// This sort of thing happens a lot, not worth FBing.
@@ -1415,8 +1423,6 @@ public class Player  {
 								}
 							}
 							
-							
-						}
 				 } else if(found&&t.getLord()!=null) {
 					 // so now it's under it's own power again, but there is still a lord - RESET!
 					// this happens whether you belong to the person who just owned you, or to their lord.
@@ -3910,9 +3916,7 @@ public class Player  {
 	public void setActiveQuests(ArrayList<QuestListener> activeQuests) {
 		this.activeQuests = activeQuests;
 	}
-	public ArrayList<Town> getTowns() {
-		return towns;
-	}
+	
 	public void setTowns(ArrayList<Town> towns) {
 		this.towns = towns;
 	}
@@ -4200,26 +4204,26 @@ public class Player  {
 	}
 
 
-	public Building findBuilding(int bid) {
+	public Building findBuilding(UUID bid) {
 		// TODO Auto-generated method stub
 		for(Town t: towns()) {
 			
 			for(Building b: t.bldg()) {
 				
-				if(b.bid==bid){
+				if(b.getId().equals(bid)){
 					return b;
 				}
 			}
 		}
 		return null;
 	}
-	public Town findTownWithBuilding(int bid) {
+	public Town findTownWithBuilding(UUID bid) {
 		// TODO Auto-generated method stub
 		for(Town t: towns()) {
 			
 			for(Building b: t.bldg()) {
 				
-				if(b.bid==bid){
+				if(b.getId().equals(bid)){
 					return t;
 				}
 			}

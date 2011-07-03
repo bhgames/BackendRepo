@@ -6,14 +6,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 
 public class Building {
 	// Just a note up here that we generally use totalEngineers+1 instead of totalEngineers
 	// because taking the log of zero is not fun for anybody.
-	
-	public int bid;
+	private UUID id;
 	private int ticksToFinishTotal=0;
 	private ArrayList<QueueItem> Queue;
 	private long cap;
@@ -50,13 +50,13 @@ public static int baseResourceAmt = 2000;
 	
 	
 	public Building returnCopy() {
-		return new Building(bid,God);
+		return new Building(id,God);
 	}
 	
-	public void setBuildingValues(String type, int lotNum, int bldglvl, int ticksToFinish, int people, int pplbldging, int ticksLeft, int lvlUps, boolean deconstruct, int bid, int refuelTicks,boolean nukeMode,int bunkerMode, String fortArrayStr) {
+	public void setBuildingValues(String type, int lotNum, int bldglvl, int ticksToFinish, int people, int pplbldging, int ticksLeft, int lvlUps, boolean deconstruct, UUID id, int refuelTicks,boolean nukeMode,int bunkerMode, String fortArrayStr) {
 		setLvl(bldglvl); this.ticksToFinish=ticksToFinish; peopleInside = people; numLeftToBuild = pplbldging;
 		this.nukeMode=nukeMode;
-		this.bid=bid;
+		this.id=id;
 		this.ticksLeft = ticksLeft;
 		this.lvlUps=lvlUps;this.deconstruct=deconstruct;
 		this.lotNum = lotNum;
@@ -65,15 +65,15 @@ public static int baseResourceAmt = 2000;
 		this.type=type;
 		setFortArray(PlayerScript.decodeStringIntoIntArray(fortArrayStr));
 	}
-	public Building(int bid,GodGenerator God) {
+	public Building(UUID id,GodGenerator God) {
 		
-		this.bid=bid;
+		this.id=id;
 	
 		this.God=God; this.con = God.con;
 		
 			try {
-				UberPreparedStatement bus = con.createStatement("select * from bldg where bid = ?;");
-				bus.setInt(1,bid);
+				UberPreparedStatement bus = con.createStatement("select * from bldg where id = ?;");
+				bus.setString(1,id.toString());
 				ResultSet brs = bus.executeQuery(); // Let's kill your mom, ho.
 				
 			
@@ -82,7 +82,7 @@ public static int baseResourceAmt = 2000;
 					String fortArrayStr = brs.getString(16);
 					
 					  setBuildingValues(brs.getString(1), brs.getInt(2), brs.getInt(3), brs.getInt(4), brs.getInt(5), 
-							brs.getInt(6),brs.getInt(7),brs.getInt(9),brs.getBoolean(10),bid,brs.getInt(14),brs.getBoolean(15),brs.getInt(12),fortArrayStr);
+							brs.getInt(6),brs.getInt(7),brs.getInt(9),brs.getBoolean(10),id,brs.getInt(14),brs.getBoolean(15),brs.getInt(12),fortArrayStr);
 					
 					 
 					 
@@ -525,37 +525,35 @@ public static int baseResourceAmt = 2000;
 	
 	public void addCombatUnit(int index, int number, Town t, long cost[]) {
 		
-		
+		int townsAtTime = t.getPlayer().towns().size();
+		   int i = 0;AttackUnit a=null;
+		   ArrayList<AttackUnit> au = t.getPlayer().getAu();
+		      while(i<au.size()) {
+		    	  a = au.get(i);
+		    	  if(a.getSlot()==index) break;
+		    	  i++;
+		      }
+		int originalAUAmt = t.getPlayer().God.getTotalSize(a,t.getPlayer());
+		int totalNumber=number;
 		try {
-			int townsAtTime = t.getPlayer().towns().size();
-			   int i = 0;AttackUnit a=null;
-			   ArrayList<AttackUnit> au = t.getPlayer().getAu();
-			      while(i<au.size()) {
-			    	  a = au.get(i);
-			    	  if(a.getSlot()==index) break;
-			    	  i++;
-			      }
-			int originalAUAmt = t.getPlayer().God.getTotalSize(a,t.getPlayer());
-			int totalNumber=number;
+		
 	
 		     UberPreparedStatement stmt = null;
-		     UberPreparedStatement stmt2 = null;
 
 		      // First things first. We update the player table.
+	       		UUID id = UUID.randomUUID();
+
+		 
 		      boolean transacted=false;
-		      ResultSet rs;
 		      while(!transacted) {
 		    	  
 		      try {
-		    	  stmt2 = t.getPlayer().con.createStatement("select slot from bldg where bid = ?;");
-		    	  stmt2.setInt(1,bid);
-			       rs = stmt2.executeQuery();
-			      if(rs.next()) {
+		    	  
 			      
-				       stmt = t.getPlayer().con.createStatement("insert into queue (bid,AUtoBuild,AUNumber,m,t,mm,f,townsAtTime,originalAUAmt,totalNumber) values (?,?,?,?,?,?,?,?,?,?);");
+				       stmt = t.getPlayer().con.createStatement("insert into queue (bid,AUtoBuild,AUNumber,m,t,mm,f,townsAtTime,originalAUAmt,totalNumber,id) values (?,?,?,?,?,?,?,?,?,?,?);");
 
 		      // let's add this raid and therefore get the rid out of it.
-				       stmt.setInt(1,bid);
+				       stmt.setString(1,id.toString());
 				       stmt.setInt(2,index);
 				       stmt.setInt(3,number);
 				       stmt.setLong(4,cost[0]);
@@ -565,36 +563,36 @@ public static int baseResourceAmt = 2000;
 				       stmt.setInt(8,townsAtTime);
 				       stmt.setInt(9,originalAUAmt);
 				       stmt.setInt(10,totalNumber);
-
+				       	stmt.setString(11,id.toString());
 
 				       stmt.execute();
-				       stmt.close();
-				       stmt = t.getPlayer().con.createStatement("select qid from queue where bid = ? and AUtoBuild = ? and AUNumber = ? order by qid desc");
-				       stmt.setInt(1,bid);
-				       stmt.setInt(2,index);
-				       stmt.setInt(3,number);
+				     
 				       
-		      ResultSet qrs = stmt.executeQuery();
-		      qrs.next();
-	
-		      QueueItem q = new QueueItem(qrs.getInt(1),this,God);
-				
-		      q.modifyUnitTicksForItem(a.getType(),t); 
-			
-				
-		      Queue().add(q);
-		      
-		      qrs.close(); stmt.close();  } rs.close(); stmt2.close();transacted=true;
+		     
+				       	stmt.close();  transacted=true;
+				        QueueItem q = new QueueItem(id,this,God);
+					      q.modifyUnitTicksForItem(a.getType(),t); 
+					      Queue().add(q);
+					      
 		      } catch(MySQLTransactionRollbackException exc) { 		   } 
 		      }
-			 } catch(SQLException exc) { exc.printStackTrace(); }
+			 } catch(SQLException exc) { exc.printStackTrace(); 
+			 	// if this is for a fake building, then the sql won't go through,
+			 // as we do not wish it to, and then we must set up values here, manually.
+			 //	public void setQueueValues(int qid, int AUtoBuild, int AUNumber, int currTicks,int townsAtTime,int originalAUAmt,int totalNumber) {
+
+			 	  QueueItem q = new QueueItem(id,this,God);
+			 	  q.setQueueValues(index,number,0,townsAtTime,originalAUAmt,totalNumber);
+			      q.modifyUnitTicksForItem(a.getType(),t); 
+			      Queue().add(q);
+			      }
 
 	}
-	public QueueItem findQueueItem(int qid) {
+	public QueueItem findQueueItem(UUID qid) {
 		int i= 0;
 		ArrayList<QueueItem> Queue = Queue();
 		while(i<Queue.size()) {
-			if(Queue.get(i).qid==qid) return Queue.get(i);
+			if(Queue.get(i).getId().equals(qid)) return Queue.get(i);
 			i++;
 		}
 		return null;
@@ -602,21 +600,15 @@ public static int baseResourceAmt = 2000;
 	public ArrayList<QueueItem> Queue() {
 		if(Queue==null) {
 		ArrayList<QueueItem> queue= new ArrayList<QueueItem>();
-		long cost[];
 		try {
-		UberPreparedStatement qus = con.createStatement("select * from queue where bid = ? order by qid asc");
-		qus.setInt(1,bid);
+		UberPreparedStatement qus = con.createStatement("select id from queue where bid = ? order by qid asc");
+		qus.setString(1,id.toString());
 		 ResultSet qrs = qus.executeQuery();
 		 while(qrs.next()) {
 			 //	public QueueItem(int qid, int bid, int AUtoBuild, int AUNumber, int currTicks,Town t) {
-			 int k = 0;
-			 cost = new long[4];
-			 while(k<4) {
-				 cost[k]=qrs.getLong(6+k);
-				 k++;
-			 }
+			
 			 
-			 queue.add(new QueueItem(qrs.getInt(1),this,God));
+			 queue.add(new QueueItem(UUID.fromString(qrs.getString(1)),this,God));
 			 
 		 }
 		 qrs.close(); qus.close();
@@ -630,7 +622,7 @@ public static int baseResourceAmt = 2000;
 	synchronized public void save() {
 		try {
 		 String  update ="";
-		 UberPreparedStatement stmt = con.createStatement("update bldg set name = ?, lvl = ?, lvling = ?, ppl = ?, pplbuild = ?, pplticks = ?, fortArray = ?, lvlUp = ?, deconstruct = ?, bunkerMode = ?, refuelTicks = ?, nukeMode = ? where bid = ?;");
+		 UberPreparedStatement stmt = con.createStatement("update bldg set name = ?, lvl = ?, lvling = ?, ppl = ?, pplbuild = ?, pplticks = ?, fortArray = ?, lvlUp = ?, deconstruct = ?, bunkerMode = ?, refuelTicks = ?, nukeMode = ? where id = ?;");
  		stmt.setString(1,type);
  		stmt.setInt(2,getLvl());
  		stmt.setInt(3,ticksToFinish);
@@ -643,7 +635,7 @@ public static int baseResourceAmt = 2000;
  		stmt.setInt(10,bunkerMode);
  		stmt.setInt(11,refuelTicks);
  		stmt.setBoolean(12,nukeMode);
- 		stmt.setInt(13,bid);
+ 		stmt.setString(13,id.toString());
 		 
  	
  			  
@@ -1436,5 +1428,19 @@ public static int baseResourceAmt = 2000;
 
 	public int[] getFortArray() {
 		return fortArray;
+	}
+
+
+
+
+	public void setId(UUID id) {
+		this.id = id;
+	}
+
+
+
+
+	public UUID getId() {
+		return id;
 	}
 }

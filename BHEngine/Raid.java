@@ -22,7 +22,7 @@ public class Raid {
 		private boolean allClear = false; private long metal, timber, manmat, food;
 	private ArrayList<AttackUnit> au;
 	private UUID id;
-	private Timestamp dockingFinished;
+	private Timestamp dockingFinished=null;
 	private double distance; private UUID resupplyID; // for resupply runs.
 	private int ticksToHit; private Town town2; private Town town1; private boolean raidOver;
 	private boolean debris; private int digAmt;
@@ -168,12 +168,16 @@ public class Raid {
 		 if(Genocide) setAllClear(false); // Note you need to watch in loaded raids, that raidOver and allClear need to be
 		 // set manually.
 		// player1 hits player2's town2, only need town2 to access units.
+	      id = UUID.randomUUID();
+
+	      	town1.attackServer().add(this); // even if this error happens, raid still works...
+
 			UberPreparedStatement stmt;
 			try {
 
 		   
 		       con =town1.getPlayer().God.con;
-		      
+
 		      // First things first. We update the player table.
 		      boolean transacted=false;
 		      while(!transacted) {
@@ -196,7 +200,6 @@ public class Raid {
 				      stmt.setString(12,PlayerScript.toJSONString(au));
 				      stmt.setInt(13,support);
 				      stmt.setBoolean(14,debris);
-				      id = UUID.randomUUID();
 				      stmt.setString(15,id.toString());
 		      
 		      // let's add this raid and therefore get the rid out of it.
@@ -220,7 +223,6 @@ public class Raid {
 		      	}
 				//town1.attackServer.add(this); // <---- THIS NEEDS TO BE RETURNED TO NORMAL IF YOU GO BACK TO MEMORYLOADING!
 		//	      System.out.println("I put on " +raidID);
-			      	town1.attackServer().add(this); // even if this error happens, raid still works...
 
 			      	
 		      /*
@@ -582,7 +584,7 @@ public class Raid {
 		if(au==null) {
 		int y = 0;
 
-		
+
 		ArrayList<AttackUnit> raidAU = new ArrayList<AttackUnit>();
 		AttackUnit auHold;
 		String auSizesStr = getString("auSizes");

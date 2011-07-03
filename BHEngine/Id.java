@@ -323,7 +323,7 @@ public class Id extends Player {
 							 getPs().b.attack(idT.townID,t.getX(),t.getY(),auAmts,"siege",null,"GARBLEDTRANSMISSION") + ":" + getPs().b.getError());
 							 
 							 
-							 idT.killBuilding(b.bid);
+							 idT.killBuilding(b.getId());
 							 }
 							 break;
 							
@@ -365,7 +365,7 @@ public class Id extends Player {
 							 getPs().b.attack(idT.townID,t.getX(),t.getY(),auAmts,"attack",null,"GARBLEDTRANSMISSION");
 							 
 							 
-							 idT.killBuilding(b.bid);
+							 idT.killBuilding(b.getId());
 						}
 					} else if(rand>=.09&&rand<=.1) {
 						idT = as.get(j).getTown2();
@@ -383,7 +383,7 @@ public class Id extends Player {
 							 getPs().b.attack(idT.townID,t.getX(),t.getY(),auAmts,"siege",null,"GARBLEDTRANSMISSION");
 							 
 							 
-							 idT.killBuilding(b.bid);
+							 idT.killBuilding(b.getId());
 						
 					}
 					

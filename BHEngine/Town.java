@@ -82,6 +82,7 @@ public class Town {
 		 i = 0;
 		AttackUnit ha;
 		String sizeString = getMemString("auSizes");
+		if(sizeString==null) sizeString = "[]"; // means empty.
 		int[] auSizes = PlayerScript.decodeStringIntoIntArray(sizeString);
 		try {
 			int max=au.size();
@@ -375,54 +376,45 @@ public class Town {
 		
 			
 			UberPreparedStatement stmt;
+		      UUID id = UUID.randomUUID();
+
 			try {
 
 		     
-		      stmt = con.createStatement("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,fortArray) values (?,?,?,0,0,0,0,?,?,false,?);");
+		      stmt = con.createStatement("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,fortArray,id) values (?,?,?,0,0,0,0,?,?,false,?,?);");
 		      stmt.setString(1,type);
 		      stmt.setInt(2,lotNum);
 		      stmt.setInt(3,lvl);
 		      stmt.setInt(4,townID);
 		      stmt.setInt(5,lvlUp);
 		      int newSizes[] = new int[getPlayer().getAu().size()];
-
-		      stmt.setString(6,PlayerScript.toJSONString(newSizes));
 		      
+		      stmt.setString(6,PlayerScript.toJSONString(newSizes));
+		      stmt.setString(7,id.toString());
 		      // First things first. We update the player table.
-		      UberPreparedStatement stmt2 = con.createStatement("select bid from bldg where tid = ? and slot = ?;");
-		      stmt2.setInt(1,townID);
-		      stmt2.setInt(2,lotNum);
+
+				
 		      boolean transacted=false;
 		      while(!transacted) {
-		    	  try {
-			stmt.executeUpdate();
-			
-			int bid = 0;
-			int timesTried=0;
-			ResultSet id; 
-			// We want it to break out if bid is not zero or timesTried > 1000. breakout = (!0 + !<1000)
-			// so stayin = !(!0 + !<1000) = 0&&<1000.
-			while(bid==0&&timesTried<1000) {
-				Thread.currentThread().sleep(10);
-
-				id = stmt2.executeQuery();
-				if(id.next()) bid = id.getInt(1);
-				
-				id.close();
-				timesTried++;
+				try {
+						stmt.executeUpdate();
+						
+						
+						
+						 stmt.close(); transacted=true; 
+						 Building b = new Building(id,getPlayer().God);
+						bldg().add(b);
+						return b; 
+				} catch(MySQLTransactionRollbackException exc) { } 
 			}
-		
-			Building b = new Building(bid,getPlayer().God);
-			
-			bldg().add(b);
-			
-			 stmt.close();stmt2.close(); transacted=true; 
-			return b; } catch(MySQLTransactionRollbackException exc) { } catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch(SQLException exc) { exc.printStackTrace();
+			// if this is a fake player, we'll end up getting a SQL exception and we set it manually.
+				Building b = new Building(id,getPlayer().God); // we add it before we do SQL, which may falter
+					// if this is a fakey.
+				//	public void setBuildingValues(String type, int lotNum, int bldglvl, int ticksToFinish, int people, int pplbldging, int ticksLeft, int lvlUps, boolean deconstruct, UUID id, int refuelTicks,boolean nukeMode,int bunkerMode, String fortArrayStr) {
+				b.setBuildingValues(type,lotNum,lvl,0,0,0,0,lvlUp,false,id,0,false,0,"[]");
+				bldg().add(b);
 			}
-			}
-			} catch(SQLException exc) { exc.printStackTrace(); }
 			return null;
 		
 	}
@@ -512,16 +504,16 @@ public class Town {
 		} // boo yah.
 		
 	}*/
-	public Building findBuilding(int bid) {
+	public Building findBuilding(UUID bid) {
 		int i = 0;
 		ArrayList<Building> bldg = bldg();
 		while(i<bldg.size()) {
-			if(bldg.get(i).bid==bid) return bldg.get(i);
+			if(bldg.get(i).getId().equals(bid)) return bldg.get(i);
 			i++;
 		}
 		return null;
 	}
-	 public boolean levelUpBuilding(int bid) {
+	 public boolean levelUpBuilding(UUID bid) {
 		// This thing finds the building and levels it up. Currently one must wait before leveling up again - if you add
 		// the same building object twice to the arraylist, I'm not sure what it's going to do. This may need some redesigning later.
 		
@@ -777,7 +769,7 @@ public class Town {
 								System.out.println("Missile silo defense before: " + tb.getLvl() + " and toLvlDown is "  + toLvlDown);
 
 								while(k<toLvlDown-1) {
-									t.levelDown(tb.bid);
+									t.levelDown(tb.getId());
 									k++;
 								}
 								System.out.println("Missile Silo after:" + tb.getLvl());
@@ -806,7 +798,7 @@ public class Town {
 								int k = 0;
 								System.out.println("Missile silo defense before: " + tb.getLvl() + " and toLvlDown is "  + toLvlDown);
 								while(k<toLvlDown-1) { // we level it down accordingly! But if we do 9, and that means we go 9 times, it'll be 0. So we always do -1.
-									t.levelDown(tb.bid);
+									t.levelDown(tb.getId());
 									k++;
 								}
 								System.out.println("Missile Silo after:" + tb.getLvl());
@@ -823,7 +815,7 @@ public class Town {
 					
 					// now that we're out...
 					
-					killBuilding(b.bid); // KILL THE SILO. THEN DO THE DAMAGE.
+					killBuilding(b.getId()); // KILL THE SILO. THEN DO THE DAMAGE.
 
 					if(!breakOut) {
 					
@@ -1112,7 +1104,7 @@ public class Town {
 
 		}}
 	}
-	 public String levelDown(int bid) {
+	 public String levelDown(UUID bid) {
 		// Crap, this is actually...fairly complex. I guess the lvlups makes it so the level will
 		// increase if it's on the server. So we don't need to worry about that. But what about people ticks?
 		// We need to maybe even take it off the bldg server if it's got people in there that it can't support...
@@ -1797,7 +1789,7 @@ public class Town {
 				if(a.getSupport()==0||(a.getSupport()>0&&getPlayer().ID!=5&&!getPlayer().isQuest())) // we only food tax our own or supportau
 					// present if we are not Id or a quest.
 				foodConsumed+=getFoodConsumption(a);
-				//System.out.println("Adding for " + a.getName() + " which has expmod of " + a.getExpmod() + " and sizeMod of " + sizeMod + " so total addition of " + 5*a.getSize()*a.getExpmod()*sizeMod);
+			//	System.out.println("Adding for " + a.getName() + " which has expmod of " + a.getExpmod() + " and sizeMod of " + sizeMod + " so total addition of " + 5*a.getSize()*a.getExpmod()*sizeMod);
 			}
 				UserTown supportTowns[] = getPlayer().getPs().b.getUserTownsWithSupportAbroad(townID);
 				for(UserTown t: supportTowns) {
@@ -1806,9 +1798,10 @@ public class Town {
 						foodConsumed+=getFoodConsumption(a);
 					}
 				}
+			//	System.out.println("my pop is " + getPop());
 			foodConsumed+=getCivvieFoodConsumption((int) getPop());  // civilians!!!
 			//System.out.println("With a pop of " + getPop() + ", we add another " +5*getPop()*sizeMod );
-			return foodConsumed-10; // one of those civvies ain't real.
+			return foodConsumed;
 	 }
 	 public double getVassalRate() {
 		 double taxRate=0;
@@ -1918,37 +1911,56 @@ public class Town {
 		 r.setRaidOver(true);
 		 resetDig(0,0,false,null); // so now we reset the dig to it's original form.
 	 }
-	 public void giveResourcesToRO(int toAdd, int j) {
+	 public void giveResourcesToRO(int num) {
 		 // here we make sure that our lads digging get their resources piled onto their raid.
 		 // we don't worry about taxing because when the raid returns, it'll get taxed.
-		 Town origin = getPlayer().God.getTown(getTownID());
+		 
+		 Town origin = getPlayer().God.getTown(getDigTownID());
+		 double resInc[] = getResInc();
+		 long res[] = getRes();
+		 double engRate = getDigAmt()*GodGenerator.engineerRORate*num;
+		 long totake = Math.round(engRate);
+		 if(origin!=null) // for some reason, sometimes, it is.
 		 for(Raid r:origin.attackServer()) {
 			 if(r.getDigAmt()>0&&r.getTown2().townID==townID) {
 				 // this is the one we add to.
-				 if(j==0) {
-					 r.setMetal(r.getMetal()+toAdd);
+				 System.out.println("I AM INSIDE! engrate is " + engRate + " totake is " + totake + " and my name is " + getTownName() + " and resinc m is " + resInc[0]
+				       + " t " + resInc[1] + " mm " + resInc[2] + " f " + resInc[3]) ;
+				
+				 if(resInc[0]>0) {
+					 System.out.println("...Adding m.");
+					 if(res[0]<totake) totake = res[0];
+					 res[0]-=totake;
+					 r.setMetal(r.getMetal()+totake);
 					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
-					 if(r.getMetal()>amtWeCanHold) {
+					 if(r.getMetal()>amtWeCanHold||res[0]==0) {
 						 r.setMetal(amtWeCanHold);
 						 returnDigOrRO(r);
 					 }
-				 } else if(j==1) {
-					 r.setTimber(r.getTimber()+toAdd);
+				 } else if(resInc[1]>0) {
+					 System.out.println("...Adding t.");
+
+					 if(res[1]<totake) totake = res[1];
+					 res[1]-=totake;
+					 r.setTimber(r.getTimber()+totake);
 					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
-					 if(r.getTimber()>amtWeCanHold) {
+					 if(r.getTimber()>amtWeCanHold||res[1]==0) {
 						 r.setTimber(amtWeCanHold);
 						 returnDigOrRO(r);
 					 }
-				 } else if(j==2) {
-					 r.setManmat(r.getManmat()+toAdd);
+				 } else if(resInc[2]>0) {
+					 System.out.println("...Adding mm.");
+
+					 if(res[2]<totake) totake = res[2];
+					 res[2]-=totake;
+					 r.setManmat(r.getManmat()+totake);
 					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
-					 if(r.getManmat()>amtWeCanHold) {
+					 if(r.getManmat()>amtWeCanHold||res[2]==0) {
 						 r.setManmat(amtWeCanHold);
 						 returnDigOrRO(r);
 					 }
 				 }
 				 
-				 getResBuff()[j]-=toAdd;
 
 				break;
 			 }
@@ -1989,13 +2001,14 @@ public class Town {
 		
 		j =0;
 		synchronized(res) {
+			 if(getPlayer().ID==5&&getDigAmt()>0&&getDigTownID()!=0&&isResourceOutcropping()) {
+					giveResourcesToRO(num);
+			 }
 		while(j<res.length) {
 			if(resBuff[j]>=1) {
 				int toAdd = (int) Math.floor(resBuff[j]);
 				
-				 if(getPlayer().ID==5&&getDigAmt()>0&&getTownID()!=0&&isResourceOutcropping()) {
-					giveResourcesToRO(toAdd,j);
-				 } else {
+				 
 					res[j]+=toAdd; //	IF YU CHANGE THIS, CHANGE GIVERESOURCESTORO AS WELL!
 					resBuff[j]-=toAdd;
 					if(res[j]>(resCaps[j]+Building.baseResourceAmt))
@@ -2003,7 +2016,7 @@ public class Town {
 					// works even if you lose the building and suddenly have a massive over the limit
 					// amount of resources! HAHA :D
 				
-				 }
+				 
 				
 			}
 			j++;
@@ -2162,7 +2175,7 @@ public class Town {
 	 
     	   
 	 }
-	 synchronized public boolean killBuilding(int bid) {
+	 synchronized public boolean killBuilding(UUID bid) {
 		// this removes a bldg both from the server and from the local object. A sad thing, but can be used
 		// with deconstruct. Bldgserver must do the removing from the bldgserver object itself in however manner it chooses.
 		// but it must do so before this method is called. And you're a bitchbastard.
@@ -2205,11 +2218,11 @@ public class Town {
 	    	  
 	    	  try {	    
 	    		  stmt = p.God.con.createStatement("delete from queue where bid = ?;");
-	    		  stmt.setInt(1,bid);
+	    		  stmt.setString(1,bid.toString());
 
 			stmt.executeUpdate();
-			  stmt = p.God.con.createStatement("delete from bldg where bid = ?;");
-    		  stmt.setInt(1,bid);
+			  stmt = p.God.con.createStatement("delete from bldg where id = ?;");
+    		  stmt.setString(1,bid.toString());
     		  stmt.executeUpdate();
 		
     		  stmt.close(); transacted=true; } catch(MySQLTransactionRollbackException exc) { }
@@ -2227,7 +2240,7 @@ public class Town {
 	 public void checkBuildingDupes() {
 			try {
 			UberPreparedStatement stmt = getPlayer().con.createStatement("select count(*) from bldg where tid = ? and slot = ?;");
-			UberPreparedStatement stmt2=getPlayer().con.createStatement("select bid,lvl from bldg where tid = ? and slot = ?;");
+			UberPreparedStatement stmt2=getPlayer().con.createStatement("select id,lvl from bldg where tid = ? and slot = ?;");
 			int i = 0;
 			stmt.setInt(1,townID);
 			stmt2.setInt(1,townID);
@@ -2247,16 +2260,16 @@ public class Town {
 				rs.close();
 				if(counter>1) {
 					int lowest =31;
-					int lowestbid=0;
+					UUID lowestID=null;
 					stmt2.setInt(2,i);
 					rs = stmt2.executeQuery();
 					while(rs.next()) {
-						if(rs.getInt(2)<lowest) { lowest = rs.getInt(2); lowestbid = rs.getInt(1); }
+						if(rs.getInt(2)<lowest) { lowest = rs.getInt(2); lowestID =UUID.fromString(rs.getString(1));  }
 					}
 					rs.close();
 					
-					if(lowestbid!=0) {
-						killBuilding(lowestbid);
+					if(lowestID!=null) {
+						killBuilding(lowestID);
 					}
 
 				}
@@ -2790,11 +2803,11 @@ public class Town {
 						b.getType().equals("Manufacturing Plant")||
 						b.getType().equals("Airstrip")) {
 				int j = 0;
-				stmt = getPlayer().con.createStatement("delete from queue where qid = ?;");
+				stmt = getPlayer().con.createStatement("delete from queue where id = ?;");
 				while(j<b.Queue().size()) {
 					 q = b.Queue().get(j);
 					q.deleteMe();
-					stmt.setInt(1,q.qid);
+					stmt.setString(1,q.getId().toString());
 					stmt.executeUpdate();
 					
 					
@@ -3137,7 +3150,7 @@ public class Town {
 		int i = 0;try {
 		ArrayList<Building> bldg = bldg();
 		while(i<bldg.size()) {
-			killBuilding(bldg.get(i).bid); // first we knock the buildings.
+			killBuilding(bldg.get(i).getId()); // first we knock the buildings.
 		}
 		} catch(Exception exc) { } 
 		 i = 0;
@@ -3313,27 +3326,29 @@ public class Town {
 	}
 	public ArrayList<Building> bldg() {
 		if(bldg==null) {
-		ArrayList<Building> tres = new ArrayList<Building>();
-		try {
-		UberPreparedStatement rus = getPlayer().con.createStatement("select bid from bldg where tid = ?;");
-		rus.setInt(1,townID);
-			
-		ResultSet rrs = rus.executeQuery();
-		// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
-		// Then F = !(R!T) = !R + T;
-		while(rrs.next()) {
-	
-			tres.add(new Building(rrs.getInt(1),getPlayer().God));
-	
-		}
-				rrs.close();rus.close();
-		} catch(SQLException exc) { exc.printStackTrace(); }
+			ArrayList<Building> tres = new ArrayList<Building>();
+			try {
+			UberPreparedStatement rus = getPlayer().con.createStatement("select id from bldg where tid = ?;");
+			rus.setInt(1,townID);
+				
+			ResultSet rrs = rus.executeQuery();
+			// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
+			// Then F = !(R!T) = !R + T;
+			while(rrs.next()) {
+				
+				tres.add(new Building(UUID.fromString(rrs.getString(1)),getPlayer().God));
 		
-		bldg= tres;
+			}
+					rrs.close();rus.close();
+			} catch(SQLException exc) { exc.printStackTrace(); }
+			
+			bldg= tres;
 		}
 		return bldg;
 	}
-	
+	public void setBldg(ArrayList<Building> b) { // ONLY USE IF YOU'RE DOING A TEST PLAYER.
+		this.bldg=b;
+	}
 	public ArrayList<Building> bldgserver() {
 		
 		ArrayList<Building> tres = new ArrayList<Building>();
@@ -3731,7 +3746,7 @@ public class Town {
 				resIncs[3]*=(1+additions[3]);
 
 				if(getPlayer().getFTimer()>0) resIncs[3]*=1.25;
-				if(isResourceOutcropping()) resIncs[0]=0;
+				if(isResourceOutcropping()) resIncs[3]=0;
 
 			}
 			i++;

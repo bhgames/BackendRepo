@@ -364,11 +364,11 @@ public class PlayerScript implements Runnable {
     		 } else {
     			 try {
     			 // number, number, string
-    			 toRet+=""+b.cancelQueueItem(Integer.parseInt(holdPart.substring(0,holdPart.indexOf(","))),
+    			 toRet+=""+b.cancelQueueItem(UUID.fromString(holdPart.substring(0,holdPart.indexOf(","))),
         				 Integer.parseInt(holdPart.substring(holdPart.indexOf(",")+1,holdPart.lastIndexOf(","))),
         				 Integer.parseInt(holdPart.substring(holdPart.lastIndexOf(",")+1,holdPart.length())));
     			 } catch(NumberFormatException exc) {
-    				 toRet+=""+b.cancelQueueItem(Integer.parseInt(holdPart.substring(0,holdPart.indexOf(","))),
+    				 toRet+=""+b.cancelQueueItem(UUID.fromString(holdPart.substring(0,holdPart.indexOf(","))),
             				 Integer.parseInt(holdPart.substring(holdPart.indexOf(",")+1,holdPart.lastIndexOf(","))),
             				 holdPart.substring(holdPart.lastIndexOf(",")+1,holdPart.length()));
     			 }
@@ -654,9 +654,9 @@ public class PlayerScript implements Runnable {
         			
         				 int array1[] = decodeStringIntoIntArray(holdPart.substring(0,holdPart.indexOf("]")+1));
         				 holdPart = holdPart.substring(holdPart.indexOf("]")+2,holdPart.length());
-        				 int num2 = Integer.parseInt(holdPart.substring(0,holdPart.length()));
+        				 String str2 = (holdPart.substring(0,holdPart.length()));
                 	
-                		 toRet+= b.setFortification(array1,num2);
+                		 toRet+= b.setFortification(array1,UUID.fromString(str2));
             			
         			 
         		 }else if(holdCmd.equals("bf.recall")) {

@@ -5,13 +5,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import BattlehardFunctions.UserBuilding;
 
 public class QueueItem {
-public int qid;
+private UUID id;
 private Building b;
-public int bid;
+ UUID bid;
 private int ticksPerUnit=0;
 private int AUNumber; // This is how many of them
 private int AUtoBuild;
@@ -26,16 +27,16 @@ public static int days = 5;
 // inherently, deleteMe is false and is used by player to detect that this queue item should
 // be deleted on the db as opposed to updated. If it's loaded in, it's clearly not over yet!
 
-	public void setQueueValues(int qid, int AUtoBuild, int AUNumber, int currTicks,int townsAtTime,int originalAUAmt,int totalNumber) {
+	public void setQueueValues(int AUtoBuild, int AUNumber, int currTicks,int townsAtTime,int originalAUAmt,int totalNumber) {
 		this.AUNumber=AUNumber;this.AUtoBuild=AUtoBuild;this.currTicks=currTicks;this.townsAtTime=townsAtTime;this.originalAUAmt=originalAUAmt;
 		this.totalNumber=totalNumber;
 	}
-	public QueueItem(int qid, Building b,GodGenerator God) {
-		this.qid=qid;this.bid=b.bid;this.b=b;
+	public QueueItem(UUID id, Building b,GodGenerator God) {
+		this.id=id;this.bid=b.getId();this.b=b;
 		this.God=God;this.con=God.con;
 		try {
-		UberPreparedStatement qus = con.createStatement("select * from queue where qid = ?;");
-		qus.setInt(1,qid);
+		UberPreparedStatement qus = con.createStatement("select * from queue where id = ?;");
+		qus.setString(1,id.toString());
 		 ResultSet qrs = qus.executeQuery();
 		// getting queries.
 		
@@ -43,7 +44,7 @@ public static int days = 5;
 		 while(qrs.next()) {
 			 //	public QueueItem(int qid, int bid, int AUtoBuild, int AUNumber, int currTicks,Town t) {
 			
-			setQueueValues(qrs.getInt(1),qrs.getInt(3),qrs.getInt(4),qrs.getInt(5),qrs.getInt(10),qrs.getInt(11),qrs.getInt(12));
+			setQueueValues(qrs.getInt(3),qrs.getInt(4),qrs.getInt(5),qrs.getInt(10),qrs.getInt(11),qrs.getInt(12));
 			 // will go from earliest to latest in pushing queues onto the stack...
 		 }
 		  qrs.close();
@@ -89,10 +90,8 @@ public static int days = 5;
 		if(getAUNumber()<=0) return true;
 		else return false;
 	}
-	public int returnQID() {
-		return qid;
-	}
-	public int returnBID() {
+	
+	public UUID returnBID() {
 		return bid;
 	}/*
 	public int returnMemAUtoBuild() {
@@ -539,8 +538,8 @@ public static int days = 5;
 		if(cost==null) {
 			try {
 				long[] cost = new long[5];
-				UberPreparedStatement stmt = con.createStatement("select m,t,mm,f from queue where qid = ?;");
-				stmt.setInt(1,qid);
+				UberPreparedStatement stmt = con.createStatement("select m,t,mm,f from queue where id = ?;");
+				stmt.setString(1,id.toString());
 				ResultSet rs = stmt.executeQuery();
 				rs.next();
 				cost[0]=rs.getLong(1);
@@ -592,8 +591,8 @@ public static int days = 5;
 
 	public void deleteMe() {
 		try {
-			UberPreparedStatement stmt = con.createStatement("delete from queue where qid = ?;");
-			stmt.setInt(1,qid);
+			UberPreparedStatement stmt = con.createStatement("delete from queue where id = ?;");
+			stmt.setString(1,id.toString());
 			stmt.executeUpdate();
 			stmt.close();
 		} catch(SQLException exc) { exc.printStackTrace(); }
@@ -603,17 +602,22 @@ public static int days = 5;
 
 	synchronized public void save() {
 		try {
-			String update = "update queue set AUNumber = " + getAUNumber() + ", currTicks = " + getCurrTicks() + 
-			  " where qid = " + qid;
-			UberPreparedStatement stmt = con.createStatement("update queue set AUNumber = ?, currTicks = ? where qid = ?;");
+		
+			UberPreparedStatement stmt = con.createStatement("update queue set AUNumber = ?, currTicks = ? where id = ?;");
 			stmt.setInt(1,getAUNumber());
 			stmt.setInt(2,getCurrTicks());
-			stmt.setInt(3,qid);
+			stmt.setString(3,id.toString());
 			stmt.execute();
 			stmt.close();
 			
 		}	catch(SQLException exc) { exc.printStackTrace(); }
 		
+	}
+	public void setId(UUID id) {
+		this.id = id;
+	}
+	public UUID getId() {
+		return id;
 	}
 
 	/*

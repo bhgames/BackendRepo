@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.UUID;
 
 import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 /**
@@ -843,17 +844,25 @@ public abstract class QuestListener extends Player {
     		   tid = rs.getInt(1);
     		  rs.close();
     		stmt.close();
-    		stmt = con.createStatement("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (?,?,3,-1,0,0,0,?,0,0,-1,0);");
+    		UUID id = UUID.randomUUID();
+    		stmt = con.createStatement("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode,id) values (?,?,3,-1,0,0,0,?,0,0,-1,0,?);");
+    		stmt.setString(4,id.toString());
     		stmt.setInt(3,tid);
     		stmt.setString(1,"Metal Mine");
     		stmt.setInt(2,0);
     		stmt.execute();
+    		id = UUID.randomUUID();
+    		stmt.setString(4,id.toString());
     		stmt.setString(1,"Timber Field");
     		stmt.setInt(2,1);
     		stmt.execute();
+    		id = UUID.randomUUID();
+    		stmt.setString(4,id.toString());
     		stmt.setString(1,"Crystal Mine");
     		stmt.setInt(2,2);
     		stmt.execute();
+    		id = UUID.randomUUID();
+    		stmt.setString(4,id.toString());
     		stmt.setString(1,"Farm");
     		stmt.setInt(2,3);
     		stmt.execute();

@@ -1,16 +1,18 @@
 
 package BattlehardFunctions;
 
+import java.util.UUID;
+
 public class UserQueueItem {
-private int qid;
-int bid;
+private UUID id;
+UUID bid;
 private long cost[];
 private int AUtoBuild;
 int AUNumber, currTicks, ticksPerUnit, townsAtTime, originalAUAmt, totalNumber;
 // inherently, deleteMe is false and is used by player to detect that this queue item should
 // be deleted on the db as opposed to updated. If it's loaded in, it's clearly not over yet!
-	public UserQueueItem(int qid, int bid, int AUtoBuild, int AUNumber, int currTicks, int ticksPerUnit, long cost[],int townsAtTime, int originalAUAmt, int totalNumber) {
-		this.qid=qid;this.bid=bid;this.AUtoBuild=AUtoBuild;this.AUNumber=AUNumber;this.currTicks=currTicks;
+	public UserQueueItem(UUID id, UUID bid, int AUtoBuild, int AUNumber, int currTicks, int ticksPerUnit, long cost[],int townsAtTime, int originalAUAmt, int totalNumber) {
+		this.id=id;this.bid=bid;this.AUtoBuild=AUtoBuild;this.AUNumber=AUNumber;this.currTicks=currTicks;
 		this.ticksPerUnit=ticksPerUnit;this.cost=cost;
 		this.townsAtTime=townsAtTime;
 		this.originalAUAmt=originalAUAmt;
@@ -21,8 +23,8 @@ int AUNumber, currTicks, ticksPerUnit, townsAtTime, originalAUAmt, totalNumber;
 	public void removeUnit() {
 		AUNumber--;
 	}
-	public int getQid() {
-		return qid;
+	public UUID getId() {
+		return id;
 	}
 	/**
 	 * Get the number of towns you had when you made this queue item.
@@ -75,10 +77,8 @@ int AUNumber, currTicks, ticksPerUnit, townsAtTime, originalAUAmt, totalNumber;
 		if(AUNumber<=0) return true;
 		else return false;
 	}
-	public int returnQID() {
-		return qid;
-	}
-	public int returnBID() {
+	
+	public UUID returnBID() {
 		return bid;
 	}
 	public int returnAUtoBuild() {
