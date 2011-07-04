@@ -1924,11 +1924,11 @@ public class Town {
 		 for(Raid r:origin.attackServer()) {
 			 if(r.getDigAmt()>0&&r.getTown2().townID==townID) {
 				 // this is the one we add to.
-				 System.out.println("I AM INSIDE! engrate is " + engRate + " totake is " + totake + " and my name is " + getTownName() + " and resinc m is " + resInc[0]
-				       + " t " + resInc[1] + " mm " + resInc[2] + " f " + resInc[3]) ;
+				// System.out.println("I AM INSIDE! engrate is " + engRate + " totake is " + totake + " and my name is " + getTownName() + " and resinc m is " + resInc[0]
+				  //     + " t " + resInc[1] + " mm " + resInc[2] + " f " + resInc[3]) ;
 				
 				 if(resInc[0]>0) {
-					 System.out.println("...Adding m.");
+					// System.out.println("...Adding m.");
 					 if(res[0]<totake) totake = res[0];
 					 res[0]-=totake;
 					 r.setMetal(r.getMetal()+totake);
@@ -1938,7 +1938,7 @@ public class Town {
 						 returnDigOrRO(r);
 					 }
 				 } else if(resInc[1]>0) {
-					 System.out.println("...Adding t.");
+				//	 System.out.println("...Adding t.");
 
 					 if(res[1]<totake) totake = res[1];
 					 res[1]-=totake;
@@ -1949,7 +1949,7 @@ public class Town {
 						 returnDigOrRO(r);
 					 }
 				 } else if(resInc[2]>0) {
-					 System.out.println("...Adding mm.");
+			//		 System.out.println("...Adding mm.");
 
 					 if(res[2]<totake) totake = res[2];
 					 res[2]-=totake;
@@ -2082,8 +2082,8 @@ public class Town {
 	 synchronized public void saveInfluence() {
 			try {
 				UberPreparedStatement stmt = con.createStatement("update town set lord = ?, vassalFrom = ?, influence = ? where tid = ?;");
-				if(getLord()!=null)
-				stmt.setInt(1,getLord().ID);
+				if(lord!=null) // if you do getlord, it'll revive the old one from memory.
+				stmt.setInt(1,lord.ID);
 				else stmt.setInt(1,0);
 				if(getVassalFrom()!=null) stmt.setString(2,getVassalFrom().toString());
 				else stmt.setString(2,new Timestamp((new Date()).getTime()).toString());
@@ -4414,7 +4414,9 @@ public class Town {
 	public Player getLord() {
 		if(lord==null) {
 			int lpid = getMemInt("lord");
-			if(lpid!=0) {
+			if(lpid>0) { // remember, getMemInt returns -1 if this is a facsimile player, as there is no record.
+				// so when you change ids, you need to take this into account - WHAT IF THERE IS NO RECORD,
+				// what does getmemstring return?
 				lord=getPlayer().God.getPlayer(lpid);
 			}
 			

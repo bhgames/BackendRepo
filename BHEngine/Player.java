@@ -883,11 +883,12 @@ public class Player  {
 			// now we add any ROs we're at.
 			for(Town t: towns) {
 				// so first we add influence.
-				if(God.serverLoaded) // this could be the loadup call, in which territory should not be incremented.
+				if(God.serverLoaded) { // this could be the loadup call, in which territory should not be incremented.
 					if(t.isResourceOutcropping()) {
 						if(t.getPlayer().getPs().b.getCS(t.townID)>0)
 							t.setInfluence(t.getInfluence()+t.getPlayer().getPs().b.getCS(t.townID)); // soldiers on it generate territory.
 						else {
+					//		System.out.println("Nobody at " + t.getTownName() + " so I am subtracting " + t.getInfluence());
 							t.setInfluence(t.getInfluence()-(int)Math.round(.5*t.getInfluence()));
 							if(t.getInfluence()<0||t.getInfluence()==1) t.setInfluence(0);
 							
@@ -895,11 +896,11 @@ public class Player  {
 					}
 					else
 						t.setInfluence(t.getInfluence()+t.getPlayer().getPs().b.getCSL(t.townID));
-					
+				}
 					// now we calculate to see what the max block this guy should have is.
 					
 					double maxR =Math.sqrt(t.getInfluence()/10.0)/2.5;
-				//	System.out.println("t " + t.getTownName() + " infl is " +t.getInfluence() + " maxR is " + maxR);
+				//	System.out.println("t " + t.getTownName() + " infl is " +t.getInfluence() + " maxR is " + maxR + " and ID is " + ID);
 					/*
 					 * 10(2.5r)^2
 					 * Now we need to figure out the "boundaries" of the parcel. What I suggest is starting with the point -maxR,maxR
@@ -919,7 +920,7 @@ public class Player  {
 						//	System.out.println("Trying " + startX + "," + startY + ", who's dist is " + dist + " tx is " + t.getX() + " ty is " + t.getY() 
 							//		+ " diff in x is " + (t.getX()-startX)+" diff in y is " + (t.getY()-startY) + " pow in x is " + Math.pow((t.getX()-startX),2) + 
 								//	" pow in y is " +Math.pow((t.getY()-startY),2) );
-							if(dist<=maxR) {
+							if(dist<=maxR&&t.getInfluence()>0) { // if influence = 0, can still get the town's own x,y!
 								pt = new Hashtable();
 								pt.put("x",(int)startX);
 								pt.put("y",(int) startY);
@@ -1011,6 +1012,7 @@ public class Player  {
 				}
 				k++;
 			}
+			
 			ArrayList<ArrayList<Hashtable>> ourTerritories = townPointLists; //renaming for different use.
 
 			// now we must check out conflicting territorial boundaries...
@@ -1154,6 +1156,7 @@ public class Player  {
 	 	}	 else if(ID==5) {
 	 		if(getTerritories()==null) setTerritories(new ArrayList<Hashtable>()); // Id has an empty hashtable.
 	 		checkForNewlyVassaledTowns(); // Id can lose ROs to people just by nature of them having territories there.
+	 		
 	 	}
 				
 			}
@@ -1322,6 +1325,7 @@ public class Player  {
 		  * and are not yet "vassaled" to someone else with a counter set, then they get that shit.
 		  */
 		 Hashtable[] r=null;
+		 
 		 for(Town t: towns()) {
 			 if(ID!=5||(ID==5&&t.isResourceOutcropping())) {
 				 boolean found=false;
@@ -1356,8 +1360,9 @@ public class Player  {
 								int theirX = (Integer) theirPoint.get("x");
 								int theirY = (Integer) theirPoint.get("y");
 								
+								foundP=owner; 
+								
 								if(theirX==t.getX()&&theirY==t.getY()) {
-									foundP=owner;
 
 									// now we have a winner.
 									if(owner.getLord()!=null) owner = owner.getLord(); // they goto your lord.
@@ -1404,22 +1409,26 @@ public class Player  {
 						}
 						
 						if(t.getLord()!=null)
-							System.out.println("my id is " + ID + " and my lord is " + t.getLord().ID + " and tid is " + t.getTownID()+" and foundNobody is " + foundNobody + " and the person I found was " + foundP.ID);
+						//	System.out.println("my id is " + ID + " and my lord is " + t.getLord().ID + " and tid is " + t.getTownID()+" and foundNobody is " + foundNobody + " and the person I found was " + foundP.ID);
 							// well holy shit, NOBODY WAS ABLE TO CLAIM THIS PLACE! now it's up for keeps for Id again. This means
 							// the player left with his troops and the influence dropped past the point that he had a territory.
 							if(foundNobody&&ID==5) {
 								// well now we need to see if there is anybody present.
-								System.out.println("My ID is " + t.townID + " and my cs is " + getPs().b.getCS(t.townID));
+							//	System.out.println("My ID is " + t.townID + " and my cs is " + getPs().b.getCS(t.townID));
 								if(getPs().b.getCS(t.townID)==0) {
+								//	System.out.println("Setting my lord to null I am " + t.townID + " and " + t);
 									//ah, nope, this town is lost.
 									// This sort of thing happens a lot, not worth FBing.
 
 								/*		 t.getLord().makeWallPost("","Resource Outcropping Lost!","The Resource Outcropping " + t.getTownName() + " has fallen outside my influence.... for now.",
 													"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
 													"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
-													"Play Now!","http://www.steampunkwars.com/"); */
-										 t.setLord(null);
+													"Play Now!","http://www.steampunkwars.com/"); */ 
+										t.setLord(null);
 										t.setVassalFrom(new Timestamp((new Date()).getTime()));
+										t.saveInfluence();
+
+										
 								}
 							}
 							
@@ -1437,12 +1446,17 @@ public class Player  {
 									"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
 									"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
 									"Play Now!","http://www.steampunkwars.com/");
+
 							 t.setLord(null);
 							t.setVassalFrom(new Timestamp((new Date()).getTime()));
+							t.saveInfluence();
+
 					 
 				 }
+
 			 }
 		 }
+		 
 	 }
 	 public int makeWallPost(String message,String name, String caption, String link, String description, String picture, String bottomlinkname, String bottomlink) {
 		 if(getFuid()!=0) {
@@ -1974,7 +1988,7 @@ public class Player  {
 	    		// probably because I insert elements at the bottom...
 	    		while(rs.next())  {
 	    			
-	    		UUID currSID = UUID.fromString(rs.getString(1)); // search for foreign tid reports, then get their sids,
+	    		UUID currSID = UUID.fromString(rs.getString(52)); // search for foreign tid reports, then get their sids,
 	    		// see if we have them, and so on...
 	    		int defID = rs.getInt(3); int offID = rs.getInt(2);
 	    
@@ -2300,7 +2314,9 @@ public class Player  {
 			for(Town t: fake.towns()) {
 				God.getTowns().remove(t);
 			}
+			
 		}
+		
 	}
 	public boolean completedQuest(int qid) {
 		try {
@@ -2602,7 +2618,7 @@ public class Player  {
 		// special save function that just saves influence related stuff for towns. Used when territoryCalculator is called.
 		try {
 			UberPreparedStatement stmt = con.createStatement("update player set lord = ?, vassalFrom = ?, taxRate = ?, voluntaryVassal = ? where pid = ?;");
-			if(getLord()!=null) stmt.setInt(1,getLord().ID);
+			if(lord!=null) stmt.setInt(1,lord.ID);
 			else stmt.setInt(1,0);
 			if(getVassalFrom()!=null) stmt.setString(2,getVassalFrom().toString());
 			else 	stmt.setString(2,new Timestamp((new Date()).getTime()).toString());

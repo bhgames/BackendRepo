@@ -6368,6 +6368,9 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			}
 			if(type!=2) {
 				// quests do not need this.
+				for(Town t:p.towns()) {
+					t.setInfluence(startingTownInfluence);
+				}
 				p.territoryCalculator();
 				p.saveInfluence();
 			}
@@ -11849,7 +11852,7 @@ public boolean checkForGenocides(Town t) {
 		// System.out.println("From " + p.towns.get(0).townID + " to " + t.townID + " id is " + tid);
 		 // Remember we just want zero-size copies because the actual au there
 		 // will soon ret
-		 System.out.println("Got here to give it.");
+	// System.out.println("Got here to give it.");
 		 if(type!=2) // if type is 2, we already give it up there when we make it!
 		 t.giveTown(null,p);
 		
@@ -12881,7 +12884,7 @@ public boolean checkForGenocides(Town t) {
 		  townName+="-"+(x+xmod)+"-"+(y+ymod);
 		  int newSizes[] = new int[0];
 		  stmt.execute("insert into town (pid,townName,x,y,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,auSizes,influence,resourceOutcropping) values (5,\"" + townName+/*"Town" + (x+xmod) + "-" + (y+ymod) +*/ "\","
-				  +(x+xmod)+","+(y+ymod)+",0,0,0,0,1," + resEffects[0] + "," + resEffects[1] + "," + resEffects[2] + "," + resEffects[3] + "," + resEffects[4] + ",'"+PlayerScript.toJSONString(newSizes)+"',"+startingTownInfluence+","+resourceOutcropping+")");
+				  +(x+xmod)+","+(y+ymod)+",0,0,0,0,1," + resEffects[0] + "," + resEffects[1] + "," + resEffects[2] + "," + resEffects[3] + "," + resEffects[4] + ",'"+PlayerScript.toJSONString(newSizes)+"',"+0+","+resourceOutcropping+")");
 		  rs = stmt.executeQuery("select tid from town where x = " + (x+xmod) + " and y = " + (y+ymod) + ";");
 		  rs.next();
 		  int tid = rs.getInt(1);
@@ -14115,7 +14118,8 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
 				RO=t;
 				break;
-			}
+			} 
+			
 		}
 		if(RO==null) {
 			growId();
@@ -14124,6 +14128,8 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			
 		}
 		for(Town t: getPlayer(5).towns()) {
+			//System.out.println(t.getTownID() + " has " + t.getInfluence() + " influence.");
+
 			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
 				RO=t;
 				break;
@@ -14134,8 +14140,9 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			player.deleteFakePlayers(players);
 			return false;
 		}
-		t1.setX(RO.getX()+1);
+		t1.setX(RO.getX()+10);
 		t1.setY(RO.getY());
+		t1.setInfluence(0);
 		t1.addBuilding("Command Center",4,5,0);
 		t1.bldg().get(0).setPeopleInside(5);
 		t1.setAu(new ArrayList<AttackUnit>());
@@ -14178,6 +14185,11 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 		if(RO.getLord()==null) {
 			out.println("basicRO test failed because the RO didn't become owned by the player after landing.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(RO.getInfluence()>0) {
+			out.println("basicRO test failed because the RO somehow gained influence after only one terr calc.");
 			player.deleteFakePlayers(players);
 			return false;
 		}
@@ -14285,18 +14297,33 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			player.deleteFakePlayers(players);
 			return false;
 		}
+		
 		players[0].territoryCalculator();
+		/*
+		ArrayList<Hashtable> p = (ArrayList<Hashtable>)players[0].getTerritories().get(0).get("points");
+		for(Hashtable re:p){
+			System.out.println("NOW x is " + (Integer) re.get("x") + " y is " + (Integer) re.get("y"));
+		}
+		p = (ArrayList<Hashtable>)players[0].getTerritories().get(1).get("points");
+		for(Hashtable re:p){
+			System.out.println("NOW x is " + (Integer) re.get("x") + " y is " + (Integer) re.get("y"));
+		}
+		System.out.println("RO x is " + RO.getX() + " and y is " + RO.getY() + " the town x is " + players[0].towns().get(0).getX()
+				+ " the town y is " + players[0].towns().get(0).getY());*/
+
 		if(RO.getInfluence()>0) {
 			out.println("basicRO test failed because the RO had influence after a territoryCalculator on player when nobody was present..");
 			player.deleteFakePlayers(players);
 			return false;
 		}
 		getPlayer(5).territoryCalculator();
+	
 		if(RO.getLord()!=null) {
-			out.println("basicRO test failed because the RO didn't get delorded when it should have.");
+			out.println("basicRO test failed because the RO didn't get delorded when it should have, it was lorded to " + RO.getLord().ID + " and its tid is " + RO.townID + " and " + RO);
 			player.deleteFakePlayers(players);
 			return false;
 		}
+		
 		player.deleteFakePlayers(players);
 		out.println("basicRO test successful.");
 		return true;
