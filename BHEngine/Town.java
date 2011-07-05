@@ -1828,88 +1828,109 @@ public class Town {
 			}
 		 return taxRate;
 	 }
-	 public void returnDigOrRO(Raid r) {
+	 public void returnDigOrRO(boolean kicked, boolean suppressSR) {
 		 // so this is how it will return.
 		 //	public int getAttackETA(int yourTownID, int enemyx, int enemyy, int holdNumbers[]) {
 		 // now we must remove those units from support that were here from this mission...
 		 // not with a recall, as we're used to doing before, but with direct intervention.
-		 for(AttackUnit a: getAu()) {
-			 if(a.getSupport()>0&&a.getOriginalTID()==r.getTown1().getTownID()) {
-				 // now we thin the ranks.
-				 if(a.getSize()<r.getAu().get(a.getOriginalSlot()).getSize()) {
-					 r.getAu().get(a.getOriginalSlot()).setSize(a.getSize());
-					 a.setSize(0);
-				 } else {
-					 a.setSize(a.getSize()-r.getAu().get(a.getOriginalSlot()).getSize());
-				 }
+		 Town otherT = getPlayer().God.getTown(getDigTownID());
+		 Raid r= null;
+		 for(Raid r2:otherT.attackServer()){
+			 if(r2.getTown2().townID==townID&&r2.getDigAmt()>0) {
+				 r=r2;break;
 			 }
 		 }
-		 
-		 r.setDigAmt(getDigAmt());
-		 
-		 int numbers[] = new int[r.getAu().size()];
-		 int i = 0;
-		 for(AttackUnit a: r.getAu()) {
-			 numbers[i] = a.getSize();
-			 i++;
-		 }
-		 
-		 	String unitStart=""; String unitNames="";String unitEnd="";
-			int k = 0;
-		
-			while(k<r.getAu().size()) {
-				unitStart+=","+r.getAu().get(k).getSize();
-				unitNames+=","+r.getAu().get(k).getName();
+		 if(r!=null) {
+			 for(AttackUnit a: getAu()) {
+				 if(a.getSupport()>0&&a.getOriginalTID()==r.getTown1().getTownID()) {
+					 // now we thin the ranks.
+					 if(a.getSize()<r.getAu().get(a.getOriginalSlot()).getSize()) {
+						 r.getAu().get(a.getOriginalSlot()).setSize(a.getSize());
+						 a.setSize(0);
+					 } else {
+						 a.setSize(a.getSize()-r.getAu().get(a.getOriginalSlot()).getSize());
+					 }
+				 }
+			 }
+			 
+			 r.setDigAmt(getDigAmt());
+			 
+			 int numbers[] = new int[r.getAu().size()];
+			 int i = 0;int totalN=0;
+			 for(AttackUnit a: r.getAu()) {
+				 numbers[i] = a.getSize();
+				 totalN+=a.getSize();
+				 i++;
+			 }
+			 totalN+=r.getDigAmt();
+			 if(totalN==0) r.deleteMe();
+			 
+			 if(!suppressSR) {
+			 	String unitStart=""; String unitNames="";String unitEnd="";
+				int k = 0;
+			
+				while(k<r.getAu().size()) {
+					unitStart+=","+r.getAu().get(k).getSize();
+					unitNames+=","+r.getAu().get(k).getName();
+					unitEnd+=",0";
+	
+					k++;
+				}
+				unitStart+=","+r.getDigAmt();
+				String msg = "";
+				if(r.getTown2().isResourceOutcropping()) {
+					if(!kicked)
+					msg = "The resource outcropping was successfully harvested.";
+					else 
+						msg = "The resource outcropping was forcibly overtaken by an enemy excavation party.";
+					unitNames+=",Engineer";
+				}
+				else {
+					if(!kicked)
+					msg = "The dig site was evacuated after a successful mission.";
+					else 
+						msg = "The dig was forcibly overtaken by an enemy dig party.";
+					unitNames+=",Scholar";
+				}
 				unitEnd+=",0";
-
-				k++;
-			}
-			unitStart+=","+r.getDigAmt();
-			String msg = "";
-			if(r.getTown2().isResourceOutcropping()) {
-				msg = "The resource outcropping was successfully harvested.";
-				unitNames+=",Engineer";
-			}
-			else {
-				msg = "The dig site was evacuated after a successful mission.";
-				unitNames+=",Scholar";
-			}
-			unitEnd+=",0";
-			try {
-			UberPreparedStatement stmt = getPlayer().God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,ax,ay,dx,dy,digend,id) values" +
-			      		"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,true,?);");
-			stmt.setInt(1,r.getTown1().getPlayer().ID);
-			stmt.setInt(2,r.getTown1().townID);
-			stmt.setInt(3,r.getTown2().townID);
-			stmt.setString(4,unitStart);
-			stmt.setString(5,unitEnd);
-			stmt.setString(6,unitNames);
-			stmt.setLong(7,r.getMetal());
-			stmt.setLong(8,r.getTimber());
-			stmt.setLong(9,r.getManmat());
-			stmt.setLong(10,r.getFood());
-			stmt.setString(11,r.getTown1().getTownName());
-			stmt.setString(12,r.getTown2().getTownName());
-			stmt.setString(13,msg);
-			stmt.setInt(14,r.getTown1().getX());
-			stmt.setInt(15,r.getTown1().getY());
-			stmt.setInt(16,r.getTown2().getX());
-			stmt.setInt(17,r.getTown2().getY());
-			UUID id = UUID.randomUUID();
-			stmt.setString(18,id.toString());
-
-			 stmt.execute();
-			 stmt.close();
-			 Date today = new Date();
-			  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
-			 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
-				//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage, boolean digend)
-				  r.getTown1().getPlayer().addUserSR(new UserSR(id,unitStart,unitEnd,null,null,unitNames,null,r.getTown1().getTownName(),r.getTown2().getTownName(),false,false,false,false,(int)r.getMetal(),(int) r.getTimber(),(int)r.getManmat(),(int)r.getFood(),
-						  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,true,r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getX(),r.getTown2().getY(),"none",0,0,0,0,false,false,false,false,false,msg,true));
-			} catch(SQLException exc) { exc.printStackTrace(); }
-		 r.setTicksToHit(getPlayer().getPs().b.getAttackETA(townID,r.getTown1().getX(),r.getTown1().getY(),numbers));
-		 r.setRaidOver(true);
-		 resetDig(0,0,false,null); // so now we reset the dig to it's original form.
+				try {
+				UberPreparedStatement stmt = getPlayer().God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,ax,ay,dx,dy,digend,id) values" +
+				      		"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,true,?);");
+				stmt.setInt(1,r.getTown1().getPlayer().ID);
+				stmt.setInt(2,r.getTown1().townID);
+				stmt.setInt(3,r.getTown2().townID);
+				stmt.setString(4,unitStart);
+				stmt.setString(5,unitEnd);
+				stmt.setString(6,unitNames);
+				stmt.setLong(7,r.getMetal());
+				stmt.setLong(8,r.getTimber());
+				stmt.setLong(9,r.getManmat());
+				stmt.setLong(10,r.getFood());
+				stmt.setString(11,r.getTown1().getTownName());
+				stmt.setString(12,r.getTown2().getTownName());
+				stmt.setString(13,msg);
+				stmt.setInt(14,r.getTown1().getX());
+				stmt.setInt(15,r.getTown1().getY());
+				stmt.setInt(16,r.getTown2().getX());
+				stmt.setInt(17,r.getTown2().getY());
+				UUID id = UUID.randomUUID();
+				stmt.setString(18,id.toString());
+	
+				 stmt.execute();
+				 stmt.close();
+				 Date today = new Date();
+				  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
+				 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+					//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage, boolean digend)
+					  r.getTown1().getPlayer().addUserSR(new UserSR(id,unitStart,unitEnd,null,null,unitNames,null,r.getTown1().getTownName(),r.getTown2().getTownName(),false,false,false,false,(int)r.getMetal(),(int) r.getTimber(),(int)r.getManmat(),(int)r.getFood(),
+							  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,true,r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getX(),r.getTown2().getY(),"none",0,0,0,0,false,false,false,false,false,msg,true));
+				
+				} catch(SQLException exc) { exc.printStackTrace(); }
+			 }
+			 r.setTicksToHit(getPlayer().getPs().b.getAttackETA(townID,r.getTown1().getX(),r.getTown1().getY(),numbers));
+			 r.setRaidOver(true);
+			 resetDig(0,0,false,null); // so now we reset the dig to it's original form.
+		 }
 	 }
 	 public void giveResourcesToRO(int num) {
 		 // here we make sure that our lads digging get their resources piled onto their raid.
@@ -1935,7 +1956,7 @@ public class Town {
 					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
 					 if(r.getMetal()>amtWeCanHold||res[0]==0) {
 						 r.setMetal(amtWeCanHold);
-						 returnDigOrRO(r);
+						 returnDigOrRO(false,false);
 					 }
 				 } else if(resInc[1]>0) {
 				//	 System.out.println("...Adding t.");
@@ -1946,7 +1967,7 @@ public class Town {
 					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
 					 if(r.getTimber()>amtWeCanHold||res[1]==0) {
 						 r.setTimber(amtWeCanHold);
-						 returnDigOrRO(r);
+						 returnDigOrRO(false,false);
 					 }
 				 } else if(resInc[2]>0) {
 			//		 System.out.println("...Adding mm.");
@@ -1957,7 +1978,7 @@ public class Town {
 					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
 					 if(r.getManmat()>amtWeCanHold||res[2]==0) {
 						 r.setManmat(amtWeCanHold);
-						 returnDigOrRO(r);
+						 returnDigOrRO(false,false);
 					 }
 				 }
 				 

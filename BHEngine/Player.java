@@ -2310,12 +2310,30 @@ public class Player  {
 	}
 	public void deleteFakePlayers(Player[] fakes) {
 		for(Player fake:fakes) {
+			for(Town other:God.getTowns()) {
+				if(other.getLord()!=null&&other.getLord().ID==fake.ID) {
+					other.setLord(null);
+					other.setVassalFrom(new Timestamp(new Date().getTime()));
+				}
+			}
+			for(Player p:God.getPlayers()) {
+				if(p.getLord()!=null&&p.getLord().ID==fake.ID) {
+					p.makeVassalOf(null,false);
+				}
+			}
 			God.getPlayers().remove(fake);
+			
 			for(Town t: fake.towns()) {
 				God.getTowns().remove(t);
+				for(Town other:God.getTowns()) {
+					if(other.getDigTownID()==t.townID) {
+						other.resetDig(0,0,false,null);
+					}
+				}
 			}
 			
 		}
+		
 		
 	}
 	public boolean completedQuest(int qid) {

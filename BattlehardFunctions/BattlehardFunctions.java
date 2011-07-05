@@ -5945,7 +5945,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		if(t.getPlayer().ID!=p.ID) { setError("Not your raid!"); return false;}
 			if(!checkMP(t.townID)) return false;
-
+			if(rtokill.getDigAmt()>0) {
+				rtokill.getTown2().returnDigOrRO(false,false);
+				return true;
+			} else {
 				
 		
 		
@@ -6000,6 +6003,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				k++;
 			}
 			return true;
+			}
 		
 	}
 	
@@ -6189,6 +6193,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 		 Player otherP; ArrayList<AttackUnit> au;
 		 if(t.getPlayer().ID!=pidOfRecallTown) { setError("Not their town!"); }
+		 if(t.getDigAmt()>0) {
+			 t.returnDigOrRO(false,false);
+		 } else {
 		 AttackUnit hau; Raid holdAttack;
 		 AttackUnit a;
 		 ArrayList<Raid> t2as;
@@ -6324,7 +6331,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					 
 					 int ticksToHit = (int) Math.round(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2))*10/(holdLowSpeed*this.g.speedadjust)/GodGenerator.gameClockFactor);
 					 if(ticksToHit==0) ticksToHit=(int) Math.round(((double) 10/(holdLowSpeed*this.g.speedadjust))/GodGenerator.gameClockFactor);
-					 	int digAmt=0;
+					/* 	int digAmt=0; No longer needed.
 					 if(pidOfRecallTown==5&&t.getDigCounter()>0&&auAmts.length==1) {
 						 digAmt=t.getDigAmt();
 //						 System.out.println("I am setting everything in " + t.getTownName());
@@ -6332,7 +6339,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						 t.resetDig(0,0,false,null);// because the second you set dig counter
 						 // to -1, the town becomes inactive!
 					//	 System.out.println("t's owed ticks are " + t.owedTicks + " and t is " +t.getTownName());
-					 }
+					 }*/
+					 int digAmt=0;
 					 holdAttack=null;
 					try {
 						 holdAttack = new Raid(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2)), ticksToHit, myTown,t, false, false,0,false,"noname",false,au,digAmt);
@@ -6345,7 +6353,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					
 					
 					 }
+		 }
 					 return true;
+					 
 		
 	}
 	

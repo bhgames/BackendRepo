@@ -6903,67 +6903,8 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 					
 				} else {
 					// This must be a civvie raid only. So we just use recall.
-					Town otherT = t2.getPlayer().God.findTown(t2.getDigTownID());
-					//	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
-
-					otherT.getPlayer().getPs().b.recall(t2.townID,t2.getPlayer().ID,otherT.townID);
 					
-						String unitStart=""; String unitNames="";String unitEnd="";
-						int k = 0;
-						Player t1p = r.getTown1().getPlayer();
-						Town t1 = r.getTown1();
-						while(k<r.getAu().size()) {
-							unitStart+=","+r.getAu().get(k).getSize();
-							unitNames+=","+r.getAu().get(k).getName();
-							unitEnd+=",0";
-
-							k++;
-						}
-						unitStart+=","+r.getDigAmt();
-						String msg = "";
-						if(r.getTown2().isResourceOutcropping()) {
-							unitNames+=",Engineer";
-							msg = "The defensive excavation site was forcibly overtaken by an enemy excavation party.";
-
-						} else {
-							unitNames+=",Scholar";
-							msg = "The defensive dig site was forcibly overtaken by an enemy dig party.";
-
-						}
-						unitEnd+=",0";
-						stmt = God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,offdig,defdig,ax,ay,dx,dy,id) values" +
-			      		"(?,?,?,?,?,?,?,?,?,?,?,?,?,true,true,?,?,?,?,?);");
-								stmt.setInt(1,otherT.getPlayer().ID);
-								stmt.setInt(2,t1.townID);
-								stmt.setInt(3,t2.townID);
-								stmt.setString(4,unitStart);
-								stmt.setString(5,unitEnd);
-								stmt.setString(6,unitNames);
-								stmt.setLong(7,r.getMetal());
-								stmt.setLong(8,r.getTimber());
-								stmt.setLong(9,r.getManmat());
-								stmt.setLong(10,r.getFood());
-								stmt.setString(11,t1.getTownName());
-								stmt.setString(12,t2.getTownName());
-								stmt.setString(13,msg);
-								stmt.setInt(14,t1.getX());
-								stmt.setInt(15,t1.getY());
-								stmt.setInt(16,t2.getX());
-								stmt.setInt(17,t2.getY());
-
-								UUID id = UUID.randomUUID();
-								stmt.setString(18,id.toString());
-					
-								 stmt.execute();
-								 stmt.close();
-								 Date today = new Date();
-								  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
-								 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
-									//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
-									  t1.getPlayer().addUserSR(new UserSR(id,unitStart,unitEnd,null,null,unitNames,null,t1.getTownName(),t2.getTownName(),false,false,false,false,(int)r.getMetal(),(int)r.getTimber(),(int)r.getManmat(),(int)r.getFood(),
-											  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,true,true,msg,false));
-						
-						
+					t2.returnDigOrRO(true,false);
 						
 					
 					t2.resetDig(r.getTown1().townID,r.getDigAmt(),true,r);
@@ -9683,6 +9624,7 @@ public boolean checkForGenocides(Town t) {
 							digMessage = "The offensive party took over the excavation site!";
 						else
 						digMessage = "The offensive party took over the dig site!";
+						t2.returnDigOrRO(true,true);
 
 						supportLogicBlock(actattack,true);
 						t2.resetDig(actattack.getTown1().townID,actattack.getDigAmt(),true,actattack);
@@ -9697,8 +9639,8 @@ public boolean checkForGenocides(Town t) {
 							digMessage = "The offensive party failed to take over the excavation site, but managed to kill all of the defenders Engineers!";
 						else
 							digMessage = "The offensive party failed to take over the dig site, but managed to kill all of the defenders Scholars!";
+						t2.returnDigOrRO(true,true);
 
-						t2.resetDig(0,0,false,actattack);
 						
 					} else if(!digOffSucc&&digDefSucc&&t2.getDigAmt()>0) { // if the raid was a dig raid, and failed to ge through, and there was a dig here, which I guess would only happen if there
 						// had been one here to defend in the first place...so we don't need to check for it. But we do! What if we killed the dig incoming civvies!
@@ -9709,11 +9651,11 @@ public boolean checkForGenocides(Town t) {
 
 						otherT.getPlayer().getPs().b.recall(t2.townID,t2.getPlayer().ID,otherT.townID);
 						
-						t2.resetDig(0,0,false,actattack);
 						if(t2.isResourceOutcropping())
 							digMessage = "The offensive army destroyed the excavation site.";
 						else
 							digMessage = "The offensive army destroyed the dig site.";
+						t2.returnDigOrRO(true,true);
 
 					}
 	/// here we remove scholar and engineer duplicates...
@@ -14095,6 +14037,290 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			e.printStackTrace();
 		}
 		return -1;
+	}
+	public boolean ROContestedTest(HttpServletRequest req, PrintWriter out, Player player) {
+
+		/*
+		 ROContestedTest: Send an excavation to an inhabited RO - is it attacked by support/excavation there? 
+		 Test out both if it wins and if it doesn't. Send support and try the same thing against an excavation, and support there.
+
+
+		 */
+		getPlayer(5).territoryCalculator(); // i need it to reset everything to no lord that can be reset.
+
+		int numTowns[] = {1,1};
+		Player[] players = player.generateFakePlayers(2,numTowns,0,0);
+		try {
+		Town t1 = players[0].towns().get(0);
+		//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
+		Town RO=null;
+		for(Town t: getPlayer(5).towns()) {
+			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+				RO=t;
+				break;
+			} 
+			
+		}
+		if(RO==null) {
+			growId();
+			getPlayer(5).territoryCalculator();
+
+			
+		}
+		for(Town t: getPlayer(5).towns()) {
+			//System.out.println(t.getTownID() + " has " + t.getInfluence() + " influence.");
+
+			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+				RO=t;
+				break;
+			} 
+		}
+		if(RO==null) {
+			out.println("ROContested test failed because even growing Id didn't produce a viable RO to use.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		t1.setX(RO.getX()+10);
+		t1.setY(RO.getY());
+		t1.setInfluence(0);
+		t1.addBuilding("Command Center",4,5,0);
+		t1.bldg().get(0).setPeopleInside(5);
+		t1.setAu(new ArrayList<AttackUnit>());
+		t1.getAu().add(new AttackUnit("Pillager",0,0));
+		t1.getAu().get(0).setSize(5);
+		Town t2 = players[1].towns().get(0);
+		t2.addBuilding("Command Center",4,5,0);
+		t2.bldg().get(0).setPeopleInside(4);
+		t2.setAu(new ArrayList<AttackUnit>());
+		t2.getAu().add(new AttackUnit("Pillager",0,0));
+		t2.getAu().get(0).setSize(200);
+
+		RO.getRes()[0]=15000;
+		RO.getRes()[1]=15000;
+		RO.getRes()[2]=15000;
+		RO.getRes()[3]=15000;
+		//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
+		int amts[] = {5,5};
+		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname");
+		if(!worked) {
+			out.println("ROContested test failed because the attack didn't send, and the error was: " + players[0].getPs().b.getError());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(t1.attackServer().size()!=1) {
+			out.println("ROContested test failed because the raid didn't load.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		Raid r = t1.attackServer().get(0);
+		r.setTicksToHit(0);
+		
+		if(RO.getLord()==null) {
+			out.println("ROContested test failed because the RO didn't become owned by the player after landing.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		
+		// now we attack it
+		amts[0]=200; amts[1]=4;
+		worked = players[1].getPs().b.attack(t2.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname");
+	
+		if(!worked) {
+			out.println("ROContested test failed because the second attack didn't send(greater exc vs exc), and the error was: " + players[1].getPs().b.getError());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		Raid r2 = t2.attackServer().get(0);
+		r2.setTicksToHit(0);
+		attackServerCheck(t2,players[1]); // here we expect shit to go down, and combat to occur, and a kick to happen.
+		
+		if(RO.getLord()==null) {
+			out.println("ROContested test failed because the RO didn't become owned by anybody after the second player landing(greater exc vs exc)..");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(RO.getLord()!=null&&RO.getLord().ID!=players[1].ID) {
+			out.println("ROContested test failed because the RO didn't become owned by the second player after landing(greater exc vs exc).");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		for(AttackUnit a:RO.getAu()) {
+			if(a.getSupport()>0&&a.getOriginalPlayer().ID!=players[1].ID) {
+				out.println("ROContested test failed because the RO still has old support on it after the switch.(greater exc vs exc).");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+		}
+		if(RO.getDigAmt()==5) {
+			out.println("ROContested test failed because the RO still had old engineers on it, the new guys sent 4, so they couldn't have had 5 like the previous guys.(greater exc vs exc).");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(t1.attackServer().size()!=0) {
+			out.println("ROContested test failed because town 1 still had a raid on the stack after this first attack.(greater exc vs exc).");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		// alright now we're all loaded down.
+		
+		t1.getAu().get(0).setSize(15);// now I'm an exc who is going to try and take over but maybe not win completely. I expect them to be repelled.
+		t1.bldg().get(0).setPeopleInside(5);
+		amts[0]=15; amts[1]=5;
+		worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname");
+	
+		if(!worked) {
+			out.println("ROContested test failed because the third attack didn't send(lesser exc vs exc), and the error was: " + players[0].getPs().b.getError());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		RO.setDigAmt(5); // just in case they lost some civvies before.
+
+		r = t1.attackServer().get(0);
+		r.setTicksToHit(0);
+		attackServerCheck(t1,players[0]); // here we expect shit to go down, and combat to occur, but no kick to happen.
+		
+		if(RO.getLord()==null) {
+			out.println("ROContested test failed because the RO didn't become owned by anybody after the first player landing when the second occupied it in the case of a lesser exc vs the exc.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(RO.getLord()!=null&&RO.getLord().ID!=players[1].ID) {
+			out.println("ROContested test failed because the RO didn't become owned by the second player after landing in the case of a lesser exc vs the exc.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		
+		
+		t1.getAu().get(0).setSize(15);// now I'm a support who is going to try and take over and probably not win with 15 men.
+		t1.bldg().get(0).setPeopleInside(5);
+		amts = new int[1]; amts[0]=15; 
+		worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
+	
+		if(!worked) {
+			out.println("ROContested test failed because the fourth attack didn't send(lesser support vs exc), and the error was: " + players[0].getPs().b.getError());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		RO.setDigAmt(5); // just in case they lost some civvies before.
+
+		r = t1.attackServer().get(0);
+		r.setTicksToHit(0);
+		attackServerCheck(t1,players[0]); // here we expect shit to go down, and combat to occur, but no kick to happen.
+		
+		if(RO.getLord()==null) {
+			out.println("ROContested test failed because the RO didn't become owned by anybody after the first player landing when the second occupied it in the case of lesser support vs an exc..");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(RO.getLord()!=null&&RO.getLord().ID!=players[1].ID) {
+			out.println("ROContested test failed because the RO didn't become owned by the second player after landing in the case of lesser support vs an exc.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(t1.attackServer().size()>0) {
+			out.println("ROContested test failed because t1's attackserver wasn't empty after the support run failed horribly.(lesser support vs an exec)");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		
+		
+		t1.getAu().get(0).setSize(1500);// now I'm a support who is going to try and take over and probably not win with 15 men.
+		amts = new int[1]; amts[0]=1500; 
+		worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
+	
+		if(!worked) {
+			out.println("ROContested test failed because the fifth attack didn't send(greater support vs exc), and the error was: " + players[0].getPs().b.getError());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		RO.setDigAmt(5); // just in case they lost some civvies before.
+
+		r = t1.attackServer().get(0);
+		r.setTicksToHit(0);
+		attackServerCheck(t1,players[0]); // here we expect shit to go down, and combat to occur, but no kick to happen.
+		
+		if(RO.getLord()==null) {
+			out.println("ROContested test failed because the RO didn't become owned by anybody after the first player landing when the second occupied it in the test of greater support vs an exc.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(RO.getLord()!=null&&RO.getLord().ID!=players[0].ID) {
+			out.println("ROContested test failed because the RO didn't become owned by the first player after landing in the case of greater support vs an exc.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(t1.attackServer().size()>0) {
+			out.println("ROContested test failed because t1's attackserver wasn't empty after the support run succeeded.(greater support vs exc).");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(t2.attackServer().size()>0) {
+			out.println("ROContested test failed because t2's attackserver wasn't empty after the support run succeeded and it was blown apart.(greater support vs exc).");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		t2.getAu().get(0).setSize(10000);// now I'm a support who is going to try and take over and probably not win with 15 men.
+		amts = new int[1]; amts[0]=10000; 
+		worked = players[1].getPs().b.attack(t2.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
+	
+		if(!worked) {
+			out.println("ROContested test failed because the sixth attack didn't send(greater support vs support), and the error was: " + players[1].getPs().b.getError());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+
+		r = t2.attackServer().get(0);
+		r.setTicksToHit(0);
+		attackServerCheck(t2,players[1]); // here we expect shit to go down, and combat to occur, but no kick to happen.
+		
+		if(RO.getLord()==null) {
+			out.println("ROContested test failed because the RO didn't become owned by anybody after the second player landing when the first occupied it in the test of greater support vs an support.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(RO.getLord()!=null&&RO.getLord().ID!=players[1].ID) {
+			out.println("ROContested test failed because the RO didn't become owned by the second player after landing in the case of greater support vs an support.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		
+		t1.getAu().get(0).setSize(10);// now I'm a support who is going to try and take over and probably not win with 15 men.
+		amts = new int[1]; amts[0]=10; 
+		worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
+	
+		if(!worked) {
+			out.println("ROContested test failed because the seventh attack didn't send(lesser support vs support), and the error was: " + players[0].getPs().b.getError());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+
+		r = t1.attackServer().get(0);
+		r.setTicksToHit(0);
+		attackServerCheck(t1,players[0]); // here we expect shit to go down, and combat to occur, but no kick to happen.
+		
+		if(RO.getLord()==null) {
+			out.println("ROContested test failed because the RO didn't become owned by anybody after the first player landing when the second occupied it in the test of lesser support vs an support.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(RO.getLord()!=null&&RO.getLord().ID!=players[1].ID) {
+			out.println("ROContested test failed because the RO didn't remain owned by the second player after the first landing in the case of lesser support vs an support.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+	
+		player.deleteFakePlayers(players);
+		out.println("basicRO test successful.");
+		return true;
+		} catch(Exception exc) {
+			out.println("basicRO test failed because " + exc.toString());
+			for(StackTraceElement stackTrace: exc.getStackTrace()) {
+				out.println(stackTrace.toString());
+			}
+			player.deleteFakePlayers(players);
+			return false;
+		}
+	
 	}
 	public boolean basicROTest(HttpServletRequest req, PrintWriter out, Player player) {
 		/*
