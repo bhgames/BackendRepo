@@ -6816,9 +6816,9 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			
 			if(t2.getDigCounter()>=0) {
 				// THERE IS SOMEONE THERE! BUT WHOM!?
-				int i = 6; boolean foundSome=false;
-				while(i<t2.getAu().size()){
-					if(t2.getAu().get(i).getSupport()>0) {
+				int i = 6; boolean foundSome=false; ArrayList<AttackUnit> AU = t2.getAu();
+				while(i<AU.size()){
+					if(AU.get(i).getSupport()>0) {
 						foundSome=true;
 						break;
 					}
@@ -6826,16 +6826,16 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				}
 				
 				if(foundSome) {
-					i = 0; boolean foundOff=false;
-					while(i<r.getAu().size()) {
-						if(r.getAu().get(i).getSize()>0) {
+					i = 0; boolean foundOff=false; AU = r.getAu();
+					while(i<AU.size()) {
+						if(AU.get(i).getSize()>0) {
 							foundOff=true;
 							break;
 						}
 						i++;
 					}
 					if(foundOff){
-						if(r.getTown2().isResourceOutcropping())
+						if(t2.isResourceOutcropping())
 							combatLogicBlock(r,"There was somebody armed already excavating here!");
 						else
 							combatLogicBlock(r,"There was somebody armed already digging here!");
