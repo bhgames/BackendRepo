@@ -1,3 +1,9 @@
+/*
+	Development Notes: 
+		Blockade send logic at line 5366.
+		Commented out bomber check code, any unit can attack buildings
+*/
+
 package BattlehardFunctions;
 import java.io.PrintWriter;
 import java.sql.ResultSet;
@@ -5215,14 +5221,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			// the town. If they do, send the max units instead.
 			if(k<t1au.size()) {
 				  hau =t1au.get(k);
-				  if(attackType.equals("dig")||attackType.contains("support")||attackType.equals("excavation")
+				  if(attackType.equals("dig")||attackType.contains("support")||attackType.equals("excavation")||attackType.equals("blockade")
 						  &&hau.getSupport()>0&&holdNumbers[k]>0) {
-					  setError("You cannot send other players' support units on supporting, dig, or excavation missions!");
+					  setError("You cannot send other players' support units on supporting, dig, excavation, or blockade missions!");
 					  return false;
 				  }
 				if(hau.getSize()<holdNumbers[k]) holdNumbers[k]=hau.getSize();
-				 if(holdNumbers[k]>0) zeroes=false; // needs to be after the size-mod if overflowing.
-				if(holdNumbers[k]<0) negatives = true; // No less than zero crap..
+				if(holdNumbers[k]>0) zeroes=false; // needs to be after the size-mod if overflowing.
+				if(holdNumbers[k]<0) holdNumbers[k]=0; // No less than zero crap..
 				 // Simple as cake.
 			//	holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getTrueSpeed(t1.getPlayer()));
 				totalsize+=holdNumbers[k]*hau.getExpmod();
@@ -5231,15 +5237,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			k++;
 		}
 		
-		if(zeroes&&((!attackType.equals("dig")&&!attackType.equals("excavation"))
-				||(holdNumbers[holdNumbers.length-1]==0&&(attackType.equals("dig")||attackType.equals("excavation"))))) {
+		if(zeroes&&(!(attackType.equals("dig")||attackType.equals("excavation"))||!!holdNumbers[holdNumbers.length-1])) {
 			setError("Can't send an empty raid.");
 			return false; // not sending a raid of nada.
 		}
-		if(negatives) {
+		/*if(negatives) {
 			setError("No such thing as negative units.");
 			return false;
-		}
+		}*/
 		Town Town2 = g.findTown(x,y); // findTown auto detects the town at the x,y, not the Zeppelin, if there is one.
 
 		boolean Genocide = false; boolean Bomb = false; int support = 0; int scout = 0;
@@ -5252,27 +5257,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		// invasion and scouting also!
 		else if(attackType.equals("genocide")||attackType.equals("siege")) Genocide = true; 
 		else if(attackType.equals("debris")) debris = true;
-		else if(attackType.equals("strafe")) { 
-			
-			
-				int z = 0; boolean foundBomber=false;
-				while(z<t1au.size()) {
-					hau = t1au.get(z);
-					if(hau.getType()==4&&holdNumbers.length>z&&holdNumbers[z]>0) {
-						foundBomber=true;
-						break;
-					}
-					z++;
-				}
-				if(!foundBomber) {
-					setError("You must send some bombers on a bombing mission type!");
-					return false;
-				}
-				Bomb = true; 
-
-		}
-		else if(attackType.equals("glass")) { 
-			int z = 0; boolean foundBomber=false;
+		else if(attackType.equals("strafe")) {			
+			/*int z = 0; boolean foundBomber=false;
 			while(z<t1au.size()) {
 				hau = t1au.get(z);
 				if(hau.getType()==4&&holdNumbers.length>z&&holdNumbers[z]>0) {
@@ -5284,11 +5270,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			if(!foundBomber) {
 				setError("You must send some bombers on a bombing mission type!");
 				return false;
-			}
-			Genocide = true; Bomb = true; 
-			
+			}*/
+			Bomb = true;
+		}
+		else if(attackType.equals("glass")) {
+			Bomb = true;
+			Genocide = true;
 		}
 		else if(attackType.equals("support")) {support = 1;}
+		else if(attackType.equals("offsupport")) { support=2;}
 		else if(attackType.equals("dig")||attackType.equals("excavation")) {
 			if(prog&&!p.isdigAPI()) {
 				setError("You need the Dig API in order to use this!");
@@ -5335,13 +5325,19 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			}
 			
 		}
-		else if(attackType.equals("offsupport")) { support=2;}
 		else if(attackType.equals("scout")) { scout = 1; }
-		else if(attackType.equals("invasion")&&(p.getTownTech()-p.towns().size())>0) {
+		else if(attackType.equals("invasion")) {
+		
+			if(p.getTownTech()<=p.towns().size()) { // don't want players invading when townTech <= town size!
+				setError("Too many towns.  Level your Town Tech");
+				return false;
+			}
+			
 			if(Town2.isResourceOutcropping()) {
 				setError("You cannot invade a Resource Outcropping!");
 				return false;
 			}
+			
 			int aggregate=0; int z = 0;
 			/*
 				try {
@@ -5354,21 +5350,27 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			*/
 			 ArrayList<Building> b = t1.bldg();
 			 while(z<b.size()) {
-				 if(b.get(z).getType().equals("Command Center"))
-				 aggregate+=b.get(z).getLvl();
+				 Building hb = b.get(z);
+				 if(hb.getType().equals("Command Center")) {
+					aggregate=hb.getLvl()+2;
+					break;
+				 }
 				 z++;
 			 }
-				aggregate+=2;
 				
 			 double distance = Math.sqrt((x-t1x)*(x-t1x) + (y-t1y)*(y-t1y));
 			 if(distance>aggregate*3*(1)) {
-				 setError(" You can only invade " + ((aggregate*3)*(1)) + " spaces out. Level up your comms center.");
+				 setError(" You can only invade " + ((aggregate*3)*(1)) + " spaces out. Level up your Command Center.");
 
 				 return false;
 			 }
 			 
-			invade = true; }
-		// don't want players invading when townTech <= to town size!
+			invade = true;
+		
+		}
+		else if(attackType.equals("blockade")) {
+			//Blockade logic here
+		}
 		else {
 			setError("Invalid attack type.");
 			return false; // if they don't get the code right, screw 'em.
@@ -5405,9 +5407,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				Town2=possZepp; // You probably mean to support it!
 			}
 		}
-		if(Town2.isZeppelin()&&(attackType.equals("genocide")||attackType.equals("siege")||attackType.equals("strafe")||
-				attackType.equals("invasion")||attackType.equals("glass"))) {
-			setError("You can only attack, support, offsupport, or scout Airships!");
+		if(Town2.isZeppelin()&&!(attackType.equals("attack")||attackType.contains("support")||attackType.equals("scout"))) {
+			setError("You can only attack, support, or scout Airships!");
 			return false;
 			
 		}
