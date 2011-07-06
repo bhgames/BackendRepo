@@ -24,7 +24,10 @@ import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 
 
 public class Player  {
+	public static int noobDuration = 48*3600/GodGenerator.gameClockFactor;
+	
 	public int ID;
+	private boolean isNoob;
 	private boolean isLeague=false;
 	private int buildingCheckMax=360;
 	private int buildingCheckTimer=360;
@@ -159,6 +162,7 @@ public class Player  {
 	       password = rs.getString(26);
 	       bodyArmor = rs.getInt(3);
 	       playedTicks=rs.getInt(45);
+			isNoob = playedTicks>;
 	       owedTicks = rs.getInt(82);
 	       version = rs.getString(81);
 	       fuid = rs.getLong(57);
