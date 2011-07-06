@@ -23,11 +23,8 @@ import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 
 
 
-public class Player  {
-	public static int noobDuration = 48*3600/GodGenerator.gameClockFactor;
-	
+public class Player  {	
 	public int ID;
-	private boolean isNoob;
 	private boolean isLeague=false;
 	private int buildingCheckMax=360;
 	private int buildingCheckTimer=360;
@@ -162,7 +159,6 @@ public class Player  {
 	       password = rs.getString(26);
 	       bodyArmor = rs.getInt(3);
 	       playedTicks=rs.getInt(45);
-			isNoob = playedTicks>;
 	       owedTicks = rs.getInt(82);
 	       version = rs.getString(81);
 	       fuid = rs.getLong(57);
@@ -264,11 +260,13 @@ public class Player  {
 	public TradeSchedule findTradeSchedule(UUID trid) {
 		int i = 0;
 		int j = 0;
-		while(j<towns().size()) {
+		ArrayList<Town> Towns = towns();
+		while(j<Towns.size()) {
 			i = 0;
-			
-		while(i<towns().get(j).tradeSchedules().size()) {
-			if(towns().get(j).tradeSchedules().get(i).id.equals(trid)) return towns().get(j).tradeSchedules().get(i);
+			ArrayList<TradeSchedule> TSs = Towns.get(j).tradeSchedules();
+		while(i<TSs.size()) {
+			TradeSchedule ts = TSs.get(i);
+			if(ts.id.equals(trid)) return ts;
 			i++;
 		}
 		j++;
@@ -278,11 +276,13 @@ public class Player  {
 	public Raid findRaid(UUID trid) {
 		int i = 0;
 		int j = 0;
-		while(j<towns().size()) {
+		ArrayList<Town> Towns = towns();
+		while(j<Towns.size()) {
 			i = 0;
-			
-		while(i<towns().get(j).attackServer().size()) {
-			if(towns().get(j).attackServer().get(i).getId().equals(trid)) return towns().get(j).attackServer().get(i);
+			ArrayList<Raid> Raids = towns().get(j).attackServer();
+		while(i<Raids.size()) {
+			Raid r = Raids.get(i);
+			if(r.getId().equals(trid)) return r;
 			i++;
 		}
 		j++;
@@ -4433,6 +4433,10 @@ public class Player  {
 
 	public ArrayList<Hashtable> getTerritories() {
 		return territories;
+	}
+	
+	public boolean isNoob() {
+		return getPlayedTicks()>48*3600/GodGenerator.gameClockFactor;
 	}
 }
 
