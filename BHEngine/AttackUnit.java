@@ -957,7 +957,7 @@ public int getLvl() {
 			attackDamage=0;
 			attackType=0; //none
 			//Armor : (1500*lvl*hardMod)+(1500*lvl*stabMod)
-			armor=1500*lvl*1;
+			armor=1500*lvl;
 			armorType=3; //building
 			speed=0;
 			cargo=0;
@@ -969,6 +969,7 @@ public int getLvl() {
 			hp = 1500*lvl;
 			attackDamage=0;
 			attackType=0; //none
+			//Armor : (1500*lvl*stabMod)
 			armor=0;
 			armorType=3; //building
 			speed=0;

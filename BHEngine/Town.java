@@ -164,6 +164,11 @@ public class Town {
 		return this.au;
 	}
 	
+	public ArrayList<AttackUnit> getBlockadingAU() {
+		Player p = getPlayer();
+		
+	}
+	
 	public Town(int townID, GodGenerator God) {
 
 		this.God=God; this.con=God.con;

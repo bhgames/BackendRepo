@@ -8056,8 +8056,9 @@ public boolean checkForGenocides(Town t) {
 	public static boolean combatLogicBlock(Raid actattack, String combatHeader) {
 	//	System.out.println("Raid ID: " + holdAttack.raidID);
 		int ie = 0;int totalCheckedSize=0;
-		while(ie<actattack.getAu().size()) {
-			totalCheckedSize+=actattack.getAu().get(ie).getSize();
+		ArrayList<AttackUnit> checkAU = actattack.getAu();
+		while(ie<checkAU.size()) {
+			totalCheckedSize+=checkAU.get(ie).getSize();
 			// SuggestTitleVideoId
 			ie++;
 		}
@@ -8075,7 +8076,7 @@ public boolean checkForGenocides(Town t) {
 		if(t2.getDigAmt()>0) defdig=true;
 		boolean isZeppAbove=false;
 		int oldTownSizeArray[] = null;
-		Town possZepp=null;
+		Town possZepp=null; ArrayList<AttackUnit> t1au=null,t2au=null;
 		if(t2.getPlayer().ID==5) {
 			 possZepp = t2.getPlayer().God.findZeppelin(t2.getX(),t2.getY());
 			// System.out.println("Looking for zepp with tid of " + possZepp.townID);
@@ -8090,21 +8091,23 @@ public boolean checkForGenocides(Town t) {
 			 possZepp = t2.getPlayer().God.findZeppelin(t2.getX(),t2.getY());
 			if(possZepp.townID!=0) {
 				// there is a zeppelin overhead of this player town, it needs to add troops!
-				oldTownSizeArray = new int[t2.getAu().size()];
+				t2au = t2.getAu();
+				ArrayList<AttackUnit> possZeppAU = possZepp.getAu();
+				oldTownSizeArray = new int[t2au.size()];
 				int i = 0;
 				isZeppAbove=true;
 				i=0;
-				while(i<t2.getAu().size()) {
-					if(t2.getAu().get(i).getSupport()==0){ // so what if town 2 has support that zeppy doesn't?
-						oldTownSizeArray[i]=t2.getAu().get(i).getSize();
-						t2.setSize(i,t2.getAu().get(i).getSize()+possZepp.getAu().get(i).getSize());
+				while(i<t2au.size()) {
+					if(t2au.get(i).getSupport()==0){ // so what if town 2 has support that zeppy doesn't?
+						oldTownSizeArray[i]=t2au.get(i).getSize();
+						t2.setSize(i,t2au.get(i).getSize()+possZeppAU.get(i).getSize());
 					}
 					i++;
 				}
 			}
 		}
 		Player t2p = t2.getPlayer();
-		Player t1p = t1.getPlayer();ArrayList<AttackUnit> t1au=null,t2au=null;
+		Player t1p = t1.getPlayer();
 		try {
 		t1au = actattack.getAu();
 		t2au = t2.getAu();
@@ -8113,13 +8116,13 @@ public boolean checkForGenocides(Town t) {
 			//System.out.println("Without AU...we must return!");
 			actattack.setRaidOver(true);
 			actattack.setTicksToHit(actattack.getTotalTicks());
-			actattack.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturningCatch",actattack.getTown1().getPlayer().getPs().b.getUserRaid(actattack.getId()));
+			t1p.getPs().runMethod("onOutgoingRaidReturningCatch",t1p.getPs().b.getUserRaid(actattack.getId()));
 
 			return false;
 		}
 		UserRaid holdAttack = t1p.getPs().b.getUserRaid(actattack.getId());
 		String raidType = holdAttack.raidType();
-		boolean genocide = false; if(actattack.isGenocide()) genocide=true;
+		boolean genocide = actattack.isGenocide();
 		if(genocide) actattack.setGenoRounds(holdAttack.getGenoRounds() + 1);
 
 		int ges = 0; 
@@ -8244,8 +8247,8 @@ public boolean checkForGenocides(Town t) {
 			else
 			Civ.setName("Scholar");
 			Civ.setSize(actattack.getDigAmt());
+			Civ.setSlot(t1au.size());
 			t1au.add(Civ);
-			Civ.setSlot(t1au.size()-1);
 
 		}
 		if(t2.getDigAmt()>0) {
@@ -8256,8 +8259,8 @@ public boolean checkForGenocides(Town t) {
 			else
 			Civ.setName("Scholar");
 			Civ.setSize(t2.getDigAmt());
+			Civ.setSlot(t2au.size());
 			t2au.add(Civ);
-			Civ.setSlot(t2au.size()-1);
 		}
 		boolean doBombingRun=false;
 
@@ -8336,7 +8339,6 @@ public boolean checkForGenocides(Town t) {
 				
 		
 			
-	//		
 				 j=0; int totalPoppedUnits=0;
 				 ArrayList<AttackUnit> t2pau = t2p.getAu();
 					while(j<t2pau.size()) {

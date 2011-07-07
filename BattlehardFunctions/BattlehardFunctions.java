@@ -5191,9 +5191,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		// Gotta get the town first.
 		Town t1 = g.findTown(yourTownName,p);
+		Player t1p = t1.getPlayer();
 		if(!checkMP(t1.townID)) return false;
 
-		if(t1.getPlayer().ID!=p.ID) {
+		if(t1p.ID!=p.ID) {
 			setError("Not your town!");
 			return false;
 		}
@@ -5249,6 +5250,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 		boolean Genocide = false; boolean Bomb = false; int support = 0; int scout = 0;
 		boolean invade = false;  boolean debris = false; boolean dig=false; int digAmt=0;
+		boolean blockade = false;
 		if(attackType.equals("invasion")&&t1.isZeppelin()) {
 			setError("You cannot invade with an Airship!");
 			return false;
@@ -5369,7 +5371,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		}
 		else if(attackType.equals("blockade")) {
-			//Blockade logic here
+			blockade = true;
 		}
 		else {
 			setError("Invalid attack type.");
@@ -5388,7 +5390,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("Town doesn't exist!");
 			return false;
 		}
-		if(dig&&Town2.getPlayer().ID!=5) {
+		
+		Player Town2p = Town2.getPlayer();
+		
+		if(dig&&Town2p.ID!=5) {
 			setError("You can only dig in an Id town!");
 			return false;
 		}
@@ -5405,6 +5410,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			if(possZepp.townID!=0) {
 				// this means your zeppelin is just overhead.
 				Town2=possZepp; // You probably mean to support it!
+				Town2p = Town2.getPlayer();
 			}
 		}
 		if(Town2.isZeppelin()&&!(attackType.equals("attack")||attackType.contains("support")||attackType.equals("scout"))) {
@@ -5412,20 +5418,17 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 			
 		}
-		if(!t1.getPlayer().isQuest()&&(t1.getPlayer().getPlayedTicks())>(48*3600/GodGenerator.gameClockFactor)
-				&&(Town2.getPlayer().getPlayedTicks())<(48*3600.0/GodGenerator.gameClockFactor)
-				&&Town2.getPlayer().ID!=5&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=t1.getPlayer().ID&&!debris) {
+		if(!t1p.isQuest()&&!t1p.isNoob()&&Town2p.isNoob()&&Town2p.ID!=5&&!Town2p.isQuest()&&Town2p.ID!=t1p.ID&&!debris) {
 			// quests can attack any time...
 			setError("NOOB PROTECTION!");
 			return false;
 			
-		} else if(t1.getPlayer().getPlayedTicks()<(48*3600.0/GodGenerator.gameClockFactor)
-				&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=5&&!debris&&(Town2.getPlayer().getPlayedTicks())>(48*3600/GodGenerator.gameClockFactor)) {
+		} else if(t1p.isNoob()&&!Town2p.isQuest()&&Town2p.ID!=5&&!debris&&!Town2p.isNoob()) {
 			
 			// If you are under noob protection and you are attacking a player that is not a quest and not Id and not under noob protection
 			// then you lose your noob protection.
 			
-			t1.getPlayer().playedTicks=(int) Math.round(48*3600.0/GodGenerator.gameClockFactor);
+			t1p.playedTicks=Player.noobDuration;
 		}
 		if(Town2 == null) {
 			setError("Could not find the town!");
@@ -5450,8 +5453,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			addThis.setSize(holdNumbers[k]);
 
-			if(addThis.getSupport()>0&&addThis.getOriginalPlayer().ID!=p.ID&&support>0&&addThis.getSize()>0){
-				setError("You cannot send another player's unit to another location as support.");
+			if(addThis.getSupport()>0&&addThis.getOriginalPlayer().ID!=p.ID&&(support>0||blockade)&&addThis.getSize()>0){
+				setError("You cannot send another player's unit to another location as support or in a blockade.");
 				return false; 
 			}
 			// You cannot send another player's unit to another location as
@@ -5482,8 +5485,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 			 addThis = t1au.get(k).returnCopy();
 
-			if(g.findTown(x,y).getPlayer().ID!=t1.getPlayer().ID&&support==1) addThis.makeSupportUnit(addThis.getSlot(),t1.getPlayer(),t1.townID);
-			else if(g.findTown(x,y).getPlayer().ID!=t1.getPlayer().ID&&support==2) addThis.makeOffSupportUnit(addThis.getSlot(),t1.getPlayer(),t1.townID);
+			if(Town2p.ID!=t1p.ID&&support==1) addThis.makeSupportUnit(addThis.getSlot(),t1p,t1.townID);
+			else if(Town2p.ID!=t1p.ID&&support==2) addThis.makeOffSupportUnit(addThis.getSlot(),t1p,t1.townID);
 			// so if this is a supporting run, and you aren't sending to your own town, these units get
 			// marked as "foreign."
 			au.add(addThis);
