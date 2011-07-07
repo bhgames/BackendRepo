@@ -1845,10 +1845,13 @@ public class Town {
 				 if(a.getSupport()>0&&a.getOriginalTID()==r.getTown1().getTownID()) {
 					 // now we thin the ranks.
 					 if(a.getSize()<r.getAu().get(a.getOriginalSlot()).getSize()) {
+						 System.out.println("Setting size to 0");
 						 r.getAu().get(a.getOriginalSlot()).setSize(a.getSize());
 						 a.setSize(0);
 					 } else {
 						 a.setSize(a.getSize()-r.getAu().get(a.getOriginalSlot()).getSize());
+						 System.out.println("Setting size to "+a.getSize());
+
 					 }
 				 }
 			 }
@@ -1927,7 +1930,7 @@ public class Town {
 				
 				} catch(SQLException exc) { exc.printStackTrace(); }
 			 }
-			 r.setTicksToHit(getPlayer().getPs().b.getAttackETA(townID,r.getTown1().getX(),r.getTown1().getY(),numbers));
+			 r.setTicksToHit(getPlayer().getPs().b.getAttackETA(r.getTown1().townID,getX(),getY(),numbers));
 			 r.setRaidOver(true);
 			 resetDig(0,0,false,null); // so now we reset the dig to it's original form.
 		 }
@@ -3444,12 +3447,13 @@ public class Town {
 		ArrayList<Raid> as;
 		AttackUnit a;
 		AttackUnit ourA;
-		int x = 6;
+		int x = 0;
 		ArrayList<AttackUnit> ourAU = getAu();
 		while(x<ourAU.size()) {
 			ourA = ourAU.get(x);
-				if(ourA.getSize()==0) {
-					
+			System.out.println("Checking " + ourA + " whos size is " + ourA.getSize());
+				if(ourA.getSize()==0&&ourA.getSupport()>0) {
+					System.out.println("Size is 0, so going thru now.");
 					as = attackServer();
 					int j = 0;
 					boolean foundAU = false;
