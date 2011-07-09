@@ -8052,7 +8052,6 @@ public boolean checkForGenocides(Town t) {
 	
 	}
 	public static boolean combatLogicBlock(Raid actattack, String combatHeader) {
-		System.out.println("Combat happened.");
 	//	System.out.println("Raid ID: " + holdAttack.raidID);
 		int ie = 0;int totalCheckedSize=0;
 		while(ie<actattack.getAu().size()) {
@@ -8255,6 +8254,9 @@ public boolean checkForGenocides(Town t) {
 			else
 			Civ.setName("Scholar");
 			Civ.setSize(t2.getDigAmt());
+			for(AttackUnit a: t2au) { 
+				System.out.println(a + " already exists.");
+			}
 			t2au.add(Civ);
 			Civ.setSlot(t2au.size()-1);
 		}
@@ -8756,11 +8758,13 @@ public boolean checkForGenocides(Town t) {
 							
 							//t1.removeAU(holdUnit.getSlot(),(int) holdOld-holdUnit.getSize()); // This lowers the population of the player accordingly.
 							offUnitsLost[k]+= (int) (holdOld-holdUnit.getSize());
+							System.out.println("Checking off" + holdUnit + " with lotnum " + holdUnit.getLotNum());
 							if(holdUnit.getSupport()==0)
 							particularCost = t1p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t1.townID);
 							else{
 								if(holdUnit.getLotNum()!=-1) {
 									// means is a digger or another civvie type.
+									System.out.println("new offdiger size is " + holdUnit.getSize() + " and lotnum is " + holdUnit.getLotNum());
 									actattack.setDigAmt(holdUnit.getSize());
 									if(actattack.getDigAmt()<=0) digOffSucc=false;
 									if(actattack.getTown2().isResourceOutcropping())
@@ -8827,7 +8831,7 @@ public boolean checkForGenocides(Town t) {
 								}
 							if(holdUnit.getLotNum()==-2) { // -2 lotNum is special, means it's a dig scholar.
 								t2.setDigAmt(holdUnit.getSize());
-								
+								System.out.println("New defdigger amt was " + holdUnit.getSize() + " for " + k+ " " + holdUnit + " lotn " + holdUnit.getLotNum());
 								if(t2.getDigAmt()==0) {
 									digDefSucc = false; // Means the other guy did win the dig. No civvies left!
 								}
@@ -9036,14 +9040,16 @@ public boolean checkForGenocides(Town t) {
 						holdUnit = t2au.get(k);
 						expModDefAft+=(holdUnit.getSize())*holdUnit.getExpmod();
 						defUnitsAfter+=","+defUnitsLost[k];
-
-						if(holdUnit.getLotNum()!=-1) { // we remove the civvie and bldg AFTER getting numUnitsRemaining, etc, or else it gets removed before we take data and
-							//it's all fucked up.
+						//System.out.println(holdUnit + " size is " + holdUnit.getSize() + " and lotnum is "+  holdUnit.getLotNum());
+						if(holdUnit.getType()==5) { // we remove the civvie and bldg AFTER getting numUnitsRemaining, etc, or else it gets removed before we take data and
+							//it's all fucked up. // -1 is combat units, -2 is engineers/scholars on a dig.
 							toDie = t2.findBuildingByLot(holdUnit.getLotNum());
 							if(holdUnit.getSize()==0&&!toDie.isResourceProducerBldg()) t2.killBuilding(toDie.getId());
 							else toDie.setLvl(holdUnit.getLvl());
 							t2au.remove(k);
 							k--;//remove the civilian unit, no further need for it.
+						} else if(holdUnit.getLotNum()!=-1) { // if it's not -1, it's either a home civvie or a dig person.
+							t2au.remove(k);
 						}
 				
 						numUnitsRemainingD+=holdUnit.getSize();
@@ -9239,7 +9245,7 @@ public boolean checkForGenocides(Town t) {
 				if(!genocide)
 					combatHeader+=	" This means a " + Math.round(togain) + "% take of max cargo capturable in this raid.";
 				else combatHeader+= " Due to this being a campaign, the max cargo has been diminished to half of a full take.";
-				
+				System.out.println(combatData);
 				/*
 				String bombReturn = bombLogicBlock(actattack,null,null); // deprecated bomb logic block.
 				int returnNum = Integer.parseInt(bombReturn.substring(0,bombReturn.indexOf(",")));
@@ -9607,7 +9613,6 @@ public boolean checkForGenocides(Town t) {
 					zeppText+=t1.getTownName()+";";
 					
 				} 
-				
 					boolean toRet=true; String digMessage="none";
 				//	System.out.println(digOffSucc+ "," + digDefSucc + "," + t2.getDigAmt());
 					if(digOffSucc&&t2.getDigAmt()>0&&digDefSucc) { // only needs to be a dig there for this message. digOffSucc is true for non-attacks as well, 
@@ -14193,7 +14198,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			return false;
 		}
 		if(RO.getLord()!=null&&RO.getLord().ID!=players[1].ID) {
-			out.println("ROContested test failed because the RO didn't become owned by the second player after landing in the case of a lesser exc vs the exc.");
+			out.println("ROContested test failed because the RO didn't become owned by the second player after landing in the case of a lesser exc vs the exc. ");
 			player.deleteFakePlayers(players);
 			return false;
 		}

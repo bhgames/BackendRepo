@@ -4395,11 +4395,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					
 						
 						int z = 0;
-						int weap[] = new int[a.getWeap().length];
-						while(z<a.getWeap().length) {
-							weap[z]=a.getWeap()[z];
-							z++;
-						}
+						
 						//public UserAttackUnit(String name, int slot, int originalPlayerID, int originalSlot,
 					//	int originalTID,
 					//	int support, String originalPlayer) {
