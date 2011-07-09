@@ -6813,18 +6813,17 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		Town t2 = r.getTown2(); GodGenerator God = r.getTown1().getPlayer().God;
 		UberPreparedStatement stmt = null;
 		if(r.getDigAmt()>0) { // second check just in case.
-			
-			if(t2.getDigCounter()>=0) {
+			if(t2.getDigCounter()>=0||(t2.isResourceOutcropping()&&t2.getLord()!=null)) {
+
 				// THERE IS SOMEONE THERE! BUT WHOM!?
-				int i = 6; boolean foundSome=false; ArrayList<AttackUnit> AU = t2.getAu();
-				while(i<AU.size()){
-					if(AU.get(i).getSupport()>0) {
+				int i = 0; boolean foundSome=false;
+				while(i<t2.getAu().size()){
+					if(t2.getAu().get(i).getSupport()>0) {
 						foundSome=true;
 						break;
 					}
 					i++;
 				}
-				
 				if(foundSome) {
 					i = 0; boolean foundOff=false; AU = r.getAu();
 					while(i<AU.size()) {
@@ -6834,11 +6833,9 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 						}
 						i++;
 					}
+
 					if(foundOff){
-						if(t2.isResourceOutcropping())
-							combatLogicBlock(r,"There was somebody armed already excavating here!");
-						else
-							combatLogicBlock(r,"There was somebody armed already digging here!");
+							combatLogicBlock(r,"There was somebody armed already present here!");
 					}
 					else { // if incoming was undefended!
 
@@ -7533,7 +7530,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				int taken = incoming.getSize()-totake; // subtract in holder variable
 				if(taken<0) totake+=taken; // if it's neg, subtract that from totake, we're not taking more than we can.
 				if(taken<0) { r.getTown2().setSize(townVersIndex,townVers.getSize()+incoming.getSize());
-				System.out.println("Totake was " + totake + " incoming size was " + incoming.getSize() + " and townverssize was " + townVers.getSize() +  "Added to " + r.getTown2().getAu().get(townVersIndex).getName() + " some " + r.getTown2().getAu().get(townVersIndex).getSize());
+			//	System.out.println("Totake was " + totake + " incoming size was " + incoming.getSize() + " and townverssize was " + townVers.getSize() +  "Added to " + r.getTown2().getAu().get(townVersIndex).getName() + " some " + r.getTown2().getAu().get(townVersIndex).getSize());
 				r.setSize(incoming.getSlot(),0); }else {
 					r.getTown2().setSize(townVersIndex,townVers.getSize() + totake); r.setSize(incoming.getSlot(),incoming.getSize() - totake); // if < 0, it's 0, if not, subtract it.
 				}
@@ -8259,7 +8256,9 @@ public boolean checkForGenocides(Town t) {
 			else
 			Civ.setName("Scholar");
 			Civ.setSize(t2.getDigAmt());
-			Civ.setSlot(t2au.size());
+			for(AttackUnit a: t2au) { 
+				System.out.println(a + " already exists.");
+			}
 			t2au.add(Civ);
 		}
 		boolean doBombingRun=false;
@@ -8759,11 +8758,13 @@ public boolean checkForGenocides(Town t) {
 							
 							//t1.removeAU(holdUnit.getSlot(),(int) holdOld-holdUnit.getSize()); // This lowers the population of the player accordingly.
 							offUnitsLost[k]+= (int) (holdOld-holdUnit.getSize());
+							System.out.println("Checking off" + holdUnit + " with lotnum " + holdUnit.getLotNum());
 							if(holdUnit.getSupport()==0)
 							particularCost = t1p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t1.townID);
 							else{
 								if(holdUnit.getLotNum()!=-1) {
 									// means is a digger or another civvie type.
+									System.out.println("new offdiger size is " + holdUnit.getSize() + " and lotnum is " + holdUnit.getLotNum());
 									actattack.setDigAmt(holdUnit.getSize());
 									if(actattack.getDigAmt()<=0) digOffSucc=false;
 									if(actattack.getTown2().isResourceOutcropping())
@@ -8830,7 +8831,7 @@ public boolean checkForGenocides(Town t) {
 								}
 							if(holdUnit.getLotNum()==-2) { // -2 lotNum is special, means it's a dig scholar.
 								t2.setDigAmt(holdUnit.getSize());
-								
+								System.out.println("New defdigger amt was " + holdUnit.getSize() + " for " + k+ " " + holdUnit + " lotn " + holdUnit.getLotNum());
 								if(t2.getDigAmt()==0) {
 									digDefSucc = false; // Means the other guy did win the dig. No civvies left!
 								}
@@ -9039,14 +9040,16 @@ public boolean checkForGenocides(Town t) {
 						holdUnit = t2au.get(k);
 						expModDefAft+=(holdUnit.getSize())*holdUnit.getExpmod();
 						defUnitsAfter+=","+defUnitsLost[k];
-
-						if(holdUnit.getLotNum()!=-1) { // we remove the civvie and bldg AFTER getting numUnitsRemaining, etc, or else it gets removed before we take data and
-							//it's all fucked up.
+						//System.out.println(holdUnit + " size is " + holdUnit.getSize() + " and lotnum is "+  holdUnit.getLotNum());
+						if(holdUnit.getType()==5) { // we remove the civvie and bldg AFTER getting numUnitsRemaining, etc, or else it gets removed before we take data and
+							//it's all fucked up. // -1 is combat units, -2 is engineers/scholars on a dig.
 							toDie = t2.findBuildingByLot(holdUnit.getLotNum());
 							if(holdUnit.getSize()==0&&!toDie.isResourceProducerBldg()) t2.killBuilding(toDie.getId());
 							else toDie.setLvl(holdUnit.getLvl());
 							t2au.remove(k);
 							k--;//remove the civilian unit, no further need for it.
+						} else if(holdUnit.getLotNum()!=-1) { // if it's not -1, it's either a home civvie or a dig person.
+							t2au.remove(k);
 						}
 				
 						numUnitsRemainingD+=holdUnit.getSize();
@@ -9242,7 +9245,7 @@ public boolean checkForGenocides(Town t) {
 				if(!genocide)
 					combatHeader+=	" This means a " + Math.round(togain) + "% take of max cargo capturable in this raid.";
 				else combatHeader+= " Due to this being a campaign, the max cargo has been diminished to half of a full take.";
-				
+				System.out.println(combatData);
 				/*
 				String bombReturn = bombLogicBlock(actattack,null,null); // deprecated bomb logic block.
 				int returnNum = Integer.parseInt(bombReturn.substring(0,bombReturn.indexOf(",")));
@@ -9610,7 +9613,6 @@ public boolean checkForGenocides(Town t) {
 					zeppText+=t1.getTownName()+";";
 					
 				} 
-				
 					boolean toRet=true; String digMessage="none";
 				//	System.out.println(digOffSucc+ "," + digDefSucc + "," + t2.getDigAmt());
 					if(digOffSucc&&t2.getDigAmt()>0&&digDefSucc) { // only needs to be a dig there for this message. digOffSucc is true for non-attacks as well, 
@@ -14116,7 +14118,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 		Raid r = t1.attackServer().get(0);
 		r.setTicksToHit(0);
-		
+		attackServerCheck(t1,players[0]);
 		if(RO.getLord()==null) {
 			out.println("ROContested test failed because the RO didn't become owned by the player after landing.");
 			player.deleteFakePlayers(players);
@@ -14135,6 +14137,14 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		Raid r2 = t2.attackServer().get(0);
 		r2.setTicksToHit(0);
 		attackServerCheck(t2,players[1]); // here we expect shit to go down, and combat to occur, and a kick to happen.
+		for(AttackUnit a: RO.getAu()) {
+			if(a.getSupport()>0&&a.getOriginalPlayer().ID==players[0].ID&&a.getSize()!=0) {
+				out.println("ROContested test failed because combat didn't occur, the defending army of 5 vs 200 remained " + a.getSize() + ", indicating no combat(greater exc vs exc)..");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+		}
+		RO.auCheck();// to remove support.
 		
 		if(RO.getLord()==null) {
 			out.println("ROContested test failed because the RO didn't become owned by anybody after the second player landing(greater exc vs exc)..");
@@ -14180,14 +14190,15 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		r = t1.attackServer().get(0);
 		r.setTicksToHit(0);
 		attackServerCheck(t1,players[0]); // here we expect shit to go down, and combat to occur, but no kick to happen.
-		
+		RO.auCheck();// to remove support.
+
 		if(RO.getLord()==null) {
 			out.println("ROContested test failed because the RO didn't become owned by anybody after the first player landing when the second occupied it in the case of a lesser exc vs the exc.");
 			player.deleteFakePlayers(players);
 			return false;
 		}
 		if(RO.getLord()!=null&&RO.getLord().ID!=players[1].ID) {
-			out.println("ROContested test failed because the RO didn't become owned by the second player after landing in the case of a lesser exc vs the exc.");
+			out.println("ROContested test failed because the RO didn't become owned by the second player after landing in the case of a lesser exc vs the exc. ");
 			player.deleteFakePlayers(players);
 			return false;
 		}
@@ -14208,7 +14219,8 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		r = t1.attackServer().get(0);
 		r.setTicksToHit(0);
 		attackServerCheck(t1,players[0]); // here we expect shit to go down, and combat to occur, but no kick to happen.
-		
+		RO.auCheck();// to remove support.
+
 		if(RO.getLord()==null) {
 			out.println("ROContested test failed because the RO didn't become owned by anybody after the first player landing when the second occupied it in the case of lesser support vs an exc..");
 			player.deleteFakePlayers(players);
@@ -14240,7 +14252,8 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		r = t1.attackServer().get(0);
 		r.setTicksToHit(0);
 		attackServerCheck(t1,players[0]); // here we expect shit to go down, and combat to occur, but no kick to happen.
-		
+		RO.auCheck();// to remove support.
+
 		if(RO.getLord()==null) {
 			out.println("ROContested test failed because the RO didn't become owned by anybody after the first player landing when the second occupied it in the test of greater support vs an exc.");
 			player.deleteFakePlayers(players);
@@ -14274,7 +14287,8 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		r = t2.attackServer().get(0);
 		r.setTicksToHit(0);
 		attackServerCheck(t2,players[1]); // here we expect shit to go down, and combat to occur, but no kick to happen.
-		
+		RO.auCheck();// to remove support.
+
 		if(RO.getLord()==null) {
 			out.println("ROContested test failed because the RO didn't become owned by anybody after the second player landing when the first occupied it in the test of greater support vs an support.");
 			player.deleteFakePlayers(players);
@@ -14299,7 +14313,8 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		r = t1.attackServer().get(0);
 		r.setTicksToHit(0);
 		attackServerCheck(t1,players[0]); // here we expect shit to go down, and combat to occur, but no kick to happen.
-		
+		RO.auCheck();// to remove support.
+
 		if(RO.getLord()==null) {
 			out.println("ROContested test failed because the RO didn't become owned by anybody after the first player landing when the second occupied it in the test of lesser support vs an support.");
 			player.deleteFakePlayers(players);
@@ -14312,10 +14327,10 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 	
 		player.deleteFakePlayers(players);
-		out.println("basicRO test successful.");
+		out.println("ROContested test successful.");
 		return true;
 		} catch(Exception exc) {
-			out.println("basicRO test failed because " + exc.toString());
+			out.println("ROContested test failed because " + exc.toString());
 			for(StackTraceElement stackTrace: exc.getStackTrace()) {
 				out.println(stackTrace.toString());
 			}

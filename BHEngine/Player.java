@@ -2321,6 +2321,11 @@ public class Player  {
 					other.setLord(null);
 					other.setVassalFrom(new Timestamp(new Date().getTime()));
 				}
+				for(AttackUnit a: other.getAu()) {
+					if(a.getSize()>0&&a.getSupport()>0&&a.getOriginalPlayer()!=null&&a.getOriginalPlayer().ID==fake.ID) {
+						a.setSize(0); // will get picked up next aucheck.
+					}
+				}
 			}
 			for(Player p:God.getPlayers()) {
 				if(p.getLord()!=null&&p.getLord().ID==fake.ID) {

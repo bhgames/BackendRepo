@@ -2123,6 +2123,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.foodConsumptionTest(req,out,p);
 				}else if(test.equals("basicRO")) {
 					g.basicROTest(req,out,p);
+				}else if(test.equals("ROContested")) {
+					g.ROContestedTest(req,out,p);
 				}else if(test.equals("allVassalAndTerritories")) {
 					g.fbPostTest(req,out,p);
 					g.separatedPointsTest(req,out);
