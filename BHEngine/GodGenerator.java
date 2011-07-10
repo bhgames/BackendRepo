@@ -8758,13 +8758,11 @@ public boolean checkForGenocides(Town t) {
 							
 							//t1.removeAU(holdUnit.getSlot(),(int) holdOld-holdUnit.getSize()); // This lowers the population of the player accordingly.
 							offUnitsLost[k]+= (int) (holdOld-holdUnit.getSize());
-							System.out.println("Checking off" + holdUnit + " with lotnum " + holdUnit.getLotNum());
 							if(holdUnit.getSupport()==0)
 							particularCost = t1p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t1.townID);
 							else{
 								if(holdUnit.getLotNum()!=-1) {
 									// means is a digger or another civvie type.
-									System.out.println("new offdiger size is " + holdUnit.getSize() + " and lotnum is " + holdUnit.getLotNum());
 									actattack.setDigAmt(holdUnit.getSize());
 									if(actattack.getDigAmt()<=0) digOffSucc=false;
 									if(actattack.getTown2().isResourceOutcropping())
@@ -8831,7 +8829,6 @@ public boolean checkForGenocides(Town t) {
 								}
 							if(holdUnit.getLotNum()==-2) { // -2 lotNum is special, means it's a dig scholar.
 								t2.setDigAmt(holdUnit.getSize());
-								System.out.println("New defdigger amt was " + holdUnit.getSize() + " for " + k+ " " + holdUnit + " lotn " + holdUnit.getLotNum());
 								if(t2.getDigAmt()==0) {
 									digDefSucc = false; // Means the other guy did win the dig. No civvies left!
 								}
@@ -9245,7 +9242,7 @@ public boolean checkForGenocides(Town t) {
 				if(!genocide)
 					combatHeader+=	" This means a " + Math.round(togain) + "% take of max cargo capturable in this raid.";
 				else combatHeader+= " Due to this being a campaign, the max cargo has been diminished to half of a full take.";
-				System.out.println(combatData);
+			//	System.out.println(combatData);
 				/*
 				String bombReturn = bombLogicBlock(actattack,null,null); // deprecated bomb logic block.
 				int returnNum = Integer.parseInt(bombReturn.substring(0,bombReturn.indexOf(",")));
@@ -9650,10 +9647,7 @@ public boolean checkForGenocides(Town t) {
 						// had been one here to defend in the first place...so we don't need to check for it. But we do! What if we killed the dig incoming civvies!
 						digMessage = "The defensive party repelled the attackers!";
 					} else if(!digDefSucc&&t2.getDigAmt()==0) { //means there WAS a dig there and it was just squashed. But no other dig to replace it, this was an attack. digDefSucc will only be false if there was a dig, and if it's now 0, the dig Amt, we should do something.
-						Town otherT = t2.getPlayer().God.findTown(t2.getDigTownID());
-						//	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
-
-						otherT.getPlayer().getPs().b.recall(t2.townID,t2.getPlayer().ID,otherT.townID);
+					
 						
 						if(t2.isResourceOutcropping())
 							digMessage = "The offensive army destroyed the excavation site.";
@@ -14041,6 +14035,162 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			e.printStackTrace();
 		}
 		return -1;
+	}
+	public boolean ROInfluenceTest(HttpServletRequest req, PrintWriter out, Player player) {
+
+		/*
+			ROInfluenceTest: Plant support on there and iterate it up till it has some serious territory. 
+			Then have the support leave, and see how long it takes to die in ticks. Make sure it matches up.
+
+		 */
+		getPlayer(5).territoryCalculator(); // i need it to reset everything to no lord that can be reset.
+
+		int numTowns[] = {1};
+		Player[] players = player.generateFakePlayers(1,numTowns,0,0);
+		try {
+		Town t1 = players[0].towns().get(0);
+		//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
+		Town RO=null;
+		for(Town t: getPlayer(5).towns()) {
+			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+				RO=t;
+				break;
+			} 
+			
+		}
+		if(RO==null) {
+			growId();
+			getPlayer(5).territoryCalculator();
+
+			
+		}
+		for(Town t: getPlayer(5).towns()) {
+			//System.out.println(t.getTownID() + " has " + t.getInfluence() + " influence.");
+
+			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+				RO=t;
+				break;
+			} 
+		}
+		if(RO==null) {
+			out.println("ROInfluence test failed because even growing Id didn't produce a viable RO to use.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		t1.setX(RO.getX()+10);
+		t1.setY(RO.getY());
+		t1.setInfluence(0);
+		t1.addBuilding("Command Center",4,5,0);
+		t1.bldg().get(0).setPeopleInside(5);
+		t1.setAu(new ArrayList<AttackUnit>());
+		t1.getAu().add(new AttackUnit("Pillager",0,0));
+		players[0].getAu().add(new AttackUnit("Pillager",0,0)); // when recalling support, player-level au is called! So we must populate.
+
+		t1.getAu().get(0).setSize(1000);
+		RO.getRes()[0]=15000;
+		RO.getRes()[1]=15000;
+		RO.getRes()[2]=15000;
+		RO.getRes()[3]=15000;
+		//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
+		int amts[] = {1000};
+		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
+		if(!worked) {
+			out.println("ROContested test failed because the attack didn't send, and the error was: " + players[0].getPs().b.getError());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(t1.attackServer().size()!=1) {
+			out.println("ROContested test failed because the raid didn't load.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		Raid r = t1.attackServer().get(0);
+		r.setTicksToHit(0);
+		attackServerCheck(t1,players[0]);
+	
+		
+		if(RO.getLord()==null) {
+			out.println("ROContested test failed because the RO didn't become owned by the player after landing.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		
+		players[0].territoryCalculator();
+		if(RO.getInfluence()!=1000) {
+			out.println("ROContested test failed because the RO didn't attain 1000 influence as expected after one terrcalc iteration, it gained " + RO.getInfluence());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		
+		players[0].territoryCalculator();
+		players[0].territoryCalculator();
+		// now we expect 3000 territory.
+		//	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
+
+		worked = players[0].getPs().b.recall(RO.townID,5,t1.townID);
+
+		if(!worked) {
+			out.println("ROContested test failed because the support didn't return, and the error was: " + players[0].getPs().b.getError());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		getPlayer(5).territoryCalculator();
+		if(RO.getLord()==null) {
+			out.println("ROContested test failed because Id made the RO return to it when it still had influence.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		// now, with 3000 influence, we expect each iteration:
+		// 1: 1500
+		// 2: 750
+		// 3: 375
+		// 4: 187
+		// 5: 93
+		// 6: 46
+		// 7: 23
+		// 8: 11
+		// 9: 5
+		// 10: 2
+		// 11: 1
+		// so after 11 iterations, expect it to be gone.
+		players[1].territoryCalculator();
+		if(RO.getInfluence()!=1500) {
+			out.println("ROContested test failed because after one terrcalc after support leaving, influence was not 1500, but " + RO.getInfluence());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		players[1].territoryCalculator();
+		players[1].territoryCalculator();
+		if(RO.getInfluence()!=375) {
+			out.println("ROContested test failed because after three terrcalc after support leaving, influence was not 375, but " + RO.getInfluence());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		for(int i = 0; i<8; i++) {
+			players[1].territoryCalculator();
+		}
+		if(RO.getInfluence()!=0) {
+			out.println("ROContested test failed because after eleven terrcalc after support leaving, influence was not 0, but " + RO.getInfluence());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(RO.getLord()!=null) {
+			out.println("ROContested test failed because after eleven terrcalc after support leaving, lord was not null like it should have been, reclaimed by Id!");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		player.deleteFakePlayers(players);
+		out.println("ROContested test successful.");
+		return true;
+		} catch(Exception exc) {
+			out.println("ROContested test failed because " + exc.toString());
+			for(StackTraceElement stackTrace: exc.getStackTrace()) {
+				out.println(stackTrace.toString());
+			}
+			player.deleteFakePlayers(players);
+			return false;
+		}
+	
 	}
 	public boolean ROContestedTest(HttpServletRequest req, PrintWriter out, Player player) {
 

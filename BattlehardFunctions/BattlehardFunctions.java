@@ -4871,7 +4871,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			// Next we need to check if these numbers go over the max units in
 			// the town. If they do, send the max units instead.
 				  hau =t1au.get(k);
-				  if(attackType.equals("dig")||attackType.contains("support")||attackType.equals("excavation")
+				  if((attackType.equals("dig")||attackType.contains("support")||attackType.equals("excavation"))
 						  &&hau.getSupport()>0&&holdNumbers[k]>0) {
 					  setError("You cannot send other players' support units on supporting, dig, or excavation missions!");
 					  return false;
@@ -4910,7 +4910,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		else if(attackType.equals("debris"))debris =true;
 		else if(attackType.equals("strafe")) { 
 			
-			
+			/*
 				int z = 0; boolean foundBomber=false;
 				while(z<t1au.size()) {
 					hau = t1au.get(z);
@@ -4923,7 +4923,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				if(!foundBomber) {
 					setError("You must send some bombers on a bombing mission type!");
 					return false;
-				}
+				}*/
 				Bomb = true; 
 
 		}
@@ -5174,7 +5174,6 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 		}
 		pushLog("attack(" +yourTownName+","+enemyx+","+  enemyy +","+  PlayerScript.toJSONString(auAmts) +","+  attackType+","+  PlayerScript.toJSONString(target)+","+ name+");" );
-	
 		int holdNumbers[] = auAmts; // Should only have six types of unit, therefore
 		// attack method can be easily overloaded by making it so you can do
 		// attack(x,y,unit1,unit2) or add unit 3 on there...
@@ -5211,7 +5210,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			// the town. If they do, send the max units instead.
 			if(k<t1au.size()) {
 				  hau =t1au.get(k);
-				  if(attackType.equals("dig")||attackType.contains("support")||attackType.equals("excavation")
+				  if((attackType.equals("dig")||attackType.contains("support")||attackType.equals("excavation"))
 						  &&hau.getSupport()>0&&holdNumbers[k]>0) {
 					  setError("You cannot send other players' support units on supporting, dig, or excavation missions!");
 					  return false;
@@ -5251,7 +5250,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		else if(attackType.equals("strafe")) { 
 			
 			
-				int z = 0; boolean foundBomber=false;
+			/*	int z = 0; boolean foundBomber=false;
 				while(z<t1au.size()) {
 					hau = t1au.get(z);
 					if(hau.getType()==4&&holdNumbers.length>z&&holdNumbers[z]>0) {
@@ -5263,7 +5262,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				if(!foundBomber) {
 					setError("You must send some bombers on a bombing mission type!");
 					return false;
-				}
+				}*/
 				Bomb = true; 
 
 		}
@@ -6140,7 +6139,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 
 	
 		
-			int auAmts[] = new int[1];
+			int auAmts[] = new int[0];
 			return recall(auAmts,townToRecallFromID,pidOfRecallTown,  yourTownID);
 
 	}
@@ -6237,11 +6236,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							 */
 							
 							found=true;
-														 
 							 // we know that each city has a six au, locked,
 							 // empty, or whatever, no matter what. So it's original slot num
 							 // corresponds to the index of it's storage in the au array.
-							if(auAmts.length>1) {
+							if(auAmts.length>0) {
 							if(auAmts[a.getOriginalSlot()]>a.getSize()) auAmts[a.getOriginalSlot()] = a.getSize();
 							
 							else if(auAmts[a.getOriginalSlot()]<0) auAmts[a.getOriginalSlot()]=0;
@@ -6256,7 +6254,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							 // go through each raid, find the au, return those units.
 							 // I know some may be far away but this is easiest for
 							 // the computer and for me.
-							 if(auAmts.length==1){ // >1 indicates only a partial recall. No need to do that for that.
+							 if(auAmts.length==0){ // >0 indicates only a partial recall. No need to do that for that.
 							/*	try {
 									UberStatement stmt = this.g.con.createStatement();
 									ResultSet rs = stmt.executeQuery("select size from raidSupportAU where tidslot = " + a.getSlot() + " and tid = " + t.townID +";");
@@ -6292,7 +6290,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							 // has zero size. So just set it that and save memory.
 							 // This will also remove the au from the attackunit array
 							 // of the town naturally via player.
-							 if(auAmts.length==1)
+							 if(auAmts.length==0)
 							 t.setSize(k,0);
 
 

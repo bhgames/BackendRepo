@@ -2125,6 +2125,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.basicROTest(req,out,p);
 				}else if(test.equals("ROContested")) {
 					g.ROContestedTest(req,out,p);
+				}else if(test.equals("ROInfluence")) {
+					g.ROInfluenceTest(req,out,p);
 				}else if(test.equals("allVassalAndTerritories")) {
 					g.fbPostTest(req,out,p);
 					g.separatedPointsTest(req,out);

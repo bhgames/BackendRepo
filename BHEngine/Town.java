@@ -3451,9 +3451,7 @@ public class Town {
 		ArrayList<AttackUnit> ourAU = getAu();
 		while(x<ourAU.size()) {
 			ourA = ourAU.get(x);
-			System.out.println("Checking " + ourA + " whos size is " + ourA.getSize());
 				if(ourA.getSize()==0&&ourA.getSupport()>0) {
-					System.out.println("Size is 0, so going thru now.");
 					as = attackServer();
 					int j = 0;
 					boolean foundAU = false;
