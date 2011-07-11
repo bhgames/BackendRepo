@@ -649,6 +649,43 @@ public class Raid {
 	public void setSize(int index, int size) {
 		getAu().get(index).setSize(size);
 	}
+	public void collapseDigOrRO(Raid r) {
+		// only to be used for digs and ROs, so no support is ever present.
+		int i = 0;
+		while(i<r.getAu().size()) {
+		//	System.out.println("Raid before:"+getAu().get(i) + ":" + getAu().get(i).getSize());
+
+			getAu().get(i).setSize(getAu().get(i).getSize()+r.getAu().get(i).getSize());
+		//	System.out.println("Raid after:"+getAu().get(i) + ":" + getAu().get(i).getSize());
+
+			i++;
+		}
+		 double oldEngRate = getTown2().getDigAmt()*GodGenerator.engineerRORate;
+		setDigAmt(getDigAmt()+r.getDigAmt());
+
+
+			// means we need to reflect it here, too.
+			for(AttackUnit rau:r.getAu()) {
+				for(AttackUnit a:getTown2().getAu()) {
+					if(a.getName().equals(rau.getName())&&a.getSupport()>0&&a.getOriginalPlayer().ID==getTown1().getPlayer().ID) {
+						a.setSize(a.getSize()+rau.getSize());
+					}
+				}
+				
+			}
+			getTown2().setDigAmt(getTown2().getDigAmt()+r.getDigAmt());
+			 double newEngRate = getTown2().getDigAmt()*GodGenerator.engineerRORate;
+		//	 System.out.println("old date was " + getDockingFinished().getTime() + " new engrate is " + newEngRate + " old is " + oldEngRate + " and dividing is " + oldEngRate/newEngRate
+			//		 + " and multiplying is " + ((double)getDockingFinished().getTime())*oldEngRate/newEngRate + " and rounding is " + 
+				// Math.round(((double)getDockingFinished().getTime())*oldEngRate/newEngRate));
+			 if(getDockingFinished()!=null) // so if you send 10 guys to a 10 man army, then it's 10/20, you've knocked it down 50%.
+			 setDockingFinished(new Timestamp((long) Math.round(((double)getDockingFinished().getTime())*oldEngRate/newEngRate)));
+			 r.setRaidOver(true);
+			 r.deleteMe();
+			 getTown2().save(); // this is save-worthy.
+			 save();
+
+	}
 	public void setMemSize(int index, int size) {
 		if(index<6) setInt("au"+(index+1),size);
 		else {

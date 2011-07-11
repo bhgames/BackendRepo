@@ -2127,7 +2127,18 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.ROContestedTest(req,out,p);
 				}else if(test.equals("ROInfluence")) {
 					g.ROInfluenceTest(req,out,p);
-				}else if(test.equals("allVassalAndTerritories")) {
+				}else if(test.equals("ROEngCap")) {
+					g.ROEngCapTest(req,out,p);
+				}else if(test.equals("ROCollapse")) {
+					g.ROCollapseTest(req,out,p);
+				}else if(test.equals("allRO")) {
+					g.basicROTest(req,out,p);
+					g.ROContestedTest(req,out,p);
+					g.ROInfluenceTest(req,out,p);
+					g.ROEngCapTest(req,out,p);
+					g.ROCollapseTest(req,out,p);
+				}
+				else if(test.equals("allVassalAndTerritories")) {
 					g.fbPostTest(req,out,p);
 					g.separatedPointsTest(req,out);
 					g.giftWrappingTest(req,out);

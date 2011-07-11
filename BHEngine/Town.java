@@ -1181,7 +1181,6 @@ public class Town {
 		
 	}
 	public int getTotalEngineers() {
-		
 		ArrayList<Building> bldg = bldg();
 		int i = 0; int totalEngineers=0;
 		while(i<bldg.size()) {
@@ -1192,8 +1191,9 @@ public class Town {
 		UserTown towns[] = getPlayer().getPs().b.getUserTownsWithSupportAbroad(townID);
 		for(UserTown t: towns) {
 			Town realT = getPlayer().God.getTown(t.getTownID());
-			if(realT.isResourceOutcropping())
-			totalEngineers+=realT.getDigAmt();
+			if(realT.isResourceOutcropping()) {
+				totalEngineers+=realT.getDigAmt();
+			}
 		}
 		return totalEngineers;
 		/*
@@ -1465,6 +1465,7 @@ public class Town {
 		 double t = ((double) amtTheyHave)/(eachAdd-engRate);
 
 		 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
+		 
 		 if(t>0&&amtTheyHave<amtWeCanHold) {
 			 // so now we need to figure out how many ticks it takes to get it done.
 			 // we know that amtTheyHave(t) = amtTheyHave_0 + eachAdd*t - engRate*t;

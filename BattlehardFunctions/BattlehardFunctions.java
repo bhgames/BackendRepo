@@ -7241,7 +7241,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						if(bldg.get(i).getLotNum()==slot&&bldg.get(i).getType().equals("Command Center")) {bid = bldg.get(i).getId(); lvl = bldg.get(i).getLvl(); }
 						i++;
 					}
-					int maxNumber = totalCap-holdT.getTotalTraders()-currentlyBuilding; // this is the max amount that can be built
+					int maxNumber = totalCap-holdT.getTotalEngineers()-currentlyBuilding; // this is the max amount that can be built
 
 					
 					if(lvl==0) { 
@@ -7256,6 +7256,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					if(keep) prog=true;
 					if(number>=(b.getCap()-(b.getPeopleInside()+b.getNumLeftToBuild()))) number = (int) (b.getCap()-(b.getPeopleInside()+b.getNumLeftToBuild()));
 					if(number>maxNumber) number = maxNumber;
+					if(number==0) {
+						setError("You cannot build zero engineers!");
+						return false;
+					}
 					k=0;
 					 long res[] = holdT.getRes();
 
@@ -7473,7 +7477,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						 b = holdT.findBuilding(bid);
 							if(number>=(b.getCap()-(b.getPeopleInside()+b.getNumLeftToBuild()))) number =(int) (b.getCap()-(b.getPeopleInside()+b.getNumLeftToBuild()));
 							if(number>maxNumber) number = maxNumber;
-
+							if(number==0) {
+								setError("You cannot build zero traders!");
+								return false;
+							}
 						int k = 0;
 						 long res[] = holdT.getRes();
 						 synchronized(res) { 
@@ -7545,11 +7552,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				 int all = number+allCalled;
 
 				 double factor = all*(all+1)/2 - allCalled*(allCalled+1)/2;
-				 cost[0] = (long) Math.round(15*factor);
-				 cost[1] = (long) Math.round(23*factor);
-				 cost[2] = (long) Math.round(12*factor);
-				 cost[3] = (long) Math.round(20*factor);// // need a 10, 25, 15, 30
-				 cost[4] = -1; // These are citizens, add one to the population! This doesn't actually do anything the way I programmed it.
+				 //	public long[] returnPrice(String unitType, int number, int tid) {
+
+				 cost = returnPrice("Trader",number,holdT.townID);
 				 
 				 
 				 boolean canBuild = true;
@@ -7575,7 +7580,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							totalTradersOut+=t.getTraders();
 						k++;
 					}
-					if((totalDearth-totalTradersOut)<number) return false;
+					if((totalDearth-totalTradersOut)<number){
+						setError("You do not have enough space to build this amount of traders!");
+						return false;
+					}
 					
 					k=0;
 					 b= null;
@@ -7697,7 +7705,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						if(bldg.get(i).getLotNum()==lotNum&&bldg.get(i).getType().equals("Institute")) {bid = bldg.get(i).getId(); lvl = bldg.get(i).getLvl(); }
 						i++;
 					}
-					int maxNumber = totalCap-holdT.getTotalTraders()-currentlyBuilding; // this is the max amount that can be built
+					int maxNumber = totalCap-holdT.getTotalScholars()-currentlyBuilding; // this is the max amount that can be built
 					// to still give room for scholars coming back from digs.
 					
 					
@@ -7711,6 +7719,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					b = getUserBuilding(bid);
 					if(number>=(b.getCap()-(b.getPeopleInside()+b.getNumLeftToBuild()))) number =(int) (b.getCap()-(b.getPeopleInside()+b.getNumLeftToBuild()));
 					if(number>maxNumber) number=maxNumber; // so a second check ensures you can only build up to your max.
+					if(number==0) {
+						setError("You cannot build zero scholars!");
+						return false;
+					}
 					k=0;
 					 long res[] = holdT.getRes();
 
