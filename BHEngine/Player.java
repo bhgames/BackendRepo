@@ -23,70 +23,56 @@ import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 
 
 
-public class Player  {	
-	public static int noobDuration = 48*3600/GodGenerator.gameClockFactor;
+public class Player  {
+	//Static Variables
+	public static int noobDuration = 48*3600/(int)GodGenerator.gameClockFactor;
 	
-	public int ID;
-	private boolean isLeague=false;
-	private int buildingCheckMax=360;
-	private int buildingCheckTimer=360;
-	private int internalClock=0;
-	private boolean beingDeleted=false;
-	private String holdingIteratorID="-1";
+	//Protected Variables
 	protected PlayerScript ps;
-	private String pushLog="";
-	private long[] secondaryResBuff;
-	public int iterTicks = 0;
-	public ArrayList<UserSR> currSRs;
-	public ArrayList<UserMessagePack> currMessages;
-	 private Timestamp vassalFrom;
-
-	public int playedTicks=0;
-	public long totalTimePlayed = 0;
-	public int numLogins=0;
-	private boolean voluntaryVassal;
-	 private Hashtable eventListenerLists = new Hashtable();
-		private String holdingLordIteratorID = "-1";
-
-	 private Player lord;
-	 private double taxRate;
-	public Timestamp last_session;
-	private int lordInternalClock=0;
-	int lastTerritoryClock=0;
-	public int owedTicks =0;
-	private String version;
-	private ArrayList<Hashtable> achievements;
-	private ArrayList<Hashtable> territories=new ArrayList<Hashtable>(); 
-	public int last_auto_blast;
-	public Timestamp last_login;
-	private long fuid;
-	public String flicker="noflick";
-	private boolean attackAPI, advancedAttackAPI, tradingAPI,advancedTradingAPI,smAPI,researchAPI,buildingAPI,advancedBuildingAPI,messagingAPI,zeppelinAPI,completeAnalyticAPI,nukeAPI,worldMapAPI,digAPI;
-	private int premiumTimer=0;
-	private int revTimer=0;
-	private int tPushes=0;
-	private int ubTimer=0;
-	private int mineTimer=0;
-	private int feroTimer=0;
-	private int timberTimer=0;
-	private boolean airshipTech,clockworkAugments;
-	private String email;
-	private int mmTimer=0;
-	private int fTimer=0;
-	private int totalBPEarned=0;
-	private int bp=0;
-	UberConnection con;
-	private boolean facsimile=false;
-	private boolean synchronize = false;
-	private League  league=null;
 	
-	public GodGenerator God;
-	private int bodyArmor,teslaTech,ordinanceResearch,scholTicks,scholTicksTotal,capitaltid,infrastructureTech,townTech=1,firearmResearch,knowledge,architecture,scoutTech,clockworkComputers,constructionResearch,structuralIntegrity,bloodMetalPlating,totalScholars,totalPopulation;
-	private boolean supportstaff,personalShields,hydraulicAssistors,thrustVectoring,advancedFortifications,bloodMetalArmor,isQuest=false;
+	//Not sure what these are
+	int lastTerritoryClock=0;
+	UberConnection con;
+	
+	//Private Variables
+	private int bodyArmor,teslaTech,ordinanceResearch,scholTicks,scholTicksTotal,capitaltid,
+				infrastructureTech,firearmResearch,knowledge,architecture,scoutTech,clockworkComputers,
+				constructionResearch,structuralIntegrity,bloodMetalPlating,totalScholars,totalPopulation,
+				townTech=1,buildingCheckMax=360, buildingCheckTimer=360, internalClock=0, 
+				lordInternalClock=0, premiumTimer=0, revTimer=0, tPushes=0, ubTimer=0, mineTimer=0, 
+				feroTimer=0, timberTimer=0, mmTimer=0, fTimer=0, totalBPEarned=0, bp=0;
+	
+	private long fuid;
+	private long[] secondaryResBuff;
+	private double taxRate;
+	private boolean attackAPI, advancedAttackAPI, tradingAPI,advancedTradingAPI,smAPI,researchAPI,
+					buildingAPI,advancedBuildingAPI,messagingAPI,zeppelinAPI,completeAnalyticAPI,
+					nukeAPI,worldMapAPI,digAPI,airshipTech,clockworkAugments,supportstaff,
+					personalShields,hydraulicAssistors,thrustVectoring,advancedFortifications,
+					bloodMetalArmor, voluntaryVassal,isQuest=false, isLeague=false, beingDeleted=false,
+					facsimile=false, synchronize = false;
+	
+	private String 	version,username,password,email,holdingIteratorID="-1",pushLog="", 
+					holdingLordIteratorID = "-1";
+	
+	private Timestamp vassalFrom;
+	private Hashtable eventListenerLists = new Hashtable();
+	private Player lord;
+	private ArrayList<Hashtable> achievements, territories=new ArrayList<Hashtable>(); 
 	private ArrayList<QuestListener> activeQuests;
 	private ArrayList<AttackUnit> au;
 	private ArrayList<Town> towns;
-	private String username,password;
+	private League league=null;
+
+		//Public Variables
+	public int ID, last_auto_blast, iterTicks = 0, playedTicks=0, numLogins=0, owedTicks =0;
+	public long totalTimePlayed = 0;
+	public Timestamp last_session, last_login;
+	public String flicker="noflick";
+	public GodGenerator God;
+	public ArrayList<UserSR> currSRs;
+	public ArrayList<UserMessagePack> currMessages;
+	
 	/*
 	 * Players have towns, towns have attack units, when a raid occurs, or an attack,
 	 * the resulting changes are made to the raid which is then sent back with those unit changes. The raidserver
@@ -114,9 +100,9 @@ public class Player  {
 		   }
 		   
 		   if(ID>=999999900) {
-			   stmt.close(); // not a real player, no need.
+			   stmt.close(); 	// not a real player, no need.
 			   facsimile=false; // this is a more sophisticated test player, capable of generating it's own attackunits.
-			   // this means we're in the special testing zone.
+			   					// this means we're in the special testing zone.
 			   this.ID=ID;
 			   this.God=God;
 		       internalClock = God.gameClock;
@@ -146,111 +132,111 @@ public class Player  {
 				if(!facsimile) { // you must set them yourself if you are.
 					au = getAu(); 
 					try {
-					getAchievements();
+						getAchievements();
 					} catch(Exception exc) { exc.printStackTrace(); System.out.println("No idea why this error happened, but player load saved."); } 
 				}
 			   
 		   } else {
-		   this.ID=ID;
-		   this.God=God;
-		   stmt.setInt(1,ID);
-		   ResultSet rs = stmt.executeQuery();
-	       internalClock = God.gameClock;
-		   rs.next();
-		   username = rs.getString(2);
-	       password = rs.getString(26);
-	       bodyArmor = rs.getInt(3);
-	       playedTicks=rs.getInt(45);
-	       owedTicks = rs.getInt(82);
-	       version = rs.getString(81);
-	       fuid = rs.getLong(57);
-	       digAPI = rs.getBoolean(86);
-	       knowledge = rs.getInt(4);
-	       flicker = rs.getString(58);
-	       last_login=rs.getTimestamp(41);
-	       // EVENT LISTENER STUFF	
-			eventListenerLists.put("onProgramLoad",new ArrayList<QuestListener>());
-			eventListenerLists.put("onRaidSent",new ArrayList<QuestListener>());
+			   this.ID=ID;
+			   this.God=God;
+			   stmt.setInt(1,ID);
+			   ResultSet rs = stmt.executeQuery();
+		       internalClock = God.gameClock;
+			   rs.next();
+			   username = rs.getString(2);
+		       password = rs.getString(26);
+		       bodyArmor = rs.getInt(3);
+		       playedTicks=rs.getInt(45);
+		       owedTicks = rs.getInt(82);
+		       version = rs.getString(81);
+		       fuid = rs.getLong(57);
+		       digAPI = rs.getBoolean(86);
+		       knowledge = rs.getInt(4);
+		       flicker = rs.getString(58);
+		       last_login=rs.getTimestamp(41);
+		       // EVENT LISTENER STUFF	
+				eventListenerLists.put("onProgramLoad",new ArrayList<QuestListener>());
+				eventListenerLists.put("onRaidSent",new ArrayList<QuestListener>());
 
-	       try {
-	       last_session=rs.getTimestamp(83);
-	       } catch(Exception exc) { last_session = new Timestamp((new Date()).getTime());}
-	       numLogins = rs.getInt(84);
-	       totalTimePlayed = rs.getLong(85);
+		       try {
+		    	   last_session=rs.getTimestamp(83);
+		       } catch(Exception exc) { last_session = new Timestamp((new Date()).getTime());}
+		       numLogins = rs.getInt(84);
+		       totalTimePlayed = rs.getLong(85);
 	       
-	       attackAPI = rs.getBoolean(68);
-	       advancedAttackAPI = rs.getBoolean(69);
-	       tradingAPI = rs.getBoolean(70);
-	       advancedTradingAPI = rs.getBoolean(71);
-	       smAPI = rs.getBoolean(72);
-	       researchAPI = rs.getBoolean(73);
-	       buildingAPI = rs.getBoolean(74);
-	       advancedBuildingAPI = rs.getBoolean(75);
-	       messagingAPI = rs.getBoolean(76);
-	       zeppelinAPI = rs.getBoolean(77);
-	       completeAnalyticAPI = rs.getBoolean(78);
-	       nukeAPI = rs.getBoolean(79);
-	       worldMapAPI = rs.getBoolean(80);
+		       attackAPI = rs.getBoolean(68);
+		       advancedAttackAPI = rs.getBoolean(69);
+		       tradingAPI = rs.getBoolean(70);
+		       advancedTradingAPI = rs.getBoolean(71);
+		       smAPI = rs.getBoolean(72);
+		       researchAPI = rs.getBoolean(73);
+		       buildingAPI = rs.getBoolean(74);
+		       advancedBuildingAPI = rs.getBoolean(75);
+		       messagingAPI = rs.getBoolean(76);
+		       zeppelinAPI = rs.getBoolean(77);
+		       completeAnalyticAPI = rs.getBoolean(78);
+		       nukeAPI = rs.getBoolean(79);
+		       worldMapAPI = rs.getBoolean(80);
 
 
-	       tPushes = rs.getInt(60);
-	       email = rs.getString(56);
-	       totalScholars = rs.getInt(5);
-	       totalPopulation = rs.getInt(7);
-	       //aLotTech = rs.getInt(8);
-	       last_auto_blast = rs.getInt(59);
-	       revTimer = rs.getInt(54);
-	       supportstaff = rs.getBoolean(28);
-	       airshipTech = rs.getBoolean(61);
-	     //  missileSiloTech = rs.getBoolean(62);
-	     //  recyclingTech = rs.getBoolean(63);
-	       clockworkAugments = rs.getBoolean(64);
-	       advancedFortifications = rs.getBoolean(65);
-	       bloodMetalArmor = rs.getBoolean(66);
-	    //   foodRefTech = rs.getBoolean(67);
+		       tPushes = rs.getInt(60);
+		       email = rs.getString(56);
+		       totalScholars = rs.getInt(5);
+		       totalPopulation = rs.getInt(7);
+		       //aLotTech = rs.getInt(8);
+		       last_auto_blast = rs.getInt(59);
+		       revTimer = rs.getInt(54);
+		       supportstaff = rs.getBoolean(28);
+		       airshipTech = rs.getBoolean(61);
+		     //missileSiloTech = rs.getBoolean(62);
+		     //recyclingTech = rs.getBoolean(63);
+		       clockworkAugments = rs.getBoolean(64);
+		       advancedFortifications = rs.getBoolean(65);
+		       bloodMetalArmor = rs.getBoolean(66);
+		    // foodRefTech = rs.getBoolean(67);
 
-	     //  soldierTech = rs.getBoolean(9);
-	       personalShields=(rs.getBoolean(10));
-	       hydraulicAssistors = rs.getBoolean(11);
-	       scoutTech=rs.getInt(40);
-	       premiumTimer = rs.getInt(47);
-	       ubTimer = rs.getInt(48);
-	       mineTimer = rs.getInt(49);
-	       feroTimer = rs.getInt(50);
-	       totalBPEarned=rs.getInt(55);
-	       timberTimer = rs.getInt(51);
-	       mmTimer = rs.getInt(52);
-	       fTimer = rs.getInt(53);
-	       bp = rs.getInt(46);
-	       constructionResearch = rs.getInt(13);
-	       firearmResearch = rs.getInt(17);
-	       thrustVectoring = rs.getBoolean(18);
-	      // supportTech = rs.getInt(19);
-	       townTech = rs.getInt(20);
-	       //advancedFortifications=rs.getInt(21);
-	       structuralIntegrity = rs.getInt(30);
-	       bloodMetalPlating = rs.getInt(38);
-	       scholTicks = rs.getInt(31);
-	       ordinanceResearch=(rs.getInt(32));
-	       teslaTech=(rs.getInt(33));
-	       infrastructureTech = rs.getInt(34);
-	       architecture = rs.getInt(35);
-	       clockworkComputers = rs.getInt(36);
-	   //    tradeTech = rs.getInt(27);
-	   //   commsCenterTech = rs.getInt(43);
-	       capitaltid = rs.getInt(39);
-	       taxRate = rs.getDouble(88);
-	       voluntaryVassal=rs.getBoolean(89);
-	       pushLog = rs.getString(42);
-	      // need to break apart weaptech into an array.
+		     //soldierTech = rs.getBoolean(9);
+		       personalShields=(rs.getBoolean(10));
+		       hydraulicAssistors = rs.getBoolean(11);
+		       scoutTech=rs.getInt(40);
+		       premiumTimer = rs.getInt(47);
+		       ubTimer = rs.getInt(48);
+		       mineTimer = rs.getInt(49);
+		       feroTimer = rs.getInt(50);
+		       totalBPEarned=rs.getInt(55);
+		       timberTimer = rs.getInt(51);
+		       mmTimer = rs.getInt(52);
+		       fTimer = rs.getInt(53);
+		       bp = rs.getInt(46);
+		       constructionResearch = rs.getInt(13);
+		       firearmResearch = rs.getInt(17);
+		       thrustVectoring = rs.getBoolean(18);
+		     //supportTech = rs.getInt(19);
+		       townTech = rs.getInt(20);
+		     //advancedFortifications=rs.getInt(21);
+		       structuralIntegrity = rs.getInt(30);
+		       bloodMetalPlating = rs.getInt(38);
+		       scholTicks = rs.getInt(31);
+		       ordinanceResearch=(rs.getInt(32));
+		       teslaTech=(rs.getInt(33));
+		       infrastructureTech = rs.getInt(34);
+		       architecture = rs.getInt(35);
+		       clockworkComputers = rs.getInt(36);
+		   //  tradeTech = rs.getInt(27);
+		   //  commsCenterTech = rs.getInt(43);
+		       capitaltid = rs.getInt(39);
+		       taxRate = rs.getDouble(88);
+		       voluntaryVassal=rs.getBoolean(89);
+		       pushLog = rs.getString(42);
+		      // need to break apart weaptech into an array.
 	  
-			rs.close();
-			if(!facsimile) { // you must set them yourself if you are.
-				au = getAu(); 
-				try {
-				getAchievements();
-				} catch(Exception exc) { exc.printStackTrace(); System.out.println("No idea why this error happened, but player load saved."); } 
-			}
+		       rs.close();
+				if(!facsimile) { // you must set them yourself if you are.
+					au = getAu(); 
+					try {
+					getAchievements();
+					} catch(Exception exc) { exc.printStackTrace(); System.out.println("No idea why this error happened, but player load saved."); } 
+				}
 		   }
 		   
 		} catch(SQLException exc) { exc.printStackTrace(); }

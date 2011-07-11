@@ -23,43 +23,31 @@ import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 
 public class Town {
 	
-	 public int townID; 
-	 private String holdingIteratorID = "-1";
-	 private int internalClock=0;
+	 public int townID, influence, probTimer, findTime, digCounter, digAmt, owedTicks, x, y, destX,
+	 			destY, fuelCells, ticksTillMove, digTownID, internalClock=0; 
+	 private String holdingIteratorID = "-1", townName;
 	 private GodGenerator God; private UberConnection con;
 	 private ArrayList<AttackUnit> au;
 	 private ArrayList<Building> bldg;
-	 private int influence;
-	 private int probTimer,findTime,digCounter;
-	 private int digAmt;
 	 private long res[], debris[];
 	 private double resEffects[],resBuff[];
-	 private Player p;
-	 public int owedTicks;
-	 private Player lord;
+	 private Player p,lord;
 	 private Timestamp vassalFrom;
 	 private ArrayList<Trade> tradeServer;
 	 private ArrayList<TradeSchedule> tradeSchedules;
 	 private ArrayList<Raid> attackServer;
-	 private String townName;
-	 private int x,y;
-	 private boolean zeppelin;
-	 private int destX,destY;
-	 private int fuelCells;
-	 private int ticksTillMove;
-	 private boolean msgSent, resourceOutcropping;
-	 private int digTownID;
+	 private boolean zeppelin, msgSent, resourceOutcropping;
 	 private Hashtable eventListenerLists = new Hashtable();
-	 public static int zeppelinTicksPerMove= (int) Math.round(((double) Math.sqrt(1)*10/(500*GodGenerator.speedadjust))/GodGenerator.gameClockFactor);
-	 public static int ticksPerFuelPointBase =(int) Math.round((3600.0*24.0/((double) GodGenerator.gameClockFactor*10)));
-	 public static int daysOfStoragePerAirshipPlatform = 4;
-	 public static int maxFuelCells = 20; // the max fuel a zeppelin can hold.
-	 public static int refillSpeed=4; // multiplier on ticksPerFuelPointBase to figure out how fast these plants refuel.
+	 public static int zeppelinTicksPerMove= (int) Math.round(((double) Math.sqrt(1)*10/(500*GodGenerator.speedadjust))/GodGenerator.gameClockFactor),
+			 			ticksPerFuelPointBase =(int) Math.round((3600.0*24.0/((double) GodGenerator.gameClockFactor*10))),
+			 			daysOfStoragePerAirshipPlatform = 4,
+			 			maxFuelCells = 20, // the max fuel a zeppelin can hold.
+			 			refillSpeed = 4, // multiplier on ticksPerFuelPointBase to figure out how fast these plants refuel.
      // Given we want them to be able to grow ten fuel points every twenty four hours at level one.
-	 //Then each additional level adds 2 fuel points. So they start at being able to move around a little bit. At level 5,
+	 // Then each additional level adds 2 fuel points. So they start at being able to move around a little bit. At level 5,
      // then can double their range.
-	 public static int baseResourceGrowthRate=20; // the level 0 base resource rate for the game.
-	 public static int maxBldgLvl = 30;
+			 			baseResourceGrowthRate = 20, // the level 0 base resource rate for the game.
+			 			maxBldgLvl = 30;
 
 	/*
 	 * 0 Metal
@@ -85,28 +73,25 @@ public class Town {
 		if(sizeString==null) sizeString = "[]"; // means empty.
 		int[] auSizes = PlayerScript.decodeStringIntoIntArray(sizeString);
 		try {
-			int max=au.size();
-			if(auSizes.length<au.size()) {
-				max = auSizes.length;
+			int max = (auSizes.length<au.size())? auSizes.length : au.size();
+			while(i<au.size()) { 
+				 ha = au.get(i).returnCopy();
+			//	ha.setSize(getMemInt("au" + (i+1)));
+				 try {
+				 // if you got given a town and the former player had a different dimension auSize array in db, if the 
+					// server was unexpectedly shutdown so a save couldn't occur and the old auSize wasn't overwritten, you'll
+					// load up with a different dimension auSize array than au! in that event that auSize is SHORTER, because we don't
+					// need to /can't do much about it being bigger, we stop loading up numbers of au after that i and instead
+					// just add units with size = 0 onto the stack as the db attackunit table says to do so.
+					 if(i<max)
+						 ha.setSize(auSizes[i]);
+				 } catch(ArrayIndexOutOfBoundsException exc) {
+					 exc.printStackTrace();
+					 System.out.println("Setup for town " + getTownName() + " saved. i was " + i + " auSizes was " + auSizes.length + " and au was " + au.size());
+				 }
+				aufortown.add(ha);
+				i++;
 			}
-		while(i<au.size()) { 
-			 ha = au.get(i).returnCopy();
-		//	ha.setSize(getMemInt("au" + (i+1)));
-			 try {
-			 // if you got given a town and the former player had a different dimension auSize array in db, if the 
-				// server was unexpectedly shutdown so a save couldn't occur and the old auSize wasn't overwritten, you'll
-				// load up with a different dimension auSize array than au! in that event that auSize is SHORTER, because we don't
-				// need to /can't do much about it being bigger, we stop loading up numbers of au after that i and instead
-				// just add units with size = 0 onto the stack as the db attackunit table says to do so.
-				 if(i<max)
-			 ha.setSize(auSizes[i]);
-			 } catch(ArrayIndexOutOfBoundsException exc) {
-				 exc.printStackTrace();
-				 System.out.println("Setup for town " + getTownName() + " saved. i was " + i + " auSizes was " + auSizes.length + " and au was " + au.size());
-			 }
-			aufortown.add(ha);
-			i++;
-		}
 		} catch(Exception exc) {
 			exc.printStackTrace(); System.out.println("Everything is fine. The au count though is " +  au.size() + " for " + p.ID);
 		}
@@ -164,7 +149,7 @@ public class Town {
 		return this.au;
 	}
 	
-	public ArrayList<AttackUnit> getBlockadingAU() {
+	public ArrayList<AttackUnit> getBlockade() {
 		Player p = getPlayer();
 		
 	}
@@ -1374,17 +1359,11 @@ public class Town {
 				 "Sir,\n We found a door in a passageway we had excavated. We can't open it by hand, we'll need to use explosives. However, if we do, while we'll know what is behind the door, we'll destroy the dig site and we'd have to start over again to discover anything else. Let us know what you wish us to do. If you wish us to leave it be, we'll head on back now.",
 				 "Sir,\n While we were exploring an underground cavern, one of our men tapped a stalagtite and found that it was hollow, a fake. It's some kind of switch. We've deduced that if we pull it, it will open up a hidden passage way on the far side, but will cause an explosion that collapses most of the cavern after about five minutes. If you don't want us to risk it, we'll leave for now." + 
 				 " We think we can get in there and grab whatever there is to grab, but we'd have to start digging again to go further at this site. It's your decision. If you don't want us to try it, we'll head home."
-				 
 		 };
 		 
-		 int i = 0;
-		 while(i<messages.length) {
-			 messages[i]+= "\n-The Dig Team at " + getTownName();
-			 i++;
-		 }
 		 int theI = (int) Math.round(Math.random()*messages.length-1);
 		 if(theI<0) theI=0;
-		 return messages[theI];
+		 return messages[theI] + "\n-The Dig Team at " + getTownName();
 	 }
 	 public String getDigSmackTalk() {
 		 
@@ -1394,21 +1373,12 @@ public class Town {
 				 "Sir,\n We did as you commanded and found a note. It seems it was from Id. It said: 'Get your hands off my junk!-Id'", 
 				 "Sir,\n We did as you commanded and found a note. It seems it was from Id. It said: 'I just passed gas in this room.-Id'", 
 				 "Sir,\n We did as you commanded and found a note. It seems it was from Id. It said: 'We used to store radioactive waste in here. Enjoy the Rads!-Id'", 
-				 "Sir,\n We did as you commanded and found a note. It seems it was from Id. It said: 'Now that we've gotten to know each other, how about dinner?-Id'", 
-
-
-
-				 
+				 "Sir,\n We did as you commanded and found a note. It seems it was from Id. It said: 'Now that we've gotten to know each other, how about dinner?-Id'"
 		 };
 		 
-		 int i = 0;
-		 while(i<messages.length) {
-			 messages[i]+= "\nWe'll be returning home now. \n-The Dig Team at " + getTownName();
-			 i++;
-		 }
 		 int theI = (int) Math.round(Math.random()*messages.length-1);
 		 if(theI<0) theI=0;
-		 return messages[theI];
+		 return messages[theI] + "\nWe'll be returning home now. \n-The Dig Team at " + getTownName();
 	 }
 	 public void resetDig(int newTownID, int digAmt, boolean findTime, Raid r) {
 		 update();
@@ -1949,49 +1919,56 @@ public class Town {
 		 long res[] = getRes();
 		 double engRate = getDigAmt()*GodGenerator.engineerRORate*num;
 		 long totake = Math.round(engRate);
-		 if(origin!=null) // for some reason, sometimes, it is.
-		 for(Raid r:origin.attackServer()) {
-			 if(r.getDigAmt()>0&&r.getTown2().townID==townID) {
-				 // this is the one we add to.
-				// System.out.println("I AM INSIDE! engrate is " + engRate + " totake is " + totake + " and my name is " + getTownName() + " and resinc m is " + resInc[0]
-				  //     + " t " + resInc[1] + " mm " + resInc[2] + " f " + resInc[3]) ;
+		 if(origin!=null) {// for some reason, sometimes, it is.
+			 for(Raid r:origin.attackServer()) {
+				 if(r.getDigAmt()>0&&r.getTown2().townID==townID) {
+					 // this is the one we add to.
+					// System.out.println("I AM INSIDE! engrate is " + engRate + " totake is " + totake + " and my name is " + getTownName() + " and resinc m is " + resInc[0]
+					  //     + " t " + resInc[1] + " mm " + resInc[2] + " f " + resInc[3]) ;
+					 int i = 0; long resAmt = 0;
+					 while(resInc[i]<0) {
+						 i++;
+					 }
+					 
+					 switch(i) {
+					 	case 0:
+					 		resAmt = r.getMetal();
+					 		break;
+					 	case 1:
+					 		resAmt = r.getTimber();
+					 		break;
+					 	case 2:
+					 		resAmt = r.getManmat();
+					 		break;
+					 }
+					 
+					 if(res[i]<totake) totake = res[i];
+					 res[i]-=totake;
+					 resAmt+=totake;
+					 
+					 boolean sendBack = (res[i]==0);
+					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
+					 if(resAmt>=amtWeCanHold) {
+						 resAmt=amtWeCanHold;
+						 sendBack = true;
+					 }
+
+					 switch(i) {
+					 	case 0:
+					 		r.setMetal(resAmt);
+					 		break;
+					 	case 1:
+					 		r.setTimber(resAmt);
+					 		break;
+					 	case 2:
+					 		r.setManmat(resAmt);
+					 		break;
+					 }
+					 
+					 if(sendBack) returnDigOrRO(false,false);
 				
-				 if(resInc[0]>0) {
-					// System.out.println("...Adding m.");
-					 if(res[0]<totake) totake = res[0];
-					 res[0]-=totake;
-					 r.setMetal(r.getMetal()+totake);
-					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
-					 if(r.getMetal()>amtWeCanHold||res[0]==0) {
-						 r.setMetal(amtWeCanHold);
-						 returnDigOrRO(false,false);
-					 }
-				 } else if(resInc[1]>0) {
-				//	 System.out.println("...Adding t.");
-
-					 if(res[1]<totake) totake = res[1];
-					 res[1]-=totake;
-					 r.setTimber(r.getTimber()+totake);
-					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
-					 if(r.getTimber()>amtWeCanHold||res[1]==0) {
-						 r.setTimber(amtWeCanHold);
-						 returnDigOrRO(false,false);
-					 }
-				 } else if(resInc[2]>0) {
-			//		 System.out.println("...Adding mm.");
-
-					 if(res[2]<totake) totake = res[2];
-					 res[2]-=totake;
-					 r.setManmat(r.getManmat()+totake);
-					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
-					 if(r.getManmat()>amtWeCanHold||res[2]==0) {
-						 r.setManmat(amtWeCanHold);
-						 returnDigOrRO(false,false);
-					 }
+					 break;
 				 }
-				 
-
-				break;
 			 }
 		 }
 	 }
@@ -1999,33 +1976,30 @@ public class Town {
 		 double[] resInc=getResInc();
 		 double[] resEffects=getResEffects();
 		 long[] resCaps=getResCaps();
-		double[] resBuff = getResBuff();
-		long[] res = getRes();
-		double[] newIncs = God.Maelstrom.getResEffects(resInc,getX(),getY());
-		Player p = getPlayer();
-		League l =p.getLeague();
-		int j = 0;
-		double taxRate=0;
-		if(l!=null)
-		 taxRate += l.getTaxRate(p.ID);
-		taxRate+=getVassalRate();
-		if(taxRate>.99) taxRate=.99;
-		Town zepp = getPlayer().God.findZeppelin(getX(),getY());
-		if(getPlayer().ID==5&&zepp.townID!=0&&!isResourceOutcropping()){
-			// zeppelins can't excavate.
-			resBuff = zepp.getResBuff(); // SUCKLEPOWA
-			res = zepp.getRes();
-			resCaps = zepp.getResCaps(); // HOLY SHIT YOU JUST HIJACKED THAT SHIT!
-		}
+		 double[] resBuff = getResBuff();
+		 long[] res = getRes();
+		 double[] newIncs = God.Maelstrom.getResEffects(resInc,getX(),getY());
+		 Player p = getPlayer();
+		 League l =p.getLeague();
+		 int j = 0;
+		 double taxRate=0;
+		 if(l!=null)
+			 taxRate += l.getTaxRate(p.ID);
+		 taxRate+=getVassalRate();
+		 if(taxRate>.99) taxRate=.99;
+		 Town zepp = getPlayer().God.findZeppelin(getX(),getY());
+		 if(getPlayer().ID==5&&zepp.townID!=0&&!isResourceOutcropping()){
+			 // zeppelins can't excavate.
+			 resBuff = zepp.getResBuff(); // SUCKLEPOWA
+			 res = zepp.getRes();
+			 resCaps = zepp.getResCaps(); // HOLY SHIT YOU JUST HIJACKED THAT SHIT!
+		 }
 		
-		synchronized(resBuff) {
-		do {
-			
-			resBuff[j]+=num*(newIncs[j]*(1-taxRate)*(resEffects[j]+1));
-			
-			
-			j++;
-		} while(j<res.length);
+		 synchronized(resBuff) {
+			 do {
+				 resBuff[j]+=num*(newIncs[j]*(1-taxRate)*(resEffects[j]+1));
+				 j++;
+			 } while(j<res.length);
 		}
 		
 		j =0;
@@ -2033,23 +2007,22 @@ public class Town {
 			 if(getPlayer().ID==5&&getDigAmt()>0&&getDigTownID()!=0&&isResourceOutcropping()) {
 					giveResourcesToRO(num);
 			 }
-		while(j<res.length) {
-			if(resBuff[j]>=1) {
-				int toAdd = (int) Math.floor(resBuff[j]);
+			 while(j<res.length) {
+				 if(resBuff[j]>=1) {
+					 int toAdd = (int) Math.floor(resBuff[j]);
 				
-				 
-					res[j]+=toAdd; //	IF YU CHANGE THIS, CHANGE GIVERESOURCESTORO AS WELL!
-					resBuff[j]-=toAdd;
-					if(res[j]>(resCaps[j]+Building.baseResourceAmt))
-						res[j]=resCaps[j]+Building.baseResourceAmt; // SAME OBJECT! BUT NOT REALLY...
+					 res[j]+=toAdd; //	IF YU CHANGE THIS, CHANGE GIVERESOURCESTORO AS WELL!
+					 resBuff[j]-=toAdd;
+					 if(res[j]>(resCaps[j]+Building.baseResourceAmt))
+						 res[j]=resCaps[j]+Building.baseResourceAmt; // SAME OBJECT! BUT NOT REALLY...
 					// works even if you lose the building and suddenly have a massive over the limit
 					// amount of resources! HAHA :D
 				
 				 
 				
-			}
-			j++;
-		}
+				 }
+				 j++;
+			 }
 		}
 	 }
 	 
@@ -3270,42 +3243,34 @@ public class Town {
 	
 	public ArrayList<Raid> attackServer() {
 		if(attackServer==null) {
-		UberPreparedStatement rus; ArrayList<Raid> r = new ArrayList<Raid>();
-		UberConnection con = getPlayer().con;
-	
-		ResultSet rrs;
+			UberPreparedStatement rus; ArrayList<Raid> r = new ArrayList<Raid>();
+			UberConnection con = getPlayer().con;
 		
-			
+			ResultSet rrs;
+				
 			try {
-	
-			
-			
 		
-		 rus = con.createStatement("select id from raid where tid1 = ? and (raidOver = false or ticksToHit >= 0)");
-		 rus.setInt(1,townID);
-		
-			 rrs = rus.executeQuery();
-
-	
-		while(rrs.next()) {
-			if(!rrs.getString(1).equals("none"))
-			r.add(new Raid(UUID.fromString(rrs.getString(1)),getPlayer().God));
+				 rus = con.createStatement("select id from raid where tid1 = ? and (raidOver = false or ticksToHit >= 0)");
+				 rus.setInt(1,townID);
 			
+				 rrs = rus.executeQuery();
+	
+				while(rrs.next()) {
+					if(!rrs.getString(1).equals("none"))
+						r.add(new Raid(UUID.fromString(rrs.getString(1)),getPlayer().God));
+					
+				}
+			
+				rrs.close();
+				rus.close();
+				
+				attackServer=r;
+				
+			} catch(SQLException exc) { exc.printStackTrace(); }
 		}
 		
-		rrs.close();
-		rus.close();
-			
-			
-			attackServer=r;
-			
-	} catch(SQLException exc) { exc.printStackTrace(); }
-		}
-	return attackServer;
+		return attackServer;
 		
-	
-	
-
 	}
 	
 	

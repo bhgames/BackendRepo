@@ -18,28 +18,26 @@ public class Raid {
 /*
  * 
  */
-	private boolean Genocide;
-		private boolean allClear = false; private long metal, timber, manmat, food;
+	// Geno+Bomb = Glass
+	// !Geno + Bomb = Strafe
+	private boolean Genocide, Bomb, raidOver, debris, allClear = false, invade = false; 
+	private long metal, timber, manmat, food;
 	private ArrayList<AttackUnit> au;
-	private UUID id;
+	private UUID id, resupplyID;// for resupply runs.
 	private Timestamp dockingFinished=null;
-	private double distance; private UUID resupplyID; // for resupply runs.
-	private int ticksToHit; private Town town2; private Town town1; private boolean raidOver;
-	private boolean debris; private int digAmt;
+	private double distance; 
+	private int ticksToHit, digAmt, scout = 0, totalTicks = 0, genoRounds = 0,
+			support = 0; // do not confuse with au's support, this lets us know this raid is actually a support run.
+	private Town town2, town1;
+	private String name;
+	private String[] bombTarget;
 	UberConnection con; 
+	GodGenerator God;
+	
+	
 	public void makeScoutRun() {
 		setScout(1);
 	}
-	GodGenerator God;
-	
-	private boolean Bomb; private String[] bombTarget; private int scout = 0;
-	private int support = 0; // do not confuse with au's support, this lets us know this raid is actually a support run.
-	private int totalTicks=0;private String name;
-	private int genoRounds=0;
-	// Geno+Bomb = Glass
-	// !Geno + Bomb = Strafe
-	
-	private boolean invade = false;
 	
 	public void makeDiscoveredScoutRun() {
 		setScout(2); // nondetectable by attack server except as to note this was once a scouting run.
@@ -58,12 +56,6 @@ public class Raid {
 			}
 		}
 	}
-	public void setMemResupplyID(int ID) {
-		setInt("resupplyID",ID);
-	}
-	public void setResupplyID(UUID ID) {
-		resupplyID=ID;
-	}
 	public void makeOffSupportRun() {
 		// THIS MUST BE USED AFTER AUS HAVE BEEN ADDED!
 		
@@ -79,21 +71,29 @@ public class Raid {
 			}
 		}
 	}
+	public void setMemResupplyID(int ID) {
+		setInt("resupplyID",ID);
+	}
+	public void setResupplyID(UUID ID) {
+		resupplyID=ID;
+	}
 	public void endRaid() {
 		setRaidOver(true);
 	}
 	
-	public void setRaidValues(int raidID, double distance, int ticksToHit, Town town1, Town town2, boolean Genocide,boolean allClear,
-			int metal, int timber, int manmat, int food,boolean raidOver, boolean Bomb, boolean invade, int totalTicks,String name,int genoRounds, boolean debris, int digAmt, UUID id, Timestamp dockingFinished) {
+	public void setRaidValues(int raidID, double distance, int ticksToHit, Town town1, Town town2, 
+								boolean Genocide,boolean allClear, int metal, int timber, int manmat, 
+								int food,boolean raidOver, boolean Bomb, boolean invade, int totalTicks,
+								String name,int genoRounds, boolean debris, int digAmt, UUID id, 
+								Timestamp dockingFinished) {
 
 					this.distance=distance; this.ticksToHit=ticksToHit; this.town1=town1;
 					this.town2=town2; this.Genocide=Genocide; this.allClear=allClear;
 					this.metal=metal;this.timber=timber;this.manmat=manmat;this.food=food;
-					this.dockingFinished=dockingFinished;
-					this.setDebris(debris);
+					this.dockingFinished=dockingFinished; this.setDebris(debris);
 					this.raidOver=raidOver;this.Bomb=Bomb;this.invade=invade;
-					this.totalTicks=totalTicks;this.name=name;this.genoRounds=genoRounds; this.digAmt=digAmt;
-					this.id=id;
+					this.totalTicks=totalTicks;this.name=name;this.genoRounds=genoRounds; 
+					this.digAmt=digAmt; this.id=id;
 		}
 	
 	public Raid(UUID id, GodGenerator God) {
@@ -105,9 +105,6 @@ public class Raid {
 		// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
 		// Then F = !(R!T) = !R + T;
 		while(rrs.next()) {
-	
-
-			
 			// First, to seek out town 2, use a query!
 			
 			Town town1 = God.findTown(rrs.getInt(1));
@@ -121,7 +118,7 @@ public class Raid {
 			//int metal, int timber, int manmat, int food,boolean raidOver,ArrayList<AttackUnit> au, boolean Bomb) {
 			int y = 0;
 		
-			 setRaidValues(rrs.getInt(3),rrs.getDouble(4),rrs.getInt(5),town1,town2Obj,rrs.getBoolean(6),
+			setRaidValues(rrs.getInt(3),rrs.getDouble(4),rrs.getInt(5),town1,town2Obj,rrs.getBoolean(6),
 					rrs.getBoolean(8), rrs.getInt(9),rrs.getInt(10),rrs.getInt(11),rrs.getInt(12),rrs.getBoolean(7), rrs.getBoolean(19),rrs.getBoolean(23),rrs.getInt(25),rrs.getString(26),rrs.getInt(27),rrs.getBoolean(28),rrs.getInt(29),UUID.fromString(rrs.getString(31)),new Timestamp((new Date(rrs.getString(32))).getTime())); // this one has no sql addition!
 			getAu();
 					
@@ -160,126 +157,116 @@ public class Raid {
 	
 		
 		this.setBomb(Bomb);
-		 this.setTown2(town2);this.setTown1(town1);
+		this.setTown2(town2);this.setTown1(town1);
 		 
-		 setRaidOver(false);
+		setRaidOver(false);
 		this.setTotalTicks(ticksToHit);
-		 this.setGenocide(Genocide);
-		 if(Genocide) setAllClear(false); // Note you need to watch in loaded raids, that raidOver and allClear need to be
-		 // set manually.
+		this.setGenocide(Genocide);
+		if(Genocide) setAllClear(false);// Note you need to watch in loaded raids, that raidOver and allClear need to be
+		 								// set manually.
 		// player1 hits player2's town2, only need town2 to access units.
-	      id = UUID.randomUUID();
+	    id = UUID.randomUUID();
 
-	      	town1.attackServer().add(this); // even if this error happens, raid still works...
+	    town1.attackServer().add(this); // even if this error happens, raid still works...
 
-			UberPreparedStatement stmt;
-			try {
+	    UberPreparedStatement stmt;
+		try {
 
 		   
-		       con =town1.getPlayer().God.con;
+			con =town1.getPlayer().God.con;
 
-		      // First things first. We update the player table.
-		      boolean transacted=false;
-		      while(!transacted) {
-		    	  try {
+		    // First things first. We update the player table.
+		    boolean transacted=false;
+		    while(!transacted) {
+		    	try {
 		      
 		      
-		      // let's add this raid and therefore get the rid out of it.
-		    		  stmt = con.createStatement("insert into raid (tid1, tid2, distance, ticksToHit, genocide, raidOver,allClear,m,t,mm,f,totalTicks,Bomb,invade,name,genoRounds,digAmt,auSizes,support,debris,id) values (?,?,?,?,?,false,false,0,0,0,0,?,?,?,?,?,?,?,?,?,?);");
-				      stmt.setInt(1,town1.townID);
-				      stmt.setInt(2,town2.townID);
-				      stmt.setDouble(3,distance);
-				      stmt.setInt(4,ticksToHit);
-				      stmt.setBoolean(5,Genocide);
-				      stmt.setInt(6,ticksToHit);
-				      stmt.setBoolean(7,Bomb);
-				      stmt.setBoolean(8,invade);
-				      stmt.setString(9,name);
-				      stmt.setInt(10,genoRounds);
-				      stmt.setInt(11,digAmt);
-				      stmt.setString(12,PlayerScript.toJSONString(au));
-				      stmt.setInt(13,support);
-				      stmt.setBoolean(14,debris);
-				      stmt.setString(15,id.toString());
+		    		// let's add this raid and therefore get the rid out of it.
+		    		stmt = con.createStatement("insert into raid (tid1, tid2, distance, ticksToHit, genocide, raidOver,allClear,m,t,mm,f,totalTicks,Bomb,invade,name,genoRounds,digAmt,auSizes,support,debris,id) values (?,?,?,?,?,false,false,0,0,0,0,?,?,?,?,?,?,?,?,?,?);");
+				    stmt.setInt(1,town1.townID);
+				    stmt.setInt(2,town2.townID);
+				    stmt.setDouble(3,distance);
+				    stmt.setInt(4,ticksToHit);
+				    stmt.setBoolean(5,Genocide);
+				    stmt.setInt(6,ticksToHit);
+				    stmt.setBoolean(7,Bomb);
+				    stmt.setBoolean(8,invade);
+				    stmt.setString(9,name);
+				    stmt.setInt(10,genoRounds);
+				    stmt.setInt(11,digAmt);
+				    stmt.setString(12,PlayerScript.toJSONString(au));
+				    stmt.setInt(13,support);
+				    stmt.setBoolean(14,debris);
+				    stmt.setString(15,id.toString());
 		      
-		      // let's add this raid and therefore get the rid out of it.
-		   
+				    // let's add this raid and therefore get the rid out of it.
+				    
+				    stmt.executeUpdate();
 		      
-		      
-		      stmt.executeUpdate();
-		      
-		    
-		      
-			   
-			      stmt = con.createStatement("insert into raidSupportAU (rid,tid,tidslot,size) values (?,?,?,?);");
-			      stmt.setString(1,id.toString());
-			      stmt.setInt(2,getTown1().townID);
+				    stmt = con.createStatement("insert into raidSupportAU (rid,tid,tidslot,size) values (?,?,?,?);");
+				    stmt.setString(1,id.toString());
+				    stmt.setInt(2,getTown1().townID);
 			      
-		      	for(AttackUnit j:au) {
-		      		stmt.setInt(3,j.getSlot());
-				      stmt.setInt(4,j.getSize());
-					stmt.executeUpdate(); // don't need original slot, need
-					// current town slot for remembering!
-		      	}
-				//town1.attackServer.add(this); // <---- THIS NEEDS TO BE RETURNED TO NORMAL IF YOU GO BACK TO MEMORYLOADING!
+			      	for(AttackUnit j:au) {
+			      		stmt.setInt(3,j.getSlot());
+					    stmt.setInt(4,j.getSize());
+						stmt.executeUpdate(); // don't need original slot, need
+						// current town slot for remembering!
+			      	}
+			      	//town1.attackServer.add(this); // <---- THIS NEEDS TO BE RETURNED TO NORMAL IF YOU GO BACK TO MEMORYLOADING!
 		//	      System.out.println("I put on " +raidID);
 
 			      	
-		      /*
-		      int timesTried = 0;
-		      ArrayList<Raid> a  = town1.attackServer();
-		      while(a.size()<=0&&timesTried<10) {
-			  Thread.currentThread().sleep(10);
-		      a= town1.attackServer();
-		      timesTried++;
-		      
-		      }		    
-		      raidID=a.get(a.size()-1).raidID;*/
-
-		      stmt.close(); 
-		      
-		      transacted=true; }
-		    	  catch(MySQLTransactionRollbackException exc) { } 
-		      }// need connection for attackunit adds!
-			} catch(SQLException exc) { exc.printStackTrace();}
-
-		
+				      /*
+				  	int timesTried = 0;
+				    ArrayList<Raid> a  = town1.attackServer();
+				    while(a.size()<=0&&timesTried<10) {
+						Thread.currentThread().sleep(10);
+				      	a= town1.attackServer();
+				      	timesTried++;
+				    }		    
+				    raidID=a.get(a.size()-1).raidID;*/
+	
+			      	stmt.close(); 
+			      
+			      	transacted=true; 
+		    	}
+			    catch(MySQLTransactionRollbackException exc) { } 
+		    }// need connection for attackunit adds!
+		} catch(SQLException exc) { exc.printStackTrace();}	
 	}
 	
 	private void add(AttackUnit j) {
 		// THIS IS ONLY FOR DB USAGE...
-	//getAu().add(j); 
-	UberPreparedStatement stmt;
-	try {
-
-    
-      stmt = con.createStatement("insert into raidSupportAU (rid,tid,tidslot,size) values (?,?,?,?);");
-      stmt.setString(1,id.toString());
-      stmt.setInt(2,getTown1().townID);
-      
-      // First things first. We update the player table.
-      boolean transacted=false;
-      while(!transacted) {
-    	 
-      try {
-      
-      // let's add this raid and therefore get the rid out of it.
-		if(j.getSlot()<6) {
-      //stmt.executeUpdate("update raid set au" + (j.getSlot()+1) + " = " + j.getSize() + " where rid = " + raidID + ";");
-		} else {
-			stmt.setInt(3,j.getSlot());
-			stmt.setInt(4,j.getSize());
-			stmt.executeUpdate(); // don't need original slot, need
-			// current town slot for remembering!
+		//getAu().add(j); 
+		UberPreparedStatement stmt;
+		try {
+	
+			stmt = con.createStatement("insert into raidSupportAU (rid,tid,tidslot,size) values (?,?,?,?);");
+			stmt.setString(1,id.toString());
+			stmt.setInt(2,getTown1().townID);
+	      
+			// First things first. We update the player table.
+			boolean transacted=false;
+			while(!transacted) {
+	    	 
+				try {
+	      
+					// let's add this raid and therefore get the rid out of it.
+					if(j.getSlot()<6) {
+						//stmt.executeUpdate("update raid set au" + (j.getSlot()+1) + " = " + j.getSize() + " where rid = " + raidID + ";");
+					} else {
+						stmt.setInt(3,j.getSlot());
+						stmt.setInt(4,j.getSize());
+						stmt.executeUpdate(); // don't need original slot, need
+						// current town slot for remembering!
+					}
 			
-			
-		}
-		
-     stmt.close(); transacted=true; }
-      catch(MySQLTransactionRollbackException exc) { System.out.println(id + " is having trouble adding units."); } 
-      } 
+					stmt.close(); transacted=true; 
+				}
+				catch(MySQLTransactionRollbackException exc) { System.out.println(id + " is having trouble adding units."); } 
+			} 
 		} catch(SQLException exc) { exc.printStackTrace(); }
-
 	}
 	
 	/*public void add(AttackUnit j) {
@@ -640,8 +627,7 @@ public class Raid {
 	
 	public Town getTown2() {
 		if(town2==null) {
-		town2= God.findTown(getInt("tid2"));
-		
+			town2= God.findTown(getInt("tid2"));
 		}
 		return town2;
 		

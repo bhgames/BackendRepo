@@ -5204,9 +5204,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 		int k = 0; // to make sure can only go up to six.
 				
-		 AttackUnit hau; int totalsize=0;
-		boolean zeroes = true; boolean negatives = false;
-		ArrayList<AttackUnit> t1au = t1.getAu(); int limit = holdNumbers.length;
+		AttackUnit hau; int totalsize=0, limit = holdNumbers.length;
+		boolean zeroes = true, negatives = false;
+		ArrayList<AttackUnit> t1au = t1.getAu();
 		if(attackType.equals("excavation")) limit--;
 		while(k<limit) {
 			
@@ -5231,7 +5231,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			k++;
 		}
 		
-		if(zeroes&&(!(attackType.equals("dig")||attackType.equals("excavation"))||!!holdNumbers[holdNumbers.length-1])) {
+		if(zeroes&&(!(attackType.equals("dig")||attackType.equals("excavation"))||holdNumbers[holdNumbers.length-1]==0)) {
 			setError("Can't send an empty raid.");
 			return false; // not sending a raid of nada.
 		}
@@ -5241,9 +5241,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}*/
 		Town Town2 = g.findTown(x,y); // findTown auto detects the town at the x,y, not the Zeppelin, if there is one.
 
-		boolean Genocide = false; boolean Bomb = false; int support = 0; int scout = 0;
-		boolean invade = false;  boolean debris = false; boolean dig=false; int digAmt=0;
-		boolean blockade = false;
+		boolean Genocide = false, Bomb = false, invade = false, 
+					debris = false, dig=false;
+		int support = 0, scout = 0, digAmt=0;
 		if(attackType.equals("invasion")&&t1.isZeppelin()) {
 			setError("You cannot invade with an Airship!");
 			return false;
@@ -5273,7 +5273,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			Genocide = true;
 		}
 		else if(attackType.equals("support")) {support = 1;}
-		else if(attackType.equals("offsupport")) { support=2;}
+		else if(attackType.equals("offsupport")) {support=2;}
+		else if(attackType.equals("blockade")) {support = 3;}
 		else if(attackType.equals("dig")||attackType.equals("excavation")) {
 			if(prog&&!p.isdigAPI()) {
 				setError("You need the Dig API in order to use this!");
@@ -5282,9 +5283,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			support = 1; dig=true;
 			int z=0;UserBuilding b[];
 			if(attackType.equals("excavation"))
-				b= getUserBuildings(t1.townID, "Command Center");
+				b = getUserBuildings(t1.townID, "Command Center");
 			else	
-			b= getUserBuildings(t1.townID, "Institute");
+				b = getUserBuildings(t1.townID, "Institute");
 			int totalScholars=0;
 			while(z<b.length) {
 				totalScholars+=b[z].getPeopleInside();
@@ -5296,7 +5297,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				if(attackType.equals("excavation"))
 					setError("You do not have enough Engineers!");
 				else
-				setError("You do not have enough Scholars!");
+					setError("You do not have enough Scholars!");
 				return false;
 			}
 			z=0; Building actb; UserBuilding bl;
@@ -5363,9 +5364,6 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			invade = true;
 		
 		}
-		else if(attackType.equals("blockade")) {
-			blockade = true;
-		}
 		else {
 			setError("Invalid attack type.");
 			return false; // if they don't get the code right, screw 'em.
@@ -5388,6 +5386,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		if(dig&&Town2p.ID!=5) {
 			setError("You can only dig in an Id town!");
+			return false;
+		}
+		if(support==3&&Town2p.ID==5){
+			setError("You cannot blockade Id towns!");
 			return false;
 		}
 		if(attackType.equals("excavation")&&!Town2.isResourceOutcropping()) {
@@ -5446,7 +5448,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			addThis.setSize(holdNumbers[k]);
 
-			if(addThis.getSupport()>0&&addThis.getOriginalPlayer().ID!=p.ID&&(support>0||blockade)&&addThis.getSize()>0){
+			if(addThis.getSupport()>0&&addThis.getOriginalPlayer().ID!=p.ID&&(support>0||dig)&&addThis.getSize()>0){
 				setError("You cannot send another player's unit to another location as support or in a blockade.");
 				return false; 
 			}
@@ -5499,11 +5501,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, Town2, Genocide, Bomb,support,invade,name,debris,au,digAmt); // digAmt may not be the requirement,
 		// but it'll always be zero if dig isn't on!
 		
-		if(Bomb) holdAttack.setBombTarget(target);
-		else holdAttack.setBombTarget(new String[0]);
-		if(scout==1) holdAttack.makeScoutRun(); // never going to be a bomb+scout run.
-		
-		
+		if(scout==1) holdAttack.makeScoutRun(); 
+		else {									// never going to be a bomb+scout run.
+			if(Bomb) holdAttack.setBombTarget(target);
+			else holdAttack.setBombTarget(new String[0]);
+		}
 		
 			//	public boolean runMethod(String methodName, Object... params) {
 			UserRaid theRaid =getUserRaid(holdAttack.getId());
