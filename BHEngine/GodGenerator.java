@@ -6808,40 +6808,62 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 	
 					// THERE IS SOMEONE THERE! BUT WHOM!?
 					int i = 0; boolean foundSome=false;
+					int theirID=0;
 					while(i<t2.getAu().size()){
 						if(t2.getAu().get(i).getSupport()>0) {
+							theirID = t2.getAu().get(i).getOriginalPlayer().ID;
 							foundSome=true;
 							break;
 						}
 						i++;
 					}
 					if(foundSome) {
-						i = 0; boolean foundOff=false; ArrayList<AttackUnit> AU = r.getAu();
-						while(i<AU.size()) {
-							if(AU.get(i).getSize()>0) {
+						i = 0; boolean foundOff=false;
+						while(i<r.getAu().size()) {
+							if(r.getAu().get(i).getSize()>0) {
 								foundOff=true;
 								break;
 							}
 							i++;
 						}
+
+					if(foundOff&&theirID!=r.getTown1().getPlayer().ID){
+							combatLogicBlock(r,"There was somebody armed already present here!");
+						
+					} else if(foundOff&&theirID==r.getTown1().getPlayer().ID&&r.getTown2().getDigAmt()>0) { // the collapse only happens
+						// if you have a DIG/RO previously present, NOT just support.
+						// we collapse it.
+						boolean done=false;
+						for(Town t: r.getTown1().getPlayer().towns()) {
+							for(Raid theR :t.attackServer()) {
+								if(theR.getDigAmt()>0&&theR.getTicksToHit()==0&&!theR.isRaidOver()&&theR.getDockingFinished()!=null&&theR.getTown2().townID==r.getTown2().townID) {
+									theR.collapseDigOrRO(r);
+									done=true;
+									break;
+								}
+							}
+							if(done) break;
+						}
+					}
+					else { // if incoming was undefended!
+
+						String unitStart=""; String unitNames="";String unitEnd="";
+						int k = 0;
+						Town otherT = t2.getPlayer().God.findTown(t2.getDigTownID());
+						Town t1 = r.getTown1();
+						Player t2p = otherT.getPlayer();
+						while(k<t2.getAu().size()) {
+							unitStart+=","+t2.getAu().get(k).getSize();
+							unitNames+=","+t2.getAu().get(k).getName();
+							unitEnd+=",0";
+
+							k++;
+						}
 	
 						if(foundOff){
 								combatLogicBlock(r,"There was somebody armed already present here!");
 						}
-						else { // if incoming was undefended!
-	
-							String unitStart=""; String unitNames="";String unitEnd="";
-							int k = 0;
-							Town otherT = t2.getPlayer().God.findTown(t2.getDigTownID());
-							Town t1 = r.getTown1();
-							Player t2p = otherT.getPlayer();
-							while(k<t2.getAu().size()) {
-								unitStart+=","+t2.getAu().get(k).getSize();
-								unitNames+=","+t2.getAu().get(k).getName();
-								unitEnd+=",0";
-	
-								k++;
-							}
+						
 							unitStart+=","+t2.getDigAmt();
 							String msg = "";
 							if(r.getTown2().isResourceOutcropping()) {
@@ -7520,9 +7542,12 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				int totake = (int) Math.ceil(incoming.getSize()*maxSize/(originalSizeOfIncomingForce+1)); // find what to take
 				int taken = incoming.getSize()-totake; // subtract in holder variable
 				if(taken<0) totake+=taken; // if it's neg, subtract that from totake, we're not taking more than we can.
-				if(taken<0) { r.getTown2().setSize(townVersIndex,townVers.getSize()+incoming.getSize());
+				if(taken<0) { 
+					
+					r.getTown2().setSize(townVersIndex,townVers.getSize()+incoming.getSize());
 			//	System.out.println("Totake was " + totake + " incoming size was " + incoming.getSize() + " and townverssize was " + townVers.getSize() +  "Added to " + r.getTown2().getAu().get(townVersIndex).getName() + " some " + r.getTown2().getAu().get(townVersIndex).getSize());
-				r.setSize(incoming.getSlot(),0); }else {
+					if(r.getDigAmt()==0) // we want to retain the unit number info in raids if this is a dig/ro
+					r.setSize(incoming.getSlot(),0); }else {
 					r.getTown2().setSize(townVersIndex,townVers.getSize() + totake); r.setSize(incoming.getSlot(),incoming.getSize() - totake); // if < 0, it's 0, if not, subtract it.
 				}
 			
@@ -8721,23 +8746,19 @@ public boolean checkForGenocides(Town t) {
 					actattack.setSize(k,0); // we must use the raid's setters
 					//holdUnit.setSize(0);
 				}
-						
 				//t1.removeAU(holdUnit.getSlot(),(int) holdOld-holdUnit.getSize()); // This lowers the population of the player accordingly.
 				offUnitsLost[k]+= (int) (holdOld-holdUnit.getSize());
-				System.out.println("Checking off" + holdUnit + " with lotnum " + holdUnit.getLotNum());
 				if(holdUnit.getSupport()==0)
-					particularCost = t1p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t1.townID);
+				particularCost = t1p.getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),t1.townID);
 				else{
 					if(holdUnit.getLotNum()!=-1) {
 						// means is a digger or another civvie type.
-						System.out.println("new offdiger size is " + holdUnit.getSize() + " and lotnum is " + holdUnit.getLotNum());
 						actattack.setDigAmt(holdUnit.getSize());
 						if(actattack.getDigAmt()<=0) digOffSucc=false;
 						if(actattack.getTown2().isResourceOutcropping())
 							particularCost=t1p.getPs().b.returnPrice("Engineer",(int) (holdOld-holdUnit.getSize()),t1.townID);
-
 						else
-						particularCost=t1p.getPs().b.returnPrice("Scholar",(int) (holdOld-holdUnit.getSize()),t1.townID);
+							particularCost=t1p.getPs().b.returnPrice("Scholar",(int) (holdOld-holdUnit.getSize()),t1.townID);
 					} else
 						try {
 							particularCost = holdUnit.getOriginalPlayer().getPs().b.returnPrice(holdUnit.getName(),(int) (holdOld-holdUnit.getSize()),holdUnit.getOriginalPlayer().towns().get(0).townID);
@@ -8809,7 +8830,33 @@ public boolean checkForGenocides(Town t) {
 							if(b.getLotNum()==holdUnit.getLotNum()) actb.setPeopleInside((int) Math.round(b.getPeopleInside()-(holdOld-holdUnit.getSize())));
 							i++;
 						}
+<<<<<<< HEAD
 					}	
+=======
+						} else if(holdUnit.getLotNum()!=-1&&holdUnit.getType()!=5) { // THIS MEANS THIS IS A CIVVY UNIT, SO WE DETRACT FROM HIS BUILDING!
+							int i = 0;
+							if(holdUnit.getHp()>0){
+								holdUnit.setSize((int) Math.round(((double) holdHP)/(holdUnit.getTrueHp(t2p))));
+								
+								}
+								if(holdUnit.getSize()<0) {
+									holdUnit.setSize(0); // in case they are zero.
+								}
+							if(holdUnit.getLotNum()==-2) { // -2 lotNum is special, means it's a dig scholar.
+								t2.setDigAmt(holdUnit.getSize());
+								if(t2.getDigAmt()==0) {
+									digDefSucc = false; // Means the other guy did win the dig. No civvies left!
+								}
+							}
+							else
+							while(i<t2bldg.length) {
+								b = t2bldg[i];
+								actb = t2.findBuilding(b.getId());
+								if(b.getLotNum()==holdUnit.getLotNum()) actb.setPeopleInside((int) Math.round(b.getPeopleInside()-(holdOld-holdUnit.getSize())));
+								i++;
+							}
+							
+>>>>>>> bible
 						
 				} else {
 							
@@ -9206,6 +9253,7 @@ public boolean checkForGenocides(Town t) {
 				
 		if(bp>150) bp=150; // max bp you can get from single attack.
 
+<<<<<<< HEAD
 		double togain = (percentlossdiff*.05*1*100);
 		if(togain>100) togain=100;
 		if(togain<=0) togain = .025*1*100;
@@ -9221,6 +9269,23 @@ public boolean checkForGenocides(Town t) {
 		String bombResultBldg = bombReturn.substring(bombReturn.indexOf(",")+1,bombReturn.lastIndexOf(","));
 		String bombResultPpl = bombReturn.substring(bombReturn.lastIndexOf(",")+1,bombReturn.length());
 */
+=======
+				double togain = (percentlossdiff*.05*1*100);
+				if(togain>100) togain=100;
+				if(togain<=0) togain = .025*1*100;
+				
+				if(!genocide)
+					combatHeader+=	" This means a " + Math.round(togain) + "% take of max cargo capturable in this raid.";
+				else combatHeader+= " Due to this being a campaign, the max cargo has been diminished to half of a full take.";
+			//	System.out.println(combatData);
+				/*
+				String bombReturn = bombLogicBlock(actattack,null,null); // deprecated bomb logic block.
+				int returnNum = Integer.parseInt(bombReturn.substring(0,bombReturn.indexOf(",")));
+			
+				String bombResultBldg = bombReturn.substring(bombReturn.indexOf(",")+1,bombReturn.lastIndexOf(","));
+				String bombResultPpl = bombReturn.substring(bombReturn.lastIndexOf(",")+1,bombReturn.length());
+		*/
+>>>>>>> bible
 			
 		int c = 0;
 		double lowSpeed = 0;
@@ -9596,6 +9661,7 @@ public boolean checkForGenocides(Town t) {
 			
 			t2.returnDigOrRO(true,true);
 
+<<<<<<< HEAD
 			
 		} else if(!digOffSucc&&digDefSucc&&t2.getDigAmt()>0) { // if the raid was a dig raid, and failed to ge through, and there was a dig here, which I guess would only happen if there
 			// had been one here to defend in the first place...so we don't need to check for it. But we do! What if we killed the dig incoming civvies!
@@ -9611,6 +9677,20 @@ public boolean checkForGenocides(Town t) {
 			else
 				digMessage = "The offensive army destroyed the dig site.";
 			t2.returnDigOrRO(true,true);
+=======
+						
+					} else if(!digOffSucc&&digDefSucc&&t2.getDigAmt()>0) { // if the raid was a dig raid, and failed to ge through, and there was a dig here, which I guess would only happen if there
+						// had been one here to defend in the first place...so we don't need to check for it. But we do! What if we killed the dig incoming civvies!
+						digMessage = "The defensive party repelled the attackers!";
+					} else if(!digDefSucc&&t2.getDigAmt()==0) { //means there WAS a dig there and it was just squashed. But no other dig to replace it, this was an attack. digDefSucc will only be false if there was a dig, and if it's now 0, the dig Amt, we should do something.
+					
+						
+						if(t2.isResourceOutcropping())
+							digMessage = "The offensive army destroyed the excavation site.";
+						else
+							digMessage = "The offensive army destroyed the dig site.";
+						t2.returnDigOrRO(true,true);
+>>>>>>> bible
 
 		}
 	/// here we remove scholar and engineer duplicates...
@@ -13986,6 +14066,430 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 		return -1;
 	}
+	public boolean ROCollapseTest(HttpServletRequest req, PrintWriter out, Player player) {
+
+		
+
+		/*
+			ROCollapseTest: If you send two digs OR two ROs(test both), what happens to the second dig/RO object? 
+			is it collapsed into the first?
+
+
+
+		 */
+		getPlayer(5).territoryCalculator(); // i need it to reset everything to no lord that can be reset.
+
+		int numTowns[] = {1};
+		Player[] players = player.generateFakePlayers(1,numTowns,0,0);
+		try {
+		Town t1 = players[0].towns().get(0);
+		//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
+		Town RO=null;
+		for(Town t: getPlayer(5).towns()) {
+			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+				RO=t;
+				break;
+			} 
+			
+		}
+		if(RO==null) {
+			growId();
+			getPlayer(5).territoryCalculator();
+
+			
+		}
+		for(Town t: getPlayer(5).towns()) {
+			//System.out.println(t.getTownID() + " has " + t.getInfluence() + " influence.");
+
+			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+				RO=t;
+				break;
+			} 
+		}
+		if(RO==null) {
+			out.println("ROCollapse test failed because even growing Id didn't produce a viable RO to use.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		t1.setX(RO.getX()+10);
+		t1.setY(RO.getY());
+		t1.setInfluence(0);
+		t1.addBuilding("Command Center",4,5,0);
+		long cap = t1.bldg().get(0).getCap();
+		t1.bldg().get(0).setPeopleInside(5);
+		t1.setAu(new ArrayList<AttackUnit>());
+		t1.getAu().add(new AttackUnit("Pillager",0,0));
+		players[0].getAu().add(new AttackUnit("Pillager",0,0)); // when recalling support, player-level au is called! So we must populate.
+
+		t1.getAu().get(0).setSize(1000);
+		RO.getRes()[0]=15000;
+		RO.getRes()[1]=15000;
+		RO.getRes()[2]=15000;
+		RO.getRes()[3]=15000;
+		//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
+		int amts[] = {900,3};
+		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname");
+		if(!worked) {
+			out.println("ROCollapse test failed because the first exc didn't send, and the error was: " + players[0].getPs().b.getError());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(t1.attackServer().size()!=1) {
+			out.println("ROCollapse test failed because the raid didn't load.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		Raid r = t1.attackServer().get(0);
+		r.setTicksToHit(0);
+		attackServerCheck(t1,players[0]);
+	
+		
+		if(RO.getLord()==null) {
+			out.println("ROCollapse test failed because the RO didn't become owned by the player after landing.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		amts[0]=100; amts[1]=2;
+		 worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname");
+		 if(!worked) {
+				out.println("ROCollapse test failed because the second exc didn't send, and the error was: " + players[0].getPs().b.getError());
+				player.deleteFakePlayers(players);
+				return false;
+			}
+		 Timestamp oldDockingFinished = r.getDockingFinished();
+		 	Raid r2 = t1.attackServer().get(1);
+			r2.setTicksToHit(0);
+			attackServerCheck(t1,players[0]);
+			if(t1.attackServer().size()!=1) {
+				out.println("ROCollapse test failed because the second raid didn't collapse, the size of the raidserver is " + t1.attackServer().size());
+				player.deleteFakePlayers(players);
+				return false;
+			}	
+			int sum=0;
+			for(AttackUnit a: r.getAu()) {
+				sum+=a.getSize();
+			}
+			sum+=r.getDigAmt();
+			if(sum!=1005) {
+				out.println("ROCollapse test failed because the second raid didn't collapse with the correct numbering into r1, the total amount of people now in r1 is " + sum);
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			sum=0;
+			for(AttackUnit a: r.getTown2().getAu()) {
+				sum+=a.getSize();
+			}
+			sum+=r.getTown2().getDigAmt();
+			if(sum!=1005) {
+				out.println("ROCollapse test failed because the second raid didn't collapse with the correct numbering into t2, the total amount of people now in t2 is " + sum);
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			Timestamp newDockingFinished = r.getDockingFinished();
+			// sinc ethere were 3 before, and 5 now, we should see 3/5*old on bottom, meaning diff should be 5/3.
+			double ratio = ((double) oldDockingFinished.getTime())/((double) newDockingFinished.getTime());
+		//	System.out.println("Old time is " + oldDockingFinished.getTime() + " new is " + newDockingFinished.getTime() +" and their ratio is " + ratio + " and 5/3 is " );
+			if(ratio-5.0/3.0>.0001) {
+				out.println("ROCollapse test failed because the second raid didn't collapse with the correct docking finished into r1, the total ratio of the old and new, expected to be 5/3, now in r1 is " + ratio);
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			player.deleteFakePlayers(players);
+		out.println("ROCollapse test successful.");
+		return true;
+		} catch(Exception exc) {
+			out.println("ROCollapse test failed because " + exc.toString());
+			for(StackTraceElement stackTrace: exc.getStackTrace()) {
+				out.println(stackTrace.toString());
+			}
+			player.deleteFakePlayers(players);
+			return false;
+		}
+	
+	
+	
+	}
+	public boolean ROEngCapTest(HttpServletRequest req, PrintWriter out, Player player) {
+	
+
+		/*
+			ROEngCapTest: You have a command center with engineers out on a RO, and you try to build up to the cap - 
+			it should adjust it to cap-numberout. Check the price before and after sending a raid to an RO.
+
+
+		 */
+		getPlayer(5).territoryCalculator(); // i need it to reset everything to no lord that can be reset.
+
+		int numTowns[] = {1};
+		Player[] players = player.generateFakePlayers(1,numTowns,0,0);
+		try {
+		Town t1 = players[0].towns().get(0);
+		//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
+		Town RO=null;
+		for(Town t: getPlayer(5).towns()) {
+			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+				RO=t;
+				break;
+			} 
+			
+		}
+		if(RO==null) {
+			growId();
+			getPlayer(5).territoryCalculator();
+
+			
+		}
+		for(Town t: getPlayer(5).towns()) {
+			//System.out.println(t.getTownID() + " has " + t.getInfluence() + " influence.");
+
+			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+				RO=t;
+				break;
+			} 
+		}
+		if(RO==null) {
+			out.println("ROEngCap test failed because even growing Id didn't produce a viable RO to use.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		t1.setX(RO.getX()+10);
+		t1.setY(RO.getY());
+		t1.setInfluence(0);
+		t1.addBuilding("Command Center",4,5,0);
+		long cap = t1.bldg().get(0).getCap();
+		t1.bldg().get(0).setPeopleInside(5);
+		t1.setAu(new ArrayList<AttackUnit>());
+		t1.getAu().add(new AttackUnit("Pillager",0,0));
+		players[0].getAu().add(new AttackUnit("Pillager",0,0)); // when recalling support, player-level au is called! So we must populate.
+
+		t1.getAu().get(0).setSize(1000);
+		RO.getRes()[0]=15000;
+		RO.getRes()[1]=15000;
+		RO.getRes()[2]=15000;
+		RO.getRes()[3]=15000;
+		//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
+		int amts[] = {1000,5};
+		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname");
+		if(!worked) {
+			out.println("ROEngCap test failed because the exc didn't send, and the error was: " + players[0].getPs().b.getError());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(t1.attackServer().size()!=1) {
+			out.println("ROEngCap test failed because the raid didn't load.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		Raid r = t1.attackServer().get(0);
+		r.setTicksToHit(0);
+		attackServerCheck(t1,players[0]);
+	
+		
+		if(RO.getLord()==null) {
+			out.println("ROEngCap test failed because the RO didn't become owned by the player after landing.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		//	public boolean buildEng(int lotNum, int number, int tid) {
+		t1.getRes()[0]=10000000;
+		t1.getRes()[1]=10000000;
+		t1.getRes()[2]=10000000;
+		t1.getRes()[3]=10000000;
+
+		worked = players[0].getPs().b.buildEng(4,(int) cap-5,t1.townID);
+		if(!worked) {
+			out.println("ROEngCap test failed because I couldn't queue up to my cap in the engineer place: " + players[0].getPs().b.getError());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		worked = players[0].getPs().b.buildEng(4,1,t1.townID); // shouldn't be able to go beyond the limit
+		if(worked) {
+			out.println("ROEngCap test failed because I could queue up to my cap+1in the engineer place.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		
+		worked = players[0].getPs().b.recall(RO.townID,5,t1.townID);
+		r.setTicksToHit(0);
+		attackServerCheck(t1,players[0]);
+		// now we check to see the cap of the building equaling the engineers inside it.
+		
+		if(t1.bldg().get(0).getPeopleInside()+t1.bldg().get(0).getNumLeftToBuild()!=cap) {
+			out.println("ROEngCap test failed because after returning, I didn't have a full CC as expected.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		player.deleteFakePlayers(players);
+		out.println("ROEngCap test successful.");
+		return true;
+		} catch(Exception exc) {
+			out.println("ROEngCap test failed because " + exc.toString());
+			for(StackTraceElement stackTrace: exc.getStackTrace()) {
+				out.println(stackTrace.toString());
+			}
+			player.deleteFakePlayers(players);
+			return false;
+		}
+	
+	
+	}
+	public boolean ROInfluenceTest(HttpServletRequest req, PrintWriter out, Player player) {
+
+		/*
+			ROInfluenceTest: Plant support on there and iterate it up till it has some serious territory. 
+			Then have the support leave, and see how long it takes to die in ticks. Make sure it matches up.
+
+		 */
+		getPlayer(5).territoryCalculator(); // i need it to reset everything to no lord that can be reset.
+
+		int numTowns[] = {1};
+		Player[] players = player.generateFakePlayers(1,numTowns,0,0);
+		try {
+		Town t1 = players[0].towns().get(0);
+		//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
+		Town RO=null;
+		for(Town t: getPlayer(5).towns()) {
+			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+				RO=t;
+				break;
+			} 
+			
+		}
+		if(RO==null) {
+			growId();
+			getPlayer(5).territoryCalculator();
+
+			
+		}
+		for(Town t: getPlayer(5).towns()) {
+			//System.out.println(t.getTownID() + " has " + t.getInfluence() + " influence.");
+
+			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+				RO=t;
+				break;
+			} 
+		}
+		if(RO==null) {
+			out.println("ROInfluence test failed because even growing Id didn't produce a viable RO to use.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		t1.setX(RO.getX()+10);
+		t1.setY(RO.getY());
+		t1.setInfluence(0);
+		t1.addBuilding("Command Center",4,5,0);
+		t1.bldg().get(0).setPeopleInside(5);
+		t1.setAu(new ArrayList<AttackUnit>());
+		t1.getAu().add(new AttackUnit("Pillager",0,0));
+		players[0].getAu().add(new AttackUnit("Pillager",0,0)); // when recalling support, player-level au is called! So we must populate.
+
+		t1.getAu().get(0).setSize(1000);
+		RO.getRes()[0]=15000;
+		RO.getRes()[1]=15000;
+		RO.getRes()[2]=15000;
+		RO.getRes()[3]=15000;
+		//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
+		int amts[] = {1000};
+		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
+		if(!worked) {
+			out.println("ROInfluence test failed because the attack didn't send, and the error was: " + players[0].getPs().b.getError());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		if(t1.attackServer().size()!=1) {
+			out.println("ROInfluence test failed because the raid didn't load.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		Raid r = t1.attackServer().get(0);
+		r.setTicksToHit(0);
+		attackServerCheck(t1,players[0]);
+	
+		
+		if(RO.getLord()==null) {
+			out.println("ROInfluence test failed because the RO didn't become owned by the player after landing.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		
+		players[0].territoryCalculator();
+		if(RO.getInfluence()!=1000) {
+			out.println("ROInfluence test failed because the RO didn't attain 1000 influence as expected after one terrcalc iteration, it gained " + RO.getInfluence());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		
+		players[0].territoryCalculator();
+		players[0].territoryCalculator();
+		// now we expect 3000 territory.
+		//	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
+
+		worked = players[0].getPs().b.recall(RO.townID,5,t1.townID);
+
+		if(!worked) {
+			out.println("ROInfluence test failed because the support didn't return, and the error was: " + players[0].getPs().b.getError());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		getPlayer(5).territoryCalculator();
+		if(RO.getLord()==null) {
+			out.println("ROInfluence test failed because Id made the RO return to it when it still had influence.");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		// now, with 3000 influence, we expect each iteration:
+		// 1: 1500
+		// 2: 750
+		// 3: 375
+		// 4: 187
+		// 5: 93
+		// 6: 46
+		// 7: 23
+		// 8: 11
+		// 9: 5
+		// 10: 2
+		// 11: 1
+		// so after 11 iterations, expect it to be gone.
+		players[0].territoryCalculator();
+		if(RO.getInfluence()!=1500) {
+			out.println("ROInfluence test failed because after one terrcalc after support leaving, influence was not 1500, but " + RO.getInfluence());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		players[0].territoryCalculator();
+		players[0].territoryCalculator();
+		if(RO.getInfluence()!=375) {
+			out.println("ROInfluence test failed because after three terrcalc after support leaving, influence was not 375, but " + RO.getInfluence());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		for(int i = 0; i<8; i++) {
+			players[0].territoryCalculator();
+		}
+		if(RO.getInfluence()!=0) {
+			out.println("ROInfluence test failed because after eleven terrcalc after support leaving, influence was not 0, but " + RO.getInfluence());
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		getPlayer(5).territoryCalculator();
+		if(RO.getLord()!=null) {
+			out.println("ROInfluence test failed because after eleven terrcalc after support leaving, lord was not null like it should have been, reclaimed by Id!");
+			player.deleteFakePlayers(players);
+			return false;
+		}
+		player.deleteFakePlayers(players);
+		out.println("ROInfluence test successful.");
+		return true;
+		} catch(Exception exc) {
+			out.println("ROInfluence test failed because " + exc.toString());
+			for(StackTraceElement stackTrace: exc.getStackTrace()) {
+				out.println(stackTrace.toString());
+			}
+			player.deleteFakePlayers(players);
+			return false;
+		}
+	
+	}
 	public boolean ROContestedTest(HttpServletRequest req, PrintWriter out, Player player) {
 
 		/*
@@ -14887,10 +15391,18 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			player.deleteFakePlayers(players); return false;
 		}
 		// but now move town4 out of the influence! Now we should experience breakage.
-		
+		if(t4.getLord()==null) {
+			out.println("breakVassalage test failed because p2's town t4 didn't get lorded like it should've after getting into harm's way.");
+			player.deleteFakePlayers(players); return false;
+		}
 		t4.setX(1111111);
 		players[0].territoryCalculator();
+	
 		players[1].territoryCalculator(); // now the player should be unlorded.
+		if(t4.getLord()!=null) {
+			out.println("breakVassalage test failed because p2's town t4 didn't get unlorded like it should've after getting out of harm's way.");
+			player.deleteFakePlayers(players); return false;
+		}
 		if(players[1].getLord()!=null) {
 			out.println("breakVassalage test failed because p2 didn't get unlorded like it should've after getting out of harm's way.");
 			player.deleteFakePlayers(players); return false;
@@ -15121,7 +15633,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		t2.addBuilding("Metal Mine",0,1,0);
 		t4.addBuilding("Metal Mine",0,1,0);
 
-		double toGet = t2.getResInc()[0]; // That's what we expect he'd normally get. We look at the resbuffers. With a level 1 mine,
+		double toGet = t2.getResInc()[0]+t4.getResInc()[0]; // That's what we expect he'd normally get. We look at the resbuffers. With a level 1 mine,
 		// we do not expect to get >1, so it'll be in the resbuffer.
 		
 		t2.doMyResources(1);

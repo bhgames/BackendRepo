@@ -1171,7 +1171,6 @@ public class Town {
 		
 	}
 	public int getTotalEngineers() {
-		
 		ArrayList<Building> bldg = bldg();
 		int i = 0; int totalEngineers=0;
 		while(i<bldg.size()) {
@@ -1182,8 +1181,9 @@ public class Town {
 		UserTown towns[] = getPlayer().getPs().b.getUserTownsWithSupportAbroad(townID);
 		for(UserTown t: towns) {
 			Town realT = getPlayer().God.getTown(t.getTownID());
-			if(realT.isResourceOutcropping())
-			totalEngineers+=realT.getDigAmt();
+			if(realT.isResourceOutcropping()) {
+				totalEngineers+=realT.getDigAmt();
+			}
 		}
 		return totalEngineers;
 		/*
@@ -1440,6 +1440,7 @@ public class Town {
 		 double t = ((double) amtTheyHave)/(eachAdd-engRate);
 
 		 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
+		 
 		 if(t>0&&amtTheyHave<amtWeCanHold) {
 			 // so now we need to figure out how many ticks it takes to get it done.
 			 // we know that amtTheyHave(t) = amtTheyHave_0 + eachAdd*t - engRate*t;
@@ -1915,7 +1916,70 @@ public class Town {
 			 r.setRaidOver(true);
 			 resetDig(0,0,false,null); // so now we reset the dig to it's original form.
 		 }
-	 }
+	 }/*
+	 public void giveResourcesToRO(int num) {
+		  // here we make sure that our lads digging get their resources piled onto their raid.
+		  // we don't worry about taxing because when the raid returns, it'll get taxed.
+		  
+		  Town origin = getPlayer().God.getTown(getDigTownID());
+		  double resInc[] = getResInc();
+		  long res[] = getRes();
+		  double engRate = getDigAmt()*GodGenerator.engineerRORate*num;
+		  long totake = Math.round(engRate);
+		  if(origin!=null) {// for some reason, sometimes, it is.
+		   for(Raid r:origin.attackServer()) {
+		    if(r.getDigAmt()>0&&r.getTown2().townID==townID) {
+		     // this is the one we add to.
+		    // System.out.println("I AM INSIDE! engrate is " + engRate + " totake is " + totake + " and my name is " + getTownName() + " and resinc m is " + resInc[0]
+		      //     + " t " + resInc[1] + " mm " + resInc[2] + " f " + resInc[3]) ;
+		     int i = 0; long resAmt = 0;
+		     while(resInc[i]<0) {
+		      i++;
+		     }
+		     
+		     switch(i) {
+		      case 0:
+		       resAmt = r.getMetal();
+		       break;
+		      case 1:
+		       resAmt = r.getTimber();
+		       break;
+		      case 2:
+		       resAmt = r.getManmat();
+		       break;
+		     }
+		     
+		     if(res[i]<totake) totake = res[i];
+		     res[i]-=totake;
+		     resAmt+=totake;
+		     
+		     boolean sendBack = (res[i]==0);
+		     long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
+		     if(resAmt>=amtWeCanHold) {
+		      resAmt=amtWeCanHold;
+		      sendBack = true;
+		     }
+
+		     switch(i) {
+		      case 0:
+		       r.setMetal(resAmt);
+		       break;
+		      case 1:
+		       r.setTimber(resAmt);
+		       break;
+		      case 2:
+		       r.setManmat(resAmt);
+		       break;
+		     }
+		     
+		     if(sendBack) returnDigOrRO(false,false);
+		   
+		     break;
+		    }
+		   }
+		  }
+		 }
+	 */
 	 public void giveResourcesToRO(int num) {
 		 // here we make sure that our lads digging get their resources piled onto their raid.
 		 // we don't worry about taxing because when the raid returns, it'll get taxed.
@@ -1959,7 +2023,6 @@ public class Town {
 					 
 					 if(sendBack) returnDigOrRO(false,false);
 					 
-
 					 switch(i) {
 						 case 0:
 							 r.setMetal(resAmt);
@@ -3429,9 +3492,7 @@ public class Town {
 		ArrayList<AttackUnit> ourAU = getAu();
 		while(x<ourAU.size()) {
 			ourA = ourAU.get(x);
-			System.out.println("Checking " + ourA + " whos size is " + ourA.getSize());
 				if(ourA.getSize()==0&&ourA.getSupport()>0) {
-					System.out.println("Size is 0, so going thru now.");
 					as = attackServer();
 					int j = 0;
 					boolean foundAU = false;

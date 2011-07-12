@@ -1422,6 +1422,19 @@ public class Player  {
 
 										
 								}
+							} else if(foundNobody&&ID!=5) {
+								// this means one of your cities has no territories but is lorded still, maybe it moved? Who knows.
+								 t.getLord().makeWallPost("","Territory Freed!",getUsername()+"'s town has freed itself from my influence.... for now.",
+											"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+											"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+											"Play Now!","http://www.steampunkwars.com/");
+								 makeWallPost("","Territory Freed!","The people of my town are free from "+t.getLord().getUsername()+"'s tyranny!",
+											"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+											"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+											"Play Now!","http://www.steampunkwars.com/");
+								t.setLord(null);
+								t.setVassalFrom(new Timestamp((new Date()).getTime()));
+								t.saveInfluence();
 							}
 							
 				 } else if(found&&t.getLord()!=null) {
