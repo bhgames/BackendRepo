@@ -1978,20 +1978,20 @@ public class Town {
 		 }
 	 }
 	 public void doMyResources(int num) {
-		 double[] resInc=getResInc();
-		 double[] resEffects=getResEffects();
-		 long[] resCaps=getResCaps();
-		 double[] resBuff = getResBuff();
-		 long[] res = getRes();
-		 double[] newIncs = God.Maelstrom.getResEffects(resInc,getX(),getY());
+		 double[] resInc = getResInc(), resEffects = getResEffects(), resBuff = getResBuff(), 
+				 newIncs = God.Maelstrom.getResEffects(resInc,getX(),getY());
+		 
+		 long[] resCaps=getResCaps(), res = getRes();
+		 
 		 Player p = getPlayer();
 		 League l =p.getLeague();
 		 int j = 0;
 		 double taxRate=0;
-		 if(l!=null)
-			 taxRate += l.getTaxRate(p.ID);
+		 if(l!=null) taxRate += l.getTaxRate(p.ID);
+		 
 		 taxRate+=getVassalRate();
 		 if(taxRate>.99) taxRate=.99;
+		 
 		 Town zepp = getPlayer().God.findZeppelin(getX(),getY());
 		 if(getPlayer().ID==5&&zepp.townID!=0&&!isResourceOutcropping()){
 			 // zeppelins can't excavate.
@@ -2005,10 +2005,10 @@ public class Town {
 				 resBuff[j]+=num*(newIncs[j]*(1-taxRate)*(resEffects[j]+1));
 				 j++;
 			 } while(j<res.length);
-		}
+		 }
 		
-		j =0;
-		synchronized(res) {
+		 j =0;
+		 synchronized(res) {
 			 if(getPlayer().ID==5&&getDigAmt()>0&&getDigTownID()!=0&&isResourceOutcropping()) {
 					giveResourcesToRO(num);
 			 }
@@ -2016,19 +2016,22 @@ public class Town {
 				 if(resBuff[j]>=1) {
 					 int toAdd = (int) Math.floor(resBuff[j]);
 				
-					 res[j]+=toAdd; //	IF YU CHANGE THIS, CHANGE GIVERESOURCESTORO AS WELL!
+					 	//this automatically checks the new level of resources against the current maximum storage
+					 	//capacity and returns whichever is smaller.
+					 	//thus, if you're adding more res then you have cap, it will return the cap for that res
+					 	//otherwise, it'll return the new level of res
+					 	//               res added  |             res cap
+					 res[j] = Math.min(res[j]+toAdd , resCaps[j]+Building.baseResourceAmt); //	IF YOU CHANGE THIS, CHANGE GIVERESOURCESTORO AS WELL!
+					 	// works even if you lose the building and suddenly have a massive over the limit
+						// amount of resources! HAHA :D
 					 resBuff[j]-=toAdd;
-					 if(res[j]>(resCaps[j]+Building.baseResourceAmt))
-						 res[j]=resCaps[j]+Building.baseResourceAmt; // SAME OBJECT! BUT NOT REALLY...
-					// works even if you lose the building and suddenly have a massive over the limit
-					// amount of resources! HAHA :D
 				
 				 
 				
 				 }
 				 j++;
 			 }
-		}
+		 }
 	 }
 	 
 	/* public void drainResourcesFromOutcroppings(double[] resInc, int num) {

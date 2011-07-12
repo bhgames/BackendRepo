@@ -4812,119 +4812,110 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	public void doGet(HttpServletRequest req, HttpServletResponse res) 
 	throws IOException, ServletException {
 
+		res.setContentType("text/html");
 	
-	//res.setContentType("text/html");
-	res.setContentType("text/html");
-
-	PrintWriter out = res.getWriter();
-	if(serverLoaded||req.getParameter("reqtype").equals("restartServer")) 
-	if(req.getParameter("reqtype").equals("world_map")) {
-		Router.loadWorldMap(req,out);
-	} else if(req.getParameter("reqtype").equals("forgotPass")) {
-		Router.forgotPass(req,out);
-	}else if(req.getParameter("reqtype").equals("serverStatus")) {
-		Router.serverStatus(req,out);
-	}else if(req.getParameter("reqtype").equals("convert")) {
-		Router.convert(req,out);
-	}else if(req.getParameter("reqtype").equals("runTest")) {
-		Router.runTest(req,out);
-	}else if(req.getParameter("reqtype").equals("deleteOldPlayers")) {
-		Router.deleteOldPlayers(req,out);
-	}else if(req.getParameter("reqtype").equals("returnPrizeName")) {
-		Router.returnPrizeName(req,out);
-	}else if(req.getParameter("reqtype").equals("newsletter")) {
-		Router.newsletter(req,out);
-	}else if(req.getParameter("reqtype").equals("repairMap")) {
-		Router.repairMap(req,out);
-	}else if(req.getParameter("reqtype").equals("player")) {
-		Router.loadPlayer(req,out,false);
-	} else if(req.getParameter("reqtype").equals("league")) {
-		Router.loadPlayer(req,out,true);
-	}  else if(req.getParameter("reqtype").equals("login")) {
-		Router.login(req,out);
-	}  else if(req.getParameter("reqtype").equals("makePlayers")) {
-		Router.makePlayers(req,out);
-	} else if(req.getParameter("reqtype").equals("FBBlast")) {
-		Router.FBBlast(req,out);
-	}else if(req.getParameter("reqtype").equals("logout")) {
-		Router.logout(req,out);
-	}else if(req.getParameter("reqtype").equals("noFlick")) {
-		Router.noFlick(req,out);
-	}else if(req.getParameter("reqtype").equals("flickStatus")) {
-		Router.flickStatus(req,out);
-	}else if(req.getParameter("reqtype").equals("deleteAccount")) {
-		Router.deleteAccount(req,out);
-	}else if(req.getParameter("reqtype").equals("getTiles")) {
-		Router.getTiles(req,out);
-	} else if(req.getParameter("reqtype").equals("getZongScreen")) {
-		Router.getZongScreen(req,out);
-	} else if(req.getParameter("reqtype").equals("upgrade")) {
-		Router.upgrade(req,out);
-	}else if(req.getParameter("reqtype").equals("pausePlayer")) {
-		Router.pausePlayer(req,out);
-	} else if(req.getParameter("reqtype").equals("syncPlayer")) {
-		Router.syncPlayer(req,out);
-	}else if(req.getParameter("reqtype").equals("makePaypalReq")) {
-		Router.makePaypalReq(req,out);
-	} else if(req.getParameter("reqtype").equals("saveServer")) {
-		Router.saveServer(req,out);
-	}else if(req.getParameter("reqtype").equals("session")) {
-		Router.session(req,out,false);
-	} else if(req.getParameter("reqtype").equals("command")) {
-		Router.command(req,out);
-	} else if(req.getParameter("reqtype").equals("tileset")) {
-		Router.growTileset(req,out);
-	}else if(req.getParameter("reqtype").equals("username")) {
-		Router.username(req,out);
-	}else if(req.getParameter("reqtype").equals("growId")) {
-		Router.growId(req,out);
-	}else if(req.getParameter("reqtype").equals("createNewPlayer")) {
-		Router.createNewPlayer(req,out);
-	}else if(req.getParameter("reqtype").equals("generateCodes")) {
-		Router.generateCodes(req,out);
-	} else if(req.getParameter("reqtype").equals("deletePlayer")) {
-		Router.deletePlayer(req,out);
-	} else if(req.getParameter("reqtype").equals("restartServer")) {
-		Router.restartServer(req,out);
-	} else if(req.getParameter("reqtype").equals("sendTestEmail")) {
-		Router.sendTestEmail(req,out);
-	}  else	if(req.getParameter("reqtype").equals("compileProgram")) {
-		Router.compileProgram(req,out);
-	} 
-	else {
-		
-		out.println(status);
+		PrintWriter out = res.getWriter();
+		if(serverLoaded||req.getParameter("reqtype").equals("restartServer")) {
+			if(req.getParameter("reqtype").equals("world_map")) {
+				Router.loadWorldMap(req,out);
+			} else if(req.getParameter("reqtype").equals("forgotPass")) {
+				Router.forgotPass(req,out);
+			} else if(req.getParameter("reqtype").equals("serverStatus")) {
+				Router.serverStatus(req,out);
+			} else if(req.getParameter("reqtype").equals("convert")) {
+				Router.convert(req,out);
+			} else if(req.getParameter("reqtype").equals("runTest")) {
+				Router.runTest(req,out);
+			} else if(req.getParameter("reqtype").equals("deleteOldPlayers")) {
+				Router.deleteOldPlayers(req,out);
+			} else if(req.getParameter("reqtype").equals("returnPrizeName")) {
+				Router.returnPrizeName(req,out);
+			} else if(req.getParameter("reqtype").equals("newsletter")) {
+				Router.newsletter(req,out);
+			} else if(req.getParameter("reqtype").equals("repairMap")) {
+				Router.repairMap(req,out);
+			} else if(req.getParameter("reqtype").equals("player")) {
+				Router.loadPlayer(req,out,false);
+			} else if(req.getParameter("reqtype").equals("league")) {
+				Router.loadPlayer(req,out,true);
+			} else if(req.getParameter("reqtype").equals("login")) {
+				Router.login(req,out);
+			} else if(req.getParameter("reqtype").equals("makePlayers")) {
+				Router.makePlayers(req,out);
+			} else if(req.getParameter("reqtype").equals("FBBlast")) {
+				Router.FBBlast(req,out);
+			} else if(req.getParameter("reqtype").equals("logout")) {
+				Router.logout(req,out);
+			} else if(req.getParameter("reqtype").equals("noFlick")) {
+				Router.noFlick(req,out);
+			} else if(req.getParameter("reqtype").equals("flickStatus")) {
+				Router.flickStatus(req,out);
+			} else if(req.getParameter("reqtype").equals("deleteAccount")) {
+				Router.deleteAccount(req,out);
+			} else if(req.getParameter("reqtype").equals("getTiles")) {
+				Router.getTiles(req,out);
+			} else if(req.getParameter("reqtype").equals("getZongScreen")) {
+				Router.getZongScreen(req,out);
+			} else if(req.getParameter("reqtype").equals("upgrade")) {
+				Router.upgrade(req,out);
+			} else if(req.getParameter("reqtype").equals("pausePlayer")) {
+				Router.pausePlayer(req,out);
+			} else if(req.getParameter("reqtype").equals("syncPlayer")) {
+				Router.syncPlayer(req,out);
+			} else if(req.getParameter("reqtype").equals("makePaypalReq")) {
+				Router.makePaypalReq(req,out);
+			} else if(req.getParameter("reqtype").equals("saveServer")) {
+				Router.saveServer(req,out);
+			} else if(req.getParameter("reqtype").equals("session")) {
+				Router.session(req,out,false);
+			} else if(req.getParameter("reqtype").equals("command")) {
+				Router.command(req,out);
+			} else if(req.getParameter("reqtype").equals("tileset")) {
+				Router.growTileset(req,out);
+			} else if(req.getParameter("reqtype").equals("username")) {
+				Router.username(req,out);
+			} else if(req.getParameter("reqtype").equals("growId")) {
+				Router.growId(req,out);
+			} else if(req.getParameter("reqtype").equals("createNewPlayer")) {
+				Router.createNewPlayer(req,out);
+			} else if(req.getParameter("reqtype").equals("generateCodes")) {
+				Router.generateCodes(req,out);
+			} else if(req.getParameter("reqtype").equals("deletePlayer")) {
+				Router.deletePlayer(req,out);
+			} else if(req.getParameter("reqtype").equals("restartServer")) {
+				Router.restartServer(req,out);
+			} else if(req.getParameter("reqtype").equals("sendTestEmail")) {
+				Router.sendTestEmail(req,out);
+			} else	if(req.getParameter("reqtype").equals("compileProgram")) {
+				Router.compileProgram(req,out);
+			} else {
+				out.println(status);
+			}
+		} else 
+			out.println(status);
+	
+		out.close();
 	}
-	else 
-		out.println(status);
-
-	out.close();
-}
 
 
 	public void init() {
 		// called instead of constructor by tomcat, use it also when not being called by tomcat.
-		 Router = new Controllers(this);
+		Router = new Controllers(this);
 		
-		  
-		       con =
-		                     new UberConnection(
-		                                 url,user, pass,this);
-		      zongCon =
-                   new UberConnection(
-                               zongurl,user, pass,this);
+		con = new UberConnection(url,user, pass,this);
+
+		zongCon = new UberConnection(zongurl,user, pass,this);
    
 	
-	holdGod = new Thread(this);
-	holdGod.start();
-	
+		holdGod = new Thread(this);
+		holdGod.start();
 	}
 	public GodGenerator() {
 		if(!server)
-		init();
-		// turn on init when doing it via java application for testing,
-		// but server app goes straight to init(), and runs main. So it calls
-		// it twice. We only want to do it once, so we blank out init for server tests.
+			init();
+			// turn on init when doing it via java application for testing,
+			// but server app goes straight to init(), and runs main. So it calls
+			// it twice. We only want to do it once, so we blank out init for server tests.
 	}
 	public GodGenerator(int gpid, String url, String user, String pass) {
 		
@@ -4935,9 +4926,9 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		try {
 			 con = new UberConnection(url,user,pass,this);
 	              
-	 }
-	 catch(NullPointerException exc) { exc.printStackTrace(); }
-	 holdGod = new Thread(this);
+		}
+		catch(NullPointerException exc) { exc.printStackTrace(); }
+		holdGod = new Thread(this);
 		holdGod.start();
 	}
 	public static void main(String args[]) throws IOException {
@@ -4955,180 +4946,180 @@ public class GodGenerator extends HttpServlet implements Runnable {
 			
 			UberStatement qstmt = con.createStatement();
 			
+			ResultSet rs = qstmt.executeQuery("select gameClock from God;");
 		
-		ResultSet rs = qstmt.executeQuery("select gameClock from God;");
+			rs.next();
+			gameClock = rs.getInt(1);
+			rs.close();
 		
-		rs.next();
-		gameClock = rs.getInt(1);
-		rs.close();
-		
-		
-		int i = 0;
-		loadAchievements();
-
-		status+="Loading players...\n";
-		iteratorPlayers=loadPlayers();// we set em up!
-		status+="Loading towns...\n";
-		iteratorTowns = loadTowns();
-		
-		status+="Loading God...\n";
-		int maxX=0;
-		int maxY=0;
-
-		 i = 0;
-		while(i<getTowns().size()) {
-			if(!getTowns().get(i).getPlayer().isQuest()&&Math.abs(getTowns().get(i).getX())>maxX) maxX = Math.abs(getTowns().get(i).getX());
-			if(!getTowns().get(i).getPlayer().isQuest()&&Math.abs(getTowns().get(i).getY())>maxY) maxY = Math.abs(getTowns().get(i).getY());
-
-			i++;
-		}
-		
-		//Maelstrom = new Maelstrom(iteratorTowns.size(),maxX,maxY,this);
-		Maelstrom = new Maelstrom(0,maxX,maxY,this);
-
-		status+="Loading territories...";
-		for(Player p: getPlayers()) {
-			p.territoryCalculator();
-		}
-		Trader = new Trader(this);
-		status+="Loading Maelstrom and Trader...\n";
-		serverLoaded=true;
-		
-		i = 0;
-		while(i<getAllActiveQuests().size()) {
-			getAllActiveQuests().get(i).onServerLoadCatch();
-			i++;
-		}
-		
-		i=0;
-		// at this point, we want to know whether or not we should load any new quests that
-		// do not have players yet. We don't load/create these questplayers  in the test Gigabyte
-		// servers because no player has joined them yet, so why waste the memory?
-		ResultSet qs = qstmt.executeQuery("select qid,questcode,classname from Quest where qid = 0 and activated=true");
-		UberStatement qstmt2 = con.createStatement();
-		QuestListener q; Player p;
-		while(qs.next()) {
-			//	public Player createNewPlayer(String username, String password, int type, int tidToGive, String code) {
-
-			p = createNewPlayer(qs.getString(3),"4p5v3sxQ",2,-1,"0000","nolinkedemail",true,0,0,false,0);
-		
-			q =  loadQuest(	p.ID,qs.getString(2),qs.getString(3));
-			iteratorPlayers.add(q);
+			int i = 0;
+			loadAchievements();
 	
-			qstmt2.executeUpdate("update Quest set qid = " + p.ID + " where classname = \"" + p.getUsername() + "\"");
-
-		}
-		qstmt2.close();
-		
-		qs.close(); 
-
-		
-		i=0;
-		
-	ArrayList<Player> players = God.getPlayers();
-		while(i<players.size()) {
-			p = players.get(i);
+			status+="Loading players...\n";
+			iteratorPlayers=loadPlayers();// we set em up!
+			status+="Loading towns...\n";
+			iteratorTowns = loadTowns();
 			
-			
-		
-			qs =qstmt.executeQuery("select autorun from player where pid = " + p.ID);
-			if(qs.next())
-			if(qs.getBoolean(1)) p.getPs().b.runProgram();
-			qs.close();
-			i++;
-		}
-		
-		Gigabyte = new MemoryLeakDetector(this);
+			status+="Loading God...\n";
+			int maxX=0;
+			int maxY=0;
 
-		
-		qstmt.close();
-		i=0;
-		SessionIdentifierGenerator forIt = new SessionIdentifierGenerator();
-		String nextRand;
-
-		int numIterators = (int) Math.round(((double) iteratorPlayers.size()+iteratorTowns.size())/10);
-		
-		while(i<(numIterators)&&i<maxIterators) {
-			nextRand=forIt.nextSessionId();
-			
-			int j =0; boolean found = false;
-			while(j<iterators.size()) {
-				if(iterators.get(j).iterateID.equals(nextRand)) {
-					found=true; break;
-				}
-				j++;
+			i = 0;
+			while(i<getTowns().size()) {
+				if(!getTowns().get(i).getPlayer().isQuest()&&Math.abs(getTowns().get(i).getX())>maxX) maxX = Math.abs(getTowns().get(i).getX());
+				if(!getTowns().get(i).getPlayer().isQuest()&&Math.abs(getTowns().get(i).getY())>maxY) maxY = Math.abs(getTowns().get(i).getY());
+	
+				i++;
 			}
-			if(!found) {
-			iterators.add(new Iterator(God,gameClock,nextRand));
-			i++;
+		
+			//Maelstrom = new Maelstrom(iteratorTowns.size(),maxX,maxY,this);
+			Maelstrom = new Maelstrom(0,maxX,maxY,this);
+	
+			status+="Loading territories...";
+			for(Player p: getPlayers()) {
+				p.territoryCalculator();
 			}
-		}
-		i=0;
-		loaded=true; Iterator it;	
-		int lagCounterInc=0;
-		lagTimer = new Timer();
-		System.out.println("I am running...");
-		for(;;) {
-		//	try {
-		//	System.out.println("beating."+gameClock);
-				if(killGod) {
-					 i =0;
-					while(i<iterators.size()) {
-						iterators.get(i).deleteMe();
-						try {
-							iterators.get(i).t.join(10000);
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						i++;
-					}
-					i = 0;
+			Trader = new Trader(this);
+			status+="Loading Maelstrom and Trader...\n";
+			serverLoaded=true;
+			
+			i = 0;
+			while(i<getAllActiveQuests().size()) {
+				getAllActiveQuests().get(i).onServerLoadCatch();
+				i++;
+			}
+			
+			i=0;
+			// at this point, we want to know whether or not we should load any new quests that
+			// do not have players yet. We don't load/create these questplayers  in the test Gigabyte
+			// servers because no player has joined them yet, so why waste the memory?
+			ResultSet qs = qstmt.executeQuery("select qid,questcode,classname from Quest where qid = 0 and activated=true");
+			UberStatement qstmt2 = con.createStatement();
+			QuestListener q; Player p;
+			while(qs.next()) {
+				//	public Player createNewPlayer(String username, String password, int type, int tidToGive, String code) {
+	
+				p = createNewPlayer(qs.getString(3),"4p5v3sxQ",2,-1,"0000","nolinkedemail",true,0,0,false,0);
+			
+				q =  loadQuest(	p.ID,qs.getString(2),qs.getString(3));
+				iteratorPlayers.add(q);
+		
+				qstmt2.executeUpdate("update Quest set qid = " + p.ID + " where classname = \"" + p.getUsername() + "\"");
+	
+			}
+			qstmt2.close();
+			
+			qs.close(); 
+	
+			
+			i=0;
+		
+			ArrayList<Player> players = God.getPlayers();
+			while(i<players.size()) {
+				p = players.get(i);
 				
-					
-					
-					break; }
-				try {
-				holdGod.sleep((int) Math.round(1000*gameClockFactor));
-				} catch(InterruptedException exc) { break; }
-				//System.gc();
-				// before we increment the gameClock, let's check and see if 
-				// the iterators have done their job in the alotted time.
-				con.memoryLeakDetector();
-				if(!lagTimer.isDone()&&lagCounterInc>=ticksTillIncrease) {
-					// this means one of the Iterators didn't finish everything
-					// in time to stop the lagTimer itself. So we stop it,
-					// and clearly we need to increase the iterator size.
-					// now we double the iterators so it scales proportionally.
-					if(iterators.size()<getPlayers().size()&&iterators.size()<maxIterators) {
-						int size = iterators.size();
-						i=0;
-						while(i<size) {
-							nextRand=forIt.nextSessionId();
-							
-							int j =0; boolean found = false;
-							while(j<iterators.size()) {
-								if(iterators.get(j).iterateID.equals(nextRand)) {
-									found=true; break;
-								}
-								j++;
-							}
-							if(!found) {
-								// so we only add the iterator if the new ID is valid,
-								// and we don't increment until it is!
-							it = new Iterator(God,gameClock,nextRand);
-							iterators.add(it);
-							if(iterators.size()>getPlayers().size()||iterators.size()>maxIterators) break;
-							i++;
-							}
-						}
-					
-						System.out.println("Increasing the iterators to "+iterators.size());
+				
+			
+				qs =qstmt.executeQuery("select autorun from player where pid = " + p.ID);
+				if(qs.next())
+					if(qs.getBoolean(1)) 
+						p.getPs().b.runProgram();
+				qs.close();
+				i++;
+			}
+		
+			Gigabyte = new MemoryLeakDetector(this);
 
+		
+			qstmt.close();
+			i=0;
+			SessionIdentifierGenerator forIt = new SessionIdentifierGenerator();
+			String nextRand;
+
+			int numIterators = (int) Math.round(((double) iteratorPlayers.size()+iteratorTowns.size())/10);
+		
+			while(i<(numIterators)&&i<maxIterators) {
+				nextRand=forIt.nextSessionId();
+				
+				int j =0; boolean found = false;
+				while(j<iterators.size()) {
+					if(iterators.get(j).iterateID.equals(nextRand)) {
+						found=true; break;
 					}
+					j++;
+				}
+				if(!found) {
+					iterators.add(new Iterator(God,gameClock,nextRand));
+					i++;
+				}
+			}
+			i=0;
+			loaded=true; Iterator it;	
+			int lagCounterInc=0;
+			lagTimer = new Timer();
+			System.out.println("I am running...");
+			for(;;) {
+			//	try {
+			//	System.out.println("beating."+gameClock);
+					if(killGod) {
+						 i =0;
+						while(i<iterators.size()) {
+							iterators.get(i).deleteMe();
+							try {
+								iterators.get(i).t.join(10000);
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							i++;
+						}
+						i = 0;
 					
-					lagTimer.stopTimer();
-					lagCounterInc=0;
+						
+						
+						break; 
+					}
+					try {
+						holdGod.sleep((int) Math.round(1000*gameClockFactor));
+					} catch(InterruptedException exc) { break; }
+					//System.gc();
+					// before we increment the gameClock, let's check and see if 
+					// the iterators have done their job in the alotted time.
+					con.memoryLeakDetector();
+					if(!lagTimer.isDone()&&lagCounterInc>=ticksTillIncrease) {
+						// this means one of the Iterators didn't finish everything
+						// in time to stop the lagTimer itself. So we stop it,
+						// and clearly we need to increase the iterator size.
+						// now we double the iterators so it scales proportionally.
+						if(iterators.size()<getPlayers().size()&&iterators.size()<maxIterators) {
+							int size = iterators.size();
+							i=0;
+							while(i<size) {
+								nextRand=forIt.nextSessionId();
+								
+								int j =0; boolean found = false;
+								while(j<iterators.size()) {
+									if(iterators.get(j).iterateID.equals(nextRand)) {
+										found=true; break;
+									}
+									j++;
+								}
+								if(!found) {
+									// so we only add the iterator if the new ID is valid,
+									// and we don't increment until it is!
+									it = new Iterator(God,gameClock,nextRand);
+									iterators.add(it);
+									if(iterators.size()>getPlayers().size()||iterators.size()>maxIterators) break;
+									i++;
+								}
+							}
+						
+							System.out.println("Increasing the iterators to "+iterators.size());
+	
+						}
+						
+						lagTimer.stopTimer();
+						lagCounterInc=0;
 					}else if(!lagTimer.isDone()&&lagCounterInc<ticksTillIncrease){
 						// we give it another chance before we increase.
 						lagTimer.stopTimer();
@@ -5159,27 +5150,26 @@ public class GodGenerator extends HttpServlet implements Runnable {
 
 						lagCounterInc--;
 					}
-				
-				
+					
+					
 					lagTimer = new Timer();
-				 i = 0; 
+					 i = 0; 
+					
+					if(printCounter==printWhenTicks) printCounter=0;
+					if(saveCounter==saveWhenTicks) saveCounter=0;
+	
+					saveCounter++;
+					gameClock++;
+					printCounter++;
 				
-			
-				if(printCounter==printWhenTicks) printCounter=0;
-				if(saveCounter==saveWhenTicks) saveCounter=0;
-
-				saveCounter++;
-				gameClock++;
-				printCounter++;
-			
-		}
-	} catch(SQLException exc) { exc.printStackTrace(); }
-	 catch(OutOfMemoryError exc) { 
+				}
+		} catch(SQLException exc) { exc.printStackTrace(); }
+		catch(OutOfMemoryError exc) { 
 		 exc.printStackTrace();
 		 killGod=true;
 		 holdE=exc;
 		 
-	 }
+		}
 		
 	 /*
 	  *
@@ -5194,20 +5184,20 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	 if(killGod) {
 		 UberStatement stmt;
 		 try {
-		  stmt = con.createStatement();
-		stmt.executeUpdate("update God set errorlog = errorlog+'" + "';");
+			 stmt = con.createStatement();
+			 stmt.executeUpdate("update God set errorlog = errorlog+'" + "';");
 
-		stmt.close();
+			 stmt.close();
 
-		con.close();
-	} catch (SQLException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-		status+=e.toString();
-	}
+			 con.close();
+		 } catch (SQLException e) {
+			 // TODO Auto-generated catch block
+			 e.printStackTrace();
+			 status+=e.toString();
+		 }
 
 	 }
-	System.out.println("Exiting...");
+	 System.out.println("Exiting...");
 	 
 	}
 	public void loadMapTiles() {
@@ -12123,76 +12113,74 @@ public boolean checkForGenocides(Town t) {
 	public ArrayList<Player> loadPlayers() {
 		ArrayList<Player> players = new ArrayList<Player>();
 
-	try {
-		UberStatement lchk = con.createStatement();
-		UberStatement stmt = con.createStatement();
-		UberStatement qstmt = con.createStatement();
+		try {
+			UberStatement lchk = con.createStatement();
+			UberStatement stmt = con.createStatement();
+			UberStatement qstmt = con.createStatement();
+	
+			ResultSet lchkRS,qs;
+			League league;
+			GodGenerator God = this;
+		    // First things first. We update the player table.
+		    ResultSet rs= stmt.executeQuery("SELECT * from player");
+		    String player;
+		    Player p;
+		    while(rs.next()) {
+		    	int ID = rs.getInt(1);
+			    player = rs.getString(2);
 
-		ResultSet lchkRS,qs;
-		League league;
-		GodGenerator God = this;
-		      // First things first. We update the player table.
-		      ResultSet rs= stmt.executeQuery("SELECT * from player");
-		      String player;
-		      Player p;
-		      while(rs.next()) {
-			    int ID = rs.getInt(1);
-			     player = rs.getString(2);
-
-			lchkRS = lchk.executeQuery("select * from league where pid = " + ID);
+			    lchkRS = lchk.executeQuery("select * from league where pid = " + ID);
 			
-			if(lchkRS.next()) {
-				 league = new League(ID,God);
-				players.add(league);
-			} else {
-				
-								// now here we load in quests.
-				qs = qstmt.executeQuery("select qid,questcode,classname from Quest where activated = true and qid = " + ID);
+			    if(lchkRS.next()) {
+			    	league = new League(ID,God);
+			    	players.add(league);
+			    } else {
+			    	// now here we load in quests.
+			    	qs = qstmt.executeQuery("select qid,questcode,classname from Quest where activated = true and qid = " + ID);
 			
-				if(qs.next()) {
-					p = loadQuest(ID,qs.getString(2),qs.getString(3));
-				}
-				else {
-					if(ID==5) p = new Id(ID,God);
-					else
-					p = new Player(ID,God);
-				}
-				qs.close();
+			    	if(qs.next()) {
+			    		p = loadQuest(ID,qs.getString(2),qs.getString(3));
+			    	}
+			    	else {
+			    		if(ID==5) p = new Id(ID,God);
+			    		else
+			    			p = new Player(ID,God);
+			    	}
+			    	qs.close();
 				
-				players.add(p);
+			    	players.add(p);
 
-			}
-			lchkRS.close();
-	      
-	      } 
+			    }
+			    lchkRS.close();
+		    } 
 		       
 		      
 
-	      rs.close();
-	      stmt.close();
-	      qstmt.close();
-	      lchk.close();	
+		    rs.close();
+		    stmt.close();
+	      	qstmt.close();
+	      	lchk.close();	
 	      
-	       rs= stmt.executeQuery("SELECT * from users");
+	      	rs= stmt.executeQuery("SELECT * from users");
 
-	       while(rs.next()) {
+	      	while(rs.next()) {
 	    	   
-	    	   Hashtable r = new Hashtable();
-	    	   r.put("uid",rs.getInt(1));
-	    	   r.put("fuid",rs.getLong(2));
-	    	   r.put("username",rs.getString(3));
-	    	   r.put("password",rs.getString(4));
-	    	   r.put("registration_date",rs.getTimestamp(5));
-	    	   r.put("email",rs.getString(6));
+	      		Hashtable r = new Hashtable();
+	      		r.put("uid",rs.getInt(1));
+	      		r.put("fuid",rs.getLong(2));
+	      		r.put("username",rs.getString(3));
+	      		r.put("password",rs.getString(4));
+	      		r.put("registration_date",rs.getTimestamp(5));
+	      		r.put("email",rs.getString(6));
 
-	    	   accounts.put(rs.getString(3),r);
-	    	   if(rs.getLong(2)!=0)
-	    	   accounts.put(rs.getLong(2),r);
+	      		accounts.put(rs.getString(3),r);
+	      		if(rs.getLong(2)!=0)
+	      			accounts.put(rs.getLong(2),r);
 
-	       }
-	       rs.close();
-	} catch(SQLException exc) { exc.printStackTrace(); }
-	return players;
+	      	}
+	      	rs.close();
+		} catch(SQLException exc) { exc.printStackTrace(); }
+		return players;
 	}
 	public Player getPlayer(int pid) {
 		
