@@ -1464,12 +1464,17 @@ public class Town {
 	 public boolean resourcesZeroed() {
 		 boolean zeroed=true;
 		 int i = 0;
-		 while(i <getRes().length-1) {
-			 if(getRes()[i]>0) zeroed=false;
+		 long[] res = getRes();
+		 while(i <res.length-1) {
+			 if(res[i]>0){
+				 zeroed=false;
+				 break;
+			 }
 			 i++;
 		 }
 		 return zeroed;
 	 }
+	 
 	 public void iterate(int num) {
 		 if(getDigCounter()>=0) {
 			
@@ -1478,47 +1483,19 @@ public class Town {
 			 //5. In iterate, if dig timer is >=0, it goes up, and so does probability. If dig timer is <0, probability goes down towards 0.
 		//	 When the random message send time hits, send the message, and then return them manually when the counter goes down.
 			 // 
-			 if(!isResourceOutcropping()) // all this dig shit only happens if this is not a  resource outcropping.
-			 if(getDigCounter()>=getFindTime()) {
-				 
-				 if(getDigCounter()>=getFindTime()+24*3600/GodGenerator.gameClockFactor) {
-					 //	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
-
-					String subject = "Dig Message From "+ getTownName();
-					int pid[] = {God.findTown(getDigTownID()).getPlayer().ID};
-					String body = "Sir,\n You did not respond in time to our message, and we ran out of supplies, so we headed home!\n -The Dig Team at " + getTownName();
-					String pid_to_s = PlayerScript.toJSONString(pid);
-
-				 try {
-						UberPreparedStatement stmt = getPlayer().con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid) values (?,?,?,?,6,0,?,?);" );
-						stmt.setString(1,pid_to_s);
-						stmt.setInt(2,pid[0]);
-						stmt.setString(3,body);
-						stmt.setString(4,subject);
-						stmt.setInt(5,pid[0]);
-						stmt.setInt(6,townID);
-					stmt.execute();
-					
-					stmt.close();
-				} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	
-				God.findTown(getDigTownID()).getPlayer().getPs().b.recall(townID,getPlayer().ID,getDigTownID());
-				 }
-				 
-				 if(!getMsgSent()) {
-					 ArrayList<QuestListener> digFinish = getEventListenerList("digFinish");
-					 if(digFinish!=null) {
-						 for(QuestListener q: digFinish) {
-							 q.digFinishCatch(this,God.findTown(getDigTownID()).getPlayer());
-						 }
-					 }
-					 // send the message.
-					 String body = getDigMessage();
+			 if(!isResourceOutcropping()) { // all this dig shit only happens if this is not a  resource outcropping.
+				 if(getDigCounter()>=getFindTime()) {
+					 
+					 if(getDigCounter()>=getFindTime()+24*3600/GodGenerator.gameClockFactor) {
+						 //	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
+	
 						String subject = "Dig Message From "+ getTownName();
 						int pid[] = {God.findTown(getDigTownID()).getPlayer().ID};
+						String body = "Sir,\n You did not respond in time to our message, and we ran out of supplies, so we headed home!\n -The Dig Team at " + getTownName();
 						String pid_to_s = PlayerScript.toJSONString(pid);
-
-					 try {
-						 UberPreparedStatement stmt = getPlayer().con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid) values (?,?,?,?,6,0,?,?);" );
+	
+						try {
+							UberPreparedStatement stmt = getPlayer().con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid) values (?,?,?,?,6,0,?,?);" );
 							stmt.setString(1,pid_to_s);
 							stmt.setInt(2,pid[0]);
 							stmt.setString(3,body);
@@ -1526,21 +1503,49 @@ public class Town {
 							stmt.setInt(5,pid[0]);
 							stmt.setInt(6,townID);
 							stmt.execute();
-						
-						stmt.close();
-					} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	
-					setMsgSent(true);
-				 } 
-				 
-				 
-			 } else {
-				 setProbTimer(getProbTimer()+num); // probtimer only goes up when digcounter is less than find time,
-				 // otherwise the archaeologists are waiting at their hole for your call.
+					
+							stmt.close();
+						} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	
+						God.findTown(getDigTownID()).getPlayer().getPs().b.recall(townID,getPlayer().ID,getDigTownID());
+					 }
+					 
+					 if(!getMsgSent()) {
+						 ArrayList<QuestListener> digFinish = getEventListenerList("digFinish");
+						 if(digFinish!=null) {
+							 for(QuestListener q: digFinish) {
+								 q.digFinishCatch(this,God.findTown(getDigTownID()).getPlayer());
+							 }
+						 }
+						 // send the message.
+						 String body = getDigMessage();
+							String subject = "Dig Message From "+ getTownName();
+							int pid[] = {God.findTown(getDigTownID()).getPlayer().ID};
+							String pid_to_s = PlayerScript.toJSONString(pid);
+	
+						 try {
+							 UberPreparedStatement stmt = getPlayer().con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid) values (?,?,?,?,6,0,?,?);" );
+								stmt.setString(1,pid_to_s);
+								stmt.setInt(2,pid[0]);
+								stmt.setString(3,body);
+								stmt.setString(4,subject);
+								stmt.setInt(5,pid[0]);
+								stmt.setInt(6,townID);
+								stmt.execute();
+							
+							stmt.close();
+						} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	
+						setMsgSent(true);
+					 } 
+					 
+					 
+				 } else {
+					 setProbTimer(getProbTimer()+num); // probtimer only goes up when digcounter is less than find time,
+					 // otherwise the archaeologists are waiting at their hole for your call.
+				 }
 			 }
 		 } else {
 			 // so if the dig counter is not on, then it goes down. 
-			 setProbTimer(getProbTimer()-num);
-			 if(getProbTimer()<0) setProbTimer(0);
+			 setProbTimer(Math.max(getProbTimer()-num,0));
 		 }
 		 
 	//	 if(townID==2958)
@@ -1549,18 +1554,19 @@ public class Town {
 		
 		auCheck();
 		checkForBadRaids();
-		GodGenerator.attackServerCheck(this,p); // NONE of these things would be iterating ANYTHING if this player had
+		// NONE of these things would be iterating ANYTHING if this player had
 		// a num of iterations>1. Because that'd imply an update. And a player is never FROZEN if:
 		// 1. It's AI is on
 		// 2. It's got Raid, Trade, or Building building.
+		GodGenerator.attackServerCheck(this,p); 
 		GodGenerator.tradeServerCheck(this,p); // Not this thing.
 		GodGenerator.buildingServerCheck(this); // Not this thing
 		nukeCheck(); // Not this thing, either.
 		foodCheck();
 		try {
-		makeZeppelinFuel(num);
-		giveFuelToZeppelin(num);
-		checkZeppelinMovement(); // Not this thing...
+			makeZeppelinFuel(num);
+			giveFuelToZeppelin(num);
+			checkZeppelinMovement(); // Not this thing...
 		} catch(Exception exc) { exc.printStackTrace(); System.out.println("Zeppelins saved."); }
 		
 		setInternalClock(getInternalClock() + num); // we only iterate after FINISHING THE SAVE!
@@ -1913,60 +1919,59 @@ public class Town {
 	 public void giveResourcesToRO(int num) {
 		 // here we make sure that our lads digging get their resources piled onto their raid.
 		 // we don't worry about taxing because when the raid returns, it'll get taxed.
-		 
+			   
 		 Town origin = getPlayer().God.getTown(getDigTownID());
 		 double resInc[] = getResInc();
 		 long res[] = getRes();
-		 double engRate = getDigAmt()*GodGenerator.engineerRORate*num;
-		 long totake = Math.round(engRate);
-		 if(origin!=null) {// for some reason, sometimes, it is.
+		 long totake = Math.round(getDigAmt()*GodGenerator.engineerRORate*num);
+		 if(origin!=null) { // for some reason, sometimes, it is.
 			 for(Raid r:origin.attackServer()) {
 				 if(r.getDigAmt()>0&&r.getTown2().townID==townID) {
 					 // this is the one we add to.
-					// System.out.println("I AM INSIDE! engrate is " + engRate + " totake is " + totake + " and my name is " + getTownName() + " and resinc m is " + resInc[0]
-					  //     + " t " + resInc[1] + " mm " + resInc[2] + " f " + resInc[3]) ;
+					 // System.out.println("I AM INSIDE! engrate is " + engRate + " totake is " + totake + " and my name is " + getTownName() + " and resinc m is " + resInc[0]
+					 //     + " t " + resInc[1] + " mm " + resInc[2] + " f " + resInc[3]) ;
 					 int i = 0; long resAmt = 0;
-					 while(resInc[i]<0) {
+					 while(resInc[i]<=0) {
 						 i++;
 					 }
 					 
 					 switch(i) {
-					 	case 0:
-					 		resAmt = r.getMetal();
-					 		break;
-					 	case 1:
-					 		resAmt = r.getTimber();
-					 		break;
-					 	case 2:
-					 		resAmt = r.getManmat();
-					 		break;
+						 case 0:
+							 resAmt = r.getMetal();
+							 break;
+						 case 1:
+							 resAmt = r.getTimber();
+							 break;
+						 case 2:
+							 resAmt = r.getManmat();
+							 break;
 					 }
+					 
 					 
 					 if(res[i]<totake) totake = res[i];
 					 res[i]-=totake;
-					 resAmt+=totake;
-					 
 					 boolean sendBack = (res[i]==0);
 					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
-					 if(resAmt>=amtWeCanHold) {
-						 resAmt=amtWeCanHold;
+					 if(resAmt>amtWeCanHold) {
+						 resAmt = amtWeCanHold;
 						 sendBack = true;
-					 }
-
-					 switch(i) {
-					 	case 0:
-					 		r.setMetal(resAmt);
-					 		break;
-					 	case 1:
-					 		r.setTimber(resAmt);
-					 		break;
-					 	case 2:
-					 		r.setManmat(resAmt);
-					 		break;
 					 }
 					 
 					 if(sendBack) returnDigOrRO(false,false);
-				
+					 
+
+					 switch(i) {
+						 case 0:
+							 r.setMetal(resAmt);
+							 break;
+						 case 1:
+							 r.setTimber(resAmt);
+							 break;
+						 case 2:
+							 r.setManmat(resAmt);
+							 break;
+					 }
+
 					 break;
 				 }
 			 }

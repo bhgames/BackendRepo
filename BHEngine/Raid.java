@@ -134,7 +134,7 @@ public class Raid {
 	
 		}
 		
-				rrs.close();rus.close(); } catch(SQLException exc) { exc.printStackTrace(); }
+		rrs.close();rus.close(); } catch(SQLException exc) { exc.printStackTrace(); }
 	/*	this.distance=getMemDistance(); this.ticksToHit=getMemTicksToHit(); getTown1();
 		getTown1(); this.Genocide=isMemGenocide(); this.allClear=isMemAllClear();
 		this.metal=getMemMetal();this.timber=getMemTimber();this.manmat=getMemManmat();this.food=getMemFood();
