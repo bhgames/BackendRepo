@@ -1935,7 +1935,70 @@ public class Town {
 			 r.setRaidOver(true);
 			 resetDig(0,0,false,null); // so now we reset the dig to it's original form.
 		 }
-	 }
+	 }/*
+	 public void giveResourcesToRO(int num) {
+		  // here we make sure that our lads digging get their resources piled onto their raid.
+		  // we don't worry about taxing because when the raid returns, it'll get taxed.
+		  
+		  Town origin = getPlayer().God.getTown(getDigTownID());
+		  double resInc[] = getResInc();
+		  long res[] = getRes();
+		  double engRate = getDigAmt()*GodGenerator.engineerRORate*num;
+		  long totake = Math.round(engRate);
+		  if(origin!=null) {// for some reason, sometimes, it is.
+		   for(Raid r:origin.attackServer()) {
+		    if(r.getDigAmt()>0&&r.getTown2().townID==townID) {
+		     // this is the one we add to.
+		    // System.out.println("I AM INSIDE! engrate is " + engRate + " totake is " + totake + " and my name is " + getTownName() + " and resinc m is " + resInc[0]
+		      //     + " t " + resInc[1] + " mm " + resInc[2] + " f " + resInc[3]) ;
+		     int i = 0; long resAmt = 0;
+		     while(resInc[i]<0) {
+		      i++;
+		     }
+		     
+		     switch(i) {
+		      case 0:
+		       resAmt = r.getMetal();
+		       break;
+		      case 1:
+		       resAmt = r.getTimber();
+		       break;
+		      case 2:
+		       resAmt = r.getManmat();
+		       break;
+		     }
+		     
+		     if(res[i]<totake) totake = res[i];
+		     res[i]-=totake;
+		     resAmt+=totake;
+		     
+		     boolean sendBack = (res[i]==0);
+		     long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
+		     if(resAmt>=amtWeCanHold) {
+		      resAmt=amtWeCanHold;
+		      sendBack = true;
+		     }
+
+		     switch(i) {
+		      case 0:
+		       r.setMetal(resAmt);
+		       break;
+		      case 1:
+		       r.setTimber(resAmt);
+		       break;
+		      case 2:
+		       r.setManmat(resAmt);
+		       break;
+		     }
+		     
+		     if(sendBack) returnDigOrRO(false,false);
+		   
+		     break;
+		    }
+		   }
+		  }
+		 }
+	 */
 	 public void giveResourcesToRO(int num) {
 		 // here we make sure that our lads digging get their resources piled onto their raid.
 		 // we don't worry about taxing because when the raid returns, it'll get taxed.
@@ -1958,9 +2021,12 @@ public class Town {
 					 res[0]-=totake;
 					 r.setMetal(r.getMetal()+totake);
 					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
-					 if(r.getMetal()>amtWeCanHold||res[0]==0) {
+					 if(r.getMetal()>amtWeCanHold) {
 						 r.setMetal(amtWeCanHold);
+					 }
+					 if(res[0]==0||r.getMetal()==amtWeCanHold){
 						 returnDigOrRO(false,false);
+
 					 }
 				 } else if(resInc[1]>0) {
 				//	 System.out.println("...Adding t.");
@@ -1969,9 +2035,12 @@ public class Town {
 					 res[1]-=totake;
 					 r.setTimber(r.getTimber()+totake);
 					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
-					 if(r.getTimber()>amtWeCanHold||res[1]==0) {
+					 if(r.getTimber()>amtWeCanHold) {
 						 r.setTimber(amtWeCanHold);
+					 }
+					 if(res[1]==0||r.getTimber()==amtWeCanHold){
 						 returnDigOrRO(false,false);
+
 					 }
 				 } else if(resInc[2]>0) {
 			//		 System.out.println("...Adding mm.");
@@ -1980,9 +2049,12 @@ public class Town {
 					 res[2]-=totake;
 					 r.setManmat(r.getManmat()+totake);
 					 long amtWeCanHold = GodGenerator.returnCargoOfSupportAndEngineers(this);
-					 if(r.getManmat()>amtWeCanHold||res[2]==0) {
+					 if(r.getManmat()>amtWeCanHold) {
 						 r.setManmat(amtWeCanHold);
+					 }
+					 if(res[2]==0||r.getManmat()==amtWeCanHold){
 						 returnDigOrRO(false,false);
+
 					 }
 				 }
 				 

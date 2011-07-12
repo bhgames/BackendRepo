@@ -2151,8 +2151,29 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.breakVassalageTest(req,out,p);
 					g.lordvlordTest(req,out,p);
 					g.vassalThatIsLordTest(req,out,p);
-				}      else{
-					
+				}    else if(test.equals("all")) {
+					g.deconstructBuildingTest(req,out,p);
+					g.foodConsumptionTest(req,out,p);
+					g.basicROTest(req,out,p);
+					g.ROContestedTest(req,out,p);
+					g.ROInfluenceTest(req,out,p);
+					g.ROEngCapTest(req,out,p);
+					g.ROCollapseTest(req,out,p);
+					g.fbPostTest(req,out,p);
+					g.separatedPointsTest(req,out);
+					g.giftWrappingTest(req,out);
+					g.returnTerritoryTest(req,out,p);
+					g.basicTerritoryTest(req,out,p);
+					g.intermediateTerritoryTest(req,out,p);
+					g.advancedTerritoryTest(req,out,p);
+					g.basicVassalageTest(req,out,p);
+					g.advancedVassalageTest(req,out,p);
+					g.breakVassalageTest(req,out,p);
+					g.lordvlordTest(req,out,p);
+					g.vassalThatIsLordTest(req,out,p);
+				}
+				else{
+
 					out.println("Illegal test.");
 				}
 				

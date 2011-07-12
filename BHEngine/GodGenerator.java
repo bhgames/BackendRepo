@@ -15381,10 +15381,18 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			player.deleteFakePlayers(players); return false;
 		}
 		// but now move town4 out of the influence! Now we should experience breakage.
-		
+		if(t4.getLord()==null) {
+			out.println("breakVassalage test failed because p2's town t4 didn't get lorded like it should've after getting into harm's way.");
+			player.deleteFakePlayers(players); return false;
+		}
 		t4.setX(1111111);
 		players[0].territoryCalculator();
+	
 		players[1].territoryCalculator(); // now the player should be unlorded.
+		if(t4.getLord()!=null) {
+			out.println("breakVassalage test failed because p2's town t4 didn't get unlorded like it should've after getting out of harm's way.");
+			player.deleteFakePlayers(players); return false;
+		}
 		if(players[1].getLord()!=null) {
 			out.println("breakVassalage test failed because p2 didn't get unlorded like it should've after getting out of harm's way.");
 			player.deleteFakePlayers(players); return false;
@@ -15615,7 +15623,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		t2.addBuilding("Metal Mine",0,1,0);
 		t4.addBuilding("Metal Mine",0,1,0);
 
-		double toGet = t2.getResInc()[0]; // That's what we expect he'd normally get. We look at the resbuffers. With a level 1 mine,
+		double toGet = t2.getResInc()[0]+t4.getResInc()[0]; // That's what we expect he'd normally get. We look at the resbuffers. With a level 1 mine,
 		// we do not expect to get >1, so it'll be in the resbuffer.
 		
 		t2.doMyResources(1);
