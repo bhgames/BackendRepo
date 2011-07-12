@@ -10055,7 +10055,7 @@ public boolean checkForGenocides(Town t) {
 	}
 	public static void attackServerCheck(Town t1, Player p) {
 		
-		/*
+		/*THESE NOTES ARE OUTDATED!!!  ;)
 		 * How we Genocide an area:
 		 * 
 		 * In the holdRaid there should be a separate flag labeled Genocide.
@@ -10070,8 +10070,7 @@ public boolean checkForGenocides(Town t) {
 		UserRaid holdAttack;
 		UserRaid[] attackServer = p.getPs().b.getUserRaids(t1.townID); Raid r;
 		AttackUnit au;
-		ArrayList<AttackUnit> AU;
-		ArrayList<AttackUnit> tAU;
+		ArrayList<AttackUnit> AU, tAU;
 		
 		if(attackServer.length>0) {
 			int i = 0;
@@ -10081,17 +10080,16 @@ public boolean checkForGenocides(Town t) {
 					r = t1.findRaid(holdAttack.id());
 					if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&holdAttack.getDockingFinished()==null&&r.getTown2().owedTicks>0&&r.getTown2().getPlayer().ID!=r.getTown1().getPlayer().ID) {
 						r.getTown2().update();
-						
-
 					}
 					if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&holdAttack.getDockingFinished()==null) {
 						
 						r.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidLandingCatch",holdAttack);
 						ArrayList<QuestListener> onRaidLandingList = r.getTown2().getEventListenerList("onRaidLanding");
-						if(onRaidLandingList!=null)
+						if(onRaidLandingList!=null) {
 							for(QuestListener q: onRaidLandingList) {
 								q.onRaidLanding(r);
 							}
+						}
 					}
 					//	System.out.println("raidOver is currently " + holdAttack.raidOver);
 					// this else UberStatement is for the actual attack server to use, the above is the facsimile treatment.
@@ -10099,65 +10097,65 @@ public boolean checkForGenocides(Town t) {
 					// support = 0 means not supporting run, and scout=0 means it's  not
 					// a scouting run.
 					if(r.getTown2().getDigCounter()>0) {
-					Town otherT = r.getTown2().getPlayer().God.findTown(r.getTown2().getDigTownID());
-					//	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
-					int k = 6; int total=0;
-					while(k<r.getTown2().getAu().size()) {
-						total+=r.getTown2().getAu().get(k).getSize();
-						k++;
-					}
-					if(total==0) { 
-						otherT.getPlayer().getPs().b.recall(r.getTown2().townID,r.getTown2().getPlayer().ID,otherT.townID);
-					
-					try {
-						String unitStart=""; String unitNames="";String unitEnd="";
-						 k = 0;
-						Player t1p = r.getTown1().getPlayer();
-						String msg = "";
-						if(r.getTown2().isResourceOutcropping()) {
-							msg = "The defensive excavation site was forced out of their excavation by an enemy attack.";
-						} else {
-							msg = "The defensive dig site was forced out of their dig by an enemy attack.";
-						}
-						UberPreparedStatement stmt = t1.getPlayer().con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,offdig,defdig,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,false,true,?);");
-						Town t2 = r.getTown2();
-						while(k<r.getAu().size()) {
-							unitStart+=","+r.getAu().get(k).getSize();
-							unitNames+=","+r.getAu().get(k).getName();
-							unitEnd+=",0";
-
+						Town otherT = r.getTown2().getPlayer().God.findTown(r.getTown2().getDigTownID());
+						//	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
+						int k = 6; int total=0;
+						while(k<r.getTown2().getAu().size()) {
+							total+=r.getTown2().getAu().get(k).getSize();
 							k++;
 						}
-						stmt.setInt(1,otherT.getPlayer().ID);
-						stmt.setInt(2,t1.townID);
-						stmt.setInt(3,t2.townID);
-						stmt.setString(4,unitStart);
-						stmt.setString(5,unitEnd);
-						stmt.setString(6,unitNames);
-						stmt.setLong(7,r.getMetal());
-						stmt.setLong(8,r.getTimber());
-						stmt.setLong(9,r.getManmat());
-						stmt.setLong(10,r.getFood());
-						stmt.setString(11,t1.getTownName());
-						stmt.setString(12,t2.getTownName());
-						stmt.setString(13,msg);
-						UUID id  =UUID.randomUUID();
-						  stmt.setString(14,id.toString());
-
-						 stmt.execute();
-						   Date today = new Date();
-							  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
-							 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
-								//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage, boolean digend)
-								  otherT.getPlayer().addUserSR(new UserSR(id,unitStart,unitEnd,null,null,unitNames,null,t1.getTownName(),t2.getTownName(),false,false,false,false,(int) r.getMetal(),(int) r.getFood(),(int) r.getManmat(),(int) r.getFood(),
-										  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,false,true,msg,false));
-					
-						   
-					stmt.close();
-					} catch(SQLException exc) {  exc.printStackTrace(); } 
-					
-					r.getTown2().resetDig(0,0,false,r);
-					}
+						if(total==0) { 
+							otherT.getPlayer().getPs().b.recall(r.getTown2().townID,r.getTown2().getPlayer().ID,otherT.townID);
+						
+							try {
+								String unitStart=""; String unitNames="";String unitEnd="";
+								k = 0;
+								Player t1p = r.getTown1().getPlayer();
+								String msg = "";
+								if(r.getTown2().isResourceOutcropping()) {
+									msg = "The defensive excavation site was forced out of their excavation by an enemy attack.";
+								} else {
+									msg = "The defensive dig site was forced out of their dig by an enemy attack.";
+								}
+								UberPreparedStatement stmt = t1.getPlayer().con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,offdig,defdig,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,false,true,?);");
+								Town t2 = r.getTown2();
+								while(k<r.getAu().size()) {
+									unitStart+=","+r.getAu().get(k).getSize();
+									unitNames+=","+r.getAu().get(k).getName();
+									unitEnd+=",0";
+		
+									k++;
+								}
+								stmt.setInt(1,otherT.getPlayer().ID);
+								stmt.setInt(2,t1.townID);
+								stmt.setInt(3,t2.townID);
+								stmt.setString(4,unitStart);
+								stmt.setString(5,unitEnd);
+								stmt.setString(6,unitNames);
+								stmt.setLong(7,r.getMetal());
+								stmt.setLong(8,r.getTimber());
+								stmt.setLong(9,r.getManmat());
+								stmt.setLong(10,r.getFood());
+								stmt.setString(11,t1.getTownName());
+								stmt.setString(12,t2.getTownName());
+								stmt.setString(13,msg);
+								UUID id  =UUID.randomUUID();
+								stmt.setString(14,id.toString());
+		
+								stmt.execute();
+								Date today = new Date();
+									  //public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
+									 //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+										//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage, boolean digend)
+								otherT.getPlayer().addUserSR(new UserSR(id,unitStart,unitEnd,null,null,unitNames,null,t1.getTownName(),t2.getTownName(),false,false,false,false,(int) r.getMetal(),(int) r.getFood(),(int) r.getManmat(),(int) r.getFood(),
+												  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,false,true,msg,false));
+							
+								   
+							stmt.close();
+							} catch(SQLException exc) {  exc.printStackTrace(); } 
+							
+							r.getTown2().resetDig(0,0,false,r);
+						}
 					}
 					combatLogicBlock(r,"");
 	
@@ -10178,21 +10176,20 @@ public boolean checkForGenocides(Town t) {
 					} else
 					supportLogicBlock(r,false); // 
 					
-				}else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("dig")||holdAttack.raidType().equals("excavation"))) {
+				} else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("dig")||holdAttack.raidType().equals("excavation"))) {
 					if(holdAttack.getDockingFinished()==null)
-					digLogicBlock(r);
+						digLogicBlock(r);
 					
-				}else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("debris"))) {
-					// this means it's a supporting run. Scout will always be 0 for this.
+				} else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("debris"))) {
 				
 					debrisLogicBlock(r);
 					
-				}	else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&holdAttack.raidType().equals("scout")) {
+				} else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&holdAttack.raidType().equals("scout")) {
 					
 					scoutLogicBlock(r);
 					// So scoutLogicBlock returns false if there is discovery,
 					// and we go straight into a combat block then!
-				}	else if (holdAttack.eta()<=0&&holdAttack.raidOver()) {
+				} else if (holdAttack.eta()<=0&&holdAttack.raidOver()) {
 					// Now this is a return raid.
 				//	System.out.println("Returning...");
 					int c = 0;

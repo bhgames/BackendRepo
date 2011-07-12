@@ -25,7 +25,7 @@ public class Town {
 	
 	 public int townID, influence, probTimer, findTime, digCounter, digAmt, owedTicks, x, y, destX,
 	 			destY, fuelCells, ticksTillMove, digTownID, internalClock=0; 
-	 private String holdingIteratorID = "-1", townName;
+	 private String townName, holdingIteratorID = "-1";
 	 private GodGenerator God; private UberConnection con;
 	 private ArrayList<AttackUnit> au;
 	 private ArrayList<Building> bldg;
@@ -1310,15 +1310,15 @@ public class Town {
 		}
 	}
 	synchronized public void update() {
-			if(owedTicks>0) {
+		if(owedTicks>0) {
 
-		 if(getPlayer().ID==5||getPlayer().isQuest()) {
-			 iterate(God.gameClock-owedTicks);
-			 owedTicks=0;
-			 save();
-		 }
-		 else getPlayer().update();
+			if(getPlayer().ID==5||getPlayer().isQuest()) {
+				iterate(God.gameClock-owedTicks);
+				owedTicks=0;
+				save();
 			}
+			else getPlayer().update();
+		}
 	 }
 	 public boolean stuffOut() {
 			int i = 0;
@@ -1384,12 +1384,12 @@ public class Town {
 		 update();
 		// System.out.println("Resetting town ID to " + newTownID);
 		 if(newTownID==0)
-		 setDigCounter(-1); // making it go away.
+			 setDigCounter(-1); // making it go away.
 		 else setDigCounter(0);
 		 setDigTownID(newTownID); // making it, too, go away.
 		 setMsgSent(false);
 		 if(!findTime)
-		 setFindTime(-1);
+			 setFindTime(-1);
 		 else
 			 setFindTime((int) Math.floor(Math.random()*24*3600/GodGenerator.gameClockFactor));
 		 setDigAmt(digAmt);
@@ -1519,21 +1519,21 @@ public class Town {
 						 }
 						 // send the message.
 						 String body = getDigMessage();
-							String subject = "Dig Message From "+ getTownName();
-							int pid[] = {God.findTown(getDigTownID()).getPlayer().ID};
-							String pid_to_s = PlayerScript.toJSONString(pid);
+						 String subject = "Dig Message From "+ getTownName();
+						 int pid[] = {God.findTown(getDigTownID()).getPlayer().ID};
+						 String pid_to_s = PlayerScript.toJSONString(pid);
 	
 						 try {
 							 UberPreparedStatement stmt = getPlayer().con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid) values (?,?,?,?,6,0,?,?);" );
-								stmt.setString(1,pid_to_s);
-								stmt.setInt(2,pid[0]);
-								stmt.setString(3,body);
-								stmt.setString(4,subject);
-								stmt.setInt(5,pid[0]);
-								stmt.setInt(6,townID);
-								stmt.execute();
-							
-							stmt.close();
+							 stmt.setString(1,pid_to_s);
+							 stmt.setInt(2,pid[0]);
+							 stmt.setString(3,body);
+							 stmt.setString(4,subject);
+							 stmt.setInt(5,pid[0]);
+							 stmt.setInt(6,townID);
+							 stmt.execute();
+
+							 stmt.close();
 						} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	
 						setMsgSent(true);
 					 } 

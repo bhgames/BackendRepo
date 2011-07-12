@@ -569,56 +569,56 @@ public class Raid {
 	
 	public ArrayList<AttackUnit> getAu() {
 		if(au==null) {
-		int y = 0;
-
-
-		ArrayList<AttackUnit> raidAU = new ArrayList<AttackUnit>();
-		AttackUnit auHold;
-		String auSizesStr = getString("auSizes");
-		int auSizes[] = PlayerScript.decodeStringIntoIntArray(auSizesStr);
-		ArrayList<AttackUnit> tau = getTown1().getAu();
-		while(y<auSizes.length) {
-			 auHold = tau.get(y).returnCopy();
-			if(getSupport()==1&&getTown1().getPlayer().ID!=getTown2().getPlayer().ID){
-				 auHold.makeSupportUnit(auHold.getSlot(),getTown1().getPlayer(),getTown1().townID);
-			} else if(getSupport()==2&&getTown1().getPlayer().ID!=getTown2().getPlayer().ID) auHold.makeOffSupportUnit(auHold.getSlot(),getTown1().getPlayer(),getTown1().townID);
-
-			auHold.setSize(auSizes[y]);
-			raidAU.add(auHold);
+			int y = 0;
+	
+	
+			ArrayList<AttackUnit> raidAU = new ArrayList<AttackUnit>();
+			AttackUnit auHold;
+			String auSizesStr = getString("auSizes");
+			int auSizes[] = PlayerScript.decodeStringIntoIntArray(auSizesStr);
+			ArrayList<AttackUnit> tau = getTown1().getAu();
+			while(y<auSizes.length) {
+				auHold = tau.get(y).returnCopy();
+				if(getSupport()==1&&getTown1().getPlayer().ID!=getTown2().getPlayer().ID){
+					 auHold.makeSupportUnit(auHold.getSlot(),getTown1().getPlayer(),getTown1().townID);
+				} else if(getSupport()==2&&getTown1().getPlayer().ID!=getTown2().getPlayer().ID) auHold.makeOffSupportUnit(auHold.getSlot(),getTown1().getPlayer(),getTown1().townID);
+	
+				auHold.setSize(auSizes[y]);
+				raidAU.add(auHold);
+				
+				y++;
+			}
+			/* OLDER SUPPORT CODE.
+			try {
 			
-			y++;
-		}
-		/* OLDER SUPPORT CODE.
-		try {
-		
-			UberStatement rustown2 = con.createStatement();
-		 ResultSet rrs2 = rustown2.executeQuery("select * from raidSupportAU where rid = " + raidID + " and tid = " + getTown1().townID + " order by tidslot asc");
-		 AttackUnit sAU;
-		while(rrs2.next()) {
-			int size = rrs2.getInt(4);
-		 // right we have what we need, we know
-			// we already have a reference to town1...
-			int j =6; boolean found = false;
-			while(j<tau.size()) {
-				if(tau.get(j).getSlot()==rrs2.getInt(3)){
-					 sAU = tau.get(j).returnCopy();
-						// attackunits are already on town 1, so they were ported
-						// here, just need sizes!
-						sAU.setSize(size);
-						raidAU.add(sAU); 
+				UberStatement rustown2 = con.createStatement();
+			 ResultSet rrs2 = rustown2.executeQuery("select * from raidSupportAU where rid = " + raidID + " and tid = " + getTown1().townID + " order by tidslot asc");
+			 AttackUnit sAU;
+			while(rrs2.next()) {
+				int size = rrs2.getInt(4);
+			 // right we have what we need, we know
+				// we already have a reference to town1...
+				int j =6; boolean found = false;
+				while(j<tau.size()) {
+					if(tau.get(j).getSlot()==rrs2.getInt(3)){
+						 sAU = tau.get(j).returnCopy();
+							// attackunits are already on town 1, so they were ported
+							// here, just need sizes!
+							sAU.setSize(size);
+							raidAU.add(sAU); 
+					}
+					j++;
 				}
-				j++;
+				
+			
 			}
 			
-		
-		}
-		
-		rrs2.close();
-		rustown2.close();*/
-		
-		au= raidAU;
-		//} catch(SQLException exc) { exc.printStackTrace(); }
-		
+			rrs2.close();
+			rustown2.close();*/
+			
+			au= raidAU;
+			//} catch(SQLException exc) { exc.printStackTrace(); }
+			
 		}
 		return au;
 		
