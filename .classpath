@@ -2,5 +2,37 @@
 <classpath>
 	<classpathentry kind="src" path=""/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="src/activation.jar"/>
+	<classpathentry kind="lib" path="src/annotations-api.jar"/>
+	<classpathentry kind="lib" path="src/catalina-ant.jar"/>
+	<classpathentry kind="lib" path="src/catalina-ha.jar"/>
+	<classpathentry kind="lib" path="src/catalina-tribes.jar"/>
+	<classpathentry kind="lib" path="src/catalina.jar"/>
+	<classpathentry kind="lib" path="src/commons-codec-1.4-javadoc.jar"/>
+	<classpathentry kind="lib" path="src/commons-codec-1.4-sources.jar"/>
+	<classpathentry kind="lib" path="src/commons-codec-1.4.jar"/>
+	<classpathentry kind="lib" path="src/commons-httpclient-3.1.jar"/>
+	<classpathentry kind="lib" path="src/commons-logging-1.1.1-javadoc.jar"/>
+	<classpathentry kind="lib" path="src/commons-logging-1.1.1-sources.jar"/>
+	<classpathentry kind="lib" path="src/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="src/commons-logging-adapters-1.1.1.jar"/>
+	<classpathentry kind="lib" path="src/commons-logging-api-1.1.1.jar"/>
+	<classpathentry kind="lib" path="src/commons-logging-tests.jar"/>
+	<classpathentry kind="lib" path="src/el-api.jar"/>
+	<classpathentry kind="lib" path="src/httpclient-4.0.1.jar"/>
+	<classpathentry kind="lib" path="src/httpcore-4.0.1.jar"/>
+	<classpathentry kind="lib" path="src/httpcore-nio-4.0.1.jar"/>
+	<classpathentry kind="lib" path="src/httpmime-4.0.1.jar"/>
+	<classpathentry kind="lib" path="src/jasper-el.jar"/>
+	<classpathentry kind="lib" path="src/jasper-jdt.jar"/>
+	<classpathentry kind="lib" path="src/jasper.jar"/>
+	<classpathentry kind="lib" path="src/jsp-api.jar"/>
+	<classpathentry kind="lib" path="src/servlet-api.jar"/>
+	<classpathentry kind="lib" path="src/terracotta-3.3.0-installer.jar"/>
+	<classpathentry kind="lib" path="src/tomcat-coyote.jar"/>
+	<classpathentry kind="lib" path="src/tomcat-dbcp.jar"/>
+	<classpathentry kind="lib" path="src/tomcat-i18n-es.jar"/>
+	<classpathentry kind="lib" path="src/tomcat-i18n-fr.jar"/>
+	<classpathentry kind="lib" path="src/tomcat-i18n-ja.jar"/>
 	<classpathentry kind="output" path=""/>
 </classpath>

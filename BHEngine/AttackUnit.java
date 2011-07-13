@@ -9,9 +9,6 @@ import BattlehardFunctions.UserAttackUnit;
 
 public class AttackUnit {
 private	double armorType, armor, cargo, speed, attackDamage=0, hp = 0;
-	
-	// Weapons are hardcoded into attack unit data as double arrays to save
-	// processing time. There are a limited amount of weapons.
 
 private int originalSlot, originalTID, type, attackType, slot, lvl, expmod = 0,
 			support=0, 			// for support aus...do not confuse support w/ raid's support,
@@ -25,7 +22,6 @@ private boolean deleteMe=false, // these two booleans only used for template aus
 								// of a new modified version, which'll take up updating the entry afterwards.
 
 private Player originalPlayer; 	// Reference to original player if in slot so that I can easily access it.
-//private	int[] weap;
 volatile private int size; 		// Optional, can be set if you want AttackUnit to store the number
 								// of this type in a raid/attack. This class can also be used to simply
 								// describe a general unit type also.

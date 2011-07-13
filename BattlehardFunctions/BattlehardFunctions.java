@@ -5209,7 +5209,6 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		if(attackType.equals("excavation")) limit--;
 		while(k<limit) {
 			
-
 			// Next we need to check if these numbers go over the max units in
 			// the town. If they do, send the max units instead.
 			if(k<t1au.size()) {
@@ -10158,6 +10157,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					else if(genocide&&bomb) raidType="glass";
 					if(support==1) raidType = "support";
 					if(support==2) raidType="offsupport";
+					if(support==3) raidType="blockade";
 					if(scout==1) raidType="scout";
 					if(invade) raidType="invasion";
 					if(resupplyID!=null) raidType="resupply";
@@ -12511,7 +12511,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return toSend[0];
 	}
 	private String getRandomAPI() {
-		String random[] ={
+		String[] random ={
 				"digAPI",
 				"attackAPI",
 				"advancedAttackAPI",
@@ -12529,7 +12529,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				
 		};
 		int counter=0;
-		String toSend[] = {"null"};
+		String[] toSend = {"null"};
 	do 	 {
 			int rand = (int) Math.round(Math.random()*(random.length-1));
 			if(rand<0) rand = 0;

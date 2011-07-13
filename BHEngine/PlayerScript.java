@@ -42,22 +42,21 @@ import BattlehardFunctions.UserWeapon;
 import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 public class PlayerScript implements Runnable {	
 	public Player player;
-	int timeshit = 0;
+	int timeshit = 0, timeshit2 = 0;
 	public Class<?> currRev;
 	public Object currRevInstance;
 	Object currInstInstance;
 	Class<?> currInst;
-	int timeshit2 = 0;
 	
 	Thread t; 
 	//private static String url = "jdbc:mysql://72.167.46.39:3306/bhdb";
-	private static String url = "jdbc:mysql://localhost:3306/bhdb";
+	private static String 	url = "jdbc:mysql://localhost:3306/bhdb",
 	//private static String pass = "D1einfuk";
-	private static String user = "root";
+							user = "root",
 //	private static String user = "bhdbuser";
-	private static String pass = "battlehard";
+							pass = "battlehard",
 	//private static String gigaIP = "184.106.231.186:8080";
-	private static String gigaIP= "localhost:8080";
+							gigaIP= "localhost:8080";
 	/*
 	 static String bhengsrcdirectory = "/users/arkavon/documents/apache-tomcat-6.0.26/webapps/AIWars/WEB-INF/src/";
 	 static String bhengbindirectory = "/users/arkavon/documents/apache-tomcat-6.0.26/webapps/AIWars/WEB-INF/classes/";
@@ -68,20 +67,19 @@ public class PlayerScript implements Runnable {
 	 */
 	//-cp lib/servlet-api.jar
 	 
-	 static String bhengbindirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/";
-	static String bhengsrcdirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/src/";
-	 static String srcdirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/RevelationsDirectory/src/";
-	 static String bindirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/RevelationsDirectory/bin/";
+	 static String 	bhengbindirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/",
+			 		bhengsrcdirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/src/",
+			 		srcdirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/RevelationsDirectory/src/",
+			 		bindirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/RevelationsDirectory/bin/",
 
 	// static String srcdirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/userscriptsrc/";
 	// static String bindirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/userscriptbin/";	
-	 static String apachedirectory = "/usr/share/apache-tomcat-6.0.28/";
+			 		apachedirectory = "/usr/share/apache-tomcat-6.0.28/";
 
 	
 	UberStatement stmt;
     ResultSet hobojeebies;
-    public BattlehardFunctions b;
-    public BattlehardFunctions revb;
+    public BattlehardFunctions b, revb;
     public static String getCheck() {
     	return bhengbindirectory;
     }

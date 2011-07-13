@@ -120,7 +120,7 @@ public class Player  {
 				eventListenerLists.put("onRaidSent",new ArrayList<QuestListener>());
 
 		       try {
-		       last_session=new Timestamp((new Date()).getTime());
+		    	   last_session=new Timestamp((new Date()).getTime());
 		       } catch(Exception exc) { last_session = new Timestamp((new Date()).getTime());}
 		       numLogins = 0;
 		       totalTimePlayed = 0;
@@ -234,7 +234,7 @@ public class Player  {
 				if(!facsimile) { // you must set them yourself if you are.
 					au = getAu(); 
 					try {
-					getAchievements();
+						getAchievements();
 					} catch(Exception exc) { exc.printStackTrace(); System.out.println("No idea why this error happened, but player load saved."); } 
 				}
 		   }
@@ -244,6 +244,39 @@ public class Player  {
 
 	}
 
+	public boolean[] getDeepAlliance(Player p) {
+		boolean[] ally = {false,false,false};
+		/*
+		 * 	ally[0] isDirectAlly
+		 * 	is true if the players have an alliance with each other
+		 *	isDirectAlly wont be used until the diplomacy system is implemented 
+		 *
+		 *	ally[1] hasSameLeague
+		 *	is true if the players have the same league
+		 *
+		 *	ally[2] hasSameLord
+		 *	is true if the players have the same lord
+		 *
+		 *	The idea here is to determine the level of alliance.  If you just need to know if two players are allied
+		 *	use isAllied
+		 */
+		Player lord = p.getLord();
+		League league = p.getLeague();
+		if(lord!=null) {
+			ally[2] = lord.getID()==getLord().getID();
+		}
+		if(league!=null) {
+			ally[1] = league.getID()==getLeague().getID();
+		}
+		return ally;
+	}
+	
+	public boolean isAllied(Player p) {
+		//add check for diplomatic alliance
+		if(p.getLord().getID()==getLord().getID()) return true;
+		if(p.getLeague().getID()==getLeague().getID()) return true;
+		return false;
+	}
 	
 	public TradeSchedule findTradeSchedule(UUID trid) {
 		int i = 0;
@@ -886,8 +919,23 @@ public class Player  {
 							
 						}
 					}
-					else
-						t.setInfluence(t.getInfluence()+t.getPlayer().getPs().b.getCSL(t.townID));
+					else {
+						int influence = t.getInfluence()+t.getPlayer().getPs().b.getCSL(t.townID);
+						ArrayList<Raid> blockades = t.getBlockades();
+						if(blockades.size()>0){ //if the town is blockaded, we have to determine the number of days the 
+												//blockades have been there and how "big" of a presence they are
+							long now = new Timestamp(new Date().getTime()).getTime();
+							for(Raid r : blockades) {
+								ArrayList<AttackUnit> au = r.getAu();
+								for(AttackUnit a : au) {
+									influence -= a.getExpmod()* //the "pop size" of the unit times
+												 a.getSize()*	//the number of the unit in the blockade times
+												 Math.floor((r.getDockingFinished().getTime()-now)/(24*3600*1000));
+								}								//the amount of time the blockade has been there
+							}									//in days, rounded down.  :)
+						}
+						t.setInfluence(influence);
+					}
 				}
 					// now we calculate to see what the max block this guy should have is.
 					
@@ -2256,11 +2304,12 @@ public class Player  {
 			owedTicks=0; 
 			saveTripped=true;
 		}
-			int i = 0;
-		while(i<towns().size()) {
-			if(towns().get(i).owedTicks>0) {
-				towns().get(i).iterate(God.gameClock-towns().get(i).owedTicks);
-				towns().get(i).owedTicks=0; // player towns and players normally will have around the same owedTicks...
+		int i = 0; ArrayList<Town> towns = towns();
+		while(i<towns.size()) {
+			Town t = towns().get(i);
+			if(t.owedTicks>0) {
+				t.iterate(God.gameClock-towns().get(i).owedTicks);
+				t.owedTicks=0; // player towns and players normally will have around the same owedTicks...
 				// we only keep owedTicks on towns for Id's sake.
 				saveTripped=true;
 			}

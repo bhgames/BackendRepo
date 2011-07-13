@@ -38,7 +38,7 @@ public class Town {
 	 private ArrayList<Raid> attackServer;
 	 private boolean zeppelin, msgSent, resourceOutcropping;
 	 private Hashtable eventListenerLists = new Hashtable();
-	 public static int zeppelinTicksPerMove= (int) Math.round(((double) Math.sqrt(1)*10/(500*GodGenerator.speedadjust))/GodGenerator.gameClockFactor),
+	 public static int 	zeppelinTicksPerMove= (int) Math.round(((double) Math.sqrt(1)*10/(500*GodGenerator.speedadjust))/GodGenerator.gameClockFactor),
 			 			ticksPerFuelPointBase =(int) Math.round((3600.0*24.0/((double) GodGenerator.gameClockFactor*10))),
 			 			daysOfStoragePerAirshipPlatform = 4,
 			 			maxFuelCells = 20, // the max fuel a zeppelin can hold.
@@ -149,9 +149,14 @@ public class Town {
 		return this.au;
 	}
 	
-	public ArrayList<AttackUnit> getBlockade() {
-		Player p = getPlayer();
-		
+	public ArrayList<Raid> getBlockades() {
+		ArrayList<Raid> blockades, AS = getAttackServer();
+		for(Raid r : AS) {
+			if(r.getSupport()==3) {
+				blockades.add(r);
+			}
+		}
+		return blockades;
 	}
 	
 	public Town(int townID, GodGenerator God) {
@@ -160,38 +165,38 @@ public class Town {
 		this.townID=townID;
 		setInternalClock(God.gameClock);
 		if(townID!=0&&townID<999999900){
-		 getTownName();
-		if(getPlayer()!=null) { // sometimes when we build towns for Quests, they don't have a player yet on the list of iteratorPlayers.
-	
+			getTownName();
+			if(getPlayer()!=null) { // sometimes when we build towns for Quests, they don't have a player yet on the list of iteratorPlayers.
+		
 				tradeServer(); tradeSchedules(); attackServer();
 				getRes(); getResBuff();  getResEffects();
-				getAu();
-				bldg(); 
-		}
-		probTimer = getMemInt("probTimer");
-		findTime = getMemInt("findTime");
-		digCounter=getMemInt("digCounter");
-		zeppelin = getMemBoolean("zeppelin");
-		debris = getMemDebris();
-		//EVENT LISTENER ADDS
-		eventListenerLists.put("digFinish",new ArrayList<QuestListener>());
-		eventListenerLists.put("onRaidLanding",new ArrayList<QuestListener>());
-
-		msgSent = getMemBoolean("msgSent");
-		digTownID = getMemInt("digTownID");
-		owedTicks = getMemInt("owedTicks");
-		digAmt = getMemInt("digAmt");
-		influence = getMemInt("influence");
-		resourceOutcropping = getMemBoolean("resourceOutcropping");
-
-		if(isZeppelin()) {
-		destX = getMemInt("destX");
-		destY = getMemInt("destY");
-		fuelCells = getMemInt("fuelcells");
-		ticksTillMove = getMemInt("ticksTillMove");
-		}
-		x = getMemX();
-		y = getMemY();} else {
+				getAu(); bldg(); 
+			}
+			probTimer = getMemInt("probTimer");
+			findTime = getMemInt("findTime");
+			digCounter=getMemInt("digCounter");
+			zeppelin = getMemBoolean("zeppelin");
+			debris = getMemDebris();
+			//EVENT LISTENER ADDS
+			eventListenerLists.put("digFinish",new ArrayList<QuestListener>());
+			eventListenerLists.put("onRaidLanding",new ArrayList<QuestListener>());
+	
+			msgSent = getMemBoolean("msgSent");
+			digTownID = getMemInt("digTownID");
+			owedTicks = getMemInt("owedTicks");
+			digAmt = getMemInt("digAmt");
+			influence = getMemInt("influence");
+			resourceOutcropping = getMemBoolean("resourceOutcropping");
+	
+			if(isZeppelin()) {
+			destX = getMemInt("destX");
+			destY = getMemInt("destY");
+			fuelCells = getMemInt("fuelcells");
+			ticksTillMove = getMemInt("ticksTillMove");
+			}
+			x = getMemX();
+			y = getMemY();
+		} else {
 			setTownName("TestTown-"+townID);
 		}
 	}
@@ -733,7 +738,7 @@ public class Town {
 				// MEANS A NUKE IS FLYIN'. 
 				// BUT WHERE IS IT GOING?
 				// Easy - hide the X and Y in the bunkerMode and refuelTicks fields!
-				//(LIKE A PRO)
+				// (LIKE A BOSS)
 				
 				int x = b.getBunkerMode();
 				int y = b.getRefuelTicks();
@@ -2156,7 +2161,7 @@ public class Town {
 			try {
 				UberPreparedStatement stmt = con.createStatement("update town set lord = ?, vassalFrom = ?, influence = ? where tid = ?;");
 				if(lord!=null) // if you do getlord, it'll revive the old one from memory.
-				stmt.setInt(1,lord.ID);
+					stmt.setInt(1,lord.ID);
 				else stmt.setInt(1,0);
 				if(getVassalFrom()!=null) stmt.setString(2,getVassalFrom().toString());
 				else stmt.setString(2,new Timestamp((new Date()).getTime()).toString());

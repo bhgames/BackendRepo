@@ -6799,6 +6799,42 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		return true;
 	}
 	
+	public static boolean blockadeLogicBlock(Raid r) {
+		int ie = 0;int totalCheckedSize=0; ArrayList<AttackUnit> au = r.getAu();
+		while(ie<au.size()) {
+			totalCheckedSize+=au.get(ie).getSize();
+			// SuggestTitleVideoId
+			ie++;
+		}
+		if(totalCheckedSize==0) {
+			// this means we called getAu() for the first time before the au statements got to update and put
+			// the units into the raid!
+			r.setAu(null);
+			r.getAu(); // reset.
+		}
+		
+		Player t1p = r.getTown1().getPlayer(); ArrayList<Raid> blockades = r.getTown2().getBlockades();
+		
+		if(blockades.size()>0) { 	//there are already blockades at the town
+									//we have to determine if combat must take place
+			boolean fight = false;
+			for(Raid ra : blockades){
+				Player raT1p = ra.getTown1().getPlayer();
+				if(t1p.getID()!=raT1p.getID()&&!raT1p.isAllied(t1p)) {
+					fight = true;
+					break;
+				}
+			}
+			if(fight) {
+				combatLogicBlock(r,"A hostile Blockade was already around the target.");
+			}
+		} else { //no blockades here, boss.
+			r.setDockingFinished(new Timestamp((new Date()).getTime()));
+		}
+		
+		return true;
+	}
+	
 	public static boolean digLogicBlock(Raid r) {
 		try {
 			Town t2 = r.getTown2(); GodGenerator God = r.getTown1().getPlayer().God;
@@ -8081,15 +8117,13 @@ public boolean checkForGenocides(Town t) {
 			actattack.setAu(null);
 			actattack.getAu(); // reset.
 		}
-		boolean offdig = false;
-	    boolean defdig = false;
-	    if(actattack.getDigAmt()>0) offdig=true;
 		String combatData=""; 
-		Town t1 = actattack.getTown1(); Town t2 = actattack.getTown2();
+		Town t1 = actattack.getTown1(); Town t2 = actattack.getTown2(), possZepp=null;int[] oldTownSizeArray = null;
+		boolean offdig = false, defdig = false, isZeppAbove=false; ArrayList<AttackUnit> t1au=null,t2au=null;
+		
+	    if(actattack.getDigAmt()>0) offdig=true;
 		if(t2.getDigAmt()>0) defdig=true;
-		boolean isZeppAbove=false;
-		int oldTownSizeArray[] = null;
-		Town possZepp=null; ArrayList<AttackUnit> t1au=null,t2au=null;
+		
 		if(t2.getPlayer().ID==5) {
 			possZepp = t2.getPlayer().God.findZeppelin(t2.getX(),t2.getY());
 			// System.out.println("Looking for zepp with tid of " + possZepp.townID);
@@ -8157,7 +8191,7 @@ public boolean checkForGenocides(Town t) {
 		} catch(Exception exc) { exc.printStackTrace(); System.out.println("Weather or skin effects caused an exception but combat was saved."); }
 
 		
-		boolean invsucc = false; 
+		boolean invsucc = false;
 
 		// in case of invasion, town2's player becomes town1's by the time
 		// a report is filed, so we take care of this by recording this
@@ -10104,7 +10138,7 @@ public boolean checkForGenocides(Town t) {
 							total+=r.getTown2().getAu().get(k).getSize();
 							k++;
 						}
-						if(total==0) { 
+						if(total==0) {
 							otherT.getPlayer().getPs().b.recall(r.getTown2().townID,r.getTown2().getPlayer().ID,otherT.townID);
 						
 							try {
@@ -10189,7 +10223,11 @@ public boolean checkForGenocides(Town t) {
 					scoutLogicBlock(r);
 					// So scoutLogicBlock returns false if there is discovery,
 					// and we go straight into a combat block then!
+				} else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&holdAttack.raidType().equals("blockade")) {
+					if(holdAttack.getDockingFinished()==null)
+						blockadeLogicBlock(r);
 				} else if (holdAttack.eta()<=0&&holdAttack.raidOver()) {
+				
 					// Now this is a return raid.
 				//	System.out.println("Returning...");
 					int c = 0;
@@ -12746,7 +12784,7 @@ public boolean checkForGenocides(Town t) {
 		 return nameList1[randomNum] + " " + nameList2[randomNum2];
 		  
 		 }
-	public boolean makeCity(int x, int y, double currGaussian[], boolean taken[]) throws SQLException {
+	public boolean makeCity(int x, int y, double[] currGaussian, boolean[] taken) throws SQLException {
 		
 		int i = 0; boolean found = false;
 		while(i<taken.length) {
@@ -12758,58 +12796,58 @@ public boolean checkForGenocides(Town t) {
 		}
 		
 		if(!found) return false; // no more gaussian points in the pool.
-		 UberStatement stmt;
+		UberStatement stmt;
 
-	      stmt = con.createStatement();
-	      ResultSet rs;
+	    stmt = con.createStatement();
+	    ResultSet rs;
 	      
 	      // First things first. We update the player table.
 	      
-	      stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
+	    stmt.execute("start transaction;"); // it's logged in, starts transaction so data problems won't happen.
 	
 		double resEffects[] = new double[5];
-		  double randCity = Math.random();
-		  if(randCity>.7) {
+		double randCity = Math.random();
+		if(randCity>.7) {
 
-		  int k = 0;
-		  while(k<resEffects.length-1) {
-			  // no ppl changing in this bitch.
+			int k = 0;
+			while(k<resEffects.length-1) {
+				// no ppl changing in this bitch.
 			  
-			  int grand = (int) Math.round((currGaussian.length-1)*Math.random());
-		//	  System.out.println("My gaussian length is " + currGaussian.length);
+				int grand = (int) Math.round((currGaussian.length-1)*Math.random());
+		//	  	System.out.println("My gaussian length is " + currGaussian.length);
 			//  System.out.println("My random is " + grand);
-			  while(taken[grand]) {
-				  grand = (int) Math.round((currGaussian.length-1)*Math.random());
-			  }
+				while(taken[grand]) {
+					grand = (int) Math.round((currGaussian.length-1)*Math.random());
+				}
 			  
-			  resEffects[k]=currGaussian[grand];
-			  taken[grand]=true;
-			  k++;
-		  }
-		  } 
- 		 double  rand = Math.random();
- 		 int xmod=0;
- 		 int ymod = 0;
-		  if(rand<.33)
-		  xmod=1;
-		  else if(rand>.33&&rand<.66)
-			  xmod=0;
-		  else xmod=-1; // so each time we get a chance
-		  // of a diff x, but x overall never repeats and is
-		  // never out of sync.
-		   rand = Math.random();
+				resEffects[k]=currGaussian[grand];
+				taken[grand]=true;
+				k++;
+			}
+		} 
+ 		double  rand = Math.random();
+ 		int xmod=0;
+ 		int ymod = 0;
+		if(rand<.33)
+			xmod=1;
+		else if(rand>.33&&rand<.66)
+			xmod=0;
+		else xmod=-1; 	// so each time we get a chance
+						// of a diff x, but x overall never repeats and is
+		  				// never out of sync.
+		rand = Math.random();
 
-		  if(rand<.33)
-  		  ymod=1;
-  		  else if(rand>.33&&rand<.66)
-  			  ymod=0;
-  		  else ymod=-1;
-		  if(findTown(x+xmod,y+ymod).townID!=0) {
-			  return false; // Means there is a town there.
-		  }
-		  boolean resourceOutcropping=false;
-		  String townName = randomTownName();
-		  rand = Math.random();
+		if(rand<.33)
+			ymod=1;
+  		else if(rand>.33&&rand<.66)
+  			ymod=0;
+  		else ymod=-1;
+		if(findTown(x+xmod,y+ymod).townID!=0) {
+			return false; // Means there is a town there.
+		}
+		boolean resourceOutcropping=false;
+		String townName = randomTownName();
+		rand = Math.random();
 		  /*
 		   * Desert:
 				Crystal: 70%
@@ -12826,38 +12864,38 @@ public boolean checkForGenocides(Town t) {
 				Metal: 25%
 				Crystal: 5%
 		   */
-		  if(rand<.2) {
-			  resourceOutcropping=true;
-		  		rand = Math.random();
-			  switch(returnTileTypeAt(x+xmod,y+ymod)) {
-			  case 0: //desert
+		if(rand<.2) {
+			resourceOutcropping=true;
+		  	rand = Math.random();
+			switch(returnTileTypeAt(x+xmod,y+ymod)) {
+			  	case 0: //desert
 			  		if(rand<.7) townName = "CrystalOutcropping";
 			  		else if(rand>=.7&&rand<.95) townName = "MetalOutcropping";
 			  		else townName="TimberOutcropping";
-			  	break;
-			  case 1: //mtn
-				  if(rand<.7) townName = "MetalOutcropping";
+			  		break;
+			  	case 1: //mtn
+			  		if(rand<.7) townName = "MetalOutcropping";
 			  		else if(rand>=.7&&rand<.9) townName = "CrystalOutcropping";
 			  		else townName="TimberOutcropping";
-				  break;
-			  case 2: //grass
-				  if(rand<.7) townName = "TimberOutcropping";
+			  		break;
+			  	case 2: //grass
+			  		if(rand<.7) townName = "TimberOutcropping";
 			  		else if(rand>=.7&&rand<.95) townName = "MetalOutcropping";
 			  		else townName="CrystalOutcropping";
-				  break;
-			  }
+			  		break;
+			}
 			  
-		  }
-		  townName+="-"+(x+xmod)+"-"+(y+ymod);
-		  int newSizes[] = new int[0];
-		  stmt.execute("insert into town (pid,townName,x,y,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,auSizes,influence,resourceOutcropping) values (5,\"" + townName+/*"Town" + (x+xmod) + "-" + (y+ymod) +*/ "\","
+		}
+		townName+="-"+(x+xmod)+"-"+(y+ymod);
+		int newSizes[] = new int[0];
+		stmt.execute("insert into town (pid,townName,x,y,m,t,mm,f,pop,minc,tinc,mminc,finc,kinc,auSizes,influence,resourceOutcropping) values (5,\"" + townName+/*"Town" + (x+xmod) + "-" + (y+ymod) +*/ "\","
 				  +(x+xmod)+","+(y+ymod)+",0,0,0,0,1," + resEffects[0] + "," + resEffects[1] + "," + resEffects[2] + "," + resEffects[3] + "," + resEffects[4] + ",'"+PlayerScript.toJSONString(newSizes)+"',"+0+","+resourceOutcropping+")");
-		  rs = stmt.executeQuery("select tid from town where x = " + (x+xmod) + " and y = " + (y+ymod) + ";");
-		  rs.next();
-		  int tid = rs.getInt(1);
-		  rs.close();
+		rs = stmt.executeQuery("select tid from town where x = " + (x+xmod) + " and y = " + (y+ymod) + ";");
+		rs.next();
+		int tid = rs.getInt(1);
+		rs.close();
 		 /*
-			name        | varchar(50)      | NO   |     | NULL    |                |
+			  name        | varchar(50)      | NO   |     | NULL    |                |
 			| slot        | int(11)          | NO   |     | NULL    |                |
 			| lvl         | int(11)          | NO   |     | NULL    |                |
 			| lvling      | int(11)          | YES  |     | NULL    |                |
@@ -12871,7 +12909,7 @@ public boolean checkForGenocides(Town t) {
 			| bunkerMode  | int(11)          | YES  |     | 0       |                |
 			| bid         | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
 			
-			| Metal Mine                   |    0 |   3 |     -1 |    0 |        0 |        0 | 2273 |     0 |           0 |         -1 |          0 | 598 |
+			| Metal Mine  | 0 | 3 | -1 |  0 | 0 | 0 | 2273 | 0 | 0 | -1 | 0 | 598 |
 
 		  */
 		  UUID id = UUID.randomUUID();
