@@ -1,0 +1,5 @@
+#some files to ignore for this repo
+bin/
+.metadata/
+*.class
+.DS_Store
