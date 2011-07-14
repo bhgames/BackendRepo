@@ -12941,44 +12941,44 @@ public boolean checkForGenocides(Town t) {
 		
 		// now we have Id, and the other players are off of the Iterators.
 		Player p;
-		while(i<getPlayers().size()) {
+		/*while(i<getPlayers().size()) {
 			 p = getPlayers().get(i);
 
 		//	sendMail(p.getEmail(),p.getUsername(),"Email","Apologies for the Building errors!","This is an automated message from AI Wars. We wanted to apologize if you joined the game and were unable to build anything. We were unaware of this bug as we hadn't changed a thing in that section of the code. But we've found the bug and fixed it, and we hope you'll come back and try again!");
 			i++;
-		}
+		}*/
 		System.out.println("Done email sending.");
 		i= 0;
 		
 		try {
 			UberStatement stmt = con.createStatement();
 			/*
-			 *  God             |
-| Quest          --- |
-| attackunit  ---   |
-| autemplate   ---   |
-| bldg      ---      |
-| bugTable    ---    |
-| checkTable  ----    |
-| cloud    ----       |
-| league   ----       |
-| messages     ---   |
-| permissions     |
-| player    ----      |
-| qpc   -----          |
-| queue      ----     |
-| raid         -----   |
-| raidSupportAU  ---- |
-| resolution    ----  |
-| revelations   ----  |
-| statreports   ---  |
-| supportAU     -----  |
-| town    ---        |
-| tpr      ----       |
-| trade         ----  |
-| tradeschedule ---  |
-| usergroupmember ---|
-| usergroups     ---- |
+			 *    God             	 |
+				| Quest          --- |
+				| attackunit     --- |
+				| autemplate     --- |
+				| bldg      ---      |
+				| bugTable    ---    |
+				| checkTable  ----   |
+				| cloud    ----      |
+				| league   ----      |
+				| messages     ---   |
+				| permissions  	     |
+				| player    ----     |
+				| qpc   -----        |
+				| queue      ----    |
+				| raid         ----- |
+				| raidSupportAU  ----|
+				| resolution   ----  |
+				| revelations   ---- |
+				| statreports   ---  |
+				| supportAU     -----|
+				| town    ---        |
+				| tpr      ----      |
+				| trade         ---- |
+				| tradeschedule ---  |
+				| usergroupmember ---|
+				| usergroups    ---- |
 
 			 */
 			stmt.execute("delete from attackunit where pid != " +Id.ID);
@@ -13742,32 +13742,32 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		String version = "52.0";
 		String toWrite = "https://api-3t.sandbox.paypal.com/nvp?&METHOD=SetExpressCheckout&VERSION="+version+"&USER="+USER+"&PWD="+PWD+"&SIGNATURE="+sig;
 		try {
-		URL url = new URL(toWrite);
+			URL url = new URL(toWrite);
 	 
 
-	 URLConnection urlc = url.openConnection();
-
-	 urlc.setDoOutput(true);
-	 urlc.setDoInput(true);
-	 
-	 urlc.connect();	
-	 System.out.println("Writing: "+ toWrite);
+			URLConnection urlc = url.openConnection();
 	
-	 BufferedReader in = new BufferedReader(new InputStreamReader(urlc.getInputStream()));
-
-	 String inputLine="";
-	 String res_line;
-	 while ((res_line = in.readLine()) != null) {
-
-	 inputLine+=res_line;
-	 
-	 }
-	 System.out.println("Receiving: " + inputLine);
-	 in.close();
-	} catch(MalformedURLException exc) { exc.printStackTrace();} catch (IOException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} 
+			urlc.setDoOutput(true);
+			urlc.setDoInput(true);
+		 
+			urlc.connect();	
+			System.out.println("Writing: "+ toWrite);
+		
+			BufferedReader in = new BufferedReader(new InputStreamReader(urlc.getInputStream()));
+	
+			String inputLine="";
+			String res_line;
+			while ((res_line = in.readLine()) != null) {
+	
+				inputLine+=res_line;
+		 
+			}
+			System.out.println("Receiving: " + inputLine);
+			in.close();
+		} catch(MalformedURLException exc) { exc.printStackTrace();} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
 	}
 	
 	public String returnPrizeName(int probTick, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
