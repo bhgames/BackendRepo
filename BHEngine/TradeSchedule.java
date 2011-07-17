@@ -1,9 +1,9 @@
 package BHEngine;
-import java.sql.Connection;
-import java.sql.DriverManager;
+//import java.sql.Connection;
+//import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+//import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -26,7 +26,7 @@ public class TradeSchedule {
 		// and so to save space that is exported as an extra usable method. It is only necessary
 		// when creating raids.
 		// this constructor is for when a raid is being loaded into memory.
-		this.mateID = mateID; // if two way and not agreed, will be 0 until agreed, or else
+		this.mateID = mateTradeScheduleID; // if two way and not agreed, will be 0 until agreed, or else
 		// if not two way is 0 forever! (mysql autogen id starts at 1)
 		
 			this.twoway=twoway;
@@ -43,32 +43,27 @@ public class TradeSchedule {
 	
 	}
 	public TradeSchedule(UUID id,GodGenerator God) {
-			// This constructor does not use the support integer because it is rarely used compared to other things
-			// and so to save space that is exported as an extra usable method. It is only necessary
-			// when creating raids.
-			// this constructor is for when a raid is being loaded into memory.
 			
 			 this.id = id; 
 			 this.con=God.con; this.God=God;
 			 
 			try {	
-			UberPreparedStatement rus = con.createStatement("select * from tradeschedule where id = ?;");
-			rus.setString(1,id.toString());
-			ResultSet rrs = rus.executeQuery();
-			// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
-			// Then F = !(R!T) = !R + T;
-			while(rrs.next()) {
-		
-				
-				Town town1 = God.findTown(rrs.getInt(1));
-				Town town2Obj = God.findTown(rrs.getInt(2));
+				UberPreparedStatement rus = con.createStatement("select * from tradeschedule where id = ?;");
+				rus.setString(1,id.toString());
+				ResultSet rrs = rus.executeQuery();
 
-				setTradeScheduleValues(id,town1,town2Obj,rrs.getLong(8),
-						 rrs.getLong(9),rrs.getLong(10),rrs.getLong(11),rrs.getLong(14), rrs.getLong(15), rrs.getLong(16), rrs.getLong(17), rrs.getInt(13),rrs.getInt(12),rrs.getBoolean(6),rrs.getBoolean(7),rrs.getInt(4),rrs.getInt(5),UUID.fromString(rrs.getString(19))); // this one has no sql addition!
-				
-		
-			}
-					rrs.close();rus.close();
+				while(rrs.next()) {
+			
+					
+					Town town1 = God.findTown(rrs.getInt(1));
+					Town town2Obj = God.findTown(rrs.getInt(2));
+	
+					setTradeScheduleValues(id,town1,town2Obj,rrs.getLong(8),
+							 rrs.getLong(9),rrs.getLong(10),rrs.getLong(11),rrs.getLong(14), rrs.getLong(15), rrs.getLong(16), rrs.getLong(17), rrs.getInt(13),rrs.getInt(12),rrs.getBoolean(6),rrs.getBoolean(7),rrs.getInt(4),rrs.getInt(5),UUID.fromString(rrs.getString(19))); // this one has no sql addition!
+					
+			
+				}
+				rrs.close();rus.close();
 			} catch(SQLException exc) { exc.printStackTrace(); }
 			 
 		
@@ -205,9 +200,9 @@ public class TradeSchedule {
 		 * 
 		 */
 		if(mate==null) {
-		int i = 0; TradeSchedule ts=null;
+		int i = 0; //TradeSchedule ts=null;
 		if(isStockMarketTrade()) return null;
-		 boolean found = true;
+		//boolean found = true;
 		 if(!isAgreed()||!isTwoway()) return null; // duh there won't be one.
 		 
 		 Town t2 = getTown2();
@@ -249,8 +244,8 @@ public class TradeSchedule {
 		// Can't do an infinite number of arguments here so need to add manually.
 		// holds distance and ticksToHit in this object.
 		 this.con=town1.getPlayer().God.con; this.God=town1.getPlayer().God;
-			boolean smtrade=false;
-		 	if(town2!=null&&town2.townID==town1.townID) smtrade=true;
+			//boolean smtrade=false;
+		 	//if(town2!=null&&town2.townID==town1.townID) smtrade=true;
 			this.twoway=twoway;
 			intervaltime=(int) Math.round(intervaltime/GodGenerator.gameClockFactor);
 			 this.town2=town2;
@@ -315,11 +310,13 @@ public class TradeSchedule {
 		// don't need to worry about threadSafety here due to it being checked in sendTradeIfPossible method in God.
 		// Even nonsafe trade schedules can make trades, they just have to have their makeTrade method called by the safe one's
 		//getMate() return.
-		Trade t = new Trade(getTown1(),getTown2(),getMetal(),getTimber(),getManmat(),getFood(),this,traders);
+		new Trade(getTown1(),getTown2(),getMetal(),getTimber(),getManmat(),getFood(),this,traders);
+		//value never get's used, no sense holding onto it.  All the work we want done is done
+		//in the function itself
 		
 		// makes this bitch.
 		if(!second)
-		setCurrTicks(getIntervaltime());
+			setCurrTicks(getIntervaltime());
 		else setCurrTicks(getIntervaltime()+1); // because in this case,
 		// this is the second trade in a two-way and so it gets decreased by one
 		// in the same iteration as the first was sent but it gets hijacked before that.

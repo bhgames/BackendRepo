@@ -8,7 +8,7 @@ package BattlehardFunctions;
 import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+//import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -29,7 +29,7 @@ import BHEngine.Town;
 import BHEngine.Trade;
 import BHEngine.TradeSchedule;
 import BHEngine.UberPreparedStatement;
-import BHEngine.UberStatement;
+//import BHEngine.UberStatement;
 import BHEngine.doableBy;
 
 import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
@@ -593,7 +593,7 @@ public class BattlehardFunctions {
 		//	stmt.close(); stmt2.close(); stmt3.close();
 			
 			int i = 0;
-			ArrayList<Hashtable> mapTiles = g.getMapTileHashes();
+			ArrayList<Hashtable<String, Object>> mapTiles = g.getMapTileHashes();
 			Hashtable v,c;
 			
 			while(i<mapTiles.size()) {
@@ -1567,14 +1567,17 @@ public class BattlehardFunctions {
 		
 		int i = 0; Town t1=g.findTown(tid1);
 		
-		
-		
 		if(t1.getPlayer().ID!=p.ID) {
 			setError("This is not your town!");
 			return false;
 		}
 		// okay now we have towns.
 		
+		//make sure we're not blockaded
+		if(t1.getBlockades().size()>0) {
+			setError("Town blockaded.");
+			return false;
+		}
 		
 		// just checking numbers.
 		
@@ -1671,7 +1674,7 @@ public class BattlehardFunctions {
 		}
 		// first find the cities.
 		boolean twoway=true;
-		int i = 0; Player pl; Town t1=g.findTown(tid1); //Town t2=g.findTown(tid2);
+		int i = 0; /*Player pl;*/ Town t1=g.findTown(tid1); //Town t2=g.findTown(tid2);
 		
 		
 		if(t1.getPlayer().ID!=p.ID) {
@@ -1687,7 +1690,13 @@ public class BattlehardFunctions {
 			setError("Illegal interval time or timesToDo amount.");
 			return false;
 		}
-				
+
+		//make sure we're not blockaded
+		if(t1.getBlockades().size()>0) {
+			setError("Town blockaded.");
+			return false;
+		}
+
 		// just checking numbers.
 		
 		i = 0;
@@ -1727,7 +1736,7 @@ public class BattlehardFunctions {
 		// We don't check city two because they need to agree to it first or if
 		// it's a one way-er then it doesn't really matter so much!
 		//	public boolean sendMessage(int pid_to, int pid_from, String body, String subject, int msg_type) {
-		int toSend[] = new int[1];
+		//int toSend[] = new int[1];
 		TradeSchedule ts = new TradeSchedule(t1,  null,  m,  t,  mm,  f,  otherm, othert,  othermm,  otherf,  intervaltime, timesToDo,  twoway,null);
 	/*	 sendTradeMessage(t2.getPlayer().ID,"Do you accept this trading schedule request from " + t1.getPlayer().getUsername() + "" +
 				" of " + m + " metal " + t + " timber " + mm + " man. mat. " + f + " food in exchange for "
@@ -1785,7 +1794,6 @@ public class BattlehardFunctions {
 		boolean twoway=false;
 		int i = 0; Player pl; Town t1=g.findTown(tid1); Town t2=g.findTown(tid2); 
 	
-	
 		if(t1.getPlayer().ID!=p.ID) {
 			setError("This is not your town!");
 			return false;
@@ -1797,6 +1805,12 @@ public class BattlehardFunctions {
 		if(intervaltime<1||(timesToDo<1&&timesToDo!=-1)) {
 			// so if timesToDo!=-1 and is less than one, is an illegal time.
 			setError("Illegal interval time or timesToDo amount.");
+			return false;
+		}
+
+		//make sure neather town is blockaded
+		if(t1.getBlockades().size()>0||t2.getBlockades().size()>0) {
+			setError("One or both towns blockaded.");
 			return false;
 		}
 		
@@ -2155,10 +2169,6 @@ public class BattlehardFunctions {
 		// so moderators can't pull off admin actions.
 		if(checkLP()) {
 			return true;
-		}
-		if(!p.isLeague()){
-
-			return true; // If a normal player, always return true.
 		}
 		if(!((League) p).canMakeModChanges(pid)) {
 
@@ -2817,8 +2827,7 @@ public long[] returnPrice(int lotNum, int tid) {
 /**
  * Returns a long array representing the net amount of resources to get to a certain level of building.
  * Great for guestimating.
- * @param lvl
- * @return
+ * @return long[]
  */
 	public long[] returnPriceToGetToLevel(int lvl, String buildingType) {
 		if(prog&&!p.isAdvancedBuildingAPI()) {
@@ -2966,16 +2975,16 @@ public long[] returnPrice(int lotNum, int tid) {
 	/**
 	 * If minus is false, then it gets the price of the next number of soldiers.
 	 * If minus is true, it gets the price of the most recent number made. Example:
-	 * if Minus is false, and you have 100 soldiers, and you ask for the price of 5,
+	 * if minus is false, and you have 100 soldiers, and you ask for the price of 5,
 	 * it gives you the price of the 101st,102nd,103rd,104th,105th soldier summed.
 	 * If minus is true, and you have 100 soldiers, and you ask for the price of 5,
 	 * it gives you the price of the 96th,97th,98th,99th,100th soldier prices summed.
 	 * 
-	 * @param unitType
-	 * @param number
-	 * @param tid
-	 * @param minus
-	 * @return
+	 * @param unitType - String name of the unit
+	 * @param number - Number of units to build
+	 * @param tid - ID of the town they're being built in
+	 * @param minus - if true, gives the price of the last number of units, instead of the next
+	 * @return long[] {metal, timber, manmat, food, expMod}
 	 */
 	public long[] returnPrice(String unitType, int number, int tid, boolean minus) {
 
@@ -3047,12 +3056,12 @@ public long[] returnPrice(int lotNum, int tid) {
 					int totalnumber=number+allCalled;
 					
 					 double factor = totalnumber*(totalnumber+1)/2 - allCalled*(allCalled+1)/2;
-						 cost[0] = (long) Math.round(15*factor);
-				 cost[1] = (long) Math.round(23*factor);
-				 cost[2] = (long) Math.round(12*factor);
-				 cost[3] = Town.getCivvieFoodConsumption(number);
-				 cost[4] = -1; // These are citizens, add one to the population! This doesn't actually do anything the way I programmed it.
-				 return cost;
+					 cost[0] = (long) Math.round(15*factor);
+					 cost[1] = (long) Math.round(23*factor);
+					 cost[2] = (long) Math.round(12*factor);
+					 cost[3] = Town.getCivvieFoodConsumption(number);
+					 cost[4] = -1; // These are citizens, add one to the population! This doesn't actually do anything the way I programmed it.
+					 return cost;
 
 				 
 			} else if(unitType.equals("Scholar")) {
@@ -5265,6 +5274,20 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				setError("You need the Dig API in order to use this!");
 				return false;
 			}
+			if(t1.getBlockades().size()>0) {
+				boolean hasOff = false;
+				for(int i = 0;i<holdNumbers.length-1;i++) {
+					if(holdNumbers[i]>0) {
+						hasOff = true;
+						break;
+					}
+				}
+				if(!hasOff) {
+					setError("Town blockaded.");
+					return false;
+				}
+			}
+			
 			support = 1; dig=true;
 			int z=0;UserBuilding b[];
 			if(attackType.equals("excavation"))
@@ -5355,11 +5378,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 		
 		
-		boolean keep=false;
-		if(prog) keep=true;
-		prog=false;
+		boolean keep=!!prog;//duplicate prog into keep
+		prog=false;			//set prog to false so we can call getAttackETA
 		int ticksToHit = getAttackETA(t1.townID, enemyx,enemyy,auAmts);
-		if(keep) prog = true;
+		prog = !!keep;		//set prog back
 		// The only two cases that matter: You find the town at the x,y, or you'll find a Zeppelin.
 		// If it's a zeppelin, it's easy to deal with, if it's a town, it's easy to deal with.
 		if(Town2.townID==0) {
@@ -5492,14 +5514,57 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			else holdAttack.setBombTarget(new String[0]);
 		}
 		
-			//	public boolean runMethod(String methodName, Object... params) {
-			UserRaid theRaid =getUserRaid(holdAttack.getId());
-			holdAttack.getTown2().getPlayer().getPs().runMethod("onIncomingRaidDetectedCatch",theRaid);
-			ArrayList<QuestListener> list =  p.getEventListenerList("onRaidSent");
-			if(list!=null)
-			for(QuestListener q:list) {
-				q.onRaidSent(holdAttack,prog);
+		ArrayList<Raid> blockades = t1.getBlockades();
+		if(blockades.size()>0){
+			//if we have blockades, it means we have bad guys here
+			//we have to set up a fake town to hold these blockades so that they can be attacked
+			ArrayList<AttackUnit> AU = blockades.get(0).getAu();
+			for(int i = 1;i<blockades.size();i++) {
+				for(AttackUnit a : blockades.get(i).getAu()) {	//first, we have to tally up and
+					boolean found = false;						//colleate all the au so we have
+					for(AttackUnit bu : AU) {					//no copies
+						if(a.getName().equals(bu.getName())) {
+							found = true; 
+							bu.setSize(bu.getSize()+a.getSize());
+						}
+					}
+					if(!found) {
+						AU.add(a);
+					}
+				}
 			}
+			
+			Player[] fakes = t1p.generateFakePlayers(1, 1, 0, 0); fakes[0].setAu(AU);
+			Town town = fakes[0].towns().get(0); town.setTownName("Blockade surrounding your town");
+			town.setAu(AU);
+			
+			Raid raid = new Raid(0,0,t1,town,false,false,0,false,"",false,au,digAmt);
+			GodGenerator.combatLogicBlock(raid,"your town is blockaded by a hostile force.");
+			holdAttack.setAu(raid.getAu());
+			holdAttack.setDigAmt(raid.getDigAmt());
+			boolean unitsLeft = holdAttack.getDigAmt()>0;
+			if(!unitsLeft) {
+				for(AttackUnit a : holdAttack.getAu()) {
+					if(a.getSize()>0) {
+						unitsLeft = true;
+						break;
+					}
+				}
+			}
+			if(!unitsLeft) {
+				
+			}
+			fakes[0].deleteFakePlayers(fakes);
+		}
+		
+		//	public boolean runMethod(String methodName, Object... params) {
+		UserRaid theRaid =getUserRaid(holdAttack.getId());
+		holdAttack.getTown2().getPlayer().getPs().runMethod("onIncomingRaidDetectedCatch",theRaid);
+		ArrayList<QuestListener> list =  p.getEventListenerList("onRaidSent");
+		if(list!=null)
+		for(QuestListener q:list) {
+			q.onRaidSent(holdAttack,prog);
+		}
 		//holdAttack.closeCon();
 		notifyViewer();
 

@@ -34,5 +34,6 @@
 	<classpathentry kind="lib" path="src/tomcat-i18n-es.jar"/>
 	<classpathentry kind="lib" path="src/tomcat-i18n-fr.jar"/>
 	<classpathentry kind="lib" path="src/tomcat-i18n-ja.jar"/>
-	<classpathentry kind="output" path=""/>
+	<classpathentry kind="lib" path="src/mysql-connector-java-5.1.11-bin.jar"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>

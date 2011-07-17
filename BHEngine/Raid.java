@@ -2,11 +2,11 @@
 
 package BHEngine;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
+//import java.sql.Connection;
+//import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+//import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -116,7 +116,7 @@ public class Raid {
 			//
 			//	public Raid(int raidID, double distance, int ticksToHit, Town town1, Town town2, boolean Genocide,boolean allClear,
 			//int metal, int timber, int manmat, int food,boolean raidOver,ArrayList<AttackUnit> au, boolean Bomb) {
-			int y = 0;
+			//int y = 0;
 		
 			setRaidValues(rrs.getInt(3),rrs.getDouble(4),rrs.getInt(5),town1,town2Obj,rrs.getBoolean(6),
 					rrs.getBoolean(8), rrs.getInt(9),rrs.getInt(10),rrs.getInt(11),rrs.getInt(12),rrs.getBoolean(7), rrs.getBoolean(19),rrs.getBoolean(23),rrs.getInt(25),rrs.getString(26),rrs.getInt(27),rrs.getBoolean(28),rrs.getInt(29),UUID.fromString(rrs.getString(31)),new Timestamp((new Date(rrs.getString(32))).getTime())); // this one has no sql addition!
@@ -747,7 +747,7 @@ public class Raid {
 	synchronized public void save() {
    		  try {
    			  UberPreparedStatement stmt = con.createStatement("update raid set distance = ?, ticksToHit = ?, genocide = ?, raidOver = ?, allClear = ?, m = ?, t = ?, mm = ?, f = ?, auSizes=?, bomb = ?, bombtarget = ?, support = ?, scout = ?, invade = ?, resupplyID = ?, totalTicks = ?, dockingFinished = ? where id = ?;");
-   	   		  ArrayList<AttackUnit> au = getAu();
+   	   		  //ArrayList<AttackUnit> au = getAu();
    	   		
    	   		  stmt.setDouble(1,distance);
    	   		  stmt.setInt(2,ticksToHit);
@@ -898,6 +898,24 @@ public class Raid {
 	}
 	public Timestamp getDockingFinished() {
 		return dockingFinished;
+	}
+	
+	public long[] getRes() {
+		return new long[] {metal,timber,manmat,food};
+	}
+	
+	/**
+	 *	Quick setter method for resources.
+	 *	res[0] = metal,
+	 *	res[1] = timber,
+	 *	res[2] = crystal/manmat,
+	 *	res[3] = food.
+	 */
+	public void setRes(long[] res) {
+		metal = res[0];
+		timber = res[1];
+		manmat = res[2];
+		food = res[3];
 	}
 	
 	

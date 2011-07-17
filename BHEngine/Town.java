@@ -1,11 +1,11 @@
 package BHEngine;
 
 
-import java.sql.Connection;
-import java.sql.DriverManager;
+//import java.sql.Connection;
+//import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+//import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,17 +27,17 @@ public class Town {
 	 			destY, fuelCells, ticksTillMove, digTownID, internalClock=0; 
 	 private String townName, holdingIteratorID = "-1";
 	 private GodGenerator God; private UberConnection con;
-	 private ArrayList<AttackUnit> au;
-	 private ArrayList<Building> bldg;
-	 private long res[], debris[];
-	 private double resEffects[],resBuff[];
+	 private long[] res, debris;
+	 private double[] resEffects,resBuff;
 	 private Player p,lord;
 	 private Timestamp vassalFrom;
 	 private ArrayList<Trade> tradeServer;
 	 private ArrayList<TradeSchedule> tradeSchedules;
 	 private ArrayList<Raid> attackServer;
+	 private ArrayList<AttackUnit> au;
+	 private ArrayList<Building> bldg;
 	 private boolean zeppelin, msgSent, resourceOutcropping;
-	 private Hashtable eventListenerLists = new Hashtable();
+	 private Hashtable<String, ArrayList<QuestListener>> eventListenerLists = new Hashtable<String, ArrayList<QuestListener>>();
 	 public static int 	zeppelinTicksPerMove= (int) Math.round(((double) Math.sqrt(1)*10/(500*GodGenerator.speedadjust))/GodGenerator.gameClockFactor),
 			 			ticksPerFuelPointBase =(int) Math.round((3600.0*24.0/((double) GodGenerator.gameClockFactor*10))),
 			 			daysOfStoragePerAirshipPlatform = 4,
@@ -65,84 +65,84 @@ public class Town {
 			ArrayList<AttackUnit> au = p.getAu();
 
 
-		int i = 0;
-		ArrayList<AttackUnit> aufortown = new ArrayList<AttackUnit>();
-		 i = 0;
-		AttackUnit ha;
-		String sizeString = getMemString("auSizes");
-		if(sizeString==null) sizeString = "[]"; // means empty.
-		int[] auSizes = PlayerScript.decodeStringIntoIntArray(sizeString);
-		try {
-			int max = (auSizes.length<au.size())? auSizes.length : au.size();
-			while(i<au.size()) { 
-				 ha = au.get(i).returnCopy();
-			//	ha.setSize(getMemInt("au" + (i+1)));
-				 try {
-				 // if you got given a town and the former player had a different dimension auSize array in db, if the 
-					// server was unexpectedly shutdown so a save couldn't occur and the old auSize wasn't overwritten, you'll
-					// load up with a different dimension auSize array than au! in that event that auSize is SHORTER, because we don't
-					// need to /can't do much about it being bigger, we stop loading up numbers of au after that i and instead
-					// just add units with size = 0 onto the stack as the db attackunit table says to do so.
-					 if(i<max)
-						 ha.setSize(auSizes[i]);
-				 } catch(ArrayIndexOutOfBoundsException exc) {
-					 exc.printStackTrace();
-					 System.out.println("Setup for town " + getTownName() + " saved. i was " + i + " auSizes was " + auSizes.length + " and au was " + au.size());
-				 }
-				aufortown.add(ha);
-				i++;
+			int i = 0;
+			ArrayList<AttackUnit> aufortown = new ArrayList<AttackUnit>();
+			 i = 0;
+			AttackUnit ha;
+			String sizeString = getMemString("auSizes");
+			if(sizeString==null) sizeString = "[]"; // means empty.
+			int[] auSizes = PlayerScript.decodeStringIntoIntArray(sizeString);
+			try {
+				int max = (auSizes.length<au.size())? auSizes.length : au.size();
+				while(i<au.size()) { 
+					 ha = au.get(i).returnCopy();
+				//	ha.setSize(getMemInt("au" + (i+1)));
+					 try {
+						 // if you got given a town and the former player had a different dimension auSize array in db, if the 
+						 // server was unexpectedly shutdown so a save couldn't occur and the old auSize wasn't overwritten, you'll
+						 // load up with a different dimension auSize array than au! in that event that auSize is SHORTER, because we don't
+						 // need to /can't do much about it being bigger, we stop loading up numbers of au after that i and instead
+						 // just add units with size = 0 onto the stack as the db attackunit table says to do so.
+						 if(i<max)
+							 ha.setSize(auSizes[i]);
+					 } catch(ArrayIndexOutOfBoundsException exc) {
+						 exc.printStackTrace();
+						 System.out.println("Setup for town " + getTownName() + " saved. i was " + i + " auSizes was " + auSizes.length + " and au was " + au.size());
+					 }
+					aufortown.add(ha);
+					i++;
+				}
+			} catch(Exception exc) {
+				exc.printStackTrace(); System.out.println("Everything is fine. The au count though is " +  au.size() + " for " + p.ID);
 			}
-		} catch(Exception exc) {
-			exc.printStackTrace(); System.out.println("Everything is fine. The au count though is " +  au.size() + " for " + p.ID);
-		}
-		try {
-		UberPreparedStatement sau = con.createStatement("select * from supportAU where tid = ? order by slotnum asc");
-			
-		sau.setInt(1,townID);
-		ResultSet saurs = sau.executeQuery();
-		UberPreparedStatement aus; ResultSet aurs;Player foreignP; String weapons;int weapc = 0; int weapforau[]; String holdPart; AttackUnit sAU;
-		aus = con.createStatement("select pid from town where tid = ?;");
-		UberPreparedStatement aus2 = con.createStatement("select * from attackunit where pid = ? and slot = ?;");
-		while(saurs.next()) {
-			int forTownSlot = saurs.getInt(3); // foreign town's slot.
-			int thisTownSlot = saurs.getInt(4); // this town's slot.
-			int originalTID = saurs.getInt(2); // the originating town ID of this supportAU.
-			aus.setInt(1,saurs.getInt(2));
-			 aurs = aus.executeQuery(); // should find six units.
-			 // get foreign player's id.
-			  aurs.next();
-			  int fID = aurs.getInt(1);
-			  
-			   foreignP=God.getPlayer(fID);
-			 aurs.close();
-			 aus2.setInt(1,fID);
-			 aus2.setInt(2,forTownSlot);
-			 aurs = aus2.executeQuery(); // should find six units.
-								
-			
-			aurs.next();
+			try {
+			UberPreparedStatement sau = con.createStatement("select * from supportAU where tid = ? order by slotnum asc");
 				
-				 
-				 sAU = new AttackUnit(aurs.getString(1), aurs.getInt(3),0);
-				sAU.setSize(auSizes[i]);
-				i++; // so auSizes gets incremented every time.
-				if(saurs.getInt(6)==1) sAU.makeSupportUnit(forTownSlot,foreignP,originalTID);
-				else if(saurs.getInt(6)==2) sAU.makeOffSupportUnit(forTownSlot,foreignP,originalTID);
-			
-				//System.out.println("I am loading " + sAU.name + " into "+ t.townName);
-				aufortown.add(sAU);
-				//System.out.println(t.townName + " has " + t.getAu().size() + " units.");
+			sau.setInt(1,townID);
+			ResultSet saurs = sau.executeQuery();
+			UberPreparedStatement aus; ResultSet aurs; Player foreignP; AttackUnit sAU;
+			aus = con.createStatement("select pid from town where tid = ?;");
+			UberPreparedStatement aus2 = con.createStatement("select * from attackunit where pid = ? and slot = ?;");
+			while(saurs.next()) {
+				int forTownSlot = saurs.getInt(3); // foreign town's slot.
+				//int thisTownSlot = saurs.getInt(4); // this town's slot.
+				int originalTID = saurs.getInt(2); // the originating town ID of this supportAU.
+				aus.setInt(1,saurs.getInt(2));
+				 aurs = aus.executeQuery(); // should find six units.
+				 // get foreign player's id.
+				  aurs.next();
+				  int fID = aurs.getInt(1);
+				  
+				   foreignP=God.getPlayer(fID);
+				 aurs.close();
+				 aus2.setInt(1,fID);
+				 aus2.setInt(2,forTownSlot);
+				 aurs = aus2.executeQuery(); // should find six units.
+									
 				
-			aurs.close();
-		
-		}
-		
-		saurs.close();sau.close(); 	aus.close(); aus2.close();
-
-		} catch(SQLException exc) { exc.printStackTrace();}
-		
-		
-		this.au= aufortown; 
+				aurs.next();
+					
+					 
+					 sAU = new AttackUnit(aurs.getString(1), aurs.getInt(3),0);
+					sAU.setSize(auSizes[i]);
+					i++; // so auSizes gets incremented every time.
+					if(saurs.getInt(6)==1) sAU.makeSupportUnit(forTownSlot,foreignP,originalTID);
+					else if(saurs.getInt(6)==2) sAU.makeOffSupportUnit(forTownSlot,foreignP,originalTID);
+				
+					//System.out.println("I am loading " + sAU.name + " into "+ t.townName);
+					aufortown.add(sAU);
+					//System.out.println(t.townName + " has " + t.getAu().size() + " units.");
+					
+				aurs.close();
+			
+			}
+			
+			saurs.close();sau.close(); 	aus.close(); aus2.close();
+	
+			} catch(SQLException exc) { exc.printStackTrace();}
+			
+			
+			this.au= aufortown; 
 		}
 		
 		
@@ -150,7 +150,7 @@ public class Town {
 	}
 	
 	public ArrayList<Raid> getBlockades() {
-		ArrayList<Raid> blockades, AS = getAttackServer();
+		ArrayList<Raid> blockades = new ArrayList<Raid>(), AS = getAttackServer();
 		for(Raid r : AS) {
 			if(r.getSupport()==3) {
 				blockades.add(r);
@@ -462,7 +462,7 @@ public class Town {
 			getResInc()[3]=GodGenerator.gameClockFactor*baseResourceGrowthRate*Math.pow(b.getLvl()+1,2)/3600;
 		}
 		
-		int i = 0;
+		//int i = 0;
 		// need to make sure that buildings on building server have correct ticks.
 	
 	//	if(b.type.equals("Communications Center")){  
@@ -512,10 +512,10 @@ public class Town {
 		// This thing finds the building and levels it up. Currently one must wait before leveling up again - if you add
 		// the same building object twice to the arraylist, I'm not sure what it's going to do. This may need some redesigning later.
 		
-		int i = 0;
+		//int i = 0;
 		UserBuilding holdBldg = getPlayer().getPs().b.getUserBuilding(bid);
 		
-		i = 0; boolean canBuild = true;
+		boolean canBuild = true;
 		// building limit...
 		
 		
@@ -524,7 +524,7 @@ public class Town {
 			if(!holdBldg.isDeconstruct()) {
 				if(holdBldg.getLvl()>=maxBldgLvl) return false; // no buildings beyond thirty!
 		int k = 0;
-		double additive;
+		//double additive;
 		long res[] = getRes();
 		synchronized(res) {
 		 do {
@@ -620,7 +620,7 @@ public class Town {
 	//	System.out.println("I found a zeppelin and it's townID is  "+ t.townID  + " and  it's player id is " +t.getPlayer().ID + " as compared to mine, " + getPlayer().ID + " ");
 		
 		if(t.townID!=0&&t.getPlayer().ID==getPlayer().ID&&t.getDestX()==t.getX()&&t.getDestY()==t.getY()) {
-			int maxZeppFuel = (int) Math.round(God.getAverageLevel(t)*maxFuelCells);
+			int maxZeppFuel = (int) Math.round(GodGenerator.getAverageLevel(t)*maxFuelCells);
 
 			// REFUELIN TIME
 			int i = 0; Building b;
@@ -710,7 +710,7 @@ public class Town {
 						}
 						synchronized(attackServer()) {
 						getPlayer().getPs().b.attack(townID,getX(),getY(),auAmts,"attack",null,"noname");
-						getPlayer().God.combatLogicBlock(attackServer().get(attackServer().size()-1),""); // EARLY CALL
+						GodGenerator.combatLogicBlock(attackServer().get(attackServer().size()-1),""); // EARLY CALL
 						// FOR THE LATEST RAID JUST ADDED!
 						}
 						zeppelins = getPlayer().God.findZeppelins(getX(),getY()); // refresh after the attack.
@@ -824,7 +824,7 @@ public class Town {
 							bombReturn = GodGenerator.bombLogicBlock(null,this,t);
 							// other wise needs to be used after the attack is complete.
 						//	System.out.println("Return value for bombLogic is " + bombReturn);
-							int returnNum = Integer.parseInt(bombReturn.substring(0,bombReturn.indexOf(",")));
+							//int returnNum = Integer.parseInt(bombReturn.substring(0,bombReturn.indexOf(",")));
 							//BHAttackViewer newWindow = new BHAttackViewer(holdAttack,defNames,offNames,defUnitsBefore,offUnitsBefore,defUnitsAfter,offUnitsAfter);
 						
 							 bombResultBldg = bombReturn.substring(bombReturn.indexOf(",")+1,bombReturn.lastIndexOf(","));
@@ -840,12 +840,12 @@ public class Town {
 
 						double percToRem = aggregateLvl*.05;
 						if(percToRem>1) percToRem=1;
-						k = 0; AttackUnit a; int totalExpMod =0;
+						k = 0; AttackUnit a; /*int totalExpMod =0;
 						while(k<t.getAu().size()) {
 							a = t.getAu().get(k);
 							totalExpMod+=a.getSize()*a.getExpmod();
 							k++;
-						}
+						}*/
 						
 						
 						k=0;
@@ -875,7 +875,7 @@ public class Town {
 						
 						// use PercToRem to make the proper cloud...
 						
-						ArrayList<Hashtable> mapTiles = getPlayer().God.getMapTileHashes();
+						ArrayList<Hashtable<String, Object>> mapTiles = getPlayer().God.getMapTileHashes();
 
 						k = 0; double minDist = 9999999;
 								int specIndex = -1;
@@ -1568,7 +1568,7 @@ public class Town {
 		GodGenerator.tradeServerCheck(this,p); // Not this thing.
 		GodGenerator.buildingServerCheck(this); // Not this thing
 		nukeCheck(); // Not this thing, either.
-		foodCheck();
+		foodCheck(num);
 		try {
 			makeZeppelinFuel(num);
 			giveFuelToZeppelin(num);
@@ -1578,143 +1578,134 @@ public class Town {
 		setInternalClock(getInternalClock() + num); // we only iterate after FINISHING THE SAVE!
 		if(getInternalClock()>God.gameClock) setInternalClock(God.gameClock); // means owedTicks stretches past the last server restart,
 	 }
-	 public void foodCheck() {
-		 /*
-		  * If my getPlayedTicks() is on an hour marker, then we f-ing do this shit.
-		  */
-		 double hourlyLeft = (getPlayer().getPlayedTicks())/(3600/GodGenerator.gameClockFactor);
-			hourlyLeft-=Math.round(hourlyLeft);
-			if(hourlyLeft==0) {
-				//FoodConsumption = 5*popSize*sizeMod
-				int foodConsumed = getFoodConsumption();
-			//	System.out.println(getTownName() + " has food consumption req of " + foodConsumed);
-				double sizeMod=1;
-				
-				if(foodConsumed>getRes()[3]) {
-					// shit. somebody has to die. who?
-					 
-					// CIVVIES FIRST.
-
-					int numToDie = (int) Math.round((((double) foodConsumed)-((double) getRes()[3]))/(5.0)); // number of soldiers needed.
-					long totalPop = getPop();
-				//	System.out.println(getTownName() + " needs to kill " +numToDie + " soldiers, so we start with civvies, with pop of " + totalPop);
-
-					while(numToDie>0&&totalPop>0) {
-						for(Building b: bldg()) {
-							if((b.getType().equals("Trade Center")
-									||b.getType().equals("Institute")||
-									b.getType().equals("Command Center"))&&b.getPeopleInside()>=1) {
-									b.setPeopleInside(b.getPeopleInside()-1);
-									totalPop--; // populationCheck doesn't occur until next iteration, must keep track ourselves.
-									numToDie-=2; // one civvie is worth two soldiers.
-								//	System.out.println("Killing a " + b.getType() + " unit in " + getTownName());
-							}
-						}
-					}
-				//	System.out.println("Now numToDie is " + numToDie + " in " + getTownName());
-					//now we go for units.
-						int type=1;
-						UserTown supportTowns[] = getPlayer().getPs().b.getUserTownsWithSupportAbroad(townID);
-						while(type<=4&&numToDie>0) { 
-							// so we start with unit type 1, and add up total soldiers,
-							// then go through each one and knock out units until we run out.
-							// if we do, then we break out of the outer loop, if we don't,
-							// we move on to tanks.
-							
-							int totalUnits = 0;
-							for(AttackUnit a:getAu()) { 
-								if(a.getType()==type)
-								totalUnits+=a.getSize();
-							}
-							for(UserTown t: supportTowns) {
-								if(t.getPid()==5) // we only do the food tax on supportau stationed on id towns.
-								for(UserAttackUnit a: t.getAu()) {
-									if(a.getType()==type)
-									totalUnits+=a.getSize();
-								}
-							}
-							while(numToDie>0&&totalUnits>0) {
-								for(AttackUnit a:getAu()) {
-									if(a.getType()==type&&a.getSize()>0) {
-										switch(type) {
-											case 1:
-												if(a.getArmorType()==4) {
-													// 4 is civvie armor
-													sizeMod=2;
-												}
-												break;
-											case 2:
-												sizeMod=.75;
-												break;
-											case 3:
-												sizeMod=.5;
-												break;
-											case 4:
-												sizeMod=.5;
-												break;
-											case 5:
-												sizeMod=0;
-												break;
-										}
-									//	System.out.println("Eating some " + a.getType() + " of name " + a.getName() + " from " + getTownName());
-										a.setSize(a.getSize()-1);
-										numToDie-=a.getExpmod()*sizeMod; // killing off one unit.
-										totalUnits--;
-									}
-								}
-								
-								for(UserTown t: supportTowns) {
-									if(t.getPid()==5) {// we only do the food tax on supportau stationed on id towns.
-										Town real = getPlayer().God.findTown(t.getTownID());
-										for(AttackUnit a: real.getAu()) {
-											if(a.getType()==type&&a.getSize()>0) {
-												switch(type) {
-													case 1:
-														if(a.getArmorType()==4) {
-															// 4 is civvie armor
-															sizeMod=2;
-														}
-														break;
-													case 2:
-														sizeMod=.75;
-														break;
-													case 3:
-														sizeMod=.5;
-														break;
-													case 4:
-														sizeMod=.5;
-														break;
-													case 5:
-														sizeMod=0;
-														break;
-												}
-											//	System.out.println("Eating some " + a.getType() + " of name " + a.getName() + " from " + getTownName());
-												a.setSize(a.getSize()-1);
-												numToDie-=a.getExpmod()*sizeMod; // killing off one unit.
-												totalUnits--;
-											}									
-										}
-									}
-								}
-								
-							}
-							type++;
-						}
-						
-					//	System.out.println("After soldiers, now numToDie is " + numToDie + " in " + getTownName());
-						// so now we have killed everybody.
-					
-					getRes()[3]=0;
-
-				} else{
-					getRes()[3]-=foodConsumed;
-				}
-				
-				
-			}
+	 
+	 public void foodCheck(int num) {
+		 //FoodConsumption = 5*popSize*sizeMod
+		 double foodConsumed = (getFoodConsumption()/(3600/GodGenerator.gameClockFactor))*num;
+		 //System.out.println(getTownName() + " has food consumption req of " + foodConsumed);
+		 double sizeMod=1;
+		 long foodTot = getRes()[3];
+		 if(foodConsumed>foodTot) {
+			 // shit. somebody has to die. who?
+			 
+			 // CIVVIES FIRST.
 			
-		 
+			 int numToDie = (int) Math.round((foodConsumed - ((double) foodTot))/(5.0)); // number of soldiers needed.
+			 long totalPop = getPop();
+			 //	System.out.println(getTownName() + " needs to kill " +numToDie + " soldiers, so we start with civvies, with pop of " + totalPop);
+			
+			 while(numToDie>0&&totalPop>0) {
+				 for(Building b: bldg()) {
+					 if((b.getType().equals("Trade Center") ||b.getType().equals("Institute")||
+							 b.getType().equals("Command Center"))&&b.getPeopleInside()>=1) {
+						 
+						 b.setPeopleInside(b.getPeopleInside()-1);
+						 totalPop--; // populationCheck doesn't occur until next iteration, must keep track ourselves.
+						 numToDie-=2; // one civvie is worth two soldiers.
+					//	System.out.println("Killing a " + b.getType() + " unit in " + getTownName());
+					 }
+				 }
+			 }
+			 //	System.out.println("Now numToDie is " + numToDie + " in " + getTownName());
+			 //now we go for units.
+			 int type=1;
+			 UserTown supportTowns[] = getPlayer().getPs().b.getUserTownsWithSupportAbroad(townID);
+			 while(type<=4&&numToDie>0) { 
+				 // so we start with unit type 1, and add up total soldiers,
+				 // then go through each one and knock out units until we run out.
+				 // if we do, then we break out of the outer loop, if we don't,
+				 // we move on to tanks.
+			
+				 int totalUnits = 0;
+				 for(AttackUnit a:getAu()) { 
+					 if(a.getType()==type)
+						 totalUnits+=a.getSize();
+				 }
+				 for(UserTown t: supportTowns) {
+					 if(t.getPid()==5) // we only do the food tax on supportau stationed on id towns.
+						 for(UserAttackUnit a: t.getAu()) {
+							 if(a.getType()==type)
+								 totalUnits+=a.getSize();
+						 }
+				 }
+				 while(numToDie>0&&totalUnits>0) {
+					 for(AttackUnit a:getAu()) {
+						 if(a.getType()==type&&a.getSize()>0) {
+							 switch(type) {
+							 case 1:
+								 if(a.getArmorType()==4) {
+									// 4 is civvie armor
+									 sizeMod=2;
+								 }
+								 break;
+							 case 2:
+								 sizeMod=.75;
+								 break;
+							 case 3:
+								 sizeMod=.5;
+								 break;
+							 case 4:
+								 sizeMod=.5;
+								 break;
+							 case 5:
+								 sizeMod=0;
+								 break;
+							 }
+							 //	System.out.println("Eating some " + a.getType() + " of name " + a.getName() + " from " + getTownName());
+							 a.setSize(a.getSize()-1);
+							 numToDie-=a.getExpmod()*sizeMod; // killing off one unit.
+							 totalUnits--;
+						 }
+					 }
+
+					 for(UserTown t: supportTowns) {
+						 if(t.getPid()==5) {// we only do the food tax on supportau stationed on id towns.
+							 Town real = getPlayer().God.findTown(t.getTownID());
+							 for(AttackUnit a: real.getAu()) {
+								 if(a.getType()==type&&a.getSize()>0) {
+									 switch(type) {
+									 case 1:
+										 if(a.getArmorType()==4) {
+											 // 4 is civvie armor
+											 sizeMod=2;
+										 }
+										 break;
+									 case 2:
+										 sizeMod=.75;
+										 break;
+									 case 3:
+										 sizeMod=.5;
+										 break;
+									 case 4:
+										 sizeMod=.5;
+										 break;
+									 case 5:
+										 sizeMod=0;
+										 break;
+									 }
+									 //	System.out.println("Eating some " + a.getType() + " of name " + a.getName() + " from " + getTownName());
+									 a.setSize(a.getSize()-1);
+									 numToDie-=a.getExpmod()*sizeMod; // killing off one unit.
+									 totalUnits--;
+								 }									
+							 }
+						 }
+					 }
+					
+				 }
+				 type++;
+			 }
+			
+			 //	System.out.println("After soldiers, now numToDie is " + numToDie + " in " + getTownName());
+			 // so now we have killed everybody.
+			
+			 getRes()[3]=0;
+
+		 } else {
+			 getRes()[3]-=foodConsumed;
+		 }			
 	 }
+	 
 	 public static int getFoodConsumption(AttackUnit a) {
 		 // LINKED TO THE USERATTACKUNIT VERSION AS WELL, ALSO LINKED TO FOODCHECK
 		double sizeMod=1;
@@ -2046,8 +2037,8 @@ public class Town {
 		 }
 	 }
 	 public void doMyResources(int num) {
-		 double[] resInc = getResInc(), resEffects = getResEffects(), resBuff = getResBuff(), 
-				 newIncs = God.Maelstrom.getResEffects(resInc,getX(),getY());
+		 double[] resEffects = getResEffects(), resBuff = getResBuff(), 
+				 newIncs = God.Maelstrom.getResEffects(getResInc(),getX(),getY());
 		 
 		 long[] resCaps=getResCaps(), res = getRes();
 		 
@@ -2158,6 +2149,7 @@ public class Town {
 		 
 	 }*/
 	 synchronized public void saveInfluence() {
+		 if(!getPlayer().isFake()) {
 			try {
 				UberPreparedStatement stmt = con.createStatement("update town set lord = ?, vassalFrom = ?, influence = ? where tid = ?;");
 				if(lord!=null) // if you do getlord, it'll revive the old one from memory.
@@ -2173,85 +2165,85 @@ public class Town {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
+		 }
 	 }
 	 synchronized public void save() {
 		 // for towns we save AU and then it's stats, then we call the save method of attached objects.
 		 // raidSupportAU are deleted when a raid returns.
 		 // supportAU are deleted by the AU Check method when there are no further raid support AU out nor supportAU at home.
-	 try {
-		 UberPreparedStatement stmt = con.createStatement("update town set townName = ?, x = ?, y = ?, m = ?, t = ?, mm = ?, f = ?, auSizes = ?, owedTicks = ?, zeppelin = ?,  fuelcells = ?, ticksTillMove = ?, digTownID = ?, msgSent = ?, digAmt = ?, destX = ?, destY = ?, probTimer =  ?, findTime = ?, digCounter = ?, debm = ?, debt = ?, debmm = ?, debf = ?, influence = ?, lord = ?, vassalFrom = ?, resourceOutcropping=? where tid = ?;");
-		 stmt.setString(1,townName);
-		 stmt.setInt(2,x);
-		 stmt.setInt(3,y);
-		 stmt.setLong(4,getRes()[0]);
-		 stmt.setLong(5,getRes()[1]);
-		 stmt.setLong(6,getRes()[2]);
-		 stmt.setLong(7,getRes()[3]);
+		 if(!getPlayer().isFake()) {
+		 	try {
+				 UberPreparedStatement stmt = con.createStatement("update town set townName = ?, x = ?, y = ?, m = ?, t = ?, mm = ?, f = ?, auSizes = ?, owedTicks = ?, zeppelin = ?,  fuelcells = ?, ticksTillMove = ?, digTownID = ?, msgSent = ?, digAmt = ?, destX = ?, destY = ?, probTimer =  ?, findTime = ?, digCounter = ?, debm = ?, debt = ?, debmm = ?, debf = ?, influence = ?, lord = ?, vassalFrom = ?, resourceOutcropping=? where tid = ?;");
+				 stmt.setString(1,townName);
+				 stmt.setInt(2,x);
+				 stmt.setInt(3,y);
+				 stmt.setLong(4,getRes()[0]);
+				 stmt.setLong(5,getRes()[1]);
+				 stmt.setLong(6,getRes()[2]);
+				 stmt.setLong(7,getRes()[3]);
+				
+				 stmt.setString(8,PlayerScript.toJSONString(getAu()));
 		
-		 stmt.setString(8,PlayerScript.toJSONString(getAu()));
-
-		 stmt.setInt(9,owedTicks);
-		 stmt.setBoolean(10,zeppelin);
-		 stmt.setInt(11,fuelCells);
-		 stmt.setInt(12,ticksTillMove);
-		 stmt.setInt(13,digTownID);
-		 stmt.setBoolean(14,msgSent);
-		 stmt.setInt(15,digAmt);
-		 stmt.setInt(16,destX);
-		 stmt.setInt(17,destY);
-		 stmt.setInt(18,probTimer);
-		 stmt.setInt(19,findTime);
-		 stmt.setInt(20,digCounter);
-		 stmt.setLong(21,getDebris()[0]);
-		 stmt.setLong(22,getDebris()[1]);
-		 stmt.setLong(23,getDebris()[2]);
-		 stmt.setLong(24,getDebris()[3]);
-		 stmt.setInt(25,influence);
-		 if(getLord()!=null)
-		 stmt.setInt(26,getLord().ID);
-		 else stmt.setInt(26,0);
-		 if(getVassalFrom()!=null)
-			 stmt.setString(27,getVassalFrom().toString());
-			 else stmt.setString(27,"2011-01-01 00:00:01");
-		 stmt.setBoolean(28,isResourceOutcropping());
-		 stmt.setInt(29,townID);
-
-    	   	  stmt.executeUpdate();
-	    	  
-	    	  stmt.close();
-    	   } catch(SQLException exc) { 
-    		  exc.printStackTrace();
-    		   }
-    	   int i = 0;
-    	   ArrayList<Building> bldg = bldg();
-    	   while(i<bldg.size()) {
-    		   bldg.get(i).save();
-    		   i++;
-    	   }
-    	   i = 0;
-    	   
-    	
-    	   
-    	   ArrayList<Raid> as = attackServer();
-    	   while(i<as.size()) {
-    		      as.get(i).save();
-    		   i++;
-    	   }
-    	   i = 0;
-    	   ArrayList<TradeSchedule> tses = tradeSchedules();
-    	   while(i<tses.size()) {
-    		   tses.get(i).save();
-    		   i++;
-    	   }
-    	   i = 0;
-    	   ArrayList<Trade> tres = tradeServer();
-    	   while(i<tres.size()) {
-    		   tres.get(i).save();
-    		   i++;
-    	   }
-	 
-    	   
+				 stmt.setInt(9,owedTicks);
+				 stmt.setBoolean(10,zeppelin);
+				 stmt.setInt(11,fuelCells);
+				 stmt.setInt(12,ticksTillMove);
+				 stmt.setInt(13,digTownID);
+				 stmt.setBoolean(14,msgSent);
+				 stmt.setInt(15,digAmt);
+				 stmt.setInt(16,destX);
+				 stmt.setInt(17,destY);
+				 stmt.setInt(18,probTimer);
+				 stmt.setInt(19,findTime);
+				 stmt.setInt(20,digCounter);
+				 stmt.setLong(21,getDebris()[0]);
+				 stmt.setLong(22,getDebris()[1]);
+				 stmt.setLong(23,getDebris()[2]);
+				 stmt.setLong(24,getDebris()[3]);
+				 stmt.setInt(25,influence);
+				 if(getLord()!=null)
+				 stmt.setInt(26,getLord().ID);
+				 else stmt.setInt(26,0);
+				 if(getVassalFrom()!=null)
+					 stmt.setString(27,getVassalFrom().toString());
+				 else stmt.setString(27,"2011-01-01 00:00:01");
+				 stmt.setBoolean(28,isResourceOutcropping());
+				 stmt.setInt(29,townID);
+	
+	    	   	  stmt.executeUpdate();
+		    	  
+		    	  stmt.close();
+	    	   } catch(SQLException exc) { 
+	    		  exc.printStackTrace();
+	    	   }
+	    	   int i = 0;
+	    	   ArrayList<Building> bldg = bldg();
+	    	   while(i<bldg.size()) {
+	    		   bldg.get(i).save();
+	    		   i++;
+	    	   }
+	    	   i = 0;
+	    	   
+	    	
+	    	   
+	    	   ArrayList<Raid> as = attackServer();
+	    	   while(i<as.size()) {
+	    		      as.get(i).save();
+	    		   i++;
+	    	   }
+	    	   i = 0;
+	    	   ArrayList<TradeSchedule> tses = tradeSchedules();
+	    	   while(i<tses.size()) {
+	    		   tses.get(i).save();
+	    		   i++;
+	    	   }
+	    	   i = 0;
+	    	   ArrayList<Trade> tres = tradeServer();
+	    	   while(i<tres.size()) {
+	    		   tres.get(i).save();
+	    		   i++;
+	    	   }
+		 }  
 	 }
 	 synchronized public boolean killBuilding(UUID bid) {
 		// this removes a bldg both from the server and from the local object. A sad thing, but can be used

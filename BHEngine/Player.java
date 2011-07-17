@@ -1,13 +1,13 @@
 package BHEngine;
 
 import java.io.IOException;
-import java.sql.Connection;
+//import java.sql.Connection;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.UUID;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+//import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
@@ -19,7 +19,7 @@ import BattlehardFunctions.UserMessage;
 import BattlehardFunctions.UserMessagePack;
 import BattlehardFunctions.UserSR;
 
-import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
+//import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 
 
 
@@ -50,13 +50,13 @@ public class Player  {
 					nukeAPI,worldMapAPI,digAPI,airshipTech,clockworkAugments,supportstaff,
 					personalShields,hydraulicAssistors,thrustVectoring,advancedFortifications,
 					bloodMetalArmor, voluntaryVassal,isQuest=false, isLeague=false, beingDeleted=false,
-					facsimile=false, synchronize = false;
+					facsimile=false, synchronize = false, fake = false;
 	
 	private String 	version,username,password,email,holdingIteratorID="-1",pushLog="", 
 					holdingLordIteratorID = "-1";
 	
 	private Timestamp vassalFrom;
-	private Hashtable eventListenerLists = new Hashtable();
+	private Hashtable<String, ArrayList<QuestListener>> eventListenerLists = new Hashtable<String, ArrayList<QuestListener>>();
 	private Player lord;
 	private ArrayList<Hashtable> achievements, territories=new ArrayList<Hashtable>(); 
 	private ArrayList<QuestListener> activeQuests;
@@ -99,7 +99,7 @@ public class Player  {
 			   ID = 5; // this means a test player, and we'll use Id as our example player for both sides.
 		   }
 		   
-		   if(ID>=999999900) {
+		   if(fake||ID>=999999900) {
 			   stmt.close(); 	// not a real player, no need.
 			   facsimile=false; // this is a more sophisticated test player, capable of generating it's own attackunits.
 			   					// this means we're in the special testing zone.
@@ -116,8 +116,8 @@ public class Player  {
 		       flicker = "noflick";
 		       last_login=new Timestamp((new Date()).getTime());
 		       // EVENT LISTENER STUFF	
-				eventListenerLists.put("onProgramLoad",new ArrayList<QuestListener>());
-				eventListenerLists.put("onRaidSent",new ArrayList<QuestListener>());
+		       eventListenerLists.put("onProgramLoad",new ArrayList<QuestListener>());
+		       eventListenerLists.put("onRaidSent",new ArrayList<QuestListener>());
 
 		       try {
 		    	   last_session=new Timestamp((new Date()).getTime());
@@ -125,10 +125,6 @@ public class Player  {
 		       numLogins = 0;
 		       totalTimePlayed = 0;
 		       
-		       
-
-
-		  
 				if(!facsimile) { // you must set them yourself if you are.
 					au = getAu(); 
 					try {
@@ -243,9 +239,18 @@ public class Player  {
 		ps = new PlayerScript(this);
 
 	}
+	
+	public Player(int ID, GodGenerator God, boolean isFake) {
+		this(ID, God);
+		fake = isFake;
+	}
 
 	public boolean[] getDeepAlliance(Player p) {
 		boolean[] ally = {false,false,false};
+		if(ID==p.ID) {
+			ally[0]=true;
+			return ally;
+		}
 		/*
 		 * 	ally[0] isDirectAlly
 		 * 	is true if the players have an alliance with each other
@@ -273,6 +278,7 @@ public class Player  {
 	
 	public boolean isAllied(Player p) {
 		//add check for diplomatic alliance
+		if(ID==p.ID) return true;
 		if(p.getLord().getID()==getLord().getID()) return true;
 		if(p.getLeague().getID()==getLeague().getID()) return true;
 		return false;
@@ -1312,52 +1318,54 @@ public class Player  {
 		 
 	 }
 	public void makeVassalOf(Player lord, boolean voluntary) {
-		setLord(lord);
-		 setVoluntaryVassal(voluntary);
-		 setVassalFrom(new Timestamp((new Date()).getTime()));
-		 if(voluntary) setTaxRate(0);
-		 if(!voluntary) setTaxRate(.5);
-		 for(Hashtable terr:getTerritories()) {
-			 if(lord==null)
-				 ((Hashtable) terr.get("corners")).put("lord","none");
-			 else
-			 ((Hashtable) terr.get("corners")).put("lord",lord.getUsername());
-		 }
-	
-	//	 System.out.println("I, "+  getUsername() + " am being vassaled. Am I lord? " + isLord());
-		 if(isLord()&&lord!=null) { // don't need to do this if you're being freed.
-			 for(Player p:God.getPlayers()) {
-				 boolean becameVassal=false;
-				 if(p.getLord()!=null&&p.getLord().ID==ID) {
-				//	System.out.println("I am releasing " + p.getUsername()); // obviously player level vassalage breaks.
-					 p.makeWallPost("","Freedom!","After a long period of vassalage under "+getUsername()+", my people are now free once more!",
-								"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
-								"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
-								"Play Now!","http://www.steampunkwars.com/");
-					 p.makeVassalOf(null,false);
-					 becameVassal=true;
-					 
-				 }
-				 for(Town t:p.towns()) {
-					 if(t.getLord()!=null&&t.getLord().ID==ID){
-					/*	 if(!becameVassal) { If we're getting lorded, town gets passed up so it's not free.
-							 // no need to send extra FB messages for towns getting switched over.
-								System.out.println("I am releasing " + t.getTownName());
-								
-							 p.makeWallPost("","Territory Freed!","The people of my town are free from "+t.getLord().getUsername()+"'s tyranny!",
-										"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
-										"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
-										"Play Now!","http://www.steampunkwars.com/");
-
-								
-						 }*/
-						 t.setLord(lord); 
-						t.setVassalFrom(new Timestamp((new Date()).getTime()));
+		if(!isFake()) {
+			setLord(lord);
+			setVoluntaryVassal(voluntary);
+			setVassalFrom(new Timestamp((new Date()).getTime()));
+			if(voluntary) setTaxRate(0);
+			if(!voluntary) setTaxRate(.5);
+			for(Hashtable terr:getTerritories()) {
+				if(lord==null)
+					((Hashtable) terr.get("corners")).put("lord","none");
+				else
+					((Hashtable) terr.get("corners")).put("lord",lord.getUsername());
+			}
+		
+		//	 System.out.println("I, "+  getUsername() + " am being vassaled. Am I lord? " + isLord());
+			if(isLord()&&lord!=null) { // don't need to do this if you're being freed.
+				for(Player p:God.getPlayers()) {
+					boolean becameVassal=false;
+					if(p.getLord()!=null&&p.getLord().ID==ID) {
+					//	System.out.println("I am releasing " + p.getUsername()); // obviously player level vassalage breaks.
+						p.makeWallPost("","Freedom!","After a long period of vassalage under "+getUsername()+", my people are now free once more!",
+											"http://www.steampunkwars.com","In Steampunk Wars, vassalage is just one of many ways to subjugate your neighbors. Join now to find out more!",
+											"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+											"Play Now!","http://www.steampunkwars.com/");
+						p.makeVassalOf(null,false);
+						becameVassal=true;
+						 
 					}
-				 }
-			 }
-		 }
-		 saveInfluence();
+					for(Town t:p.towns()) {
+						if(t.getLord()!=null&&t.getLord().ID==ID){
+						/*	 if(!becameVassal) { If we're getting lorded, town gets passed up so it's not free.
+								 // no need to send extra FB messages for towns getting switched over.
+									System.out.println("I am releasing " + t.getTownName());
+									
+								 p.makeWallPost("","Territory Freed!","The people of my town are free from "+t.getLord().getUsername()+"'s tyranny!",
+											"http://www.steampunkwars.com","Territory grows daily in Steampunk wars.  Join now and watch your empire grow!",
+											"https://fbcdn-photos-a.akamaihd.net/photos-ak-snc1/v27562/23/164327976933647/app_1_164327976933647_5894.gif",
+											"Play Now!","http://www.steampunkwars.com/");
+	
+									
+							 }*/
+							t.setLord(lord); 
+							t.setVassalFrom(new Timestamp((new Date()).getTime()));
+						}
+					}
+				}
+			}
+			saveInfluence();
+		}
 	}
 	 public void checkForNewlyVassaledTowns() {
 		 /*
@@ -1382,7 +1390,7 @@ public class Player  {
 				 if(!found) {
 					 
 					 	if(r==null) // saves memory to only call this badboy once.
-						 r = (Hashtable[]) getPs().b.getWorldMap().get("territoryArray");
+					 		r = (Hashtable[]) getPs().b.getWorldMap().get("territoryArray");
 						
 						// Presumably, the world map will gather territories that matter and send them down!
 						// If we just go straight by player, we will have to analyze each territory, ALL of them.
@@ -2163,14 +2171,14 @@ public class Player  {
 	 }
 	 
 	public void saveAndIterate(int number) {
-	
-		UberStatement stmt=null;
-		ResultSet checkChange;
+		if(!isFake()) {
+			UberStatement stmt=null;
+			ResultSet checkChange;
 		
 		   
-		  String updateAU[]; String weapStr,soldierPicStr,tankPicStr,juggerPicStr,bomberPicStr; String updatePlayer;
-		  AttackUnit hau; String weapons;
-		     boolean transacted=false;
+			String updateAU[]; String weapStr,soldierPicStr,tankPicStr,juggerPicStr,bomberPicStr; String updatePlayer;
+			AttackUnit hau; String weapons;
+		    boolean transacted=false;
 		//    lagTimer = new Timer();
 	//	for(;;) {
 			try {
@@ -2289,7 +2297,7 @@ public class Player  {
 			if(getInternalClock()>God.gameClock) setInternalClock(God.gameClock); // means owedTicks stretches past the last server restart,
 			//so we just hold the internalClock steady while we update.
 			playedTicks+=number;
-			
+		}
 	}
 	public int getPlayedTicks() {
 		
@@ -2297,28 +2305,29 @@ public class Player  {
 		else return playedTicks+(God.gameClock-owedTicks);
 	}
 	synchronized public void update() {
-		// This method brings the player up to standard time.
-		boolean saveTripped=false;
-		if(owedTicks>0) {
-			saveAndIterate(God.gameClock-owedTicks);
-			owedTicks=0; 
-			saveTripped=true;
-		}
-		int i = 0; ArrayList<Town> towns = towns();
-		while(i<towns.size()) {
-			Town t = towns().get(i);
-			if(t.owedTicks>0) {
-				t.iterate(God.gameClock-towns().get(i).owedTicks);
-				t.owedTicks=0; // player towns and players normally will have around the same owedTicks...
-				// we only keep owedTicks on towns for Id's sake.
+		if(!isFake()) {
+			// This method brings the player up to standard time.
+			boolean saveTripped=false;
+			if(owedTicks>0) {
+				saveAndIterate(God.gameClock-owedTicks);
+				owedTicks=0; 
 				saveTripped=true;
 			}
-			i++;
+			int i = 0; ArrayList<Town> towns = towns();
+			while(i<towns.size()) {
+				Town t = towns().get(i);
+				if(t.owedTicks>0) {
+					t.iterate(God.gameClock-towns().get(i).owedTicks);
+					t.owedTicks=0; // player towns and players normally will have around the same owedTicks...
+					// we only keep owedTicks on towns for Id's sake.
+					saveTripped=true;
+				}
+				i++;
+			}
+			if(saveTripped)
+				save(); // Got to save whenever update is called so we don't waste resources on a server restart
+						// reiterating them!
 		}
-		if(saveTripped)
-		save(); // Got to save whenever update is called so we don't waste resources on a server restart
-		// reiterating them!
-		
 		
 	}
 	public boolean stuffOut() {
@@ -2332,6 +2341,21 @@ public class Player  {
 		if(getPs().b.isAlive()) return true; // program running means the player keeps cycling.
 		return false;
 	}
+	
+	public boolean isFake() {
+		return fake;
+	}
+	/*
+	 * Handy if you want each player to have the same number of towns
+	 */
+	public Player[] generateFakePlayers(int number, int numberTownsEach, int startingPidOffset, int startingTidOffset) {
+		int[] numtowns = new int[number];
+		for(int i : numtowns) {
+			i = numberTownsEach;
+		}
+		return generateFakePlayers(number,numtowns,startingPidOffset,startingTidOffset);
+	}
+	
 	public Player[] generateFakePlayers(int number, int[] numberTownsEach, int startingPidOffset, int startingTidOffset) {
 		// generates fake players and fake towns with extremely high pids.
 		// the offset is to allow for previous calls.
@@ -2339,10 +2363,15 @@ public class Player  {
 		int x = 0;
 		int totalTownsAdded=0;
 		while(x<fakes.length) {
-			int startingTid = 999999900+startingTidOffset; 
+			int startingTid = 999999900+startingTidOffset;
 			int y = 0;
 		
-			fakes[x] = new Player(startingPidOffset+999999900+x,God);
+			//ensure that we're not using an existing pid (shouldn't ever happen)
+			while(God.getPlayer(startingPidOffset+999999900+x)!=null) {
+				if(startingPidOffset<1) startingPidOffset=1;
+				startingPidOffset*=2;
+			}
+			fakes[x] = new Player(startingPidOffset+999999900+x,God,true);
 			ArrayList<Town> ptowns = new ArrayList<Town>();
 
 			while(y<numberTownsEach[x]) {
@@ -2714,220 +2743,221 @@ public class Player  {
 	}
 	synchronized public void save() {
 		// saves everything but AUTemplates, which alter themselves on change.
-		try {
-		      UberPreparedStatement stmt= con.createStatement("select chg,last_login from player where pid = ?;");
-		      stmt.setInt(1,ID);
-		      ResultSet rs = stmt.executeQuery();
-		      rs.next();
-		      //	       last_login=rs.getTimestamp(41);
-
-		      if(rs.getInt(1)==0&&(rs.getTimestamp(2).getTime()!=last_login.getTime()||owedTicks==0||(owedTicks>0&&(God.gameClock-owedTicks)<God.saveWhenTicks))) {
-		    	//  System.out.println("Actually saving " + getUsername() + " and his owedTicks was " + owedTicks + " and gameClock diff is " + (God.gameClock-owedTicks) + " compared to " + God.saveWhenTicks + " and his last_login saved was " + rs.getTimestamp(2) + " and actual was " +last_login);
-		    	  // when do we save with owedTicks?
-		    	  // we know if owedTicks is less than saveWhenTicks, then
-		    	  // the player has been changed since last save. 
-		    	  // because if the last save was 10 ticks ago, and owedTicks is 5,
-		    	  // that means the player stopped cycling at 5 ticks ago, needs a save.
-		    	  // If owed ticks is 15, player stopped cycling 15 ticks ago, and 
-		    	  // that player was saved.
-		    	  // Bad situation: Player's owed ticks are incremented just beyond
-		    	  // the save limit and he logs in, putting him in line for a save,
-		    	  // but the server shuts down without him. Then he loses stuff, loses
-		    	  // that he should even be saved for a bit. But this is always true.
-		    	  stmt.close();
-			       stmt= con.createStatement("update player set bodyArmor = ?, personalShields = ?, hydraulicAssistors = ?, thrustVectoring = ?, bloodMetalPlating = ?, bloodMetalArmor = ?, advancedFortifications = ?, constructionResearch = ?, firearmResearch = ?"  +
-			    		   ", townTech = ?, supportstaff = ?, infrastructureTech = ?, structuralIntegrity = ?" + 
-			    		   ", scholTicks = ?, playedTicks = ?, bp = ?, premiumTimer = ?, ubTimer = ?, mineTimer = ?, feroTimer = ?" +
-			    		   ", timberTimer = ?, mmTimer = ?, fTimer = ?, knowledge = ?, architecture = ?, clockworkComputers = ?, capitaltid = ?" 
-			    		   +", revTimer = ?, totalBPEarned = ?, flicker = ?, fuid = ?, totalTimePlayed = ?, numLogins = ?, last_login = ?, last_session = ?" 
-			    		   	+", last_auto_blast = ?,tPushes = ?, airshipTech = ?, clockworkAugments = ?" 
-			    		   	+", attackAPI = ?, advancedAttackAPI = ?, digAPI = ?, tradingAPI = ?, advancedTradingAPI = ?, smAPI = ?, researchAPI = ?"+ 
-			    		   	", buildingAPI = ?, advancedBuildingAPI = ?, messagingAPI = ?, zeppelinAPI = ?, completeAnalyticAPI = ?, version = ?, nukeAPI = ?, worldMapAPI = ?, owedTicks = ?, email =?, pushLog = ?, password = ?, lord = ?, taxRate = ?, voluntaryVassal=?, mbuff=?, tbuff = ?, mmbuff=?, fbuff=?, vassalFrom = ? where pid = ?;");
-			       stmt.setInt(1,bodyArmor);
-			       stmt.setBoolean(2,personalShields);
-			       stmt.setBoolean(3,hydraulicAssistors);
-			       stmt.setBoolean(4,thrustVectoring);
-			       stmt.setInt(5,bloodMetalPlating);
-			       stmt.setBoolean(6,bloodMetalArmor);
-			       stmt.setBoolean(7,advancedFortifications);
-			       stmt.setInt(8,constructionResearch);
-			       stmt.setInt(9,firearmResearch);
-			       stmt.setInt(10,townTech);
-			       stmt.setBoolean(11,supportstaff);
-			       stmt.setInt(12,infrastructureTech);
-			       stmt.setInt(13,structuralIntegrity);
-			       stmt.setInt(14,scholTicks);
-			       stmt.setInt(15,playedTicks);
-			       stmt.setInt(16,bp);
-			       stmt.setInt(17,premiumTimer);
-			       stmt.setInt(18,ubTimer);
-			       stmt.setInt(19,mineTimer);
-			       stmt.setInt(20,feroTimer);
-			       stmt.setInt(21,timberTimer);
-			       stmt.setInt(22,mmTimer);
-			       stmt.setInt(23,fTimer);
-			       stmt.setInt(24,knowledge);
-			       stmt.setInt(25,architecture);
-			       stmt.setInt(26,clockworkComputers);
-			       stmt.setInt(27,capitaltid);
-			       stmt.setInt(28,revTimer);
-			       stmt.setInt(29,totalBPEarned);
-			       stmt.setString(30,flicker);
-			       stmt.setLong(31,fuid);
-			       stmt.setLong(32,totalTimePlayed);
-			       stmt.setInt(33,numLogins);
-			       stmt.setString(34,last_login.toString());
-			       stmt.setString(35,last_session.toString());
-			       stmt.setInt(36,last_auto_blast);
-			      stmt.setInt(37,tPushes);
-			       stmt.setBoolean(38,airshipTech);
-			       stmt.setBoolean(39,clockworkAugments);
-			       stmt.setBoolean(40,attackAPI);
-			       stmt.setBoolean(41,advancedAttackAPI);
-			       stmt.setBoolean(42,digAPI);
-			       stmt.setBoolean(43,tradingAPI);
-			       stmt.setBoolean(44,advancedTradingAPI);
-			       stmt.setBoolean(45,smAPI);
-			       stmt.setBoolean(46,researchAPI);
-			       stmt.setBoolean(47,buildingAPI);
-			       stmt.setBoolean(48,advancedBuildingAPI);
-			       stmt.setBoolean(49,messagingAPI);
-			       stmt.setBoolean(50,zeppelinAPI);
-			       stmt.setBoolean(51,completeAnalyticAPI);
-			       stmt.setString(52,version);
-			       stmt.setBoolean(53,nukeAPI);
-			       stmt.setBoolean(54,worldMapAPI);
-			       stmt.setInt(55,owedTicks);
-			       stmt.setString(56,email);
-			       stmt.setString(57,pushLog);
-			       stmt.setString(58,password);
-			       if(getLord()!=null)
-			    	   stmt.setInt(59,lord.ID);
-			       else
-			    	   stmt.setInt(59,0);
-			       stmt.setDouble(60,taxRate);
-			       stmt.setBoolean(61,voluntaryVassal);
-			       if(secondaryResBuff==null) {
-			    	   stmt.setLong(62,0);
-			    	   stmt.setLong(63,0);
-			    	   stmt.setLong(64,0);
-			    	   stmt.setLong(65,0);
-
-			       } else {
-			    	   stmt.setLong(62,secondaryResBuff[0]);
-			    	   stmt.setLong(63,secondaryResBuff[1]);
-			    	   stmt.setLong(64,secondaryResBuff[2]);
-			    	   stmt.setLong(65,secondaryResBuff[3]);
-			       }
-			       if(getVassalFrom()!=null)
-						 stmt.setString(66,getVassalFrom().toString());
-						 else stmt.setString(66,"2011-01-01 00:00:01");
-			       stmt.setInt(67,ID);
-	  /*   String  updatePlayer = "update player set bodyArmor = " + bodyArmor +", personalShields = " + personalShields + 
-	    		  ", hydraulicAssistors = " + hydraulicAssistors +  ", thrustVectoring = " + thrustVectoring + ", bloodMetalPlating = " + bloodMetalPlating +", bloodMetalArmor = " + bloodMetalArmor+ ", advancedFortifications = " + advancedFortifications + ", constructionResearch = " + constructionResearch + ", firearmResearch = " + firearmResearch +
-	    		   ", townTech = " + townTech 
-	    		   +", supportstaff = " + supportstaff +", infrastructureTech = " + infrastructureTech + ", structuralIntegrity = " + structuralIntegrity + 
-	    		   ", scholTicks = " + scholTicks + ", playedTicks = " + playedTicks +", bp = " + bp + ", premiumTimer = " + premiumTimer+ ", ubTimer = " + ubTimer + ", mineTimer = " + mineTimer + ", feroTimer = " + feroTimer +
-	    		   ", timberTimer = "  + timberTimer + ", mmTimer = " + mmTimer + ", fTimer = " + fTimer + ", knowledge = " + knowledge +", architecture = " + architecture + ", clockworkComputers = " + clockworkComputers + ", capitaltid = " + capitaltid 
-	    		   +", revTimer = " + revTimer +", totalBPEarned = " + totalBPEarned +", flicker = '" + flicker + "', fuid = " + fuid + ", totalTimePlayed = " + totalTimePlayed + ", numLogins = " + numLogins + ", last_login = '" + (last_login).toString() + "', last_session = '" + (last_session).toString() 
-	    		   	+"', last_auto_blast =" + last_auto_blast + ",tPushes = "+tPushes+", airshipTech = " + airshipTech + ", clockworkAugments = " + clockworkAugments
-	    		   	+", attackAPI = " + attackAPI +
-	    		   	", advancedAttackAPI = " + advancedAttackAPI+", digAPI = " + digAPI + ", tradingAPI = " + tradingAPI + ", advancedTradingAPI = " + advancedTradingAPI + ", smAPI = " + smAPI + ", researchAPI = " + researchAPI + 
-	    		   	", buildingAPI = " + buildingAPI + ", advancedBuildingAPI = " + advancedBuildingAPI + ", messagingAPI = " + messagingAPI + ", zeppelinAPI = " + zeppelinAPI + 
-	    		   	", completeAnalyticAPI = " + completeAnalyticAPI +", version = '" + version + "', nukeAPI = " + nukeAPI +", worldMapAPI = " + worldMapAPI +", owedTicks = " + owedTicks+ ", email ='"+ email +"', pushLog = \"" + pushLog + "\", password = '" + password +  "' where pid = " + ID + ";";*/
-	      stmt.executeUpdate();
-	      
-	      // First, let's get and write to au. I'm not sure if querying first is more labor intensive than just writing. Let's not
-	      // worry just yet!
-	      stmt.close();
-	      int co = 0;
-	      stmt = con.createStatement("update attackunit set name = ?, slot = ? where pid = ? and slot = ?;");
-	      AttackUnit hau;
-	      try {
-	      while(co<getAu().size()) {
-	    	   hau = getAu().get(co);
-	    	  
-	    	  stmt.setString(1,hau.getName());
-	    	  stmt.setInt(2,hau.getSlot());
-	    	  stmt.setInt(3,ID);
-	    	  stmt.setInt(4,hau.getSlot());
-	    	  stmt.executeUpdate();
-	    	  co++;
-	      }   } catch(Exception exc) { exc.printStackTrace(); System.out.println("Save saved for " + getUsername()); }
-	      rs.close();
-	      stmt.close(); // we close these in this if statement so that they don't wait while towns save.
-	      stmt =  con.createStatement("update messages set readed = ?, deleted = ? where id = ?;");
-	      int i = 0;
-	      UserMessagePack ump; UserMessage m;
-	      while(i<getMessages().size()) {
-	    	  ump = getMessages().get(i);
-	    	  int j = 0;
-	    	  while(j<ump.getMessages().size()) {
-	    		  m = ump.getMessages().get(j);
-	    		  stmt.setBoolean(1,m.isReaded());
-	    		  stmt.setBoolean(2,m.getDeleted());
-	    		  stmt.setString(3,m.getId().toString());
-	    		  stmt.execute();
-	    		  
-	    		  if(m.getDeleted()) {
-	    			  
-	    			  ump.removeMessage(m);
-	    			  j--;
-	    			  
-	    		  }
-	    		  j++;
-	    	  }
-	    	  if(ump.getMessages().size()==0)  {
-				  
-				  getMessages().remove(ump);
-				  i--;
-			  }
-	    	  i++;
-	      }
-	      stmt.close();
-	      stmt = con.createStatement("update statreports set readed=?,archived=? where id = ?;");
-	      for(UserSR s:getUserSR()) {
-	    	  stmt.setBoolean(1,s.read);
-	    	  stmt.setBoolean(2,s.archived);
-	    	  stmt.setString(3,s.id.toString());
-	    	  stmt.execute();
-	      }
-	      stmt.close();
-			 i = 0;
-			ArrayList<Town> towns = towns();
-			while(i<towns.size()) {
-				try {
-				if(towns.get(i).getPlayer()!=null) // if it's a quest just being made, then p is null even though there is a player with
-					// the town attached...because we discard THAT player and reload it as a QuestListener.
-					towns.get(i).save();
-				} catch(Exception exc) { exc.printStackTrace(); System.out.println("Save for town " + towns.get(i).townID + " is saved."); }
-				i++;
-			}
-		      } else { // we use else statement to close this stuff if we can't iterate, since we close it up there
-		    	  // in the if statement to prevent that statement getting plucked away by UberConnection!
-		    	 if(rs.getInt(1)==0){
-		    		 stmt = con.createStatement("update player set owedTicks =  ? where pid = ?;");
-		    		 stmt.setInt(1,owedTicks);
-		    		 stmt.setInt(2,ID);
-		    		 stmt.execute(); // got to save owed ticks.
-		    		 stmt.close();
-		    		 stmt = con.createStatement("update town set owedTicks = ? where tid = ?;");
-
-		    		 int i = 0;
-		    		 while(i<towns().size()) {
-		    			 stmt.setInt(1,towns().get(i).owedTicks);
-		    			 stmt.setInt(2,towns().get(i).townID);
-			    		 stmt.execute(); // got to save owed ticks.
-
-		    			 i++;
-		    		 }
-		    	 }
-			      rs.close();
-			      stmt.close();
+		if(!isFake()) {
+			try {
+			      UberPreparedStatement stmt= con.createStatement("select chg,last_login from player where pid = ?;");
+			      stmt.setInt(1,ID);
+			      ResultSet rs = stmt.executeQuery();
+			      rs.next();
+			      //	       last_login=rs.getTimestamp(41);
+	
+			      if(rs.getInt(1)==0&&(rs.getTimestamp(2).getTime()!=last_login.getTime()||owedTicks==0||(owedTicks>0&&(God.gameClock-owedTicks)<God.saveWhenTicks))) {
+			    	//  System.out.println("Actually saving " + getUsername() + " and his owedTicks was " + owedTicks + " and gameClock diff is " + (God.gameClock-owedTicks) + " compared to " + God.saveWhenTicks + " and his last_login saved was " + rs.getTimestamp(2) + " and actual was " +last_login);
+			    	  // when do we save with owedTicks?
+			    	  // we know if owedTicks is less than saveWhenTicks, then
+			    	  // the player has been changed since last save. 
+			    	  // because if the last save was 10 ticks ago, and owedTicks is 5,
+			    	  // that means the player stopped cycling at 5 ticks ago, needs a save.
+			    	  // If owed ticks is 15, player stopped cycling 15 ticks ago, and 
+			    	  // that player was saved.
+			    	  // Bad situation: Player's owed ticks are incremented just beyond
+			    	  // the save limit and he logs in, putting him in line for a save,
+			    	  // but the server shuts down without him. Then he loses stuff, loses
+			    	  // that he should even be saved for a bit. But this is always true.
+			    	  stmt.close();
+				       stmt= con.createStatement("update player set bodyArmor = ?, personalShields = ?, hydraulicAssistors = ?, thrustVectoring = ?, bloodMetalPlating = ?, bloodMetalArmor = ?, advancedFortifications = ?, constructionResearch = ?, firearmResearch = ?"  +
+				    		   ", townTech = ?, supportstaff = ?, infrastructureTech = ?, structuralIntegrity = ?" + 
+				    		   ", scholTicks = ?, playedTicks = ?, bp = ?, premiumTimer = ?, ubTimer = ?, mineTimer = ?, feroTimer = ?" +
+				    		   ", timberTimer = ?, mmTimer = ?, fTimer = ?, knowledge = ?, architecture = ?, clockworkComputers = ?, capitaltid = ?" 
+				    		   +", revTimer = ?, totalBPEarned = ?, flicker = ?, fuid = ?, totalTimePlayed = ?, numLogins = ?, last_login = ?, last_session = ?" 
+				    		   	+", last_auto_blast = ?,tPushes = ?, airshipTech = ?, clockworkAugments = ?" 
+				    		   	+", attackAPI = ?, advancedAttackAPI = ?, digAPI = ?, tradingAPI = ?, advancedTradingAPI = ?, smAPI = ?, researchAPI = ?"+ 
+				    		   	", buildingAPI = ?, advancedBuildingAPI = ?, messagingAPI = ?, zeppelinAPI = ?, completeAnalyticAPI = ?, version = ?, nukeAPI = ?, worldMapAPI = ?, owedTicks = ?, email =?, pushLog = ?, password = ?, lord = ?, taxRate = ?, voluntaryVassal=?, mbuff=?, tbuff = ?, mmbuff=?, fbuff=?, vassalFrom = ? where pid = ?;");
+				       stmt.setInt(1,bodyArmor);
+				       stmt.setBoolean(2,personalShields);
+				       stmt.setBoolean(3,hydraulicAssistors);
+				       stmt.setBoolean(4,thrustVectoring);
+				       stmt.setInt(5,bloodMetalPlating);
+				       stmt.setBoolean(6,bloodMetalArmor);
+				       stmt.setBoolean(7,advancedFortifications);
+				       stmt.setInt(8,constructionResearch);
+				       stmt.setInt(9,firearmResearch);
+				       stmt.setInt(10,townTech);
+				       stmt.setBoolean(11,supportstaff);
+				       stmt.setInt(12,infrastructureTech);
+				       stmt.setInt(13,structuralIntegrity);
+				       stmt.setInt(14,scholTicks);
+				       stmt.setInt(15,playedTicks);
+				       stmt.setInt(16,bp);
+				       stmt.setInt(17,premiumTimer);
+				       stmt.setInt(18,ubTimer);
+				       stmt.setInt(19,mineTimer);
+				       stmt.setInt(20,feroTimer);
+				       stmt.setInt(21,timberTimer);
+				       stmt.setInt(22,mmTimer);
+				       stmt.setInt(23,fTimer);
+				       stmt.setInt(24,knowledge);
+				       stmt.setInt(25,architecture);
+				       stmt.setInt(26,clockworkComputers);
+				       stmt.setInt(27,capitaltid);
+				       stmt.setInt(28,revTimer);
+				       stmt.setInt(29,totalBPEarned);
+				       stmt.setString(30,flicker);
+				       stmt.setLong(31,fuid);
+				       stmt.setLong(32,totalTimePlayed);
+				       stmt.setInt(33,numLogins);
+				       stmt.setString(34,last_login.toString());
+				       stmt.setString(35,last_session.toString());
+				       stmt.setInt(36,last_auto_blast);
+				      stmt.setInt(37,tPushes);
+				       stmt.setBoolean(38,airshipTech);
+				       stmt.setBoolean(39,clockworkAugments);
+				       stmt.setBoolean(40,attackAPI);
+				       stmt.setBoolean(41,advancedAttackAPI);
+				       stmt.setBoolean(42,digAPI);
+				       stmt.setBoolean(43,tradingAPI);
+				       stmt.setBoolean(44,advancedTradingAPI);
+				       stmt.setBoolean(45,smAPI);
+				       stmt.setBoolean(46,researchAPI);
+				       stmt.setBoolean(47,buildingAPI);
+				       stmt.setBoolean(48,advancedBuildingAPI);
+				       stmt.setBoolean(49,messagingAPI);
+				       stmt.setBoolean(50,zeppelinAPI);
+				       stmt.setBoolean(51,completeAnalyticAPI);
+				       stmt.setString(52,version);
+				       stmt.setBoolean(53,nukeAPI);
+				       stmt.setBoolean(54,worldMapAPI);
+				       stmt.setInt(55,owedTicks);
+				       stmt.setString(56,email);
+				       stmt.setString(57,pushLog);
+				       stmt.setString(58,password);
+				       if(getLord()!=null)
+				    	   stmt.setInt(59,lord.ID);
+				       else
+				    	   stmt.setInt(59,0);
+				       stmt.setDouble(60,taxRate);
+				       stmt.setBoolean(61,voluntaryVassal);
+				       if(secondaryResBuff==null) {
+				    	   stmt.setLong(62,0);
+				    	   stmt.setLong(63,0);
+				    	   stmt.setLong(64,0);
+				    	   stmt.setLong(65,0);
+	
+				       } else {
+				    	   stmt.setLong(62,secondaryResBuff[0]);
+				    	   stmt.setLong(63,secondaryResBuff[1]);
+				    	   stmt.setLong(64,secondaryResBuff[2]);
+				    	   stmt.setLong(65,secondaryResBuff[3]);
+				       }
+				       if(getVassalFrom()!=null)
+							 stmt.setString(66,getVassalFrom().toString());
+							 else stmt.setString(66,"2011-01-01 00:00:01");
+				       stmt.setInt(67,ID);
+		  /*   String  updatePlayer = "update player set bodyArmor = " + bodyArmor +", personalShields = " + personalShields + 
+		    		  ", hydraulicAssistors = " + hydraulicAssistors +  ", thrustVectoring = " + thrustVectoring + ", bloodMetalPlating = " + bloodMetalPlating +", bloodMetalArmor = " + bloodMetalArmor+ ", advancedFortifications = " + advancedFortifications + ", constructionResearch = " + constructionResearch + ", firearmResearch = " + firearmResearch +
+		    		   ", townTech = " + townTech 
+		    		   +", supportstaff = " + supportstaff +", infrastructureTech = " + infrastructureTech + ", structuralIntegrity = " + structuralIntegrity + 
+		    		   ", scholTicks = " + scholTicks + ", playedTicks = " + playedTicks +", bp = " + bp + ", premiumTimer = " + premiumTimer+ ", ubTimer = " + ubTimer + ", mineTimer = " + mineTimer + ", feroTimer = " + feroTimer +
+		    		   ", timberTimer = "  + timberTimer + ", mmTimer = " + mmTimer + ", fTimer = " + fTimer + ", knowledge = " + knowledge +", architecture = " + architecture + ", clockworkComputers = " + clockworkComputers + ", capitaltid = " + capitaltid 
+		    		   +", revTimer = " + revTimer +", totalBPEarned = " + totalBPEarned +", flicker = '" + flicker + "', fuid = " + fuid + ", totalTimePlayed = " + totalTimePlayed + ", numLogins = " + numLogins + ", last_login = '" + (last_login).toString() + "', last_session = '" + (last_session).toString() 
+		    		   	+"', last_auto_blast =" + last_auto_blast + ",tPushes = "+tPushes+", airshipTech = " + airshipTech + ", clockworkAugments = " + clockworkAugments
+		    		   	+", attackAPI = " + attackAPI +
+		    		   	", advancedAttackAPI = " + advancedAttackAPI+", digAPI = " + digAPI + ", tradingAPI = " + tradingAPI + ", advancedTradingAPI = " + advancedTradingAPI + ", smAPI = " + smAPI + ", researchAPI = " + researchAPI + 
+		    		   	", buildingAPI = " + buildingAPI + ", advancedBuildingAPI = " + advancedBuildingAPI + ", messagingAPI = " + messagingAPI + ", zeppelinAPI = " + zeppelinAPI + 
+		    		   	", completeAnalyticAPI = " + completeAnalyticAPI +", version = '" + version + "', nukeAPI = " + nukeAPI +", worldMapAPI = " + worldMapAPI +", owedTicks = " + owedTicks+ ", email ='"+ email +"', pushLog = \"" + pushLog + "\", password = '" + password +  "' where pid = " + ID + ";";*/
+		      stmt.executeUpdate();
+		      
+		      // First, let's get and write to au. I'm not sure if querying first is more labor intensive than just writing. Let's not
+		      // worry just yet!
+		      stmt.close();
+		      int co = 0;
+		      stmt = con.createStatement("update attackunit set name = ?, slot = ? where pid = ? and slot = ?;");
+		      AttackUnit hau;
+		      try {
+		      while(co<getAu().size()) {
+		    	   hau = getAu().get(co);
+		    	  
+		    	  stmt.setString(1,hau.getName());
+		    	  stmt.setInt(2,hau.getSlot());
+		    	  stmt.setInt(3,ID);
+		    	  stmt.setInt(4,hau.getSlot());
+		    	  stmt.executeUpdate();
+		    	  co++;
+		      }   } catch(Exception exc) { exc.printStackTrace(); System.out.println("Save saved for " + getUsername()); }
+		      rs.close();
+		      stmt.close(); // we close these in this if statement so that they don't wait while towns save.
+		      stmt =  con.createStatement("update messages set readed = ?, deleted = ? where id = ?;");
+		      int i = 0;
+		      UserMessagePack ump; UserMessage m;
+		      while(i<getMessages().size()) {
+		    	  ump = getMessages().get(i);
+		    	  int j = 0;
+		    	  while(j<ump.getMessages().size()) {
+		    		  m = ump.getMessages().get(j);
+		    		  stmt.setBoolean(1,m.isReaded());
+		    		  stmt.setBoolean(2,m.getDeleted());
+		    		  stmt.setString(3,m.getId().toString());
+		    		  stmt.execute();
+		    		  
+		    		  if(m.getDeleted()) {
+		    			  
+		    			  ump.removeMessage(m);
+		    			  j--;
+		    			  
+		    		  }
+		    		  j++;
+		    	  }
+		    	  if(ump.getMessages().size()==0)  {
+					  
+					  getMessages().remove(ump);
+					  i--;
+				  }
+		    	  i++;
 		      }
-		    
-		}catch(SQLException exc) { exc.printStackTrace(); }
-		
+		      stmt.close();
+		      stmt = con.createStatement("update statreports set readed=?,archived=? where id = ?;");
+		      for(UserSR s:getUserSR()) {
+		    	  stmt.setBoolean(1,s.read);
+		    	  stmt.setBoolean(2,s.archived);
+		    	  stmt.setString(3,s.id.toString());
+		    	  stmt.execute();
+		      }
+		      stmt.close();
+				 i = 0;
+				ArrayList<Town> towns = towns();
+				while(i<towns.size()) {
+					try {
+					if(towns.get(i).getPlayer()!=null) // if it's a quest just being made, then p is null even though there is a player with
+						// the town attached...because we discard THAT player and reload it as a QuestListener.
+						towns.get(i).save();
+					} catch(Exception exc) { exc.printStackTrace(); System.out.println("Save for town " + towns.get(i).townID + " is saved."); }
+					i++;
+				}
+			      } else { // we use else statement to close this stuff if we can't iterate, since we close it up there
+			    	  // in the if statement to prevent that statement getting plucked away by UberConnection!
+			    	 if(rs.getInt(1)==0){
+			    		 stmt = con.createStatement("update player set owedTicks =  ? where pid = ?;");
+			    		 stmt.setInt(1,owedTicks);
+			    		 stmt.setInt(2,ID);
+			    		 stmt.execute(); // got to save owed ticks.
+			    		 stmt.close();
+			    		 stmt = con.createStatement("update town set owedTicks = ? where tid = ?;");
+	
+			    		 int i = 0;
+			    		 while(i<towns().size()) {
+			    			 stmt.setInt(1,towns().get(i).owedTicks);
+			    			 stmt.setInt(2,towns().get(i).townID);
+				    		 stmt.execute(); // got to save owed ticks.
+	
+			    			 i++;
+			    		 }
+			    	 }
+				      rs.close();
+				      stmt.close();
+			      }
+			    
+			}catch(SQLException exc) { exc.printStackTrace(); }
+		}
 	}
 	      
 		
@@ -3170,20 +3200,18 @@ public class Player  {
 			au = new ArrayList<AttackUnit>();
 
 			try{ 
-			UberPreparedStatement aus = con.createStatement("select * from attackunit where pid = ?;");
-			aus.setInt(1,ID);
-			 ResultSet aurs = aus.executeQuery(); // should find six units.
+				UberPreparedStatement aus = con.createStatement("select * from attackunit where pid = ?;");
+				aus.setInt(1,ID);
+				ResultSet aurs = aus.executeQuery(); // should find six units.
 
 
 
-			while(aurs.next()) {
-				
-				
-				au.add(new AttackUnit(aurs.getString(1), aurs.getInt(3),0));
-			}
+				while(aurs.next()) {
+					au.add(new AttackUnit(aurs.getString(1), aurs.getInt(3),0));
+				}
 			
-			aurs.close();aus.close(); 
-		} catch(SQLException exc) { exc.printStackTrace(); }
+				aurs.close();aus.close(); 
+			} catch(SQLException exc) { exc.printStackTrace(); }
 		}
 		return au;
 	}
@@ -3192,26 +3220,26 @@ public class Player  {
 	public ArrayList<Town> towns() {
 		if(towns==null&&!facsimile) {
 			towns = new ArrayList<Town>();
-		ArrayList<Town> totalTowns = God.getTowns();
-		try {
-			UberPreparedStatement stmt = con.createStatement("select tid from town where pid = ?;");
-			stmt.setInt(1,ID);
-			ResultSet rs = stmt.executeQuery();
-			while(rs.next()) {
-		
-				int i = 0;
-				while(i<totalTowns.size()) {
-					if(totalTowns.get(i).townID==rs.getInt(1)) {
-						towns.add(totalTowns.get(i));
-						//totalTowns.get(i).setPlayer(this);
+			ArrayList<Town> totalTowns = God.getTowns();
+			try {
+				UberPreparedStatement stmt = con.createStatement("select tid from town where pid = ?;");
+				stmt.setInt(1,ID);
+				ResultSet rs = stmt.executeQuery();
+				while(rs.next()) {
+			
+					int i = 0;
+					while(i<totalTowns.size()) {
+						if(totalTowns.get(i).townID==rs.getInt(1)) {
+							towns.add(totalTowns.get(i));
+							//totalTowns.get(i).setPlayer(this);
+						}
+						i++;
 					}
-					i++;
 				}
-			}
-
-			rs.close();
-			stmt.close();
-		} catch(SQLException exc) { exc.printStackTrace(); }
+	
+				rs.close();
+				stmt.close();
+			} catch(SQLException exc) { exc.printStackTrace(); }
 		
 		}
 		return towns;
