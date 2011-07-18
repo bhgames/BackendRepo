@@ -13,6 +13,7 @@ public class UserTown {
 	private int totalEngineers=0; private UserRaid[] attackServer; 
 	private UserTrade[] tradeServer;
 	private double[] resEffects;
+	private String rumor;
 	private int destX,destY,fuelCells,ticksTillMove;
 	private boolean zeppelin, resourceOutcropping;
 	private int foodConsumption;
@@ -29,12 +30,13 @@ public class UserTown {
 			long[] resCaps, double[] resInc, double[] resEffects, int totalEngineers,
 			int totalTraders, int townID, String townName,
 			UserTradeSchedule[] tradeSchedules, UserTrade[] tradeServer, int x,
-			int y,int CSL, int CS, boolean zeppelin, int fuelCells, int destX,int destY, int ticksTillMove, int foodConsumption, double taxRate, int lord, Timestamp vassalFrom, int influence, boolean resourceOutcropping) {
+			int y,int CSL, int CS, boolean zeppelin, int fuelCells, int destX,int destY, int ticksTillMove, int foodConsumption, double taxRate, int lord, Timestamp vassalFrom, int influence, boolean resourceOutcropping, String rumor) {
 		this.attackServer = attackServer;
 		this.au = au;
 		this.bldg = bldg;
 		this.CSL=CSL; this.CS=CS;
 		this.taxRate=taxRate;
+		this.rumor=rumor;
 		this.lord=lord;
 		this.resourceOutcropping=resourceOutcropping;
 		this.foodConsumption=foodConsumption;
@@ -199,6 +201,12 @@ public class UserTown {
 	}
 	public boolean isResourceOutcropping() {
 		return resourceOutcropping;
+	}
+	public void setRumor(String rumor) {
+		this.rumor = rumor;
+	}
+	public String getRumor() {
+		return rumor;
 	}
 	
 }

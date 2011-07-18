@@ -25,7 +25,7 @@ public class Raid {
 	private Timestamp dockingFinished=null;
 	private double distance; private UUID resupplyID; // for resupply runs.
 	private int ticksToHit; private Town town2; private Town town1; private boolean raidOver;
-	private boolean debris; private int digAmt;
+	private boolean debris; private int digAmt; private String reward="nothing";
 	UberConnection con; 
 	public void makeScoutRun() {
 		setScout(1);
@@ -84,7 +84,7 @@ public class Raid {
 	}
 	
 	public void setRaidValues(int raidID, double distance, int ticksToHit, Town town1, Town town2, boolean Genocide,boolean allClear,
-			int metal, int timber, int manmat, int food,boolean raidOver, boolean Bomb, boolean invade, int totalTicks,String name,int genoRounds, boolean debris, int digAmt, UUID id, Timestamp dockingFinished) {
+			int metal, int timber, int manmat, int food,boolean raidOver, boolean Bomb, boolean invade, int totalTicks,String name,int genoRounds, boolean debris, int digAmt, UUID id, Timestamp dockingFinished, String reward) {
 
 					this.distance=distance; this.ticksToHit=ticksToHit; this.town1=town1;
 					this.town2=town2; this.Genocide=Genocide; this.allClear=allClear;
@@ -94,6 +94,7 @@ public class Raid {
 					this.raidOver=raidOver;this.Bomb=Bomb;this.invade=invade;
 					this.totalTicks=totalTicks;this.name=name;this.genoRounds=genoRounds; this.digAmt=digAmt;
 					this.id=id;
+					this.reward=reward;
 		}
 	
 	public Raid(UUID id, GodGenerator God) {
@@ -122,7 +123,7 @@ public class Raid {
 			int y = 0;
 		
 			 setRaidValues(rrs.getInt(3),rrs.getDouble(4),rrs.getInt(5),town1,town2Obj,rrs.getBoolean(6),
-					rrs.getBoolean(8), rrs.getInt(9),rrs.getInt(10),rrs.getInt(11),rrs.getInt(12),rrs.getBoolean(7), rrs.getBoolean(19),rrs.getBoolean(23),rrs.getInt(25),rrs.getString(26),rrs.getInt(27),rrs.getBoolean(28),rrs.getInt(29),UUID.fromString(rrs.getString(31)),new Timestamp((new Date(rrs.getString(32))).getTime())); // this one has no sql addition!
+					rrs.getBoolean(8), rrs.getInt(9),rrs.getInt(10),rrs.getInt(11),rrs.getInt(12),rrs.getBoolean(7), rrs.getBoolean(19),rrs.getBoolean(23),rrs.getInt(25),rrs.getString(26),rrs.getInt(27),rrs.getBoolean(28),rrs.getInt(29),UUID.fromString(rrs.getString(31)),new Timestamp((new Date(rrs.getString(32))).getTime()),rrs.getString(33)); // this one has no sql addition!
 			getAu();
 					
 			if(rrs.getBoolean(19)) bombTarget=PlayerScript.decodeStringIntoStringArray(rrs.getString(20));
@@ -760,7 +761,7 @@ public class Raid {
 	
 	synchronized public void save() {
    		  try {
-   			  UberPreparedStatement stmt = con.createStatement("update raid set distance = ?, ticksToHit = ?, genocide = ?, raidOver = ?, allClear = ?, m = ?, t = ?, mm = ?, f = ?, auSizes=?, bomb = ?, bombtarget = ?, support = ?, scout = ?, invade = ?, resupplyID = ?, totalTicks = ?, dockingFinished = ? where id = ?;");
+   			  UberPreparedStatement stmt = con.createStatement("update raid set distance = ?, ticksToHit = ?, genocide = ?, raidOver = ?, allClear = ?, m = ?, t = ?, mm = ?, f = ?, auSizes=?, bomb = ?, bombtarget = ?, support = ?, scout = ?, invade = ?, resupplyID = ?, totalTicks = ?, dockingFinished = ?, reward = ? where id = ?;");
    	   		  ArrayList<AttackUnit> au = getAu();
    	   		
    	   		  stmt.setDouble(1,distance);
@@ -785,7 +786,8 @@ public class Raid {
    	   		  if(getDockingFinished()!=null)
 			 stmt.setString(18,getDockingFinished().toString());
 			 else stmt.setString(18,"2011-01-01 00:00:01");
-   	   		  stmt.setString(19,id.toString());
+   	   		  stmt.setString(19,reward);
+   	   		  stmt.setString(20,id.toString());
    		  stmt.executeUpdate();
    		  
    		/*  int k = 6;
@@ -798,7 +800,12 @@ public class Raid {
    		  // either being added back to town or was completely wiped out, either way, should be removed from memory.
 	} catch(SQLException exc) { exc.printStackTrace(); }
 	}
-	
+	public String getReward() {
+		return reward;
+	}
+	public void setReward(String reward) {
+		this.reward=reward;
+	}
 	public void setMemInvade(boolean invade) {
 		setBoolean("invade",invade);
 

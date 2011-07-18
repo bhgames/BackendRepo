@@ -8796,7 +8796,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					return false;
 				} else hypoTotal-=GodGenerator.airPrice*Math.pow(2,k);
 
-			}else if(array[i].equals("airshipTech")) {
+			}else if(array[i].equals("zeppelinTech")) {
 				
 					if(p.isAirshipTech())  {
 						setError("You already have this technology!");
@@ -9193,7 +9193,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			} else if(array[i].equals("scoutTech")) {
 				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.scoutTechPrice*(Math.pow(2,p.getScoutTech()/2))));
 				 p.setScoutTech(p.getScoutTech() + 1);
-			}else if(array[i].equals("airshipTech")) { 
+			}else if(array[i].equals("zeppelinTech")) { 
 				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.airshipTechPrice);
 				p.setAirshipTech(true);
 			}else if(array[i].equals("attackAPI")) { 
@@ -10031,7 +10031,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
 					return new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),dfin);
+							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),dfin,r.getReward());
 				}
 				j++;
 			}
@@ -10203,7 +10203,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
 					temp.add(new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),dfin));
+							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),dfin,r.getReward()));
 					} catch(Exception exc) { exc.printStackTrace(); System.out.println("getUserRaids saved. The raid in question: " + r.getId().toString()); }
 				
 				j++;
@@ -10327,7 +10327,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
 					temp.add(new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),new Timestamp(r.getDockingFinished().getTime())));
+							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),new Timestamp(r.getDockingFinished().getTime()),r.getReward()));
 					}
 			} catch(Exception exc) { exc.printStackTrace(); System.out.println("Raids saved from " + r.getId().toString());}
 				
@@ -11040,7 +11040,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			toRet[i] = new UserTown(r,au,b,p.ID,p.getUsername(),res,resCaps,resInc,resEffects,t.getTotalEngineers(),
 					t.getTotalTraders(),t.townID,t.getTownName(),ts,tr,t.getX(),t.getY(),getCSL(t.townID),getCS(t.townID),t.isZeppelin()
-					,t.getFuelCells(),t.getDestX(),t.getDestY(),t.getTicksTillMove(),t.getFoodConsumption(),t.getVassalRate(),lord,vassalFrom,t.getInfluence(),t.isResourceOutcropping());
+					,t.getFuelCells(),t.getDestX(),t.getDestY(),t.getTicksTillMove(),t.getFoodConsumption(),t.getVassalRate(),lord,vassalFrom,t.getInfluence(),t.isResourceOutcropping(),t.getRumor());
 			}
 			i++;
 
@@ -12302,9 +12302,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			if(yes) {
 				//	public String returnPrizeName(int probTick, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
-
+				 Town otherT = idTown.getPlayer().God.getTown(idTown.getDigTownID());
+				 Raid r= null;
+				 for(Raid r2:otherT.attackServer()){
+					 if(r2.getTown2().townID==townID&&r2.getDigAmt()>0) {
+						 r=r2;break;
+					 }
+				 }
 				
-				String reward = g.returnPrizeName(idTown.getProbTimer(),idTown.getX(),idTown.getY(),false,null,-1,null);
+				String reward = r.getReward();
+				idTown.setRumor(idTown.getRandomRumor()); // reset the rumor.
 				//reward = "zeppelin";
 				/*
 
@@ -12336,22 +12343,30 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				} else if(reward.equals("daily10")) {
 					sendYourself("Sir,\n We found a small resource cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					yourTown.doMyResources((int) Math.round(.1*24*3600/GodGenerator.gameClockFactor));
-					
+
 				}else if(reward.equals("daily20")) {
-					sendYourself("Sir,\n We found a medium resource cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					sendYourself("Sir,\n We found a medium resource and knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					yourTown.doMyResources((int) Math.round(.2*24*3600/GodGenerator.gameClockFactor));
-					
+					p.setKnowledge(p.getKnowledge()+(int) Math.round(p.knowledgePerDay()*.05));
+
 				}else if(reward.equals("daily30")) {
-					sendYourself("Sir,\n We found a large resource cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					sendYourself("Sir,\n We found a large resource and knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					yourTown.doMyResources((int) Math.round(.3*24*3600/GodGenerator.gameClockFactor));
-					
+					p.setKnowledge(p.getKnowledge()+(int) Math.round(p.knowledgePerDay()*.1));
+
 				}else if(reward.equals("daily50")) {
-					sendYourself("Sir,\n We found a very large resource cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					sendYourself("Sir,\n We found a very large resource and knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					yourTown.doMyResources((int) Math.round(.5*24*3600/GodGenerator.gameClockFactor));
+					p.setKnowledge(p.getKnowledge()+(int) Math.round(p.knowledgePerDay()*.2));
+
+				}else if(reward.equals("randomTech")) { 
+					String tech[] ={ getRandomTech()};
+					completeResearches(tech,true);
+					sendYourself("Sir,\n We found a piece of ancient [" + tech[0] + "]! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					
-				}else if(reward.equals("lowKP")) {
+				}/*else if(reward.equals("lowKP")) {
 					sendYourself("Sir,\n We found a small knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
-					p.setKnowledge(p.getKnowledge()+50);
+					p.setKnowledge(p.getKnowledge()+(int) Math.round(p.knowledgePerDay()*.05));
 					
 				}else if(reward.equals("medKP")) {
 					sendYourself("Sir,\n We found a medium knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
@@ -12452,21 +12467,39 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 						}
 					
-				}
+				}*/
 				else if(reward.equals("zeppelin")) {
-					String tech[] ={ "zeppTech","townTech"};
+					double rand = Math.random();
+					if(rand<.1||p.isAirshipTech()) {
+						sendYourself("Sir,\n We found an ancient Airship from long ago. We weren't able to salvage it, but we found a huge knowledge cache!\n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+						p.setKnowledge(p.getKnowledge()+(int) Math.round(p.knowledgePerDay()*.4));
+
+					}
+					String tech[] ={ "zeppelinTech","townTech"};
 					completeResearches(tech,true);
 					sendYourself("Sir,\n We found an ancient Airship from long ago. We weren't able to salvage it, but we were able to salvage an extra town slot and the plans to build an Airstrip. From an Airstrip, you could build your own Airship! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 
 					
 				}
 				
-				
-			}//	 public void resetDig(int newTownID, int digAmt, boolean findTime) {
+				idTown.returnDigOrRO(false,true);
+			} else {
+				//	 public void resetDig(int newTownID, int digAmt, boolean findTime, Raid r) {
+				boolean done = false;
+				for(Town t: p.towns()) {
+					for(Raid theR :t.attackServer()) {
+						if(theR.getDigAmt()>0&&theR.getTicksToHit()==0&&!theR.isRaidOver()&&theR.getDockingFinished()!=null&&theR.getTown2().townID==idTown.townID) {
+							idTown.resetDig(idTown.getDigTownID(),idTown.getDigAmt(),true,theR);
+							done=true;
+							break;
+						}
+					}
+					if(done) break;
+				}
+			}
 
 			//	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
 
-			recall(idTown.townID,idTown.getPlayer().ID,yourTown.townID);
 			
 		} else {
 			setError("This message was never sent!");
@@ -12475,7 +12508,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		return true;
 	}
-	
+	/**
+	 * @deprecated
+	 * AI Wars function
+	 * @return
+	 */
 	private String getRandomCivvieTech() {
 		String random[] ={
 				"buildingSlotTech",
@@ -12498,6 +12535,88 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}while(counter<10&&canCompleteResearches(toSend,true));
 		return toSend[0];
 	}
+	private String getRandomTech() {
+		/*
+		 * 1.9.1.Firearm Research(double check)
+1.9.2.Ordinance Research(double check)
+1.9.3.Tesla Tech(double check)
+1.9.4.BloodMetal Plating(double check)
+1.9.5.Body Armor(double check)
+1.9.6.BloodMetal Armor(double check)
+1.9.7.Personal Shields(double check)
+1.9.8.Hydraulic Assistors(double check)
+1.9.9.Thrust Vectoring(double check)
+1.9.10.Clockwork Augments(double check)
+1.9.11.Clockwork Computers(double check)
+1.9.12.Architecture(double check)
+1.9.13.Airship Blueprint(double check)
+1.9.14.Advanced Fortifications(double check)
+1.9.15.Structural Integrity(NEEDS FURTHER IMPLEMENTATION)
+1.9.16.Infrastructure Tech(double check)
+1.9.17.Town Tech(double check)
+1.9.18.Construction Research(double check)
+1.9.19.Scout Tech(double check)
+1.9.20.Soldier Blueprints(double check)
+1.9.21.Tank Blueprints(double check)
+1.9.22.Golem Blueprints(double check)
+1.9.23.Light Airship Blueprints(double check)
+1.9.24.Heavy Airship Blueprints(double check)
+		 */
+		String random[] = {
+				"firearmResearch",
+				"ordinanceResearch",
+				"teslaTech",
+				"bloodMetalPlating",
+				"bodyArmor",
+				"bloodMetalArmor",
+				"personalShields",
+				"hydraulicAssistors",
+				"thrustVectoring",
+				"clockworkAugments",
+				"clockworkComputers",
+				"architecture",
+				"advancedFortifications",
+				"structuralIntegrity",
+				"infrastructureTech",
+				"townTech",
+				"constructionResearch",
+				"scoutTech",
+				"Panzerfaust",
+				"Pillager",
+				"Vanguard",
+				"Seeker",
+				"Damascus",
+				"Wolverine",
+				"Punisher",
+				"Dreadnaught",
+				"Collossus",
+				"Gunship",
+				"Thunderbolt",
+				"Blastmaster",
+				"Halcyon",
+				"Hades",
+				"Monolith"
+				
+				
+				
+		};
+		int counter=0;
+		String toSend[] = {"null"};
+		do{
+			int rand = (int) Math.round(Math.random()*(random.length-1));
+			if(rand<0) rand = 0;
+			toSend[0]=random[rand];
+			counter++;
+			
+		}while(counter<10&&canCompleteResearches(toSend,true)) ;
+		return toSend[0];
+	}
+
+	/**
+	 * @deprecated
+	 * AI Wars function
+	 * @return
+	 */
 	private String getRandomMiliTech() {
 		String random[] ={
 				"afTech",
@@ -12520,6 +12639,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}while(counter<10&&canCompleteResearches(toSend,true)) ;
 		return toSend[0];
 	}
+	/**
+	 * @deprecated
+	 * AI Wars function
+	 * @return
+	 */
 	private String getRandomAPI() {
 		String random[] ={
 				"digAPI",
@@ -12544,7 +12668,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			int rand = (int) Math.round(Math.random()*(random.length-1));
 			if(rand<0) rand = 0;
 			toSend[0]=random[rand];
-			System.out.println("random is " +toSend[0]);
+			//System.out.println("random is " +toSend[0]);
 			counter++;
 			
 		} while(counter<10&&canCompleteResearches(toSend,true));

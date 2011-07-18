@@ -11,6 +11,7 @@ public class UserRaid {
 	private boolean raidOver; private double ticksToHit; private Timestamp dockingFinished;
 	private double distance; private long res[];
 	private UUID id;
+	private String reward;
 	private int tid1,tid2;
 	private String[] bombTargets;
 	private boolean debris;
@@ -21,7 +22,7 @@ public class UserRaid {
 	private boolean allClear = false;
 	private int totalTicks=0;
 	public UserRaid(UUID id, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, String[] bombTarget,
-			int tid1,int tid2,String name, int genoRounds, boolean bomb, boolean debris, int digAmt, Timestamp dockingFinished) {
+			int tid1,int tid2,String name, int genoRounds, boolean bomb, boolean debris, int digAmt, Timestamp dockingFinished,String reward) {
 		this.town1=town1;this.town2=town2; this.x1=x1;this.y1=y1;
 		this.genoRounds=genoRounds;
 		this.digAmt=digAmt;
@@ -34,6 +35,7 @@ public class UserRaid {
 		this.raidOver=raidOver; this.ticksToHit=ticksToHit;
 		this.distance=distance;
 		this.debris=debris;
+		this.reward=reward;
 		this.bombTargets=bombTarget;
 		 res = new long[4];
 		res[0]=m;
@@ -174,5 +176,11 @@ public class UserRaid {
 	}
 	public Timestamp getDockingFinished() {
 		return dockingFinished;
+	}
+	public void setReward(String reward) {
+		this.reward = reward;
+	}
+	public String getReward() {
+		return reward;
 	}
 }

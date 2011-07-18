@@ -13725,12 +13725,12 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 	} 
 	}
 	
-	public String returnPrizeName(int probTick, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
+	public String returnPrizeName(String rumor, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
 		// presetRand sets the rand automatically for testing, presetTile presets the tile if not null. TO make presetRand not work, set it
 		// to -1. To make presetTIle not work, set it to null.
 		// if test is true, the out printwriter will be used to print stuff.
 		
-		/*  1. Center of Nothing( Relative Mag: .5)
+		/*  OLD LOOT TABLE:(NEW BELOW)1. Center of Nothing( Relative Mag: .5)
 		 2. Center of 10% daily resources (Relative Mag: 1)
 		 3. Center of 20% Daily resources and 50 KP (Relative Mag: 1)
 		 4. Center of 30% Daily Resources, 65 KP (Relative Mag: 1)
@@ -13764,6 +13764,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		 * silo
 		 * zeppelin
 		 */
+		
 		int i = 0;Hashtable r; String type = "none";
 		while(i<getMapTileHashes().size()) {
 			r = getMapTileHashes().get(i);
@@ -13782,8 +13783,8 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		// So now that we know the types we can have, we just need to add up the probabilities
 		// and normalize them.
 		//	public static double getProbabilityInDist(double height, double center, double width, int x) {
-
-		int daysIn = (int) Math.round(probTick*GodGenerator.gameClockFactor/(3600*24));
+		
+		/*int daysIn = (int) Math.round(probTick*GodGenerator.gameClockFactor/(3600*24));
 		double nothingProb = getProbabilityInDist(nothingHeight,nothingCtr,nothingWidth,daysIn);
 		if(test) out.println("nothingProb is " + nothingProb);
 		
@@ -13900,10 +13901,37 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		
 		double zeppelinProbPt = siloProbPt+zeppelinProb*N;
 		if(test) out.println("zeppelinProbPt is " + zeppelinProbPt);
+		*/
 		
-		
-		double rand = Math.random()*100; // rand generated.
-		if(presetRand!=-1) rand = presetRand;
+
+
+		 
+		double nothingProbPt=0;
+		double daily10ProbPt=30;
+		double daily20ProbPt=50;
+		double daily30ProbPt=70;
+		double daily50ProbPt=85;
+		double techProbPt=95;
+		double zeppelinProbPt=100;
+		if(rumor.equals("Exotic Goods")) daily10ProbPt*=2;
+		if(rumor.equals("Information Cache")) {
+			double rand2 = Math.random();
+			if(rand2<.5)
+			daily20ProbPt*=2;
+			else daily30ProbPt*=2;
+		}
+		if(rumor.equals("Abandoned Tech")){
+			double rand2 = Math.random();
+			if(rand2<.5)
+			daily50ProbPt*=2;
+			else techProbPt*=2;
+		}
+		if(rumor.equals("Great Machine")) zeppelinProbPt*=2;
+
+		double total = nothingProbPt+daily10ProbPt+daily20ProbPt+daily30ProbPt+
+		daily50ProbPt+techProbPt+zeppelinProbPt;
+		double rand = Math.random()*total; // rand generated.
+		if(presetRand!=-1) rand = presetRand*total;
 		
 		if(test) out.print("rand is " + rand);
 		if(rand<=nothingProbPt) {
@@ -13921,7 +13949,13 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}else if(rand>daily30ProbPt&&rand<=daily50ProbPt) {
 			if(test) out.println("daily50");
 			return "daily50";
-		}else if(rand>daily50ProbPt&&rand<=lowKPProbPt) {
+		}else if(rand>daily50ProbPt&&rand<=techProbPt) {
+			return "randomTech";
+				
+		}else if(rand>techProbPt&&rand<=zeppelinProbPt) {
+			if(test) out.println("zeppelin");
+			return "zeppelin";
+		}/*else if(rand>daily50ProbPt&&rand<=lowKPProbPt) {
 			if(test) out.println("lowKP");
 			return "lowKP";
 		}else if(rand>lowKPProbPt&&rand<=medKPProbPt) {
@@ -13981,7 +14015,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}else if(rand>siloProbPt&&rand<=zeppelinProbPt) {
 			if(test) out.println("zeppelin");
 			return "zeppelin";
-		}
+		}*/
 		
 		if(test) out.println("found nothing by error.");
 		return "nothing";
@@ -14056,6 +14090,172 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 		return -1;
 	}
+	public boolean basicDigTest(HttpServletRequest req, PrintWriter out, Player player) {
+		/*
+		 * basicDigTest: Send a dig, have it finish, make sure that it doesn't come home after 24 hours,
+		 *  that when you accept, the rumor is reset, and the thing returns home. Test this for every prize type.
+		 */
+		int numTowns[] = {1};
+		Player[] players = player.generateFakePlayers(1,numTowns,0,0);
+		try {
+			Town t1 = players[0].towns().get(0);
+			//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
+			Town RO=null;
+			for(Town t: getPlayer(5).towns()) {
+				if(t.getInfluence()==0&&!t.isResourceOutcropping()&&t.getLord()==null&&t.getDigAmt()==0) {
+					RO=t;
+					break;
+				} 
+				
+			}
+			if(RO==null) {
+				growId();
+				getPlayer(5).territoryCalculator();
+
+				
+			}
+			for(Town t: getPlayer(5).towns()) {
+				//System.out.println(t.getTownID() + " has " + t.getInfluence() + " influence.");
+
+				if(t.getInfluence()==0&&!t.isResourceOutcropping()&&t.getLord()==null&&t.getDigAmt()==0) {
+					RO=t;
+					break;
+				} 
+			}
+			if(RO==null) {
+				out.println("basicDigTest test failed because even growing Id didn't produce a viable Id town to use.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			t1.setX(RO.getX()+10);
+			t1.setY(RO.getY());
+			t1.setInfluence(0);
+			t1.addBuilding("Command Center",4,5,0);
+			t1.addBuilding("Institute",5,5,0);
+
+			long cap = t1.bldg().get(0).getCap();
+			t1.bldg().get(1).setPeopleInside(10);
+			t1.setAu(new ArrayList<AttackUnit>());
+			t1.getAu().add(new AttackUnit("Pillager",0,0));
+			players[0].getAu().add(new AttackUnit("Pillager",0,0)); // when recalling support, player-level au is called! So we must populate.
+
+			t1.getAu().get(0).setSize(1000);
+			RO.getRes()[0]=15000;
+			RO.getRes()[1]=15000;
+			RO.getRes()[2]=15000;
+			RO.getRes()[3]=15000;
+			//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
+			int amts[] = {900};
+			boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"dig",null,"noname");
+			if(!worked) {
+				out.println("basicDigTest test failed because the first dig didn't send, and the error was: " + players[0].getPs().b.getError());
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(t1.attackServer().size()!=1) {
+				out.println("basicDigTest test failed because the raid didn't load.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			Raid r = t1.attackServer().get(0);
+			r.setTicksToHit(0);
+			attackServerCheck(t1,players[0]);
+			// now there should be a dig.
+			
+			if(RO.getDigAmt()==0) {
+				out.println("basicDigTest test failed because the dig didn't land properly.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			
+			RO.setDigCounter(RO.getFindTime()-2);
+			
+			RO.digProcessingBlock(1);
+			if(RO.getDigAmt()==0) {
+				out.println("basicDigTest test failed because the dig left before it's find time.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			RO.digProcessingBlock(1);
+			if(RO.getDigAmt()==0) {
+				out.println("basicDigTest test failed because the dig left before it's find time.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(!RO.getMsgSent()) {
+				out.println("basicDigTest test failed because the dig didn't send it's message at the find time.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			RO.setDigCounter((int) (RO.getFindTime()+24*3600/GodGenerator.gameClockFactor));
+			RO.digProcessingBlock(1);
+			if(RO.getDigAmt()==0) {
+				out.println("basicDigTest test failed because the dig left 24 hours after it's find time, it should have stayed.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			
+			//	public boolean respondToDigMessage(boolean yes, int townID) {
+			int oldFindTime = RO.getFindTime();
+			int oldDigCounter = RO.getDigCounter();
+			players[0].getPs().b.respondToDigMessage(false,RO.getTownID());
+			if(t1.attackServer().size()!=1) {
+				out.println("basicDigTest test failed because the raid went away when we said keep digging.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(RO.getDigAmt()==0) {
+				out.println("basicDigTest test failed because the dig reset after saying no.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(RO.getDigCounter()!=0) {
+				out.println("basicDigTest test failed because the dig counter didn't reset after saying no.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(RO.getFindTime()==oldFindTime) {
+				out.println("basicDigTest test failed because the dig didn't reset it's find time after saying no.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(RO.getMsgSent()) {
+				out.println("basicDigTest test failed because the dig didn't reset it's msg sent boolean after saying no.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			RO.setDigCounter((int) (RO.getFindTime()+24*3600/GodGenerator.gameClockFactor));
+			RO.digProcessingBlock(1);
+			 worked = players[0].getPs().b.respondToDigMessage(true,RO.getTownID());
+			if(!worked) {
+				out.println("basicDigTest test failed because the dig accept prize didn't work, and the error was: " + players[0].getPs().b.getError());
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(!r.isRaidOver()) {
+				out.println("basicDigTest test failed because the dig raid wasn't returning when it was supposed to.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(players[0].getMessages().size()!=2) {
+				out.println("basicDigTest test failed because the player had " + players[0].getMessages().size() + " messages, not 2 messages, as was expected!");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			player.deleteFakePlayers(players);
+			out.println("basicDigTest test successful.");
+			return true;
+			} catch(Exception exc) {
+				out.println("basicDigTest test failed because " + exc.toString());
+				for(StackTraceElement stackTrace: exc.getStackTrace()) {
+					out.println(stackTrace.toString());
+				}
+				player.deleteFakePlayers(players);
+				return false;
+			}
+		
+	}
+
 	public boolean ROCollapseTest(HttpServletRequest req, PrintWriter out, Player player) {
 
 		

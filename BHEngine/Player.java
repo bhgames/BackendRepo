@@ -832,6 +832,13 @@ public class Player  {
 		 }
 		 return false;
 	 }
+	 public int knowledgePerDay() {
+		int ticks = getResearchTicksForPoint(getTotalScholars(),God.Maelstrom.getScholarEffect(this));
+		// so this is how many ticks per point.
+		// now we fucking take 24 hours.
+		double amt = 24*3600.0/(ticks*GodGenerator.gameClockFactor);
+		return (int) Math.round(amt);
+	 }
 	 public void territoryCalculator() {
 			/*
 			 * This guy calculates territories for the map, as a series of hashtables.
@@ -2334,17 +2341,29 @@ public class Player  {
 					}
 				}
 			}
+			try {
+				UberPreparedStatement stmt = con.createStatement("delete from messages where pid = ?");
+				stmt.setInt(1,fake.ID);
+				stmt.execute();
+				stmt.close();
+				stmt = con.createStatement("delete from statreports where pid = ?");
+				stmt.setInt(1,fake.ID);
+				stmt.execute();
+				stmt.close();
+			} catch(SQLException exc) { exc.printStackTrace(); }
 			for(Player p:God.getPlayers()) {
 				if(p.getLord()!=null&&p.getLord().ID==fake.ID) {
 					p.makeVassalOf(null,false);
 				}
 			}
-			God.getPlayers().remove(fake);
 			
+			God.getPlayers().remove(fake);
+			System.out.println("Searching digs...");
 			for(Town t: fake.towns()) {
 				God.getTowns().remove(t);
 				for(Town other:God.getTowns()) {
 					if(other.getDigTownID()==t.townID) {
+						System.out.println("Deleting " + other.townID + " 's dig!");
 						other.resetDig(0,0,false,null);
 					}
 				}

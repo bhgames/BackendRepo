@@ -1670,7 +1670,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 
 			if(p.getSupportstaff()) {
 				//	public String returnPrizeName(int probTick, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
-				g.returnPrizeName(Integer.parseInt(req.getParameter("probTick")),Integer.parseInt(req.getParameter("x")),(Integer.parseInt(req.getParameter("y"))),true,out,(Double.parseDouble(req.getParameter("presetRand"))),(String) req.getParameter("presetTile"));
+				g.returnPrizeName((req.getParameter("probTick")),Integer.parseInt(req.getParameter("x")),(Integer.parseInt(req.getParameter("y"))),true,out,(Double.parseDouble(req.getParameter("presetRand"))),(String) req.getParameter("presetTile"));
 				return true;
 				
 			}
@@ -2131,6 +2131,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.ROEngCapTest(req,out,p);
 				}else if(test.equals("ROCollapse")) {
 					g.ROCollapseTest(req,out,p);
+				}else if(test.equals("basicDig")) {
+					g.basicDigTest(req,out,p);
 				}else if(test.equals("allRO")) {
 					g.basicROTest(req,out,p);
 					g.ROContestedTest(req,out,p);
