@@ -36,6 +36,8 @@ import org.apache.commons.httpclient.methods.PostMethod;
 
 import BattlehardFunctions.BattlehardFunctions;
 import BattlehardFunctions.UserBuilding;
+import BattlehardFunctions.UserMessage;
+import BattlehardFunctions.UserMessagePack;
 import BattlehardFunctions.UserRaid;
 import BattlehardFunctions.UserSR;
 import BattlehardFunctions.UserTPR;
@@ -13913,25 +13915,58 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		double daily50ProbPt=85;
 		double techProbPt=95;
 		double zeppelinProbPt=100;
-		if(rumor.equals("Exotic Goods")) daily10ProbPt*=2;
+		if(rumor.equals("Exotic Goods")){
+			daily20ProbPt+=daily10ProbPt;
+			daily30ProbPt+=daily10ProbPt;
+			daily50ProbPt+=daily10ProbPt;
+			techProbPt+=daily10ProbPt;
+			zeppelinProbPt+=daily10ProbPt;
+			
+			daily10ProbPt*=2;
+
+		}
 		if(rumor.equals("Information Cache")) {
 			double rand2 = Math.random();
-			if(rand2<.5)
-			daily20ProbPt*=2;
-			else daily30ProbPt*=2;
+			if(rand2<.5){
+				
+				daily30ProbPt+=daily20ProbPt;
+				daily50ProbPt+=daily20ProbPt;
+				techProbPt+=daily20ProbPt;
+				zeppelinProbPt+=daily20ProbPt;
+								
+				daily20ProbPt*=2;
+				
+			}
+			else {
+
+				daily50ProbPt+=daily30ProbPt;
+				techProbPt+=daily30ProbPt;
+				zeppelinProbPt+=daily30ProbPt;
+						
+				daily30ProbPt*=2;
+			}
 		}
 		if(rumor.equals("Abandoned Tech")){
 			double rand2 = Math.random();
-			if(rand2<.5)
-			daily50ProbPt*=2;
-			else techProbPt*=2;
+			if(rand2<.5) {
+
+				techProbPt+=daily50ProbPt;
+				zeppelinProbPt+=daily50ProbPt;
+					
+				daily50ProbPt*=2;
+
+			}
+			else { 
+				zeppelinProbPt+=techProbPt;
+
+				techProbPt*=2;
+			}
 		}
 		if(rumor.equals("Great Machine")) zeppelinProbPt*=2;
 
-		double total = nothingProbPt+daily10ProbPt+daily20ProbPt+daily30ProbPt+
-		daily50ProbPt+techProbPt+zeppelinProbPt;
-		double rand = Math.random()*total; // rand generated.
-		if(presetRand!=-1) rand = presetRand*total;
+		
+		double rand = Math.random()*zeppelinProbPt; // rand generated, uses the largest number as the base to multiply by.
+		if(presetRand!=-1) rand = presetRand*zeppelinProbPt;
 		
 		if(test) out.print("rand is " + rand);
 		if(rand<=nothingProbPt) {
@@ -13950,6 +13985,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			if(test) out.println("daily50");
 			return "daily50";
 		}else if(rand>daily50ProbPt&&rand<=techProbPt) {
+			if(test) out.println("randomTech");
 			return "randomTech";
 				
 		}else if(rand>techProbPt&&rand<=zeppelinProbPt) {
@@ -14123,7 +14159,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 				} 
 			}
 			if(RO==null) {
-				out.println("basicDigTest test failed because even growing Id didn't produce a viable Id town to use.");
+				out.println("basicDig test failed because even growing Id didn't produce a viable Id town to use.");
 				player.deleteFakePlayers(players);
 				return false;
 			}
@@ -14148,12 +14184,12 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			int amts[] = {900};
 			boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"dig",null,"noname");
 			if(!worked) {
-				out.println("basicDigTest test failed because the first dig didn't send, and the error was: " + players[0].getPs().b.getError());
+				out.println("basicDig test failed because the first dig didn't send, and the error was: " + players[0].getPs().b.getError());
 				player.deleteFakePlayers(players);
 				return false;
 			}
 			if(t1.attackServer().size()!=1) {
-				out.println("basicDigTest test failed because the raid didn't load.");
+				out.println("basicDig test failed because the raid didn't load.");
 				player.deleteFakePlayers(players);
 				return false;
 			}
@@ -14163,7 +14199,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			// now there should be a dig.
 			
 			if(RO.getDigAmt()==0) {
-				out.println("basicDigTest test failed because the dig didn't land properly.");
+				out.println("basicDig test failed because the dig didn't land properly.");
 				player.deleteFakePlayers(players);
 				return false;
 			}
@@ -14172,25 +14208,30 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			
 			RO.digProcessingBlock(1);
 			if(RO.getDigAmt()==0) {
-				out.println("basicDigTest test failed because the dig left before it's find time.");
+				out.println("basicDig test failed because the dig left before it's find time.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(RO.getMsgSent()) {
+				out.println("basicDig test failed because the dig sent it's message before the find time.");
 				player.deleteFakePlayers(players);
 				return false;
 			}
 			RO.digProcessingBlock(1);
 			if(RO.getDigAmt()==0) {
-				out.println("basicDigTest test failed because the dig left before it's find time.");
+				out.println("basicDig test failed because the dig left before it's find time.");
 				player.deleteFakePlayers(players);
 				return false;
 			}
 			if(!RO.getMsgSent()) {
-				out.println("basicDigTest test failed because the dig didn't send it's message at the find time.");
+				out.println("basicDig test failed because the dig didn't send it's message at the find time.");
 				player.deleteFakePlayers(players);
 				return false;
 			}
 			RO.setDigCounter((int) (RO.getFindTime()+24*3600/GodGenerator.gameClockFactor));
 			RO.digProcessingBlock(1);
 			if(RO.getDigAmt()==0) {
-				out.println("basicDigTest test failed because the dig left 24 hours after it's find time, it should have stayed.");
+				out.println("basicDig test failed because the dig left 24 hours after it's find time, it should have stayed.");
 				player.deleteFakePlayers(players);
 				return false;
 			}
@@ -14200,27 +14241,27 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			int oldDigCounter = RO.getDigCounter();
 			players[0].getPs().b.respondToDigMessage(false,RO.getTownID());
 			if(t1.attackServer().size()!=1) {
-				out.println("basicDigTest test failed because the raid went away when we said keep digging.");
+				out.println("basicDig test failed because the raid went away when we said keep digging.");
 				player.deleteFakePlayers(players);
 				return false;
 			}
 			if(RO.getDigAmt()==0) {
-				out.println("basicDigTest test failed because the dig reset after saying no.");
+				out.println("basicDig test failed because the dig reset after saying no.");
 				player.deleteFakePlayers(players);
 				return false;
 			}
 			if(RO.getDigCounter()!=0) {
-				out.println("basicDigTest test failed because the dig counter didn't reset after saying no.");
+				out.println("basicDig test failed because the dig counter didn't reset after saying no.");
 				player.deleteFakePlayers(players);
 				return false;
 			}
 			if(RO.getFindTime()==oldFindTime) {
-				out.println("basicDigTest test failed because the dig didn't reset it's find time after saying no.");
+				out.println("basicDig test failed because the dig didn't reset it's find time after saying no.");
 				player.deleteFakePlayers(players);
 				return false;
 			}
 			if(RO.getMsgSent()) {
-				out.println("basicDigTest test failed because the dig didn't reset it's msg sent boolean after saying no.");
+				out.println("basicDig test failed because the dig didn't reset it's msg sent boolean after saying no.");
 				player.deleteFakePlayers(players);
 				return false;
 			}
@@ -14228,25 +14269,31 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			RO.digProcessingBlock(1);
 			 worked = players[0].getPs().b.respondToDigMessage(true,RO.getTownID());
 			if(!worked) {
-				out.println("basicDigTest test failed because the dig accept prize didn't work, and the error was: " + players[0].getPs().b.getError());
+				out.println("basicDig test failed because the dig accept prize didn't work, and the error was: " + players[0].getPs().b.getError());
 				player.deleteFakePlayers(players);
 				return false;
 			}
 			if(!r.isRaidOver()) {
-				out.println("basicDigTest test failed because the dig raid wasn't returning when it was supposed to.");
+				out.println("basicDig test failed because the dig raid wasn't returning when it was supposed to.");
 				player.deleteFakePlayers(players);
 				return false;
 			}
 			if(players[0].getMessages().size()!=2) {
-				out.println("basicDigTest test failed because the player had " + players[0].getMessages().size() + " messages, not 2 messages, as was expected!");
+				out.println("basicDig test failed because the player had " + players[0].getMessages().size() + " messages, not 2 messages, as was expected!");
+				for(UserMessagePack ump:players[0].getMessages()) {
+					out.println("new ump");
+					for(UserMessage m: ump.getMessages()) {
+						out.println(m.getId().toString() + "Message subject:"+ m.getSubject() + ", body: "+ m.getBody() + "<br />");
+					}
+				}
 				player.deleteFakePlayers(players);
 				return false;
 			}
 			player.deleteFakePlayers(players);
-			out.println("basicDigTest test successful.");
+			out.println("basicDig test successful.");
 			return true;
 			} catch(Exception exc) {
-				out.println("basicDigTest test failed because " + exc.toString());
+				out.println("basicDig test failed because " + exc.toString());
 				for(StackTraceElement stackTrace: exc.getStackTrace()) {
 					out.println(stackTrace.toString());
 				}

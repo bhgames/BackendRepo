@@ -403,7 +403,8 @@ public class Player  {
 	public void addMessage(UserMessage m) {
 		
 		// m = new UserMessage(UUID.fromString(rs.getString(14)),pid_to,rs.getInt(3),userArray,God.getUsername(rs.getInt(3)),rs.getString(4),rs.getString(5),rs.getInt(6), rs.getBoolean(7), rs.getInt(9), UUID.fromString(rs.getString(10)),rs.getString(11),UUID.fromString(rs.getString(13)),rs.getBoolean(8));
-			
+			if(currMessages==null) getMessages(); // because then when we call it, it will add the messages anyway.
+			else
 			if(m.getOriginalSubjectID()==null) {
 				getMessages().add(new UserMessagePack());
 				//	public UserMessage(int messageID,int pidTo, int pidFrom, String body, String subject, int msgType, boolean readed, int tsid, int originalMessageID, String creationDate) {
@@ -663,7 +664,7 @@ public class Player  {
 					if(getMmTimer()>0&&j==2) multiplier*=1.25;
 					if(getFTimer()>0&&j==3) multiplier*=1.25;
 
-					if(getPremiumTimer()>0) multiplier*=.5;
+					if(getPremiumTimer()>0) multiplier*=.75;
 					
 					if(totalOpenSpace[j]!=0)
 					resBuff[j] +=multiplier*secbuff[j]*((double)(resCaps[j]+Building.baseResourceAmt-res[j])/(totalOpenSpace[j]));
@@ -2362,6 +2363,7 @@ public class Player  {
 			for(Town t: fake.towns()) {
 				God.getTowns().remove(t);
 				for(Town other:God.getTowns()) {
+					if(other.townID==4127) System.out.println("My town id is " + t.townID + " and digtownid is " + other.getDigTownID());
 					if(other.getDigTownID()==t.townID) {
 						System.out.println("Deleting " + other.townID + " 's dig!");
 						other.resetDig(0,0,false,null);

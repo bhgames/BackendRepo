@@ -1565,18 +1565,12 @@ public class Town {
 						 Town otherT = getPlayer().God.getTown(getDigTownID());
 						 Raid r= null;
 						 double rand = Math.random();
-						 System.out.println(rand+ " checking");
 						 for(Raid r2:otherT.attackServer()){
-							 System.out.println(rand + "this raid's tid is " + r2.getTown2().townID + " mine is " + townID +" and it's dig amt is " + r2.getDigAmt());
 							 if(r2.getTown2().townID==townID&&r2.getDigAmt()>0) {
-								 System.out.println(rand + "Here we go, seting it.");
 								 r=r2;
-								 if(r==null) System.out.println(rand + "I am null after a set");
-
 								 break;
 							 }
 						 }
-						 if(r==null) System.out.println(rand +"Yet am I still null.");
 						 r.setReward(reward);r.save();
 						String subject = "Dig Message From "+ getTownName();
 						int pid[] = {God.findTown(getDigTownID()).getPlayer().ID};

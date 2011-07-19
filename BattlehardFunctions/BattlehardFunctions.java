@@ -12341,28 +12341,28 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				if(reward.equals("nothing")) {
 					sendYourself(idTown.getDigSmackTalk(),"Dig Find From "+ idTown.getTownName());
 				} else if(reward.equals("daily10")) {
-					sendYourself("Sir,\n We found a small resource cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+				//	sendYourself("Sir,\n We found a small resource cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					yourTown.doMyResources((int) Math.round(.1*24*3600/GodGenerator.gameClockFactor));
 
 				}else if(reward.equals("daily20")) {
-					sendYourself("Sir,\n We found a medium resource and knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+				//	sendYourself("Sir,\n We found a medium resource and knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					yourTown.doMyResources((int) Math.round(.2*24*3600/GodGenerator.gameClockFactor));
 					p.setKnowledge(p.getKnowledge()+(int) Math.round(p.knowledgePerDay()*.05));
 
 				}else if(reward.equals("daily30")) {
-					sendYourself("Sir,\n We found a large resource and knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+				//	sendYourself("Sir,\n We found a large resource and knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					yourTown.doMyResources((int) Math.round(.3*24*3600/GodGenerator.gameClockFactor));
 					p.setKnowledge(p.getKnowledge()+(int) Math.round(p.knowledgePerDay()*.1));
 
 				}else if(reward.equals("daily50")) {
-					sendYourself("Sir,\n We found a very large resource and knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					//sendYourself("Sir,\n We found a very large resource and knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					yourTown.doMyResources((int) Math.round(.5*24*3600/GodGenerator.gameClockFactor));
 					p.setKnowledge(p.getKnowledge()+(int) Math.round(p.knowledgePerDay()*.2));
 
 				}else if(reward.equals("randomTech")) { 
 					String tech[] ={ getRandomTech()};
 					completeResearches(tech,true);
-					sendYourself("Sir,\n We found a piece of ancient [" + tech[0] + "]! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+				//	sendYourself("Sir,\n We found a piece of ancient [" + tech[0] + "]! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					
 				}/*else if(reward.equals("lowKP")) {
 					sendYourself("Sir,\n We found a small knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
