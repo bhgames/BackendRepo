@@ -30,6 +30,8 @@ public class Town {
 	 private GodGenerator God; private UberConnection con;
 	 private ArrayList<AttackUnit> au;
 	 private ArrayList<Building> bldg;
+	 public boolean iterable =true;
+	 public boolean resIncsZeroed=false;
 	 private int influence;
 	 private String rumor;
 	 private int probTimer,findTime,digCounter;
@@ -101,7 +103,7 @@ public class Town {
 				// need to /can't do much about it being bigger, we stop loading up numbers of au after that i and instead
 				// just add units with size = 0 onto the stack as the db attackunit table says to do so.
 				 if(i<max)
-			 ha.setSize(auSizes[i]);
+					 ha.setSize(auSizes[i]);
 			 } catch(ArrayIndexOutOfBoundsException exc) {
 				 exc.printStackTrace();
 				 System.out.println("Setup for town " + getTownName() + " saved. i was " + i + " auSizes was " + auSizes.length + " and au was " + au.size());
@@ -2107,9 +2109,22 @@ public class Town {
 	 }
 	 public void doMyResources(int num) {
 		 double[] resInc=getResInc();
+		
 		 double[] resEffects=getResEffects();
 		 long[] resCaps=getResCaps();
 		double[] resBuff = getResBuff();
+		 if(resIncsZeroed) {
+			 int le = 0;
+			 while(le<resInc.length) {
+				 resInc[le]=0;
+				 le++;
+			 }
+			 le = 0;
+			 while(le<resBuff.length) {
+				 resBuff[le]=0;
+				 le++;
+			 }
+		 }
 		long[] res = getRes();
 		double[] newIncs = God.Maelstrom.getResEffects(resInc,getX(),getY());
 		Player p = getPlayer();
@@ -3682,7 +3697,7 @@ public class Town {
 		int i = 0;
 		ArrayList<Building> bldg = bldg();
 		Building b;
-		if(getPlayer().ID ==5 ) { // Id's go based on mines.
+		if(getPlayer().ID==5) { // Id's go based on mines.
 			while(i<bldg.size()) {
 				b = bldg.get(i);
 				if(b.getType().equals("Metal Mine")) {

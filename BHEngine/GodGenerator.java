@@ -14138,67 +14138,67 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		double techProbPt=95;
 		double zeppelinProbPt=100;
 		 */
-		String prize = returnPrizeName("none",0,0,true,out,0,"grass");
+		String prize = returnPrizeName("none",0,0,false,out,0,"grass");
 		if(!prize.equals("nothing")) {
 			out.println("digProbability test failed on getting it to spit out nothing with no rumor. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("none",0,0,true,out,1,"grass");
+		prize = returnPrizeName("none",0,0,false,out,1,"grass");
 		if(!prize.equals("daily10")) {
 			out.println("digProbability test failed on getting it to spit out daily10 with no rumor at preset 1. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("none",0,0,true,out,30,"grass");
+		prize = returnPrizeName("none",0,0,false,out,30,"grass");
 		if(!prize.equals("daily10")) {
 			out.println("digProbability test failed on getting it to spit out daily10 with no rumor at preset 30. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("none",0,0,true,out,31,"grass");
+		prize = returnPrizeName("none",0,0,false,out,31,"grass");
 		if(!prize.equals("daily20")) {
 			out.println("digProbability test failed on getting it to spit out daily20 with no rumor at preset 31. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("none",0,0,true,out,50,"grass");
+		prize = returnPrizeName("none",0,0,false,out,50,"grass");
 		if(!prize.equals("daily20")) {
 			out.println("digProbability test failed on getting it to spit out daily20 with no rumor at preset 50. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("none",0,0,true,out,51,"grass");
+		prize = returnPrizeName("none",0,0,false,out,51,"grass");
 		if(!prize.equals("daily30")) {
 			out.println("digProbability test failed on getting it to spit out daily30 with no rumor at preset 51. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("none",0,0,true,out,70,"grass");
+		prize = returnPrizeName("none",0,0,false,out,70,"grass");
 		if(!prize.equals("daily30")) {
 			out.println("digProbability test failed on getting it to spit out daily30 with no rumor at preset 70. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("none",0,0,true,out,71,"grass");
+		prize = returnPrizeName("none",0,0,false,out,71,"grass");
 		if(!prize.equals("daily50")) {
 			out.println("digProbability test failed on getting it to spit out daily50 with no rumor at preset 71. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("none",0,0,true,out,85,"grass");
+		prize = returnPrizeName("none",0,0,false,out,85,"grass");
 		if(!prize.equals("daily50")) {
 			out.println("digProbability test failed on getting it to spit out daily50 with no rumor at preset 85. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("none",0,0,true,out,86,"grass");
+		prize = returnPrizeName("none",0,0,false,out,86,"grass");
 		if(!prize.equals("randomTech")) {
 			out.println("digProbability test failed on getting it to spit out randomTech with no rumor at preset 86. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("none",0,0,true,out,95,"grass");
+		prize = returnPrizeName("none",0,0,false,out,95,"grass");
 		if(!prize.equals("randomTech")) {
 			out.println("digProbability test failed on getting it to spit out randomTech with no rumor at preset 95. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("none",0,0,true,out,96,"grass");
+		prize = returnPrizeName("none",0,0,false,out,96,"grass");
 		if(!prize.equals("zeppelin")) {
 			out.println("digProbability test failed on getting it to spit out zeppelin with no rumor at preset 96. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("none",0,0,true,out,100,"grass");
+		prize = returnPrizeName("none",0,0,false,out,100,"grass");
 		if(!prize.equals("zeppelin")) {
 			out.println("digProbability test failed on getting it to spit out zeppelin with no rumor at preset 100. Instead it was " + prize);
 			return false;
@@ -14207,67 +14207,67 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		
 		// now with rumors
 		
-		 prize = returnPrizeName("Exotic Goods",0,0,true,out,0,"grass");
+		 prize = returnPrizeName("Exotic Goods",0,0,false,out,0,"grass");
 		if(!prize.equals("nothing")) {
 			out.println("digProbability test failed on getting it to spit out nothing with Exotic Goods. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("Exotic Goods",0,0,true,out,1,"grass");
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,1,"grass");
 		if(!prize.equals("daily10")) {
 			out.println("digProbability test failed on getting it to spit out daily10 with Exotic Goods at preset 1. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("Exotic Goods",0,0,true,out,60,"grass");
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,60,"grass");
 		if(!prize.equals("daily10")) {
 			out.println("digProbability test failed on getting it to spit out daily10 with Exotic Goods at preset 60. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("Exotic Goods",0,0,true,out,61,"grass");
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,61,"grass");
 		if(!prize.equals("daily20")) {
 			out.println("digProbability test failed on getting it to spit out daily20 with Exotic Goods at preset 61. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("Exotic Goods",0,0,true,out,80,"grass");
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,80,"grass");
 		if(!prize.equals("daily20")) {
 			out.println("digProbability test failed on getting it to spit out daily20 with Exotic Goods at preset 80. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("Exotic Goods",0,0,true,out,81,"grass");
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,81,"grass");
 		if(!prize.equals("daily30")) {
 			out.println("digProbability test failed on getting it to spit out daily30 with Exotic Goods at preset 81. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("Exotic Goods",0,0,true,out,100,"grass");
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,100,"grass");
 		if(!prize.equals("daily30")) {
 			out.println("digProbability test failed on getting it to spit out daily30 with Exotic Goods at preset 100. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("Exotic Goods",0,0,true,out,101,"grass");
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,101,"grass");
 		if(!prize.equals("daily50")) {
 			out.println("digProbability test failed on getting it to spit out daily50 with Exotic Goods at preset 101. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("Exotic Goods",0,0,true,out,115,"grass");
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,115,"grass");
 		if(!prize.equals("daily50")) {
 			out.println("digProbability test failed on getting it to spit out daily50 with Exotic Goods at preset 115. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("Exotic Goods",0,0,true,out,116,"grass");
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,116,"grass");
 		if(!prize.equals("randomTech")) {
 			out.println("digProbability test failed on getting it to spit out randomTech with Exotic Goods at preset 116. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("Exotic Goods",0,0,true,out,125,"grass");
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,125,"grass");
 		if(!prize.equals("randomTech")) {
 			out.println("digProbability test failed on getting it to spit out randomTech with Exotic Goods at preset 125. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("Exotic Goods",0,0,true,out,126,"grass");
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,126,"grass");
 		if(!prize.equals("zeppelin")) {
 			out.println("digProbability test failed on getting it to spit out zeppelin with Exotic Goods at preset 126. Instead it was " + prize);
 			return false;
 		}
-		prize = returnPrizeName("Exotic Goods",0,0,true,out,130,"grass");
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,130,"grass");
 		if(!prize.equals("zeppelin")) {
 			out.println("digProbability test failed on getting it to spit out zeppelin with Exotic Goods at preset 130. Instead it was " + prize);
 			return false;
@@ -14429,7 +14429,8 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 				player.deleteFakePlayers(players);
 				return false;
 			}
-			if(players[0].getMessages().size()!=2) {
+			if((!r.getReward().equals("zeppelin")&&players[0].getMessages().size()!=2)
+					||(r.getReward().equals("zeppelin")&&players[0].getMessages().size()!=3)) {
 				out.println("basicDig test failed because the player had " + players[0].getMessages().size() + " messages, not 2 messages, as was expected!");
 				for(UserMessagePack ump:players[0].getMessages()) {
 					out.println("new ump");
@@ -15316,6 +15317,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			player.deleteFakePlayers(players);
 			return false;
 		}
+		RO.resIncsZeroed=true;
 		t1.setX(RO.getX()+10);
 		t1.setY(RO.getY());
 		t1.setInfluence(0);
@@ -15323,56 +15325,58 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		t1.bldg().get(0).setPeopleInside(5);
 		t1.setAu(new ArrayList<AttackUnit>());
 		t1.getAu().add(new AttackUnit("Pillager",0,0));
-		RO.getRes()[0]=15000;
-		RO.getRes()[1]=15000;
-		RO.getRes()[2]=15000;
-		RO.getRes()[3]=15000;
+		
+		RO.getRes()[0]=1500;
+		RO.getRes()[1]=1500;
+		RO.getRes()[2]=1500;
+		RO.getRes()[3]=1500;
 		//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
 		int amts[] = {0,5};
 		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname");
 		if(!worked) {
 			out.println("basicRO test failed because the attack didn't send, and the error was: " + players[0].getPs().b.getError());
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		if(t1.attackServer().size()!=1) {
 			out.println("basicRO test failed because the raid didn't load.");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		Raid r = t1.attackServer().get(0);
 		r.setTicksToHit(0);
 		attackServerCheck(t1,players[0]);
+
 		if(r.isRaidOver()) {
 			out.println("basicRO test failed because the raid was set to over after landing, it shouldn't be..");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		if(r.getDockingFinished()==null) {
 			out.println("basicRO test failed because the raid did not have it's docking finished date set, but it should have.");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 
 		if(t1.attackServer().size()!=1) {
 			out.println("basicRO test failed because the raid didn't remain after landing.");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		if(RO.getLord()==null) {
 			out.println("basicRO test failed because the RO didn't become owned by the player after landing.");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		if(RO.getInfluence()>0) {
 			out.println("basicRO test failed because the RO somehow gained influence after only one terr calc.");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		if(RO.getDigAmt()!=5) {
 			out.println("basicRO test failed because the RO didn't become inhabited by engineers.");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 	
 		// well, we know we've got 1000 res. We've got 5 engineers.
@@ -15384,77 +15388,79 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		if(total!=5*(5+1)*engineerCarryAmount) {
 			out.println("basicRO test failed because the total holding amount wasn't correct, it was " + total);
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		attackServerCheck(t1,players[0]);
 
 		if(t1.attackServer().size()!=1) {
 			out.println("basicRO test failed because the raid didn't remain after landing+1 tick.");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		if(r.isRaidOver()||r.getDockingFinished()==null) {
 			out.println("basicRO test failed because the raid was set to over or it had no docking finished date.");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
-		if(RO.getRes()[0]!=15000) {
-			out.println("basicRO test failed because the RO didn't have 15k resources to start with even though it should've.");
+
+		if(RO.getRes()[0]!=1500) {
+			out.println("basicRO test failed because the RO didn't have 1.5k resources to start with even though it should've. It has " + RO.getRes()[0]);
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
-		RO.doMyResources((int) Math.round(1*3600/GodGenerator.gameClockFactor));
+		RO.doMyResources((int) Math.round(.1*3600/GodGenerator.gameClockFactor));
 		// now we expect the raid not to be over, but a third loaded...
 		if(t1.attackServer().size()!=1) {
 			out.println("basicRO test failed because the raid didn't remain after landing+1/3rd time tick.");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		
 		if(r.isRaidOver()||r.getDockingFinished()==null) {
 			out.println("basicRO test failed because the raid was set to over or it had no docking finished date after we went through a third of the ROexcavation.");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		 total = r.getMetal()+r.getTimber()+r.getManmat()+r.getFood();
-		if(total!=5000) {
-			out.println("basicRO test failed because the excavation had not excavated 5000 by the time a third of time was up. It excavated " + total);
+
+		if(total!=500) {
+			out.println("basicRO test failed because the excavation had not excavated 500 by the time a third of time was up. It excavated " + total);
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
-		if(RO.getRes()[0]!=10000) {
-			out.println("basicRO test failed because the RO didn't have 10k resources after a third of time has passed even though it should've.");
+		if(RO.getRes()[0]!=1000) {
+			out.println("basicRO test failed because the RO didn't have 1k resources after a third of time has passed even though it should've. It has " + RO.getRes()[0]);
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
-		RO.doMyResources((int) Math.round(2*3600/GodGenerator.gameClockFactor+1)); // now we should be heading home.
+		RO.doMyResources((int) Math.round(.2*3600/GodGenerator.gameClockFactor+1)); // now we should be heading home.
 
 		if(t1.attackServer().size()!=1) {
 			out.println("basicRO test failed because the raid didn't remain after finishing time tick.");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		
 		if(!r.isRaidOver()) {
 			out.println("basicRO test failed because the raid was set to not over even though it should be.");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		 total = r.getMetal()+r.getTimber()+r.getManmat()+r.getFood();
-		if(total!=15000) {
-			out.println("basicRO test failed because the excavation had not excavated 15000 by the time the time was up. It excavated " + total);
+		if(total!=1500) {
+			out.println("basicRO test failed because the excavation had not excavated 1500 by the time the time was up. It excavated " + total);
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		if(RO.getRes()[0]!=0) {
-			out.println("basicRO test failed because the RO didn't have 10 resources after all of time has passed even though it should've.");
+			out.println("basicRO test failed because the RO didn't have 0 resources after all of time has passed even though it should've. It has " + RO.getRes()[0]);
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		if(RO.getDigTownID()!=0) {
 			out.println("basicRO test failed because the excavation didn't end when it was supposed to.");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		
 		r.setTicksToHit(0);
@@ -15462,12 +15468,12 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		if(t1.attackServer().size()!=0) {
 			out.println("basicRO test failed because the raid was still on the stack after arriving.");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		if(t1.getTotalEngineers()!=5) {
 			out.println("basicRO test failed because the engineers were not returned safely.");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		boolean haveSome=false;
 		for(AttackUnit a:RO.getAu()) {
@@ -15480,12 +15486,12 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		if(RO.getDigAmt()>0||haveSome) {
 			out.println("basicRO test failed because the RO had people on it after the raid should have left.");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		if(RO.getInfluence()>0) {
 			out.println("basicRO test failed because the RO had influence BEFORE a territoryCalculator on player when nobody was present..");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		
 		players[0].territoryCalculator();
@@ -15504,17 +15510,18 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		if(RO.getInfluence()>0) {
 			out.println("basicRO test failed because the RO had influence after a territoryCalculator on player when nobody was present..");
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		getPlayer(5).territoryCalculator();
 	
 		if(RO.getLord()!=null) {
 			out.println("basicRO test failed because the RO didn't get delorded when it should have, it was lorded to " + RO.getLord().ID + " and its tid is " + RO.townID + " and " + RO);
 			player.deleteFakePlayers(players);
-			return false;
+			RO.resIncsZeroed=false; return false;
 		}
 		
 		player.deleteFakePlayers(players);
+		RO.resIncsZeroed=false;
 		out.println("basicRO test successful.");
 		return true;
 		} catch(Exception exc) {

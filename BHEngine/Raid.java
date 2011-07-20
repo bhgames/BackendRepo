@@ -589,6 +589,7 @@ public class Raid {
 		ArrayList<AttackUnit> raidAU = new ArrayList<AttackUnit>();
 		AttackUnit auHold;
 		String auSizesStr = getString("auSizes");
+		if(auSizesStr==null) auSizesStr  = "[]";
 		int auSizes[] = PlayerScript.decodeStringIntoIntArray(auSizesStr);
 		ArrayList<AttackUnit> tau = getTown1().getAu();
 		while(y<auSizes.length) {

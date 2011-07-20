@@ -141,7 +141,7 @@ public class Iterator implements Runnable {
 			// and starts iterating it, the others can't, and will wait
 			// to try, but then they'll find it can't be done.
 
-			if(p.getTownID()<999999900&&p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock&&(p.owedTicks==0||p.stuffOut())) { 
+			if(p.getTownID()<999999900&&p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock&&p.iterable&&(p.owedTicks==0||p.stuffOut())) { 
 	//			if(p.getPlayer().getUsername().contains("testman")) System.out.println("Iterating a "+ p.getPlayer().getUsername());
 			//	System.out.println(iterateID + " found " + p.username + " unhooked and in need at " + internalClock);
 				// Cool, a double lock. First, if you're iterating through and you catch
