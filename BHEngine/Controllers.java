@@ -2124,21 +2124,32 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 				}else if(test.equals("basicRO")) {
 					g.basicROTest(req,out,p);
 				}else if(test.equals("ROContested")) {
-					g.ROContestedTest(req,out,p);
+					g.ROContestedTest(req,out,p,false);
 				}else if(test.equals("ROInfluence")) {
 					g.ROInfluenceTest(req,out,p);
 				}else if(test.equals("ROEngCap")) {
 					g.ROEngCapTest(req,out,p);
 				}else if(test.equals("ROCollapse")) {
-					g.ROCollapseTest(req,out,p);
+					g.ROCollapseTest(req,out,p,false);
 				}else if(test.equals("basicDig")) {
 					g.basicDigTest(req,out,p);
+				}else if(test.equals("digProbability")) {
+					g.digProbabilityTest(req,out);
+				}else if(test.equals("digContested")) {
+					g.ROContestedTest(req,out,p,true);
+				}else if(test.equals("digCollapse")) {
+					g.ROCollapseTest(req,out,p,true);
+				}else if(test.equals("allDig")) { 
+					g.basicDigTest(req,out,p);
+					g.digProbabilityTest(req,out);
+					g.ROContestedTest(req,out,p,true);
+					g.ROCollapseTest(req,out,p,true);
 				}else if(test.equals("allRO")) {
 					g.basicROTest(req,out,p);
-					g.ROContestedTest(req,out,p);
+					g.ROContestedTest(req,out,p,false);
 					g.ROInfluenceTest(req,out,p);
 					g.ROEngCapTest(req,out,p);
-					g.ROCollapseTest(req,out,p);
+					g.ROCollapseTest(req,out,p,false);
 				}
 				else if(test.equals("allVassalAndTerritories")) {
 					g.fbPostTest(req,out,p);
@@ -2157,10 +2168,10 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.deconstructBuildingTest(req,out,p);
 					g.foodConsumptionTest(req,out,p);
 					g.basicROTest(req,out,p);
-					g.ROContestedTest(req,out,p);
+					g.ROContestedTest(req,out,p,false);
 					g.ROInfluenceTest(req,out,p);
 					g.ROEngCapTest(req,out,p);
-					g.ROCollapseTest(req,out,p);
+					g.ROCollapseTest(req,out,p,false);
 					g.fbPostTest(req,out,p);
 					g.separatedPointsTest(req,out);
 					g.giftWrappingTest(req,out);
@@ -2173,6 +2184,10 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.breakVassalageTest(req,out,p);
 					g.lordvlordTest(req,out,p);
 					g.vassalThatIsLordTest(req,out,p);
+					g.basicDigTest(req,out,p);
+					g.digProbabilityTest(req,out);
+					g.ROContestedTest(req,out,p,true);
+					g.ROCollapseTest(req,out,p,true);
 				}
 				else{
 

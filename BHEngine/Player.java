@@ -2335,12 +2335,17 @@ public class Player  {
 				if(other.getLord()!=null&&other.getLord().ID==fake.ID) {
 					other.setLord(null);
 					other.setVassalFrom(new Timestamp(new Date().getTime()));
+					other.saveInfluence();
 				}
-				for(AttackUnit a: other.getAu()) {
-					if(a.getSize()>0&&a.getSupport()>0&&a.getOriginalPlayer()!=null&&a.getOriginalPlayer().ID==fake.ID) {
-						a.setSize(0); // will get picked up next aucheck.
+
+					for(AttackUnit a: other.getAu()) {
+						if(a.getSize()>0&&a.getSupport()>0&&a.getOriginalPlayer()!=null&&a.getOriginalPlayer().ID==fake.ID) {
+							a.setSize(0); // will get picked up next aucheck.
+						}
 					}
-				}
+					other.auCheck();
+				
+				
 			}
 			try {
 				UberPreparedStatement stmt = con.createStatement("delete from messages where pid = ?");

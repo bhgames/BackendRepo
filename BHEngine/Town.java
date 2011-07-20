@@ -3567,6 +3567,7 @@ public class Town {
 		ArrayList<AttackUnit> ourAU = getAu();
 		while(x<ourAU.size()) {
 			ourA = ourAU.get(x);
+			if(ourA.getSupport()>0)
 				if(ourA.getSize()==0&&ourA.getSupport()>0) {
 					as = attackServer();
 					int j = 0;
@@ -3574,7 +3575,7 @@ public class Town {
 					while(j<as.size()) {
 						r = as.get(j);
 						au = r.getAu();
-						int k = 6;
+						int k = 0;
 						while(k<au.size()) {
 							a = au.get(k);
 							if(a.getSupport()>0&&a.getSlot()==ourA.getSlot()&&a.getSize()>0) {
@@ -3585,12 +3586,11 @@ public class Town {
 						}
 						j++;
 					}
-					
 					if(!foundAU) {
 						try {
 							UberPreparedStatement stmt2 = con.createStatement("delete from supportAU where slotnum = ? and tid = ?;");
 							stmt2.setInt(1,ourA.getSlot());
-							stmt2.setInt(1,townID);
+							stmt2.setInt(2,townID);
 							stmt2.executeUpdate();
 							stmt2.close();
 							// who cares if raidsupportau has zero units.
