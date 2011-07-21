@@ -7,10 +7,35 @@ import BHEngine.Town;
 
 
 public class UserTown {
+<<<<<<< HEAD
+	private int CSL,
+				CS,
+				influence,
+				townID,
+				x, y,
+				destX,destY,
+				fuelCells,
+				ticksTillMove,
+				foodConsumption,
+				lord=0,
+				totalTraders=0,
+				totalEngineers=0; 
+	private long res[]; 
+	private double taxRate=0;
+	private double[] resEffects,
+					 resInc = new double[5]; 
+	private String 	townName,
+					rumor;
+	private UserAttackUnit[] au; 
+	private UserBuilding[] 	bldg,
+							bldgserver;
+	private UserRaid[] attackServer; 
+=======
 	 private long res[]; private UserAttackUnit[] au; private int townID; private String townName; String playerName;  private double resInc[] = new double[5]; private int x, y;
 	 private UserBuilding[] bldg; private UserBuilding[] bldgserver;
 	private int totalTraders=0;    int pid; // for use with bhviewer.
 	private int totalEngineers=0; private UserRaid[] attackServer; 
+>>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 	private UserTrade[] tradeServer;
 	private double[] resEffects;
 	private int destX,destY,fuelCells,ticksTillMove;
@@ -22,6 +47,20 @@ public class UserTown {
 	private int CSL,CS,influence;
 
 	volatile long resCaps[] = new long[5];
+<<<<<<< HEAD
+	
+	int pid; // for use with bhviewer.
+	String playerName;  
+	
+	public UserTown(UserRaid[] attackServer, UserAttackUnit[] au, UserBuilding[] bldg, 
+			int pid, String playerName, long[] res, long[] resCaps, double[] resInc, 
+			double[] resEffects, int totalEngineers, int totalTraders, int townID, 
+			String townName, UserTradeSchedule[] tradeSchedules, UserTrade[] tradeServer, 
+			int x, int y,int CSL, int CS, boolean zeppelin, int fuelCells, int destX,
+			int destY, int ticksTillMove, int foodConsumption, double taxRate, int lord, 
+			Timestamp vassalFrom, int influence, boolean resourceOutcropping, String rumor) {
+		
+=======
 	private UserTradeSchedule[] tradeSchedules;
 	public UserTown(UserRaid[] attackServer, UserAttackUnit[] au,
 			UserBuilding[] bldg, 
@@ -30,11 +69,13 @@ public class UserTown {
 			int totalTraders, int townID, String townName,
 			UserTradeSchedule[] tradeSchedules, UserTrade[] tradeServer, int x,
 			int y,int CSL, int CS, boolean zeppelin, int fuelCells, int destX,int destY, int ticksTillMove, int foodConsumption, double taxRate, int lord, Timestamp vassalFrom, int influence, boolean resourceOutcropping) {
+>>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 		this.attackServer = attackServer;
 		this.au = au;
 		this.bldg = bldg;
 		this.CSL=CSL; this.CS=CS;
 		this.taxRate=taxRate;
+		this.rumor=rumor;
 		this.lord=lord;
 		this.resourceOutcropping=resourceOutcropping;
 		this.foodConsumption=foodConsumption;
@@ -199,6 +240,12 @@ public class UserTown {
 	}
 	public boolean isResourceOutcropping() {
 		return resourceOutcropping;
+	}
+	public void setRumor(String rumor) {
+		this.rumor = rumor;
+	}
+	public String getRumor() {
+		return rumor;
 	}
 	
 }

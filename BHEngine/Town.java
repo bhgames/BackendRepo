@@ -15,6 +15,7 @@ import java.util.UUID;
 import BattlehardFunctions.BattlehardFunctions;
 import BattlehardFunctions.UserAttackUnit;
 import BattlehardFunctions.UserBuilding;
+import BattlehardFunctions.UserMessage;
 import BattlehardFunctions.UserSR;
 import BattlehardFunctions.UserTown;
 
@@ -23,6 +24,34 @@ import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 
 public class Town {
 	
+<<<<<<< HEAD
+	 public int townID, 
+	 			influence, 
+	 			probTimer, 
+	 			findTime, 
+	 			digCounter, 
+	 			digAmt, 
+	 			owedTicks, 
+	 			x, 
+	 			y, 
+	 			destX,
+	 			destY, 
+	 			fuelCells, 
+	 			ticksTillMove, 
+	 			digTownID, 
+	 			internalClock=0; 
+	 private String townName, 
+	 				holdingIteratorID = "-1";
+	 private String rumor;
+	 private GodGenerator God; 
+	 private UberConnection con;
+	 private long[] res, 
+	 				debris;
+	 private double[] resEffects,
+	 				  resBuff;
+	 private Player p,
+	 				lord;
+=======
 	 public int townID, influence, probTimer, findTime, digCounter, digAmt, owedTicks, x, y, destX,
 	 			destY, fuelCells, ticksTillMove, digTownID, internalClock=0; 
 	 private String townName, holdingIteratorID = "-1";
@@ -30,13 +59,22 @@ public class Town {
 	 private long[] res, debris;
 	 private double[] resEffects,resBuff;
 	 private Player p,lord;
+>>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 	 private Timestamp vassalFrom;
 	 private ArrayList<Trade> tradeServer;
 	 private ArrayList<TradeSchedule> tradeSchedules;
 	 private ArrayList<Raid> attackServer;
 	 private ArrayList<AttackUnit> au;
 	 private ArrayList<Building> bldg;
+<<<<<<< HEAD
+	 private boolean zeppelin, 
+	 				 msgSent, 
+	 				 resourceOutcropping;
+	 public boolean iterable =true;
+	 public boolean resIncsZeroed=false;
+=======
 	 private boolean zeppelin, msgSent, resourceOutcropping;
+>>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 	 private Hashtable<String, ArrayList<QuestListener>> eventListenerLists = new Hashtable<String, ArrayList<QuestListener>>();
 	 public static int 	zeppelinTicksPerMove= (int) Math.round(((double) Math.sqrt(1)*10/(500*GodGenerator.speedadjust))/GodGenerator.gameClockFactor),
 			 			ticksPerFuelPointBase =(int) Math.round((3600.0*24.0/((double) GodGenerator.gameClockFactor*10))),
@@ -150,7 +188,7 @@ public class Town {
 	}
 	
 	public ArrayList<Raid> getBlockades() {
-		ArrayList<Raid> blockades = new ArrayList<Raid>(), AS = getAttackServer();
+		ArrayList<Raid> blockades = new ArrayList<Raid>(), AS = attackServer();
 		for(Raid r : AS) {
 			if(r.getSupport()==3) {
 				blockades.add(r);
@@ -168,9 +206,14 @@ public class Town {
 			getTownName();
 			if(getPlayer()!=null) { // sometimes when we build towns for Quests, they don't have a player yet on the list of iteratorPlayers.
 		
-				tradeServer(); tradeSchedules(); attackServer();
-				getRes(); getResBuff();  getResEffects();
-				getAu(); bldg(); 
+				tradeServer(); 
+				tradeSchedules(); 
+				attackServer();
+				getRes(); 
+				getResBuff();  
+				getResEffects();
+				getAu();
+				bldg(); 
 			}
 			probTimer = getMemInt("probTimer");
 			findTime = getMemInt("findTime");
@@ -186,13 +229,15 @@ public class Town {
 			owedTicks = getMemInt("owedTicks");
 			digAmt = getMemInt("digAmt");
 			influence = getMemInt("influence");
+			rumor = getMemString("rumor");
+			if(rumor==null||rumor.equals("nothing")) rumor = getRandomRumor();
 			resourceOutcropping = getMemBoolean("resourceOutcropping");
 	
 			if(isZeppelin()) {
-			destX = getMemInt("destX");
-			destY = getMemInt("destY");
-			fuelCells = getMemInt("fuelcells");
-			ticksTillMove = getMemInt("ticksTillMove");
+				destX = getMemInt("destX");
+				destY = getMemInt("destY");
+				fuelCells = getMemInt("fuelcells");
+				ticksTillMove = getMemInt("ticksTillMove");
 			}
 			x = getMemX();
 			y = getMemY();
@@ -226,7 +271,7 @@ public class Town {
 		msgSent = getMemBoolean("msgSent");
 		resourceOutcropping = getMemBoolean("resourceOutcropping");
 
-
+		rumor = getMemString("rumor");
 		probTimer = getMemInt("probTimer");
 		findTime = getMemInt("findTime");
 		digCounter=getMemInt("digCounter");
@@ -1385,6 +1430,24 @@ public class Town {
 		 if(theI<0) theI=0;
 		 return messages[theI] + "\nWe'll be returning home now. \n-The Dig Team at " + getTownName();
 	 }
+		public static String getRandomRumor() {
+			double exoticGoods=30;
+			double infoCache=70;
+			double abandonedTech=95;
+			double greatMachine=100;
+			double total = exoticGoods+infoCache+abandonedTech+greatMachine;
+			double rand = Math.random()*total; // rand generated.
+			
+			if(rand<=exoticGoods) {
+				return "Exotic Goods";
+			} else if(rand>exoticGoods&&rand<=infoCache) {
+				return "Information Cache";
+			}else if(rand>infoCache&&rand<=abandonedTech) {
+				return "Abandoned Tech";
+			}else if(rand>abandonedTech&&rand<=greatMachine) {
+				return "Great Machine";
+			} else return "nothing";
+		}
 	 public void resetDig(int newTownID, int digAmt, boolean findTime, Raid r) {
 		 update();
 		// System.out.println("Resetting town ID to " + newTownID);
@@ -1480,41 +1543,16 @@ public class Town {
 		 }
 		 return zeroed;
 	 }
-	 
-	 public void iterate(int num) {
+	 public void digProcessingBlock(int num) {
 		 if(getDigCounter()>=0) {
-			
+    
 			 setDigCounter(getDigCounter()+num);
-			
+   
 			 //5. In iterate, if dig timer is >=0, it goes up, and so does probability. If dig timer is <0, probability goes down towards 0.
-		//	 When the random message send time hits, send the message, and then return them manually when the counter goes down.
-			 // 
-			 if(!isResourceOutcropping()) { // all this dig shit only happens if this is not a  resource outcropping.
+			 //  When the random message send time hits, send the message, and then return them manually when the counter goes down.
+
+			 if(!isResourceOutcropping()) // all this dig shit only happens if this is not a  resource outcropping.
 				 if(getDigCounter()>=getFindTime()) {
-					 
-					 if(getDigCounter()>=getFindTime()+24*3600/GodGenerator.gameClockFactor) {
-						 //	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
-	
-						String subject = "Dig Message From "+ getTownName();
-						int pid[] = {God.findTown(getDigTownID()).getPlayer().ID};
-						String body = "Sir,\n You did not respond in time to our message, and we ran out of supplies, so we headed home!\n -The Dig Team at " + getTownName();
-						String pid_to_s = PlayerScript.toJSONString(pid);
-	
-						try {
-							UberPreparedStatement stmt = getPlayer().con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid) values (?,?,?,?,6,0,?,?);" );
-							stmt.setString(1,pid_to_s);
-							stmt.setInt(2,pid[0]);
-							stmt.setString(3,body);
-							stmt.setString(4,subject);
-							stmt.setInt(5,pid[0]);
-							stmt.setInt(6,townID);
-							stmt.execute();
-					
-							stmt.close();
-						} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	
-						God.findTown(getDigTownID()).getPlayer().getPs().b.recall(townID,getPlayer().ID,getDigTownID());
-					 }
-					 
 					 if(!getMsgSent()) {
 						 ArrayList<QuestListener> digFinish = getEventListenerList("digFinish");
 						 if(digFinish!=null) {
@@ -1523,36 +1561,55 @@ public class Town {
 							 }
 						 }
 						 // send the message.
-						 String body = getDigMessage();
+						 String reward = God.returnPrizeName(getRumor(),getX(),getY(),false,null,-1,null);
+						 String body = "Sir \n, We have found a " + reward + ". If we dig this reward out, it will destroy the site, Do you want us to do so, or continue digging? \n -The Dig Team at " + getTownName();
+						 Town otherT = getPlayer().God.getTown(getDigTownID());
+						 Raid r= null;
+						 //double rand = Math.random();
+						 for(Raid r2:otherT.attackServer()){
+							 if(r2.getTown2().townID==townID&&r2.getDigAmt()>0) {
+								 r=r2;
+								 break;
+							 }
+						 }
+						 r.setReward(reward);r.save();
 						 String subject = "Dig Message From "+ getTownName();
 						 int pid[] = {God.findTown(getDigTownID()).getPlayer().ID};
 						 String pid_to_s = PlayerScript.toJSONString(pid);
-	
+						 UUID id = UUID.randomUUID();
+
 						 try {
-							 UberPreparedStatement stmt = getPlayer().con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid) values (?,?,?,?,6,0,?,?);" );
+							 UberPreparedStatement stmt = getPlayer().con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,pid,tsid,id) values (?,?,?,?,6,?,?,?);" );
 							 stmt.setString(1,pid_to_s);
 							 stmt.setInt(2,pid[0]);
 							 stmt.setString(3,body);
 							 stmt.setString(4,subject);
 							 stmt.setInt(5,pid[0]);
 							 stmt.setInt(6,townID);
+							 stmt.setString(7,id.toString());
 							 stmt.execute();
-
+  
 							 stmt.close();
-						} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	
-						setMsgSent(true);
+						 } catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");} 
+						 String userArray[] = {God.findTown(getDigTownID()).getPlayer().getUsername()};
+						 Date time = new Date();
+						 UserMessage myM = new UserMessage(id,pid,pid[0],userArray,p.getUsername(),body,subject,6, false, 0,null,time.toString(),id,false);
+						 God.findTown(getDigTownID()).getPlayer().addMessage(myM);
+						 setMsgSent(true);
 					 } 
-					 
-					 
 				 } else {
 					 setProbTimer(getProbTimer()+num); // probtimer only goes up when digcounter is less than find time,
 					 // otherwise the archaeologists are waiting at their hole for your call.
 				 }
-			 }
 		 } else {
 			 // so if the dig counter is not on, then it goes down. 
-			 setProbTimer(Math.max(getProbTimer()-num,0));
+			 setProbTimer(getProbTimer()-num);
+			 if(getProbTimer()<0) setProbTimer(0);
 		 }
+	 }
+	 
+	 public void iterate(int num) {
+		digProcessingBlock(num);
 		 
 	//	 if(townID==2958)
 			//System.out.println("Town's player is now " + getPlayer());
@@ -1823,12 +1880,12 @@ public class Town {
 				 if(a.getSupport()>0&&a.getOriginalTID()==r.getTown1().getTownID()) {
 					 // now we thin the ranks.
 					 if(a.getSize()<r.getAu().get(a.getOriginalSlot()).getSize()) {
-						 System.out.println("Setting size to 0");
+						// System.out.println("Setting size to 0");
 						 r.getAu().get(a.getOriginalSlot()).setSize(a.getSize());
 						 a.setSize(0);
 					 } else {
 						 a.setSize(a.getSize()-r.getAu().get(a.getOriginalSlot()).getSize());
-						 System.out.println("Setting size to "+a.getSize());
+					//	 System.out.println("Setting size to "+a.getSize());
 
 					 }
 				 }
@@ -2037,26 +2094,39 @@ public class Town {
 		 }
 	 }
 	 public void doMyResources(int num) {
-		 double[] resEffects = getResEffects(), resBuff = getResBuff(), 
-				 newIncs = God.Maelstrom.getResEffects(getResInc(),getX(),getY());
 		 
-		 long[] resCaps=getResCaps(), res = getRes();
-		 
+		 double[] resInc=getResInc(),
+				  resEffects=getResEffects(),
+				  resBuff = getResBuff();
+		 long[] resCaps=getResCaps();
+		 if(resIncsZeroed) {
+			 int le = 0;
+			 while(le<resInc.length) {
+				 resInc[le]=0;
+				 le++;
+			 }
+			 le = 0;
+			 while(le<resBuff.length) {
+				 resBuff[le]=0;
+				 le++;
+			 }
+		 }
+		 long[] res = getRes();
+		 double[] newIncs = God.Maelstrom.getResEffects(resInc,getX(),getY());
 		 Player p = getPlayer();
 		 League l =p.getLeague();
 		 int j = 0;
 		 double taxRate=0;
-		 if(l!=null) taxRate += l.getTaxRate(p.ID);
-		 
+		 if(l!=null)
+			 taxRate += l.getTaxRate(p.ID);
 		 taxRate+=getVassalRate();
 		 if(taxRate>.99) taxRate=.99;
-		 
 		 Town zepp = getPlayer().God.findZeppelin(getX(),getY());
 		 if(getPlayer().ID==5&&zepp.townID!=0&&!isResourceOutcropping()){
-			 // zeppelins can't excavate.
-			 resBuff = zepp.getResBuff(); // SUCKLEPOWA
-			 res = zepp.getRes();
-			 resCaps = zepp.getResCaps(); // HOLY SHIT YOU JUST HIJACKED THAT SHIT!
+			// zeppelins can't excavate.
+			resBuff = zepp.getResBuff(); // SUCKLEPOWA
+			res = zepp.getRes();
+			resCaps = zepp.getResCaps(); // HOLY SHIT YOU JUST HIJACKED THAT SHIT!
 		 }
 		
 		 synchronized(resBuff) {
@@ -2171,9 +2241,10 @@ public class Town {
 		 // for towns we save AU and then it's stats, then we call the save method of attached objects.
 		 // raidSupportAU are deleted when a raid returns.
 		 // supportAU are deleted by the AU Check method when there are no further raid support AU out nor supportAU at home.
+
 		 if(!getPlayer().isFake()) {
-		 	try {
-				 UberPreparedStatement stmt = con.createStatement("update town set townName = ?, x = ?, y = ?, m = ?, t = ?, mm = ?, f = ?, auSizes = ?, owedTicks = ?, zeppelin = ?,  fuelcells = ?, ticksTillMove = ?, digTownID = ?, msgSent = ?, digAmt = ?, destX = ?, destY = ?, probTimer =  ?, findTime = ?, digCounter = ?, debm = ?, debt = ?, debmm = ?, debf = ?, influence = ?, lord = ?, vassalFrom = ?, resourceOutcropping=? where tid = ?;");
+			 try {
+				 UberPreparedStatement stmt = con.createStatement("update town set townName = ?, x = ?, y = ?, m = ?, t = ?, mm = ?, f = ?, auSizes = ?, owedTicks = ?, zeppelin = ?,  fuelcells = ?, ticksTillMove = ?, digTownID = ?, msgSent = ?, digAmt = ?, destX = ?, destY = ?, probTimer =  ?, findTime = ?, digCounter = ?, debm = ?, debt = ?, debmm = ?, debf = ?, influence = ?, lord = ?, vassalFrom = ?, resourceOutcropping=?, rumor =? where tid = ?;");
 				 stmt.setString(1,townName);
 				 stmt.setInt(2,x);
 				 stmt.setInt(3,y);
@@ -2206,44 +2277,43 @@ public class Town {
 				 else stmt.setInt(26,0);
 				 if(getVassalFrom()!=null)
 					 stmt.setString(27,getVassalFrom().toString());
-				 else stmt.setString(27,"2011-01-01 00:00:01");
+					 else stmt.setString(27,"2011-01-01 00:00:01");
 				 stmt.setBoolean(28,isResourceOutcropping());
-				 stmt.setInt(29,townID);
-	
-	    	   	  stmt.executeUpdate();
-		    	  
-		    	  stmt.close();
-	    	   } catch(SQLException exc) { 
-	    		  exc.printStackTrace();
-	    	   }
-	    	   int i = 0;
-	    	   ArrayList<Building> bldg = bldg();
-	    	   while(i<bldg.size()) {
-	    		   bldg.get(i).save();
-	    		   i++;
-	    	   }
-	    	   i = 0;
-	    	   
-	    	
-	    	   
-	    	   ArrayList<Raid> as = attackServer();
-	    	   while(i<as.size()) {
-	    		      as.get(i).save();
-	    		   i++;
-	    	   }
-	    	   i = 0;
-	    	   ArrayList<TradeSchedule> tses = tradeSchedules();
-	    	   while(i<tses.size()) {
-	    		   tses.get(i).save();
-	    		   i++;
-	    	   }
-	    	   i = 0;
-	    	   ArrayList<Trade> tres = tradeServer();
-	    	   while(i<tres.size()) {
-	    		   tres.get(i).save();
-	    		   i++;
-	    	   }
-		 }  
+				 stmt.setString(29,rumor);
+				 stmt.setInt(30,townID);
+		
+		    	   	  stmt.executeUpdate();
+			    	  
+			    	  stmt.close();
+			 } catch(SQLException exc) { 
+				 exc.printStackTrace();
+			 }
+			 int i = 0;
+			 ArrayList<Building> bldg = bldg();
+		     while(i<bldg.size()) {
+		    	 bldg.get(i).save();
+		    	 i++;
+		     }
+		     i = 0;
+		    	   
+		     ArrayList<Raid> as = attackServer();
+		     while(i<as.size()) {
+		    	 as.get(i).save();
+		    	 i++;
+		     }
+		     i = 0;
+		     ArrayList<TradeSchedule> tses = tradeSchedules();
+		     while(i<tses.size()) {
+		    	 tses.get(i).save();
+		    	 i++;
+		     }
+		     i = 0;
+		     ArrayList<Trade> tres = tradeServer();
+		     while(i<tres.size()) {
+		    	 tres.get(i).save();
+		    	 i++;
+		     }
+		 }
 	 }
 	 synchronized public boolean killBuilding(UUID bid) {
 		// this removes a bldg both from the server and from the local object. A sad thing, but can be used
@@ -3489,6 +3559,7 @@ public class Town {
 		ArrayList<AttackUnit> ourAU = getAu();
 		while(x<ourAU.size()) {
 			ourA = ourAU.get(x);
+			if(ourA.getSupport()>0)
 				if(ourA.getSize()==0&&ourA.getSupport()>0) {
 					as = attackServer();
 					int j = 0;
@@ -3496,7 +3567,7 @@ public class Town {
 					while(j<as.size()) {
 						r = as.get(j);
 						au = r.getAu();
-						int k = 6;
+						int k = 0;
 						while(k<au.size()) {
 							a = au.get(k);
 							if(a.getSupport()>0&&a.getSlot()==ourA.getSlot()&&a.getSize()>0) {
@@ -3507,12 +3578,11 @@ public class Town {
 						}
 						j++;
 					}
-					
 					if(!foundAU) {
 						try {
 							UberPreparedStatement stmt2 = con.createStatement("delete from supportAU where slotnum = ? and tid = ?;");
 							stmt2.setInt(1,ourA.getSlot());
-							stmt2.setInt(1,townID);
+							stmt2.setInt(2,townID);
 							stmt2.executeUpdate();
 							stmt2.close();
 							// who cares if raidsupportau has zero units.
@@ -3604,7 +3674,7 @@ public class Town {
 		int i = 0;
 		ArrayList<Building> bldg = bldg();
 		Building b;
-		if(getPlayer().ID ==5 ) { // Id's go based on mines.
+		if(getPlayer().ID==5) { // Id's go based on mines.
 			while(i<bldg.size()) {
 				b = bldg.get(i);
 				if(b.getType().equals("Metal Mine")) {
@@ -3854,7 +3924,12 @@ public class Town {
 		this.p = p;
 	
 	}
-
+	public String getRumor() {
+		return rumor;
+	}
+	public void setRumor(String rumor) {
+		this.rumor=rumor;
+	}
 	public ArrayList<Trade> getTradeServer() {
 		return tradeServer;
 	}

@@ -36,6 +36,8 @@ import org.apache.commons.httpclient.methods.PostMethod;
 
 import BattlehardFunctions.BattlehardFunctions;
 import BattlehardFunctions.UserBuilding;
+import BattlehardFunctions.UserMessage;
+import BattlehardFunctions.UserMessagePack;
 import BattlehardFunctions.UserRaid;
 import BattlehardFunctions.UserSR;
 import BattlehardFunctions.UserTPR;
@@ -6821,7 +6823,12 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		} else { //no blockades here, boss.
 			r.setDockingFinished(new Timestamp((new Date()).getTime()));
 			//now we need to make sure that our newly blockaded town's trades are all canceled
+<<<<<<< HEAD
+			//the active trades should continue normally though.
+			ArrayList<TradeSchedule> trades = r.getTown2().tradeSchedules();
+=======
 			ArrayList<TradeSchedule> trades = r.getTown2().getTradeSchedules();
+>>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 			for(TradeSchedule t : trades) {
 				t.deleteMeInterrupt();
 			}
@@ -13808,12 +13815,12 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		} 
 	}
 	
-	public String returnPrizeName(int probTick, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
+	public String returnPrizeName(String rumor, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
 		// presetRand sets the rand automatically for testing, presetTile presets the tile if not null. TO make presetRand not work, set it
 		// to -1. To make presetTIle not work, set it to null.
 		// if test is true, the out printwriter will be used to print stuff.
 		
-		/*  1. Center of Nothing( Relative Mag: .5)
+		/*  OLD LOOT TABLE:(NEW BELOW)1. Center of Nothing( Relative Mag: .5)
 		 2. Center of 10% daily resources (Relative Mag: 1)
 		 3. Center of 20% Daily resources and 50 KP (Relative Mag: 1)
 		 4. Center of 30% Daily Resources, 65 KP (Relative Mag: 1)
@@ -13847,6 +13854,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		 * silo
 		 * zeppelin
 		 */
+		
 		int i = 0;Hashtable r; String type = "none";
 		while(i<getMapTileHashes().size()) {
 			r = getMapTileHashes().get(i);
@@ -13865,8 +13873,8 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		// So now that we know the types we can have, we just need to add up the probabilities
 		// and normalize them.
 		//	public static double getProbabilityInDist(double height, double center, double width, int x) {
-
-		int daysIn = (int) Math.round(probTick*GodGenerator.gameClockFactor/(3600*24));
+		
+		/*int daysIn = (int) Math.round(probTick*GodGenerator.gameClockFactor/(3600*24));
 		double nothingProb = getProbabilityInDist(nothingHeight,nothingCtr,nothingWidth,daysIn);
 		if(test) out.println("nothingProb is " + nothingProb);
 		
@@ -13983,9 +13991,69 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		
 		double zeppelinProbPt = siloProbPt+zeppelinProb*N;
 		if(test) out.println("zeppelinProbPt is " + zeppelinProbPt);
+		*/
 		
+
+
+		 
+		double nothingProbPt=0;
+		double daily10ProbPt=30;
+		double daily20ProbPt=50;
+		double daily30ProbPt=70;
+		double daily50ProbPt=85;
+		double techProbPt=95;
+		double zeppelinProbPt=100;
+		if(rumor.equals("Exotic Goods")){
+			daily20ProbPt+=daily10ProbPt;
+			daily30ProbPt+=daily10ProbPt;
+			daily50ProbPt+=daily10ProbPt;
+			techProbPt+=daily10ProbPt;
+			zeppelinProbPt+=daily10ProbPt;
+			
+			daily10ProbPt*=2;
+
+		}
+		if(rumor.equals("Information Cache")) {
+			double rand2 = Math.random();
+			if(rand2<.5){
+				
+				daily30ProbPt+=daily20ProbPt;
+				daily50ProbPt+=daily20ProbPt;
+				techProbPt+=daily20ProbPt;
+				zeppelinProbPt+=daily20ProbPt;
+								
+				daily20ProbPt*=2;
+				
+			}
+			else {
+
+				daily50ProbPt+=daily30ProbPt;
+				techProbPt+=daily30ProbPt;
+				zeppelinProbPt+=daily30ProbPt;
+						
+				daily30ProbPt*=2;
+			}
+		}
+		if(rumor.equals("Abandoned Tech")){
+			double rand2 = Math.random();
+			if(rand2<.5) {
+
+				techProbPt+=daily50ProbPt;
+				zeppelinProbPt+=daily50ProbPt;
+					
+				daily50ProbPt*=2;
+
+			}
+			else { 
+				zeppelinProbPt+=techProbPt;
+
+				techProbPt*=2;
+			}
+		}
+		if(rumor.equals("Great Machine")) zeppelinProbPt*=2;
+
 		
-		double rand = Math.random()*100; // rand generated.
+		double rand = Math.random()*zeppelinProbPt; // rand generated, uses the largest number as the base to multiply by.
 		if(presetRand!=-1) rand = presetRand;
 		
 		if(test) out.print("rand is " + rand);
@@ -14004,7 +14072,14 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}else if(rand>daily30ProbPt&&rand<=daily50ProbPt) {
 			if(test) out.println("daily50");
 			return "daily50";
-		}else if(rand>daily50ProbPt&&rand<=lowKPProbPt) {
+		}else if(rand>daily50ProbPt&&rand<=techProbPt) {
+			if(test) out.println("randomTech");
+			return "randomTech";
+				
+		}else if(rand>techProbPt&&rand<=zeppelinProbPt) {
+			if(test) out.println("zeppelin");
+			return "zeppelin";
+		}/*else if(rand>daily50ProbPt&&rand<=lowKPProbPt) {
 			if(test) out.println("lowKP");
 			return "lowKP";
 		}else if(rand>lowKPProbPt&&rand<=medKPProbPt) {
@@ -14064,7 +14139,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}else if(rand>siloProbPt&&rand<=zeppelinProbPt) {
 			if(test) out.println("zeppelin");
 			return "zeppelin";
-		}
+		}*/
 		
 		if(test) out.println("found nothing by error.");
 		return "nothing";
@@ -14139,7 +14214,336 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 		return -1;
 	}
-	public boolean ROCollapseTest(HttpServletRequest req, PrintWriter out, Player player) {
+	public boolean digProbabilityTest(HttpServletRequest req, PrintWriter out) {
+	//	public String returnPrizeName(String rumor, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
+		/*
+		 * 		 
+		double nothingProbPt=0;
+		double daily10ProbPt=30;
+		double daily20ProbPt=50;
+		double daily30ProbPt=70;
+		double daily50ProbPt=85;
+		double techProbPt=95;
+		double zeppelinProbPt=100;
+		 */
+		String prize = returnPrizeName("none",0,0,false,out,0,"grass");
+		if(!prize.equals("nothing")) {
+			out.println("digProbability test failed on getting it to spit out nothing with no rumor. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("none",0,0,false,out,1,"grass");
+		if(!prize.equals("daily10")) {
+			out.println("digProbability test failed on getting it to spit out daily10 with no rumor at preset 1. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("none",0,0,false,out,30,"grass");
+		if(!prize.equals("daily10")) {
+			out.println("digProbability test failed on getting it to spit out daily10 with no rumor at preset 30. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("none",0,0,false,out,31,"grass");
+		if(!prize.equals("daily20")) {
+			out.println("digProbability test failed on getting it to spit out daily20 with no rumor at preset 31. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("none",0,0,false,out,50,"grass");
+		if(!prize.equals("daily20")) {
+			out.println("digProbability test failed on getting it to spit out daily20 with no rumor at preset 50. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("none",0,0,false,out,51,"grass");
+		if(!prize.equals("daily30")) {
+			out.println("digProbability test failed on getting it to spit out daily30 with no rumor at preset 51. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("none",0,0,false,out,70,"grass");
+		if(!prize.equals("daily30")) {
+			out.println("digProbability test failed on getting it to spit out daily30 with no rumor at preset 70. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("none",0,0,false,out,71,"grass");
+		if(!prize.equals("daily50")) {
+			out.println("digProbability test failed on getting it to spit out daily50 with no rumor at preset 71. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("none",0,0,false,out,85,"grass");
+		if(!prize.equals("daily50")) {
+			out.println("digProbability test failed on getting it to spit out daily50 with no rumor at preset 85. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("none",0,0,false,out,86,"grass");
+		if(!prize.equals("randomTech")) {
+			out.println("digProbability test failed on getting it to spit out randomTech with no rumor at preset 86. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("none",0,0,false,out,95,"grass");
+		if(!prize.equals("randomTech")) {
+			out.println("digProbability test failed on getting it to spit out randomTech with no rumor at preset 95. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("none",0,0,false,out,96,"grass");
+		if(!prize.equals("zeppelin")) {
+			out.println("digProbability test failed on getting it to spit out zeppelin with no rumor at preset 96. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("none",0,0,false,out,100,"grass");
+		if(!prize.equals("zeppelin")) {
+			out.println("digProbability test failed on getting it to spit out zeppelin with no rumor at preset 100. Instead it was " + prize);
+			return false;
+		}
+		
+		
+		// now with rumors
+		
+		 prize = returnPrizeName("Exotic Goods",0,0,false,out,0,"grass");
+		if(!prize.equals("nothing")) {
+			out.println("digProbability test failed on getting it to spit out nothing with Exotic Goods. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,1,"grass");
+		if(!prize.equals("daily10")) {
+			out.println("digProbability test failed on getting it to spit out daily10 with Exotic Goods at preset 1. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,60,"grass");
+		if(!prize.equals("daily10")) {
+			out.println("digProbability test failed on getting it to spit out daily10 with Exotic Goods at preset 60. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,61,"grass");
+		if(!prize.equals("daily20")) {
+			out.println("digProbability test failed on getting it to spit out daily20 with Exotic Goods at preset 61. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,80,"grass");
+		if(!prize.equals("daily20")) {
+			out.println("digProbability test failed on getting it to spit out daily20 with Exotic Goods at preset 80. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,81,"grass");
+		if(!prize.equals("daily30")) {
+			out.println("digProbability test failed on getting it to spit out daily30 with Exotic Goods at preset 81. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,100,"grass");
+		if(!prize.equals("daily30")) {
+			out.println("digProbability test failed on getting it to spit out daily30 with Exotic Goods at preset 100. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,101,"grass");
+		if(!prize.equals("daily50")) {
+			out.println("digProbability test failed on getting it to spit out daily50 with Exotic Goods at preset 101. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,115,"grass");
+		if(!prize.equals("daily50")) {
+			out.println("digProbability test failed on getting it to spit out daily50 with Exotic Goods at preset 115. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,116,"grass");
+		if(!prize.equals("randomTech")) {
+			out.println("digProbability test failed on getting it to spit out randomTech with Exotic Goods at preset 116. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,125,"grass");
+		if(!prize.equals("randomTech")) {
+			out.println("digProbability test failed on getting it to spit out randomTech with Exotic Goods at preset 125. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,126,"grass");
+		if(!prize.equals("zeppelin")) {
+			out.println("digProbability test failed on getting it to spit out zeppelin with Exotic Goods at preset 126. Instead it was " + prize);
+			return false;
+		}
+		prize = returnPrizeName("Exotic Goods",0,0,false,out,130,"grass");
+		if(!prize.equals("zeppelin")) {
+			out.println("digProbability test failed on getting it to spit out zeppelin with Exotic Goods at preset 130. Instead it was " + prize);
+			return false;
+		}
+		
+		
+		out.println("digProbability test successful.");
+		return false;
+	}
+	public boolean basicDigTest(HttpServletRequest req, PrintWriter out, Player player) {
+		/*
+		 * basicDigTest: Send a dig, have it finish, make sure that it doesn't come home after 24 hours,
+		 *  that when you accept, the rumor is reset, and the thing returns home. Test this for every prize type.
+		 */
+		int numTowns[] = {1};
+		Player[] players = player.generateFakePlayers(1,numTowns,0,0);
+		try {
+			Town t1 = players[0].towns().get(0);
+			//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
+			Town RO=null;
+			for(Town t: getPlayer(5).towns()) {
+				if(t.getInfluence()==0&&!t.isResourceOutcropping()&&t.getLord()==null&&t.getDigAmt()==0) {
+					RO=t;
+					break;
+				} 
+				
+			}
+			if(RO==null) {
+				growId();
+				getPlayer(5).territoryCalculator();
+
+				
+			}
+			for(Town t: getPlayer(5).towns()) {
+				//System.out.println(t.getTownID() + " has " + t.getInfluence() + " influence.");
+
+				if(t.getInfluence()==0&&!t.isResourceOutcropping()&&t.getLord()==null&&t.getDigAmt()==0) {
+					RO=t;
+					break;
+				} 
+			}
+			if(RO==null) {
+				out.println("basicDig test failed because even growing Id didn't produce a viable Id town to use.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			t1.setX(RO.getX()+10);
+			t1.setY(RO.getY());
+			t1.setInfluence(0);
+			t1.addBuilding("Command Center",4,5,0);
+			t1.addBuilding("Institute",5,5,0);
+
+			long cap = t1.bldg().get(0).getCap();
+			t1.bldg().get(1).setPeopleInside(digScholarRequirement);
+			t1.setAu(new ArrayList<AttackUnit>());
+			t1.getAu().add(new AttackUnit("Pillager",0,0));
+			players[0].getAu().add(new AttackUnit("Pillager",0,0)); // when recalling support, player-level au is called! So we must populate.
+
+			t1.getAu().get(0).setSize(1000);
+			RO.getRes()[0]=15000;
+			RO.getRes()[1]=15000;
+			RO.getRes()[2]=15000;
+			RO.getRes()[3]=15000;
+			//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
+			int amts[] = {900};
+			boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"dig",null,"noname");
+			if(!worked) {
+				out.println("basicDig test failed because the first dig didn't send, and the error was: " + players[0].getPs().b.getError());
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(t1.attackServer().size()!=1) {
+				out.println("basicDig test failed because the raid didn't load.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			Raid r = t1.attackServer().get(0);
+			r.setTicksToHit(0);
+			attackServerCheck(t1,players[0]);
+			// now there should be a dig.
+			
+			if(RO.getDigAmt()==0) {
+				out.println("basicDig test failed because the dig didn't land properly.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			
+			RO.setDigCounter(RO.getFindTime()-2);
+			
+			RO.digProcessingBlock(1);
+			if(RO.getDigAmt()==0) {
+				out.println("basicDig test failed because the dig left before it's find time.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(RO.getMsgSent()) {
+				out.println("basicDig test failed because the dig sent it's message before the find time.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			RO.digProcessingBlock(1);
+			if(RO.getDigAmt()==0) {
+				out.println("basicDig test failed because the dig left before it's find time.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(!RO.getMsgSent()) {
+				out.println("basicDig test failed because the dig didn't send it's message at the find time.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			RO.setDigCounter((int) (RO.getFindTime()+24*3600/GodGenerator.gameClockFactor));
+			RO.digProcessingBlock(1);
+			if(RO.getDigAmt()==0) {
+				out.println("basicDig test failed because the dig left 24 hours after it's find time, it should have stayed.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			
+			//	public boolean respondToDigMessage(boolean yes, int townID) {
+			int oldFindTime = RO.getFindTime();
+			int oldDigCounter = RO.getDigCounter();
+			players[0].getPs().b.respondToDigMessage(false,RO.getTownID());
+			if(t1.attackServer().size()!=1) {
+				out.println("basicDig test failed because the raid went away when we said keep digging.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(RO.getDigAmt()==0) {
+				out.println("basicDig test failed because the dig reset after saying no.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(RO.getDigCounter()!=0) {
+				out.println("basicDig test failed because the dig counter didn't reset after saying no.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(RO.getFindTime()==oldFindTime) {
+				out.println("basicDig test failed because the dig didn't reset it's find time after saying no.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(RO.getMsgSent()) {
+				out.println("basicDig test failed because the dig didn't reset it's msg sent boolean after saying no.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			RO.setDigCounter((int) (RO.getFindTime()+24*3600/GodGenerator.gameClockFactor));
+			RO.digProcessingBlock(1);
+			 worked = players[0].getPs().b.respondToDigMessage(true,RO.getTownID());
+			if(!worked) {
+				out.println("basicDig test failed because the dig accept prize didn't work, and the error was: " + players[0].getPs().b.getError());
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(!r.isRaidOver()) {
+				out.println("basicDig test failed because the dig raid wasn't returning when it was supposed to.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if((!r.getReward().equals("zeppelin")&&players[0].getMessages().size()!=2)
+					||(r.getReward().equals("zeppelin")&&players[0].getMessages().size()!=3)) {
+				out.println("basicDig test failed because the player had " + players[0].getMessages().size() + " messages, not 2 messages, as was expected!");
+				for(UserMessagePack ump:players[0].getMessages()) {
+					out.println("new ump");
+					for(UserMessage m: ump.getMessages()) {
+						out.println(m.getId().toString() + "Message subject:"+ m.getSubject() + ", body: "+ m.getBody() + "<br />");
+					}
+				}
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			player.deleteFakePlayers(players);
+			out.println("basicDig test successful.");
+			return true;
+			} catch(Exception exc) {
+				out.println("basicDig test failed because " + exc.toString());
+				for(StackTraceElement stackTrace: exc.getStackTrace()) {
+					out.println(stackTrace.toString());
+				}
+				player.deleteFakePlayers(players);
+				return false;
+			}
+		
+	}
+
+	public boolean ROCollapseTest(HttpServletRequest req, PrintWriter out, Player player, boolean useDigInstead) {
 
 		
 
@@ -14153,13 +14557,23 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		getPlayer(5).territoryCalculator(); // i need it to reset everything to no lord that can be reset.
 
 		int numTowns[] = {1};
+		String mission = "excavation";
+		String testType = "ROCollapse";
+		if(useDigInstead){
+			mission = "dig";
+			testType = "digCollapse";
+		}
 		Player[] players = player.generateFakePlayers(1,numTowns,0,0);
 		try {
 		Town t1 = players[0].towns().get(0);
 		//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
 		Town RO=null;
 		for(Town t: getPlayer(5).towns()) {
-			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+			if(useDigInstead&&t.getDigTownID()==0) {
+				RO=t;
+				break;
+			}
+			if(!useDigInstead&&t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
 				RO=t;
 				break;
 			} 
@@ -14173,14 +14587,17 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 		for(Town t: getPlayer(5).towns()) {
 			//System.out.println(t.getTownID() + " has " + t.getInfluence() + " influence.");
-
-			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+			if(useDigInstead&&t.getDigTownID()==0) {
+				RO=t;
+				break;
+			}
+			if(!useDigInstead&&t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
 				RO=t;
 				break;
 			} 
 		}
 		if(RO==null) {
-			out.println("ROCollapse test failed because even growing Id didn't produce a viable RO to use.");
+			out.println(testType + " test failed because even growing Id didn't produce a viable RO to use.");
 			player.deleteFakePlayers(players);
 			return false;
 		}
@@ -14188,6 +14605,11 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		t1.setY(RO.getY());
 		t1.setInfluence(0);
 		t1.addBuilding("Command Center",4,5,0);
+		if(useDigInstead) {
+			t1.addBuilding("Institute",5,5,0);
+			t1.bldg().get(1).setPeopleInside(2*digScholarRequirement);
+
+		}
 		long cap = t1.bldg().get(0).getCap();
 		t1.bldg().get(0).setPeopleInside(5);
 		t1.setAu(new ArrayList<AttackUnit>());
@@ -14200,15 +14622,23 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		RO.getRes()[2]=15000;
 		RO.getRes()[3]=15000;
 		//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
-		int amts[] = {900,3};
-		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname");
+		int amts[];
+		if(useDigInstead) {
+			amts = new int[1];
+			amts[0]=900;
+		} else {
+			amts = new int[2];
+			amts[0]=900;
+			amts[1]=3;
+		}
+		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,mission,null,"noname", true);
 		if(!worked) {
-			out.println("ROCollapse test failed because the first exc didn't send, and the error was: " + players[0].getPs().b.getError());
+			out.println(testType + " test failed because the first " + mission + " didn't send, and the error was: " + players[0].getPs().b.getError());
 			player.deleteFakePlayers(players);
 			return false;
 		}
 		if(t1.attackServer().size()!=1) {
-			out.println("ROCollapse test failed because the raid didn't load.");
+			out.println(testType + " test failed because the raid didn't load.");
 			player.deleteFakePlayers(players);
 			return false;
 		}
@@ -14217,15 +14647,20 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		attackServerCheck(t1,players[0]);
 	
 		
-		if(RO.getLord()==null) {
-			out.println("ROCollapse test failed because the RO didn't become owned by the player after landing.");
+		if((RO.getLord()==null&&!useDigInstead)
+				||(useDigInstead&&RO.getDigTownID()==0)) {
+			out.println(testType + " test failed because the RO didn't become owned by the player after landing.");
 			player.deleteFakePlayers(players);
 			return false;
 		}
-		amts[0]=100; amts[1]=2;
-		 worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname");
+		if(useDigInstead) {
+			amts[0]=100;
+		} else {
+			amts[0]=100;
+			amts[1]=2;
+		}
 		 if(!worked) {
-				out.println("ROCollapse test failed because the second exc didn't send, and the error was: " + players[0].getPs().b.getError());
+				out.println(testType + " test failed because the second " + mission + " didn't send, and the error was: " + players[0].getPs().b.getError());
 				player.deleteFakePlayers(players);
 				return false;
 			}
@@ -14234,7 +14669,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			r2.setTicksToHit(0);
 			attackServerCheck(t1,players[0]);
 			if(t1.attackServer().size()!=1) {
-				out.println("ROCollapse test failed because the second raid didn't collapse, the size of the raidserver is " + t1.attackServer().size());
+				out.println(testType + " test failed because the second raid didn't collapse, the size of the raidserver is " + t1.attackServer().size());
 				player.deleteFakePlayers(players);
 				return false;
 			}	
@@ -14243,8 +14678,8 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 				sum+=a.getSize();
 			}
 			sum+=r.getDigAmt();
-			if(sum!=1005) {
-				out.println("ROCollapse test failed because the second raid didn't collapse with the correct numbering into r1, the total amount of people now in r1 is " + sum);
+			if((useDigInstead&&sum!=1020)||(!useDigInstead&&sum!=1005)) {
+				out.println(testType + " test failed because the second raid didn't collapse with the correct numbering into r1, the total amount of people now in r1 is " + sum);
 				player.deleteFakePlayers(players);
 				return false;
 			}
@@ -14253,8 +14688,8 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 				sum+=a.getSize();
 			}
 			sum+=r.getTown2().getDigAmt();
-			if(sum!=1005) {
-				out.println("ROCollapse test failed because the second raid didn't collapse with the correct numbering into t2, the total amount of people now in t2 is " + sum);
+			if((useDigInstead&&sum!=1020)||(!useDigInstead&&sum!=1005)) {
+				out.println(testType + " test failed because the second raid didn't collapse with the correct numbering into t2, the total amount of people now in t2 is " + sum);
 				player.deleteFakePlayers(players);
 				return false;
 			}
@@ -14262,16 +14697,16 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			// sinc ethere were 3 before, and 5 now, we should see 3/5*old on bottom, meaning diff should be 5/3.
 			double ratio = ((double) oldDockingFinished.getTime())/((double) newDockingFinished.getTime());
 		//	System.out.println("Old time is " + oldDockingFinished.getTime() + " new is " + newDockingFinished.getTime() +" and their ratio is " + ratio + " and 5/3 is " );
-			if(ratio-5.0/3.0>.0001) {
-				out.println("ROCollapse test failed because the second raid didn't collapse with the correct docking finished into r1, the total ratio of the old and new, expected to be 5/3, now in r1 is " + ratio);
+			if(!useDigInstead&&ratio-5.0/3.0>.0001) { // time doesn't change with more digs.
+				out.println(testType + " test failed because the second raid didn't collapse with the correct docking finished into r1, the total ratio of the old and new, expected to be 5/3, now in r1 is " + ratio);
 				player.deleteFakePlayers(players);
 				return false;
 			}
 			player.deleteFakePlayers(players);
-		out.println("ROCollapse test successful.");
+		out.println(testType + " test successful.");
 		return true;
 		} catch(Exception exc) {
-			out.println("ROCollapse test failed because " + exc.toString());
+			out.println(testType + " test failed because " + exc.toString());
 			for(StackTraceElement stackTrace: exc.getStackTrace()) {
 				out.println(stackTrace.toString());
 			}
@@ -14342,7 +14777,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		RO.getRes()[3]=15000;
 		//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
 		int amts[] = {1000,5};
-		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname");
+		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname", true);
 		if(!worked) {
 			out.println("ROEngCap test failed because the exc didn't send, and the error was: " + players[0].getPs().b.getError());
 			player.deleteFakePlayers(players);
@@ -14463,7 +14898,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		RO.getRes()[3]=15000;
 		//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
 		int amts[] = {1000};
-		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
+		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname", true);
 		if(!worked) {
 			out.println("ROInfluence test failed because the attack didn't send, and the error was: " + players[0].getPs().b.getError());
 			player.deleteFakePlayers(players);
@@ -14563,7 +14998,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 	
 	}
-	public boolean ROContestedTest(HttpServletRequest req, PrintWriter out, Player player) {
+	public boolean ROContestedTest(HttpServletRequest req, PrintWriter out, Player player, boolean useDigInstead) {
 
 		/*
 		 ROContestedTest: Send an excavation to an inhabited RO - is it attacked by support/excavation there? 
@@ -14572,15 +15007,25 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 
 		 */
 		getPlayer(5).territoryCalculator(); // i need it to reset everything to no lord that can be reset.
-
+		String mission = "excavation";
+		String testName = "ROContested";
+		if(useDigInstead) {
+			mission = "dig";
+			testName = "digContested";
+		}
 		int numTowns[] = {1,1};
 		Player[] players = player.generateFakePlayers(2,numTowns,0,0);
 		try {
 		Town t1 = players[0].towns().get(0);
 		//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
 		Town RO=null;
+		
 		for(Town t: getPlayer(5).towns()) {
-			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+			if(useDigInstead&&t.getDigTownID()==0) {
+				RO=t;
+				break;
+			}
+			if(!useDigInstead&&t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
 				RO=t;
 				break;
 			} 
@@ -14589,19 +15034,20 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		if(RO==null) {
 			growId();
 			getPlayer(5).territoryCalculator();
-
-			
 		}
 		for(Town t: getPlayer(5).towns()) {
 			//System.out.println(t.getTownID() + " has " + t.getInfluence() + " influence.");
-
-			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+			if(useDigInstead&&t.getDigTownID()==0) {
+				RO=t;
+				break;
+			}
+			if(!useDigInstead&&t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
 				RO=t;
 				break;
 			} 
 		}
 		if(RO==null) {
-			out.println("ROContested test failed because even growing Id didn't produce a viable RO to use.");
+			out.println(testName + " test failed because even growing Id didn't produce a viable RO to use.");
 			player.deleteFakePlayers(players);
 			return false;
 		}
@@ -14615,7 +15061,17 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		t1.getAu().get(0).setSize(5);
 		Town t2 = players[1].towns().get(0);
 		t2.addBuilding("Command Center",4,5,0);
+		if(useDigInstead) {
+			t2.addBuilding("Institute",5,5,0);
+			t2.bldg().get(1).setPeopleInside(digScholarRequirement);
+			t1.addBuilding("Institute",5,5,0);
+			t1.bldg().get(1).setPeopleInside(digScholarRequirement);
+		}
+		
 		t2.bldg().get(0).setPeopleInside(4);
+
+		
+
 		t2.setAu(new ArrayList<AttackUnit>());
 		t2.getAu().add(new AttackUnit("Pillager",0,0));
 		t2.getAu().get(0).setSize(200);
@@ -14625,33 +15081,46 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		RO.getRes()[2]=15000;
 		RO.getRes()[3]=15000;
 		//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
-		int amts[] = {5,5};
-		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname");
+		int amts[];
+		if(useDigInstead) {
+			amts = new int[1];
+			amts[0]=5;
+		}
+		else {
+			amts = new int[2]; amts[0]=5;amts[1]=5;
+		}
+		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,mission,null,"noname");
 		if(!worked) {
-			out.println("ROContested test failed because the attack didn't send, and the error was: " + players[0].getPs().b.getError());
+			out.println(testName + " test failed because the "+ mission + " didn't send, and the error was: " + players[0].getPs().b.getError());
 			player.deleteFakePlayers(players);
 			return false;
 		}
 		if(t1.attackServer().size()!=1) {
-			out.println("ROContested test failed because the raid didn't load.");
+			out.println(testName + " test failed because the raid didn't load.");
 			player.deleteFakePlayers(players);
 			return false;
 		}
 		Raid r = t1.attackServer().get(0);
 		r.setTicksToHit(0);
 		attackServerCheck(t1,players[0]);
-		if(RO.getLord()==null) {
-			out.println("ROContested test failed because the RO didn't become owned by the player after landing.");
+		if((RO.getLord()==null&&!useDigInstead)||(useDigInstead&&RO.getDigTownID()==0)) {
+			out.println(testName + " test failed because the RO didn't become owned by the player after landing.");
 			player.deleteFakePlayers(players);
 			return false;
 		}
 		
 		// now we attack it
-		amts[0]=200; amts[1]=4;
-		worked = players[1].getPs().b.attack(t2.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname");
+		if(useDigInstead) {
+			amts = new int[1];
+			amts[0] = 200;
+		} else {
+			amts = new int[2];
+			amts[0]=200; amts[1]=4;
+		}
+		worked = players[1].getPs().b.attack(t2.townID,RO.getX(),RO.getY(),amts,mission,null,"noname");
 	
 		if(!worked) {
-			out.println("ROContested test failed because the second attack didn't send(greater exc vs exc), and the error was: " + players[1].getPs().b.getError());
+			out.println(testName + " test failed because the second " + mission + " didn't send(greater " + mission + " vs " + mission + "), and the error was: " + players[1].getPs().b.getError());
 			player.deleteFakePlayers(players);
 			return false;
 		}
@@ -14660,100 +15129,117 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		attackServerCheck(t2,players[1]); // here we expect shit to go down, and combat to occur, and a kick to happen.
 		for(AttackUnit a: RO.getAu()) {
 			if(a.getSupport()>0&&a.getOriginalPlayer().ID==players[0].ID&&a.getSize()!=0) {
-				out.println("ROContested test failed because combat didn't occur, the defending army of 5 vs 200 remained " + a.getSize() + ", indicating no combat(greater exc vs exc)..");
+				out.println(testName + " test failed because combat didn't occur, the defending army of 5 vs 200 remained " + a.getSize() + ", indicating no combat(greater " + mission + " vs " + mission +")..");
 				player.deleteFakePlayers(players);
 				return false;
 			}
 		}
 		RO.auCheck();// to remove support.
 		
-		if(RO.getLord()==null) {
-			out.println("ROContested test failed because the RO didn't become owned by anybody after the second player landing(greater exc vs exc)..");
+		if((RO.getLord()==null&&!useDigInstead)||(useDigInstead&&RO.getDigTownID()==0)) {
+			out.println(testName + " test failed because the RO didn't become owned by anybody after the second player landing(greater " + mission + " vs " + mission +")..");
 			player.deleteFakePlayers(players);
 			return false;
 		}
-		if(RO.getLord()!=null&&RO.getLord().ID!=players[1].ID) {
-			out.println("ROContested test failed because the RO didn't become owned by the second player after landing(greater exc vs exc).");
+		if((!useDigInstead&&RO.getLord()!=null&&RO.getLord().ID!=players[1].ID)
+			||(useDigInstead&&RO.getDigTownID()!=t2.townID)) {
+			out.println(testName + " test failed because the RO didn't become owned by the second player after landing(greater " + mission + " vs " + mission + ").");
 			player.deleteFakePlayers(players);
 			return false;
 		}
 		for(AttackUnit a:RO.getAu()) {
 			if(a.getSupport()>0&&a.getOriginalPlayer().ID!=players[1].ID) {
-				out.println("ROContested test failed because the RO still has old support on it after the switch.(greater exc vs exc).");
+				out.println(testName + " test failed because the RO still has old support on it after the switch.(greater " + mission + " vs " + mission + ").");
 				player.deleteFakePlayers(players);
 				return false;
 			}
 		}
-		if(RO.getDigAmt()==5) {
-			out.println("ROContested test failed because the RO still had old engineers on it, the new guys sent 4, so they couldn't have had 5 like the previous guys.(greater exc vs exc).");
+		if(RO.getDigAmt()==5&&!useDigInstead) {
+			out.println(testName + " test failed because the RO still had old engineers on it, the new guys sent 4, so they couldn't have had 5 like the previous guys.(greater " + mission + " vs " + mission + ").");
 			player.deleteFakePlayers(players);
 			return false;
 		}
 		if(t1.attackServer().size()!=0) {
-			out.println("ROContested test failed because town 1 still had a raid on the stack after this first attack.(greater exc vs exc).");
+			out.println(testName + " test failed because town 1 still had a raid on the stack after this first attack.(greater " + mission + " vs " + mission + ").");
 			player.deleteFakePlayers(players);
 			return false;
 		}
 		// alright now we're all loaded down.
 		
 		t1.getAu().get(0).setSize(15);// now I'm an exc who is going to try and take over but maybe not win completely. I expect them to be repelled.
-		t1.bldg().get(0).setPeopleInside(5);
-		amts[0]=15; amts[1]=5;
-		worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname");
+		if(useDigInstead) 	{	
+			amts = new int[1];
+			t1.bldg().get(1).setPeopleInside(digScholarRequirement);
+			amts[0]=15;
+
+		}else {
+			amts = new int[2];
+			t1.bldg().get(0).setPeopleInside(5);
+			amts[0]=15; amts[1]=5;
+		}
+		worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,mission,null,"noname");
 	
 		if(!worked) {
-			out.println("ROContested test failed because the third attack didn't send(lesser exc vs exc), and the error was: " + players[0].getPs().b.getError());
+			out.println(testName + " test failed because the third attack didn't send(lesser " + mission + " vs " + mission + "), and the error was: " + players[0].getPs().b.getError());
 			player.deleteFakePlayers(players);
 			return false;
 		}
-		RO.setDigAmt(5); // just in case they lost some civvies before.
+		if(useDigInstead)
+			RO.setDigAmt(digScholarRequirement);
+		else
+			RO.setDigAmt(5); // just in case they lost some civvies before.
 
 		r = t1.attackServer().get(0);
 		r.setTicksToHit(0);
 		attackServerCheck(t1,players[0]); // here we expect shit to go down, and combat to occur, but no kick to happen.
 		RO.auCheck();// to remove support.
 
-		if(RO.getLord()==null) {
-			out.println("ROContested test failed because the RO didn't become owned by anybody after the first player landing when the second occupied it in the case of a lesser exc vs the exc.");
+		if((!useDigInstead&&RO.getLord()==null)||(useDigInstead&&RO.getDigTownID()==0)) {
+			out.println(testName + " test failed because the RO didn't become owned by anybody after the first player landing when the second occupied it in the case of a lesser " + mission + " vs the " + mission + ".");
 			player.deleteFakePlayers(players);
 			return false;
 		}
-		if(RO.getLord()!=null&&RO.getLord().ID!=players[1].ID) {
-			out.println("ROContested test failed because the RO didn't become owned by the second player after landing in the case of a lesser exc vs the exc. ");
+		if((!useDigInstead&&RO.getLord()!=null&&RO.getLord().ID!=players[1].ID)
+				||(useDigInstead&&RO.getDigTownID()!=t2.townID)) {
+			out.println(testName + " test failed because the RO didn't become owned by the second player after landing in the case of a lesser " + mission + " vs the " + mission + ". ");
 			player.deleteFakePlayers(players);
 			return false;
 		}
 		
-		
+		if(!useDigInstead) { // you can support dig towns, no prob, so no need for such tests.
+
 		t1.getAu().get(0).setSize(15);// now I'm a support who is going to try and take over and probably not win with 15 men.
 		t1.bldg().get(0).setPeopleInside(5);
 		amts = new int[1]; amts[0]=15; 
 		worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
 	
 		if(!worked) {
-			out.println("ROContested test failed because the fourth attack didn't send(lesser support vs exc), and the error was: " + players[0].getPs().b.getError());
+			out.println(testName + " test failed because the fourth attack didn't send(lesser support vs " + mission + "), and the error was: " + players[0].getPs().b.getError());
 			player.deleteFakePlayers(players);
 			return false;
 		}
-		RO.setDigAmt(5); // just in case they lost some civvies before.
+		if(useDigInstead) 
+			RO.setDigAmt(digScholarRequirement);
+		else
+			RO.setDigAmt(5); // just in case they lost some civvies before.
 
 		r = t1.attackServer().get(0);
 		r.setTicksToHit(0);
 		attackServerCheck(t1,players[0]); // here we expect shit to go down, and combat to occur, but no kick to happen.
 		RO.auCheck();// to remove support.
 
-		if(RO.getLord()==null) {
-			out.println("ROContested test failed because the RO didn't become owned by anybody after the first player landing when the second occupied it in the case of lesser support vs an exc..");
+		if((RO.getLord()==null&&!useDigInstead)||(useDigInstead&&RO.getDigTownID()==0)) {
+			out.println(testName + " test failed because the RO didn't become owned by anybody after the first player landing when the second occupied it in the case of lesser support vs a " + mission + "..");
 			player.deleteFakePlayers(players);
 			return false;
 		}
-		if(RO.getLord()!=null&&RO.getLord().ID!=players[1].ID) {
-			out.println("ROContested test failed because the RO didn't become owned by the second player after landing in the case of lesser support vs an exc.");
+		if((RO.getLord()!=null&&RO.getLord().ID!=players[1].ID&&!useDigInstead)) {
+			out.println(testName + " test failed because the RO didn't become owned by the second player after landing in the case of lesser support vs a " + mission + ".");
 			player.deleteFakePlayers(players);
 			return false;
 		}
 		if(t1.attackServer().size()>0) {
-			out.println("ROContested test failed because t1's attackserver wasn't empty after the support run failed horribly.(lesser support vs an exec)");
+			out.println(testName + " test failed because t1's attackserver wasn't empty after the support run failed horribly.(lesser support vs a " + mission+")");
 			player.deleteFakePlayers(players);
 			return false;
 		}
@@ -14764,94 +15250,108 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
 	
 		if(!worked) {
-			out.println("ROContested test failed because the fifth attack didn't send(greater support vs exc), and the error was: " + players[0].getPs().b.getError());
+			out.println(testName + " test failed because the fifth attack didn't send(greater support vs " + mission + "), and the error was: " + players[0].getPs().b.getError());
 			player.deleteFakePlayers(players);
 			return false;
 		}
-		RO.setDigAmt(5); // just in case they lost some civvies before.
-
+		if(useDigInstead) 
+			RO.setDigAmt(digScholarRequirement);
+		else
+			RO.setDigAmt(5); // just in case they lost some civvies before.
 		r = t1.attackServer().get(0);
 		r.setTicksToHit(0);
 		attackServerCheck(t1,players[0]); // here we expect shit to go down, and combat to occur, but no kick to happen.
 		RO.auCheck();// to remove support.
 
-		if(RO.getLord()==null) {
-			out.println("ROContested test failed because the RO didn't become owned by anybody after the first player landing when the second occupied it in the test of greater support vs an exc.");
+		if((RO.getLord()==null&&!useDigInstead)) {
+			out.println(testName + " test failed because the RO didn't become owned by anybody after the first player landing when the second occupied it in the test of greater support vs " + mission +".");
 			player.deleteFakePlayers(players);
 			return false;
 		}
-		if(RO.getLord()!=null&&RO.getLord().ID!=players[0].ID) {
-			out.println("ROContested test failed because the RO didn't become owned by the first player after landing in the case of greater support vs an exc.");
+		if((!useDigInstead&&RO.getLord()!=null&&RO.getLord().ID!=players[0].ID)) {
+			out.println(testName + " test failed because the RO didn't become owned by the first player after landing in the case of greater support vs a " + mission
+					+ ". If this was a dig, then the digTownID should be 0 since support kicked out a dig, and if this appears this means it wasn't 0. The dig id was " + RO.getDigTownID() + " and town2 townid is " + t2.townID);
+			out.println("Raid au:");
+			for(AttackUnit a:r.getAu()) {
+				out.println(a.getName() + " has " + a.getSize() + " remaining.");
+			}
+			
+			out.println("Town au:");
+			for(AttackUnit a:RO.getAu()) {
+				out.println(a.getName() + " has " + a.getSize() + " remaining.");
+				if(a.getOriginalPlayer()!=null) out.println(" and it's original player was " + a.getOriginalPlayer().ID + " player 1's id is " + players[0].ID  + " player 2's id is " + players[1].ID);
+			}
 			player.deleteFakePlayers(players);
 			return false;
 		}
 		if(t1.attackServer().size()>0) {
-			out.println("ROContested test failed because t1's attackserver wasn't empty after the support run succeeded.(greater support vs exc).");
+			out.println(testName + " test failed because t1's attackserver wasn't empty after the support run succeeded.(greater support vs " + mission + ").");
 			player.deleteFakePlayers(players);
 			return false;
 		}
 		if(t2.attackServer().size()>0) {
-			out.println("ROContested test failed because t2's attackserver wasn't empty after the support run succeeded and it was blown apart.(greater support vs exc).");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		t2.getAu().get(0).setSize(10000);// now I'm a support who is going to try and take over and probably not win with 15 men.
-		amts = new int[1]; amts[0]=10000; 
-		worked = players[1].getPs().b.attack(t2.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
-	
-		if(!worked) {
-			out.println("ROContested test failed because the sixth attack didn't send(greater support vs support), and the error was: " + players[1].getPs().b.getError());
-			player.deleteFakePlayers(players);
-			return false;
-		}
-
-		r = t2.attackServer().get(0);
-		r.setTicksToHit(0);
-		attackServerCheck(t2,players[1]); // here we expect shit to go down, and combat to occur, but no kick to happen.
-		RO.auCheck();// to remove support.
-
-		if(RO.getLord()==null) {
-			out.println("ROContested test failed because the RO didn't become owned by anybody after the second player landing when the first occupied it in the test of greater support vs an support.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		if(RO.getLord()!=null&&RO.getLord().ID!=players[1].ID) {
-			out.println("ROContested test failed because the RO didn't become owned by the second player after landing in the case of greater support vs an support.");
+			out.println(testName + " test failed because t2's attackserver wasn't empty after the support run succeeded and it was blown apart.(greater support vs " + mission + ").");
 			player.deleteFakePlayers(players);
 			return false;
 		}
 		
-		t1.getAu().get(0).setSize(10);// now I'm a support who is going to try and take over and probably not win with 15 men.
-		amts = new int[1]; amts[0]=10; 
-		worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
+			t2.getAu().get(0).setSize(10000);// now I'm a support who is going to try and take over and probably not win with 15 men.
+			amts = new int[1]; amts[0]=10000; 
+			worked = players[1].getPs().b.attack(t2.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
+		
+			if(!worked) {
+				out.println(testName + " test failed because the sixth attack didn't send(greater support vs support), and the error was: " + players[1].getPs().b.getError());
+				player.deleteFakePlayers(players);
+				return false;
+			}
 	
-		if(!worked) {
-			out.println("ROContested test failed because the seventh attack didn't send(lesser support vs support), and the error was: " + players[0].getPs().b.getError());
-			player.deleteFakePlayers(players);
-			return false;
-		}
-
-		r = t1.attackServer().get(0);
-		r.setTicksToHit(0);
-		attackServerCheck(t1,players[0]); // here we expect shit to go down, and combat to occur, but no kick to happen.
-		RO.auCheck();// to remove support.
-
-		if(RO.getLord()==null) {
-			out.println("ROContested test failed because the RO didn't become owned by anybody after the first player landing when the second occupied it in the test of lesser support vs an support.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		if(RO.getLord()!=null&&RO.getLord().ID!=players[1].ID) {
-			out.println("ROContested test failed because the RO didn't remain owned by the second player after the first landing in the case of lesser support vs an support.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
+			r = t2.attackServer().get(0);
+			r.setTicksToHit(0);
+			attackServerCheck(t2,players[1]); // here we expect shit to go down, and combat to occur, but no kick to happen.
+			RO.auCheck();// to remove support.
 	
+			if(RO.getLord()==null) {
+				out.println(testName + " test failed because the RO didn't become owned by anybody after the second player landing when the first occupied it in the test of greater support vs an support.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(RO.getLord()!=null&&RO.getLord().ID!=players[1].ID) {
+				out.println(testName + " test failed because the RO didn't become owned by the second player after landing in the case of greater support vs an support.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			
+			t1.getAu().get(0).setSize(10);// now I'm a support who is going to try and take over and probably not win with 15 men.
+			amts = new int[1]; amts[0]=10; 
+			worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
+		
+			if(!worked) {
+				out.println(testName + " test failed because the seventh attack didn't send(lesser support vs support), and the error was: " + players[0].getPs().b.getError());
+				player.deleteFakePlayers(players);
+				return false;
+			}
+	
+			r = t1.attackServer().get(0);
+			r.setTicksToHit(0);
+			attackServerCheck(t1,players[0]); // here we expect shit to go down, and combat to occur, but no kick to happen.
+			RO.auCheck();// to remove support.
+	
+			if(RO.getLord()==null) {
+				out.println(testName + " test failed because the RO didn't become owned by anybody after the first player landing when the second occupied it in the test of lesser support vs an support.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(RO.getLord()!=null&&RO.getLord().ID!=players[1].ID) {
+				out.println(testName + " test failed because the RO didn't remain owned by the second player after the first landing in the case of lesser support vs an support.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+		}
 		player.deleteFakePlayers(players);
-		out.println("ROContested test successful.");
+		out.println(testName + " test successful.");
 		return true;
 		} catch(Exception exc) {
-			out.println("ROContested test failed because " + exc.toString());
+			out.println(testName + " test failed because " + exc.toString());
 			for(StackTraceElement stackTrace: exc.getStackTrace()) {
 				out.println(stackTrace.toString());
 			}
@@ -14872,225 +15372,242 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		 */
 		getPlayer(5).territoryCalculator(); // i need it to reset everything to no lord that can be reset.
 
-		int numTowns[] = {1};
-		Player[] players = player.generateFakePlayers(1,numTowns,0,0);
+		//int numTowns[] = {1};
+		Player[] players = player.generateFakePlayers(1,1,0,0);
 		try {
-		Town t1 = players[0].towns().get(0);
-		//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
-		Town RO=null;
-		for(Town t: getPlayer(5).towns()) {
-			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
-				RO=t;
-				break;
-			} 
-			
-		}
-		if(RO==null) {
-			growId();
-			getPlayer(5).territoryCalculator();
-
-			
-		}
-		for(Town t: getPlayer(5).towns()) {
-			//System.out.println(t.getTownID() + " has " + t.getInfluence() + " influence.");
-
-			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
-				RO=t;
-				break;
-			} 
-		}
-		if(RO==null) {
-			out.println("basicRO test failed because even growing Id didn't produce a viable RO to use.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		t1.setX(RO.getX()+10);
-		t1.setY(RO.getY());
-		t1.setInfluence(0);
-		t1.addBuilding("Command Center",4,5,0);
-		t1.bldg().get(0).setPeopleInside(5);
-		t1.setAu(new ArrayList<AttackUnit>());
-		t1.getAu().add(new AttackUnit("Pillager",0,0));
-		RO.getRes()[0]=15000;
-		RO.getRes()[1]=15000;
-		RO.getRes()[2]=15000;
-		RO.getRes()[3]=15000;
-		//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
-		int amts[] = {0,5};
-		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname");
-		if(!worked) {
-			out.println("basicRO test failed because the attack didn't send, and the error was: " + players[0].getPs().b.getError());
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		if(t1.attackServer().size()!=1) {
-			out.println("basicRO test failed because the raid didn't load.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		Raid r = t1.attackServer().get(0);
-		r.setTicksToHit(0);
-		attackServerCheck(t1,players[0]);
-		if(r.isRaidOver()) {
-			out.println("basicRO test failed because the raid was set to over after landing, it shouldn't be..");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		if(r.getDockingFinished()==null) {
-			out.println("basicRO test failed because the raid did not have it's docking finished date set, but it should have.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-
-		if(t1.attackServer().size()!=1) {
-			out.println("basicRO test failed because the raid didn't remain after landing.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		if(RO.getLord()==null) {
-			out.println("basicRO test failed because the RO didn't become owned by the player after landing.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		if(RO.getInfluence()>0) {
-			out.println("basicRO test failed because the RO somehow gained influence after only one terr calc.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		if(RO.getDigAmt()!=5) {
-			out.println("basicRO test failed because the RO didn't become inhabited by engineers.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-	
-		// well, we know we've got 1000 res. We've got 5 engineers.
-		long total= returnCargoOfSupportAndEngineers(RO);
-		
-		 // we expect total to be t.getDigAmt()*(t.getDigAmt()+1)*engineerCarryAmount
-		// which is 15000. Engineer rate is 5000 per hour, so we expect that in 3 hours, the dig should be done.
-		
-		if(total!=5*(5+1)*engineerCarryAmount) {
-			out.println("basicRO test failed because the total holding amount wasn't correct, it was " + total);
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		attackServerCheck(t1,players[0]);
-
-		if(t1.attackServer().size()!=1) {
-			out.println("basicRO test failed because the raid didn't remain after landing+1 tick.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		if(r.isRaidOver()||r.getDockingFinished()==null) {
-			out.println("basicRO test failed because the raid was set to over or it had no docking finished date.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		RO.doMyResources((int) Math.round(1*3600/GodGenerator.gameClockFactor));
-		// now we expect the raid not to be over, but a third loaded...
-		if(t1.attackServer().size()!=1) {
-			out.println("basicRO test failed because the raid didn't remain after landing+1/3rd time tick.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		
-		if(r.isRaidOver()||r.getDockingFinished()==null) {
-			out.println("basicRO test failed because the raid was set to over or it had no docking finished date after we went through a third of the ROexcavation.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		 total = r.getMetal()+r.getTimber()+r.getManmat()+r.getFood();
-		if(total!=5000) {
-			out.println("basicRO test failed because the excavation had not excavated 5000 by the time a third of time was up. It excavated " + total);
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		RO.doMyResources((int) Math.round(2*3600/GodGenerator.gameClockFactor+1)); // now we should be heading home.
-
-		if(t1.attackServer().size()!=1) {
-			out.println("basicRO test failed because the raid didn't remain after finishing time tick.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		
-		if(!r.isRaidOver()) {
-			out.println("basicRO test failed because the raid was set to not over even though it should be.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		 total = r.getMetal()+r.getTimber()+r.getManmat()+r.getFood();
-		if(total!=15000) {
-			out.println("basicRO test failed because the excavation had not excavated 15000 by the time the time was up. It excavated " + total);
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		
-		if(RO.getDigTownID()!=0) {
-			out.println("basicRO test failed because the excavation didn't end when it was supposed to.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		
-		r.setTicksToHit(0);
-		attackServerCheck(t1,players[0]);
-		if(t1.attackServer().size()!=0) {
-			out.println("basicRO test failed because the raid was still on the stack after arriving.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		if(t1.getTotalEngineers()!=5) {
-			out.println("basicRO test failed because the engineers were not returned safely.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		boolean haveSome=false;
-		for(AttackUnit a:RO.getAu()) {
-			if(a.getSize()>0) {
-				haveSome=true;
-				break;
+			Town t1 = players[0].towns().get(0);
+			//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
+			Town RO=null;
+			for(Town t: getPlayer(5).towns()) {
+				if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+					RO=t;
+					break;
+				} 
 			}
-		}
-		// now we see if we still have the territory.
-		if(RO.getDigAmt()>0||haveSome) {
-			out.println("basicRO test failed because the RO had people on it after the raid should have left.");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		if(RO.getInfluence()>0) {
-			out.println("basicRO test failed because the RO had influence BEFORE a territoryCalculator on player when nobody was present..");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		
-		players[0].territoryCalculator();
-		/*
-		ArrayList<Hashtable> p = (ArrayList<Hashtable>)players[0].getTerritories().get(0).get("points");
-		for(Hashtable re:p){
-			System.out.println("NOW x is " + (Integer) re.get("x") + " y is " + (Integer) re.get("y"));
-		}
-		p = (ArrayList<Hashtable>)players[0].getTerritories().get(1).get("points");
-		for(Hashtable re:p){
-			System.out.println("NOW x is " + (Integer) re.get("x") + " y is " + (Integer) re.get("y"));
-		}
-		System.out.println("RO x is " + RO.getX() + " and y is " + RO.getY() + " the town x is " + players[0].towns().get(0).getX()
-				+ " the town y is " + players[0].towns().get(0).getY());*/
-
-		if(RO.getInfluence()>0) {
-			out.println("basicRO test failed because the RO had influence after a territoryCalculator on player when nobody was present..");
-			player.deleteFakePlayers(players);
-			return false;
-		}
-		getPlayer(5).territoryCalculator();
+			if(RO==null) {
+				growId();
+				getPlayer(5).territoryCalculator();
+			}
+			for(Town t: getPlayer(5).towns()) {
+				//System.out.println(t.getTownID() + " has " + t.getInfluence() + " influence.");
 	
-		if(RO.getLord()!=null) {
-			out.println("basicRO test failed because the RO didn't get delorded when it should have, it was lorded to " + RO.getLord().ID + " and its tid is " + RO.townID + " and " + RO);
-			player.deleteFakePlayers(players);
-			return false;
-		}
+				if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+					RO=t;
+					break;
+				} 
+			}
+			if(RO==null) {
+				out.println("basicRO test failed because even growing Id didn't produce a viable RO to use.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			RO.resIncsZeroed=true;
+			t1.setX(RO.getX()+10);
+			t1.setY(RO.getY());
+			t1.setInfluence(0);
+			t1.addBuilding("Command Center",4,5,0);
+			t1.bldg().get(0).setPeopleInside(5);
+			t1.setAu(new ArrayList<AttackUnit>());
+			t1.getAu().add(new AttackUnit("Pillager",0,0));
+			
+			RO.getRes()[0]=1500;
+			RO.getRes()[1]=1500;
+			RO.getRes()[2]=1500;
+			RO.getRes()[3]=1500;
+			//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
+			int amts[] = {0,5};
+			boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname", true);
+			if(!worked) {
+				out.println("basicRO test failed because the attack didn't send, and the error was: " + players[0].getPs().b.getError());
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			if(t1.attackServer().size()!=1) {
+				out.println("basicRO test failed because the raid didn't load.");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			Raid r = t1.attackServer().get(0);
+			r.setTicksToHit(0);
+			attackServerCheck(t1,players[0]);
+	
+			if(r.isRaidOver()) {
+				out.println("basicRO test failed because the raid was set to over after landing, it shouldn't be..");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			if(r.getDockingFinished()==null) {
+				out.println("basicRO test failed because the raid did not have it's docking finished date set, but it should have.");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+	
+			if(t1.attackServer().size()!=1) {
+				out.println("basicRO test failed because the raid didn't remain after landing.");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			if(RO.getLord()==null) {
+				out.println("basicRO test failed because the RO didn't become owned by the player after landing.");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			if(RO.getInfluence()>0) {
+				out.println("basicRO test failed because the RO somehow gained influence after only one terr calc.");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			if(RO.getDigAmt()!=5) {
+				out.println("basicRO test failed because the RO didn't become inhabited by engineers.");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
 		
-		player.deleteFakePlayers(players);
-		out.println("basicRO test successful.");
-		return true;
+			// well, we know we've got 1000 res. We've got 5 engineers.
+			long total= returnCargoOfSupportAndEngineers(RO);
+			
+			 // we expect total to be t.getDigAmt()*(t.getDigAmt()+1)*engineerCarryAmount
+			// which is 15000. Engineer rate is 5000 per hour, so we expect that in 3 hours, the dig should be done.
+			
+			if(total!=5*(5+1)*engineerCarryAmount) {
+				out.println("basicRO test failed because the total holding amount wasn't correct, it was " + total);
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			attackServerCheck(t1,players[0]);
+	
+			if(t1.attackServer().size()!=1) {
+				out.println("basicRO test failed because the raid didn't remain after landing+1 tick.");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			if(r.isRaidOver()||r.getDockingFinished()==null) {
+				out.println("basicRO test failed because the raid was set to over or it had no docking finished date.");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+	
+			if(RO.getRes()[0]!=1500) {
+				out.println("basicRO test failed because the RO didn't have 1.5k resources to start with even though it should've. It has " + RO.getRes()[0]);
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			RO.doMyResources((int) Math.round(.1*3600/GodGenerator.gameClockFactor));
+			// now we expect the raid not to be over, but a third loaded...
+			if(t1.attackServer().size()!=1) {
+				out.println("basicRO test failed because the raid didn't remain after landing+1/3rd time tick.");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			
+			if(r.isRaidOver()||r.getDockingFinished()==null) {
+				out.println("basicRO test failed because the raid was set to over or it had no docking finished date after we went through a third of the ROexcavation.");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			 total = r.getMetal()+r.getTimber()+r.getManmat()+r.getFood();
+	
+			if(total!=500) {
+				out.println("basicRO test failed because the excavation had not excavated 500 by the time a third of time was up. It excavated " + total);
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			if(RO.getRes()[0]!=1000) {
+				out.println("basicRO test failed because the RO didn't have 1k resources after a third of time has passed even though it should've. It has " + RO.getRes()[0]);
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			RO.doMyResources((int) Math.round(.2*3600/GodGenerator.gameClockFactor+1)); // now we should be heading home.
+	
+			if(t1.attackServer().size()!=1) {
+				out.println("basicRO test failed because the raid didn't remain after finishing time tick.");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			
+			if(!r.isRaidOver()) {
+				out.println("basicRO test failed because the raid was set to not over even though it should be.");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			 total = r.getMetal()+r.getTimber()+r.getManmat()+r.getFood();
+			if(total!=1500) {
+				out.println("basicRO test failed because the excavation had not excavated 1500 by the time the time was up. It excavated " + total);
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			if(RO.getRes()[0]!=0) {
+				out.println("basicRO test failed because the RO didn't have 0 resources after all of time has passed even though it should've. It has " + RO.getRes()[0]);
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			if(RO.getDigTownID()!=0) {
+				out.println("basicRO test failed because the excavation didn't end when it was supposed to.");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			
+			r.setTicksToHit(0);
+			attackServerCheck(t1,players[0]);
+			if(t1.attackServer().size()!=0) {
+				out.println("basicRO test failed because the raid was still on the stack after arriving.");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			if(t1.getTotalEngineers()!=5) {
+				out.println("basicRO test failed because the engineers were not returned safely.");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			boolean haveSome=false;
+			for(AttackUnit a:RO.getAu()) {
+				if(a.getSize()>0) {
+					haveSome=true;
+					break;
+				}
+			}
+			// now we see if we still have the territory.
+			if(RO.getDigAmt()>0||haveSome) {
+				out.println("basicRO test failed because the RO had people on it after the raid should have left.");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			if(RO.getInfluence()>0) {
+				out.println("basicRO test failed because the RO had influence BEFORE a territoryCalculator on player when nobody was present..");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			
+			players[0].territoryCalculator();
+			/*
+			ArrayList<Hashtable> p = (ArrayList<Hashtable>)players[0].getTerritories().get(0).get("points");
+			for(Hashtable re:p){
+				System.out.println("NOW x is " + (Integer) re.get("x") + " y is " + (Integer) re.get("y"));
+			}
+			p = (ArrayList<Hashtable>)players[0].getTerritories().get(1).get("points");
+			for(Hashtable re:p){
+				System.out.println("NOW x is " + (Integer) re.get("x") + " y is " + (Integer) re.get("y"));
+			}
+			System.out.println("RO x is " + RO.getX() + " and y is " + RO.getY() + " the town x is " + players[0].towns().get(0).getX()
+					+ " the town y is " + players[0].towns().get(0).getY());*/
+	
+			if(RO.getInfluence()>0) {
+				out.println("basicRO test failed because the RO had influence after a territoryCalculator on player when nobody was present..");
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			getPlayer(5).territoryCalculator();
+		
+			if(RO.getLord()!=null) {
+				out.println("basicRO test failed because the RO didn't get delorded when it should have, it was lorded to " + RO.getLord().ID + " and its tid is " + RO.townID + " and " + RO);
+				player.deleteFakePlayers(players);
+				RO.resIncsZeroed=false; return false;
+			}
+			
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false;
+			out.println("basicRO test successful.");
+			return true;
 		} catch(Exception exc) {
 			out.println("basicRO test failed because " + exc.toString());
 			for(StackTraceElement stackTrace: exc.getStackTrace()) {

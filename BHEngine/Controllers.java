@@ -1670,7 +1670,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 
 			if(p.getSupportstaff()) {
 				//	public String returnPrizeName(int probTick, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
-				g.returnPrizeName(Integer.parseInt(req.getParameter("probTick")),Integer.parseInt(req.getParameter("x")),(Integer.parseInt(req.getParameter("y"))),true,out,(Double.parseDouble(req.getParameter("presetRand"))),(String) req.getParameter("presetTile"));
+				g.returnPrizeName((req.getParameter("probTick")),Integer.parseInt(req.getParameter("x")),(Integer.parseInt(req.getParameter("y"))),true,out,(Double.parseDouble(req.getParameter("presetRand"))),(String) req.getParameter("presetTile"));
 				return true;
 				
 			}
@@ -2123,22 +2123,50 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.foodConsumptionTest(req,out,p);
 				}else if(test.equals("basicRO")) {
 					g.basicROTest(req,out,p);
+<<<<<<< HEAD
+				} else if(test.equals("ROContested")) {
+					g.ROContestedTest(req,out,p, false);
+				} else if(test.equals("ROInfluence")) {
+=======
 				}else if(test.equals("ROContested")) {
 					g.ROContestedTest(req,out,p);
 				}else if(test.equals("ROInfluence")) {
+>>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 					g.ROInfluenceTest(req,out,p);
 				}else if(test.equals("ROEngCap")) {
 					g.ROEngCapTest(req,out,p);
 				}else if(test.equals("ROCollapse")) {
+<<<<<<< HEAD
+					g.ROCollapseTest(req,out,p,false);
+				}else if(test.equals("basicDig")) {
+					g.basicDigTest(req,out,p);
+				}else if(test.equals("digProbability")) {
+					g.digProbabilityTest(req,out);
+				}else if(test.equals("digContested")) {
+					g.ROContestedTest(req,out,p,true);
+				}else if(test.equals("digCollapse")) {
+					g.ROCollapseTest(req,out,p,true);
+				}else if(test.equals("allDig")) { 
+					g.basicDigTest(req,out,p);
+					g.digProbabilityTest(req,out);
+					g.ROContestedTest(req,out,p,true);
+					g.ROCollapseTest(req,out,p,true);
+=======
 					g.ROCollapseTest(req,out,p);
+>>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 				}else if(test.equals("allRO")) {
 					g.basicROTest(req,out,p);
-					g.ROContestedTest(req,out,p);
+					g.ROContestedTest(req,out,p,false);
 					g.ROInfluenceTest(req,out,p);
 					g.ROEngCapTest(req,out,p);
+<<<<<<< HEAD
+					g.ROCollapseTest(req,out,p,false);
+				} else if(test.equals("allVassalAndTerritories")) {
+=======
 					g.ROCollapseTest(req,out,p);
 				}
 				else if(test.equals("allVassalAndTerritories")) {
+>>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 					g.fbPostTest(req,out,p);
 					g.separatedPointsTest(req,out);
 					g.giftWrappingTest(req,out);
@@ -2155,10 +2183,10 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.deconstructBuildingTest(req,out,p);
 					g.foodConsumptionTest(req,out,p);
 					g.basicROTest(req,out,p);
-					g.ROContestedTest(req,out,p);
 					g.ROInfluenceTest(req,out,p);
+					g.ROContestedTest(req,out,p,false);
+					g.ROCollapseTest(req,out,p,false);
 					g.ROEngCapTest(req,out,p);
-					g.ROCollapseTest(req,out,p);
 					g.fbPostTest(req,out,p);
 					g.separatedPointsTest(req,out);
 					g.giftWrappingTest(req,out);
@@ -2171,9 +2199,19 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.breakVassalageTest(req,out,p);
 					g.lordvlordTest(req,out,p);
 					g.vassalThatIsLordTest(req,out,p);
+<<<<<<< HEAD
+					g.basicDigTest(req,out,p);
+					g.digProbabilityTest(req,out);
+					g.ROContestedTest(req,out,p,true);
+					g.ROCollapseTest(req,out,p,true);
+					g.blockadeCombatTest(req, out, p);
+					g.blockadeTradeTest(req, out, p);
+				} else{
+=======
 				}
 				else{
 
+>>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 					out.println("Illegal test.");
 				}
 				

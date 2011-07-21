@@ -80,10 +80,10 @@ public class BattlehardFunctions {
 
 	}
 	/**
-	 * Gets the command by Revelations, with 0 being
-	 * most recently, and going on up.
-	 * @param entry
-	 * @return
+	 * Gets a command by Revelations off the log stack.
+	 * 
+	 * @param entry - index of the entry you want.
+	 * @return Log entry at index entry.
 	 */
 	public String getLog(int entry) {
 		String log=p.getPushLog();
@@ -118,9 +118,9 @@ public class BattlehardFunctions {
 	}
 	/**
 	 * Gets the array of recent commands by Revelations last executed, with 0 being
-	 * most recently, and going on up.
-	 * @param entry
-	 * @return
+	 * most recent, and going on up.
+	 * 
+	 * @return String array of recent Revelation commands.
 	 */
 	public String[] getLog() {
 		String log=p.getPushLog();
@@ -213,21 +213,23 @@ public class BattlehardFunctions {
 		}
 	}	
 	/**
-	 * Used by the UI to receive error messages from the backend. Not recommended for
-	 * any other use.
+	 * Used by Revelation scripts to get details about errors.
+	 * @return The most resent error as a String.
 	 */
 	public String getError() {
 		if(error==null) error = "No error.";
 		return error;
 	}
-		/**
-		 * Reset the error register to "noerror."
-		 */
+	
+	/**
+	 * Reset the error register to "noerror."
+	 */
 	public void resetError() {
 
 		setError("noerror");
 	}
 		/**
+		 * @deprecated
 		 * Deprecated method for the original Battlehard Viewer.
 		 */
 	public void notifyViewer() {
@@ -4785,7 +4787,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return GodGenerator.gameClockFactor;
 	}
 	/**
+<<<<<<< HEAD
+	 * @deprecated
+=======
 	 * UI Implemented.
+>>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 	 * Returns true if you can send an attack with the auAmts specified, attackType chosen, and bomb target designated(ignored
 	 * if not a bombing run). auAmts is an array of integers of size six (or greater if you have support units, just
 	 * add the number of different support units there) and each entry represents the amount of that unit you wish sent.
@@ -5111,7 +5117,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return true;
 	}
 	/**
+<<<<<<< HEAD
+	 * @deprecated
+=======
 	 * UI Implemented.
+>>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 	 * Sends an attack with the auAmts specified, attackType chosen, and bomb target designated(ignored
 	 * if not a bombing run). auAmts is an array of integers of size six (or greater if you have support units, just
 	 * add the number of different support units there) and each entry represents the amount of that unit you wish sent.
@@ -5137,10 +5147,404 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("You do not have the Attack API!");
 			return false;
 		}
-		pushLog("attack(" +yourTownID+","+enemyx+","+  enemyy +","+  PlayerScript.toJSONString(auAmts) +","+  attackType+","+  PlayerScript.toJSONString(target)+","+ name+");" );
-		Town t = g.findTown(yourTownID);
-		if(t.getPlayer().ID!=p.ID) return false;
-		return attack(t.getTownName(),  enemyx,  enemyy,  auAmts,  attackType,  target,name);
+		
+		if(target==null) target = new String[0];
+		pushLog("attack(" +yourTownID+","+enemyx+","+  enemyy +","+  PlayerScript.toJSONString(auAmts) +","+  attackType+","+  PlayerScript.toJSONString(target)+","+ name+","+send+");" );
+		
+		if(name.contains("'")) {
+			setError("God hates apostrophes.");
+			return false;
+		}
+		
+		int holdNumbers[] = auAmts;
+		
+		// Gotta get the town first.
+		Town t1 = g.findTown(yourTownID);
+		Player t1p = t1.getPlayer();
+
+		if(attackType.equals("invasion")&&t1.isZeppelin()) {
+			setError("You cannot invade with an Airship!");
+			return false;
+		}
+		
+		if(!checkMP(t1.townID)) {
+			setError("Insufficient permissions.");
+			return false;
+		}
+
+		if(t1p.ID!=p.ID) {
+			setError("Not your town!");
+			return false;
+		}
+		if(!t1.slotsFree()) {
+			setError("No slots. Upgrade Command Center!");
+			return false; // no slots, no attacks, bitch.
+		}
+		
+		int x = enemyx;
+		
+		int y = enemyy;
+		int t1x = t1.getX();
+		int t1y = t1.getY();
+
+		int k = 0; // to make sure can only go up to six.
+				
+		AttackUnit hau; int totalsize=0, limit = holdNumbers.length;
+		boolean zeroes = true, negatives = false;
+		ArrayList<AttackUnit> t1au = t1.getAu();
+		if(attackType.equals("excavation")) limit--;
+		while(k<limit) {
+			
+			// Next we need to check if these numbers go over the max units in
+			// the town. If they do, send the max units instead.
+			if(k<t1au.size()) {
+				  hau =t1au.get(k);
+				  //System.out.println("Checking au support = "+hau.getSupport());
+				  if((attackType.equals("dig")||attackType.contains("support")||attackType.equals("excavation")||attackType.equals("blockade"))
+						  &&hau.getSupport()>0&&holdNumbers[k]>0) {
+					  setError("You cannot send other players' support units on supporting, dig, excavation, or blockade missions!");
+					  return false;
+				  }
+				if(hau.getSize()<holdNumbers[k]) holdNumbers[k]=hau.getSize();
+				if(holdNumbers[k]>0) zeroes=false; // needs to be after the size-mod if overflowing.
+				if(holdNumbers[k]<0) holdNumbers[k]=0; // No less than zero crap..
+				 // Simple as cake.
+			//	holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getTrueSpeed(t1.getPlayer()));
+				totalsize+=holdNumbers[k]*hau.getExpmod();
+			}
+			
+			k++;
+		}
+		
+		if(zeroes&&(!(attackType.equals("dig")||attackType.equals("excavation"))||holdNumbers[holdNumbers.length-1]==0)) {
+			setError("Can't send an empty raid.");
+			return false; // not sending a raid of nada.
+		}
+		/*if(negatives) {
+			setError("No such thing as negative units.");
+			return false;
+		}*/
+		Town Town2 = g.findTown(x,y); // findTown auto detects the town at the x,y, not the Zeppelin, if there is one.
+
+		if(Town2 == null) {
+			setError("Could not find the town!");
+			return false;
+		}
+		
+		boolean Genocide = false, Bomb = false, invade = false, debris = false, dig=false;
+		int support = 0, scout = 0, digAmt=0;
+		if(attackType.equals("attack")) { } // alter if UberStatement for offsupporters down below to include
+		// invasion and scouting also!
+		else if(attackType.equals("genocide")||attackType.equals("siege")) Genocide = true; 
+		else if(attackType.equals("debris")) debris = true;
+		else if(attackType.equals("strafe")) {	
+			Bomb = true;
+		}
+		else if(attackType.equals("glass")) {
+			Bomb = true;
+			Genocide = true;
+		}
+		else if(attackType.equals("support")) {support = 1;}
+		else if(attackType.equals("offsupport")) {support=2;}
+		else if(attackType.equals("blockade")) {support = 3;}
+		else if(attackType.equals("dig")||attackType.equals("excavation")) {
+			if(prog&&!p.isdigAPI()) {
+				setError("You need the Dig API in order to use this!");
+				return false;
+			}
+			if(t1.getBlockades().size()>0) {
+				boolean hasOff = false;
+				for(int i = 0;i<holdNumbers.length-1;i++) {
+					if(holdNumbers[i]>0) {
+						hasOff = true;
+						break;
+					}
+				}
+				if(!hasOff) {
+					setError("Town blockaded.");
+					return false;
+				}
+			}
+			
+			support = 1; dig=true;
+			int z=0;UserBuilding b[];
+			if(attackType.equals("excavation"))
+				b = getUserBuildings(t1.townID, "Command Center");
+			else	
+				b = getUserBuildings(t1.townID, "Institute");
+			int totalScholars=0;
+			while(z<b.length) {
+				totalScholars+=b[z].getPeopleInside();
+				z++;
+			}
+			int req = GodGenerator.digScholarRequirement;
+			if(attackType.equals("excavation")) req = holdNumbers[holdNumbers.length-1];
+			if(totalScholars<req&&!(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian"))) {
+				if(attackType.equals("excavation"))
+					setError("You do not have enough Engineers!");
+				else
+					setError("You do not have enough Scholars!");
+				return false;
+			}
+			z=0; Building actb; UserBuilding bl;
+			int digToTake = req;
+			if(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian")) {
+				digToTake=1;
+			}
+			while(z<b.length) {
+				bl = b[z];
+				 actb = t1.findBuilding(bl.getId());
+				if(actb.getPeopleInside()>digToTake-digAmt) {
+					actb.setPeopleInside(actb.getPeopleInside()-(digToTake-digAmt));
+					digAmt+=(digToTake-digAmt);
+				} else {
+					digAmt+=actb.getPeopleInside();
+
+					actb.setPeopleInside(0);
+				}
+				 if(digAmt>=digToTake) break;
+				z++;
+			}
+			
+		}
+		else if(attackType.equals("scout")) { scout = 1; }
+		else if(attackType.equals("invasion")) {
+		
+			if(p.getTownTech()<=p.towns().size()) { // don't want players invading when townTech <= town size!
+				setError("Too many towns.  Level your Town Tech");
+				return false;
+			}
+			
+			if(Town2.isResourceOutcropping()) {
+				setError("You cannot invade a Resource Outcropping!");
+				return false;
+			}
+			
+			int aggregate=0; int z = 0;
+			/*
+				try {
+					UberStatement stmt = g.con.createStatement();
+					ResultSet rs = stmt.executeQuery("select sum(lvl) from bldg where tid = " + t1.townID + " and name = 'Command Center';");
+					if(rs.next()) aggregate = rs.getInt(1);
+					rs.close();
+					stmt.close();
+				} catch(SQLException exc) { exc.printStackTrace(); }
+			*/
+			 ArrayList<Building> b = t1.bldg();
+			 while(z<b.size()) {
+				 Building hb = b.get(z);
+				 if(hb.getType().equals("Command Center")) {
+					aggregate=hb.getLvl()+2;
+					break;
+				 }
+				 z++;
+			 }
+				
+			 double distance = Math.sqrt((x-t1x)*(x-t1x) + (y-t1y)*(y-t1y));
+			 if(distance>aggregate*3*(1)) {
+				 setError(" You can only invade " + (aggregate*3) + " spaces out. Level up your Command Center.");
+
+				 return false;
+			 }
+			 
+			invade = true;
+		
+		}
+		else {
+			setError("Invalid attack type.");
+			return false; // if they don't get the code right, screw 'em.
+		}
+		
+		
+		boolean keep=!!prog;//duplicate prog into keep
+		prog=false;			//set prog to false so we can call getAttackETA
+		int ticksToHit = getAttackETA(t1.townID, enemyx,enemyy,auAmts);
+		prog = !!keep;		//set prog back
+		// The only two cases that matter: You find the town at the x,y, or you'll find a Zeppelin.
+		// If it's a zeppelin, it's easy to deal with, if it's a town, it's easy to deal with.
+		if(Town2.townID==0) {
+			setError("Town doesn't exist!");
+			return false;
+		}
+		
+		Player Town2p = Town2.getPlayer();
+		
+		if(dig&&Town2p.ID!=5) {
+			setError("You can only dig in an Id town!");
+			return false;
+		}
+		if(support==3&&Town2p.ID==5){
+			setError("You cannot blockade Id towns!");
+			return false;
+		}
+		if(support==3&&Town2p.isAllied(t1p)){
+			setError("You cannot blockade your allies!");
+			return false;
+		}
+		if(attackType.equals("excavation")&&!Town2.isResourceOutcropping()) {
+			
+			setError("You can only excavate in a Resource Outcropping!");
+			return false;
+		}
+		
+
+		if(Town2.getX()==t1.getX()&&Town2.getY()==t1.getY()&&attackType.contains("support")) {
+			// This means zeppelin is directly overhead. 
+			Town possZepp = g.findZeppelin(x,y);
+			if(possZepp.townID!=0) {
+				// this means your zeppelin is just overhead.
+				Town2=possZepp; // You probably mean to support it!
+				Town2p = Town2.getPlayer();
+			}
+		}
+		if(Town2.isZeppelin()&&!(attackType.equals("attack")||attackType.contains("support")||attackType.equals("scout"))) {
+			setError("You can only attack, support, or scout Airships!");
+			return false;
+			
+		}
+		if(!t1p.isQuest()&&!t1p.isNoob()&&Town2p.isNoob()&&Town2p.ID!=5&&!Town2p.isQuest()&&Town2p.ID!=t1p.ID&&!debris) {
+			// quests can attack any time...
+			setError("NOOB PROTECTION!");
+			return false;
+			
+		} else if(t1p.isNoob()&&!Town2p.isQuest()&&Town2p.ID!=5&&!debris&&!Town2p.isNoob()&&send) {
+			
+			// If you are under noob protection and you are attacking a player that is not a quest and not Id and not under noob protection
+			// then you lose your noob protection.
+			
+			t1p.playedTicks=Player.noobDuration;
+		}
+		
+		k = 0;
+
+		ArrayList<AttackUnit> au = new ArrayList<AttackUnit>();
+		//System.out.println("Where do I die?");
+		k = 0; AttackUnit addThis;
+		while(k<limit) { // making sure it satisfies  reqs here is all.
+			// if we combined this loop then units would be lost if later in the loop there was an
+			// error found. If the user only sends his own aus, he won't address supp aus in his array.
+			// so this loop is set up to either goto the holdnumbers max. If
+			// not, then index out of bounds on holdnumbers occurs.
+			 addThis = t1au.get(k).returnCopy();
+			
+			addThis.setSize(holdNumbers[k]);
+
+			if(addThis.getSupport()>0&&addThis.getOriginalPlayer().ID!=p.ID&&(support>0||dig)&&addThis.getSize()>0){
+				setError("You cannot send another player's unit to another location as support or in a blockade.");
+				return false; 
+			}
+			// You cannot send another player's unit to another location as
+			// support. See, since support is >0 this is a supporting run, and you can't move other player's supporting
+			// units(foreign aus identified by au.support>0) from their original destination protection place.
+			if(addThis.getSupport()==1&&addThis.getSize()>0){
+				setError("A unit you are sending is not an offensive support unit.");
+				return false;
+			}
+			// If this is a support unit, but it's not an offensive one(i.e. support=2), then this
+			// user cannot send it anywhere.
+			if(scout==1&&addThis.getSize()>0&&addThis.getType()!=1) {
+				setError("You must send soldiers on a scouting mission!");
+				return false; 
+			}
+			// if this happens to be a scouting mission, and you are sending some of this unit type,
+			// and it is NOT a soldier unit, then please, go away!
+			k++;
+		}
+		//System.out.println("Got here1.");
+
+
+		k=0;
+		while(k<t1au.size()) {
+			// by using all au, not just the array of holdNumbers, we insure
+			// that the attack lineup remains intact. AttackUnits that aren't
+			// mentioned will still send zeroes.
+
+			 addThis = t1au.get(k).returnCopy();
+
+			if(Town2p.ID!=t1p.ID&&support==1) addThis.makeSupportUnit(addThis.getSlot(),t1p,t1.townID);
+			else if(Town2p.ID!=t1p.ID&&support==2) addThis.makeOffSupportUnit(addThis.getSlot(),t1p,t1.townID);
+			// so if this is a supporting run, and you aren't sending to your own town, these units get
+			// marked as "foreign."
+			au.add(addThis);
+			if(k<limit) {
+			addThis.setSize(holdNumbers[k]);
+
+			t1.setSize(k,t1au.get(k).getSize() - holdNumbers[k]);
+				
+			}
+			
+			else addThis.setSize(0);
+
+			k++;
+		}
+
+		if(send) {
+			k=0;
+			Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, Town2, Genocide, Bomb,support,invade,name,debris,au,digAmt); // digAmt may not be the requirement,
+			// but it'll always be zero if dig isn't on!
+			
+			if(scout==1) holdAttack.makeScoutRun(); 
+			else {									// never going to be a bomb+scout run.
+				if(Bomb) holdAttack.setBombTarget(target);
+				else holdAttack.setBombTarget(new String[0]);
+			}
+			
+			ArrayList<Raid> blockades = t1.getBlockades();
+			if(blockades.size()>0){
+				//if we have blockades, it means we have bad guys here
+				//we have to set up a fake town to hold these blockades so that they can be attacked
+				ArrayList<AttackUnit> AU = blockades.get(0).getAu();
+				for(int i = 1;i<blockades.size();i++) {
+					for(AttackUnit a : blockades.get(i).getAu()) {	//first, we have to tally up and
+						boolean found = false;						//colleate all the au so we have
+						for(AttackUnit bu : AU) {					//no copies
+							if(a.getName().equals(bu.getName())) {
+								found = true; 
+								bu.setSize(bu.getSize()+a.getSize());
+							}
+						}
+						if(!found) {
+							AU.add(a);
+						}
+					}
+				}
+				
+				Player[] fakes = t1p.generateFakePlayers(1, 1, 0, 0); fakes[0].setAu(AU);
+				Town town = fakes[0].towns().get(0); town.setTownName("Blockade surrounding your town");
+				town.setAu(AU);
+				
+				Raid raid = new Raid(0,0,t1,town,false,false,0,false,"",false,au,digAmt);
+				GodGenerator.combatLogicBlock(raid,"your town is blockaded by a hostile force.");
+				holdAttack.setAu(raid.getAu());
+				holdAttack.setDigAmt(raid.getDigAmt());
+				boolean unitsLeft = holdAttack.getDigAmt()>0;
+				if(!unitsLeft) {
+					for(AttackUnit a : holdAttack.getAu()) {
+						if(a.getSize()>0) {
+							unitsLeft = true;
+							break;
+						}
+					}
+				}
+				if(!unitsLeft) {
+					
+				}
+				fakes[0].deleteFakePlayers(fakes);
+			}
+			
+			//	public boolean runMethod(String methodName, Object... params) {
+			UserRaid theRaid =getUserRaid(holdAttack.getId());
+			holdAttack.getTown2().getPlayer().getPs().runMethod("onIncomingRaidDetectedCatch",theRaid);
+			ArrayList<QuestListener> list =  p.getEventListenerList("onRaidSent");
+			if(list!=null)
+			for(QuestListener q:list) {
+				q.onRaidSent(holdAttack,prog);
+			}
+			//holdAttack.closeCon();
+			//notifyViewer();
+		}
+		
+		return true;
 		
 	}
 		/**
@@ -6290,19 +6694,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							 */
 							
 							found=true;
-							 // we know that each city has a six au, locked,
-							 // empty, or whatever, no matter what. So it's original slot num
-							 // corresponds to the index of it's storage in the au array.
+							 // it's original slot num corresponds to the index of it's storage in the au array.
 							if(auAmts.length>0) {
-							if(auAmts[a.getOriginalSlot()]>a.getSize()) auAmts[a.getOriginalSlot()] = a.getSize();
-							
-							else if(auAmts[a.getOriginalSlot()]<0) auAmts[a.getOriginalSlot()]=0;
-							
-							au.get(a.getOriginalSlot()).setSize(auAmts[a.getOriginalSlot()]);
-							t.setSize(k,a.getSize()
-									- auAmts[a.getOriginalSlot()]);
-							}  else
-							 au.get(a.getOriginalSlot()).setSize(a.getSize());
+								if(auAmts[a.getOriginalSlot()]>a.getSize()) auAmts[a.getOriginalSlot()] = a.getSize();
+								
+								else if(auAmts[a.getOriginalSlot()]<0) auAmts[a.getOriginalSlot()]=0;
+								
+								au.get(a.getOriginalSlot()).setSize(auAmts[a.getOriginalSlot()]);
+								t.setSize(k,a.getSize() - auAmts[a.getOriginalSlot()]);
+							} else
+								au.get(a.getOriginalSlot()).setSize(a.getSize());
 
 							 int y = 0;
 							 // go through each raid, find the au, return those units.
@@ -8850,7 +9251,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					return false;
 				} else hypoTotal-=GodGenerator.airPrice*Math.pow(2,k);
 
-			}else if(array[i].equals("airshipTech")) {
+			}else if(array[i].equals("zeppelinTech")) {
 				
 					if(p.isAirshipTech())  {
 						setError("You already have this technology!");
@@ -9247,7 +9648,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			} else if(array[i].equals("scoutTech")) {
 				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.scoutTechPrice*(Math.pow(2,p.getScoutTech()/2))));
 				 p.setScoutTech(p.getScoutTech() + 1);
-			}else if(array[i].equals("airshipTech")) { 
+			}else if(array[i].equals("zeppelinTech")) { 
 				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.airshipTechPrice);
 				p.setAirshipTech(true);
 			}else if(array[i].equals("attackAPI")) { 
@@ -10085,7 +10486,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
 					return new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),dfin);
+							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),dfin,r.getReward());
 				}
 				j++;
 			}
@@ -10258,7 +10659,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
 					temp.add(new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),dfin));
+							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),dfin,r.getReward()));
 					} catch(Exception exc) { exc.printStackTrace(); System.out.println("getUserRaids saved. The raid in question: " + r.getId().toString()); }
 				
 				j++;
@@ -10382,7 +10783,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
 					temp.add(new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),new Timestamp(r.getDockingFinished().getTime())));
+							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),new Timestamp(r.getDockingFinished().getTime()),r.getReward()));
 					}
 			} catch(Exception exc) { exc.printStackTrace(); System.out.println("Raids saved from " + r.getId().toString());}
 				
@@ -11095,7 +11496,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			toRet[i] = new UserTown(r,au,b,p.ID,p.getUsername(),res,resCaps,resInc,resEffects,t.getTotalEngineers(),
 					t.getTotalTraders(),t.townID,t.getTownName(),ts,tr,t.getX(),t.getY(),getCSL(t.townID),getCS(t.townID),t.isZeppelin()
-					,t.getFuelCells(),t.getDestX(),t.getDestY(),t.getTicksTillMove(),t.getFoodConsumption(),t.getVassalRate(),lord,vassalFrom,t.getInfluence(),t.isResourceOutcropping());
+					,t.getFuelCells(),t.getDestX(),t.getDestY(),t.getTicksTillMove(),t.getFoodConsumption(),t.getVassalRate(),lord,vassalFrom,t.getInfluence(),t.isResourceOutcropping(),t.getRumor());
 			}
 			i++;
 
@@ -12088,8 +12489,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * 
 	 * Accept a two way trade schedule offer from somebody else.
 	 * 
-	 * @param tsid
-	 * @return
+	 * @param tsid - the ID of the trade to be accepted
+	 * @param yourTID - the ID of the town you're accepting from
+	 * @return True if the trade is accepted.  False otherwise.
 	 */
 	
 	public boolean acceptTradeSchedule(UUID tsid, int yourTID) {
@@ -12208,8 +12610,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * For those idiots who just can't figure out how to fly an airship on empty.
 	 * Returns your airship to your capital after losing all of it's resources.
 	 * If another airship is at your capital, you must move it first.
-	 * @param townID
-	 * @return
+	 * @param townID - ID of the Airship to be moved.
+	 * @return True if the Airship is moved.  False, otherwise.
 	 */
 	public boolean abortAirship(int townID) {
 		if(prog&&!p.isZeppelinAPI()) {
@@ -12256,7 +12658,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * Remember that Airships are basically Towns as far as AI Wars is concerned, hence the TownID.
 	 * @param x
 	 * @param y
-	 * @return
+	 * @return True, if the Airship has begun moving.  False otherwise.
 	 */
 	public boolean moveAirship(int x, int y, int townID) {
 		if(prog&&!p.isZeppelinAPI()) {
@@ -12357,9 +12759,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			if(yes) {
 				//	public String returnPrizeName(int probTick, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
-
+				 Town otherT = idTown.getPlayer().God.getTown(idTown.getDigTownID());
+				 Raid r= null;
+				 for(Raid r2:otherT.attackServer()){
+					 if(r2.getTown2().townID==townID&&r2.getDigAmt()>0) {
+						 r=r2;break;
+					 }
+				 }
 				
-				String reward = g.returnPrizeName(idTown.getProbTimer(),idTown.getX(),idTown.getY(),false,null,-1,null);
+				String reward = r.getReward();
+				idTown.setRumor(idTown.getRandomRumor()); // reset the rumor.
 				//reward = "zeppelin";
 				/*
 
@@ -12389,24 +12798,32 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				if(reward.equals("nothing")) {
 					sendYourself(idTown.getDigSmackTalk(),"Dig Find From "+ idTown.getTownName());
 				} else if(reward.equals("daily10")) {
-					sendYourself("Sir,\n We found a small resource cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+				//	sendYourself("Sir,\n We found a small resource cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					yourTown.doMyResources((int) Math.round(.1*24*3600/GodGenerator.gameClockFactor));
-					
+
 				}else if(reward.equals("daily20")) {
-					sendYourself("Sir,\n We found a medium resource cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+				//	sendYourself("Sir,\n We found a medium resource and knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					yourTown.doMyResources((int) Math.round(.2*24*3600/GodGenerator.gameClockFactor));
-					
+					p.setKnowledge(p.getKnowledge()+(int) Math.round(p.knowledgePerDay()*.05));
+
 				}else if(reward.equals("daily30")) {
-					sendYourself("Sir,\n We found a large resource cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+				//	sendYourself("Sir,\n We found a large resource and knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					yourTown.doMyResources((int) Math.round(.3*24*3600/GodGenerator.gameClockFactor));
-					
+					p.setKnowledge(p.getKnowledge()+(int) Math.round(p.knowledgePerDay()*.1));
+
 				}else if(reward.equals("daily50")) {
-					sendYourself("Sir,\n We found a very large resource cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+					//sendYourself("Sir,\n We found a very large resource and knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					yourTown.doMyResources((int) Math.round(.5*24*3600/GodGenerator.gameClockFactor));
+					p.setKnowledge(p.getKnowledge()+(int) Math.round(p.knowledgePerDay()*.2));
+
+				}else if(reward.equals("randomTech")) { 
+					String tech[] ={ getRandomTech()};
+					completeResearches(tech,true);
+				//	sendYourself("Sir,\n We found a piece of ancient [" + tech[0] + "]! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 					
-				}else if(reward.equals("lowKP")) {
+				}/*else if(reward.equals("lowKP")) {
 					sendYourself("Sir,\n We found a small knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
-					p.setKnowledge(p.getKnowledge()+50);
+					p.setKnowledge(p.getKnowledge()+(int) Math.round(p.knowledgePerDay()*.05));
 					
 				}else if(reward.equals("medKP")) {
 					sendYourself("Sir,\n We found a medium knowledge cache! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
@@ -12507,21 +12924,39 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 						}
 					
-				}
+				}*/
 				else if(reward.equals("zeppelin")) {
-					String tech[] ={ "zeppTech","townTech"};
+					double rand = Math.random();
+					if(rand<.1||p.isAirshipTech()) {
+						sendYourself("Sir,\n We found an ancient Airship from long ago. We weren't able to salvage it, but we found a huge knowledge cache!\n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
+						p.setKnowledge(p.getKnowledge()+(int) Math.round(p.knowledgePerDay()*.4));
+
+					}
+					String tech[] ={ "zeppelinTech","townTech"};
 					completeResearches(tech,true);
 					sendYourself("Sir,\n We found an ancient Airship from long ago. We weren't able to salvage it, but we were able to salvage an extra town slot and the plans to build an Airstrip. From an Airstrip, you could build your own Airship! We just shipped it to you. It should be arriving now. \n-The Dig Team from " + idTown.getTownName(),"Dig Find From "+ idTown.getTownName());
 
 					
 				}
 				
-				
-			}//	 public void resetDig(int newTownID, int digAmt, boolean findTime) {
+				idTown.returnDigOrRO(false,true);
+			} else {
+				//	 public void resetDig(int newTownID, int digAmt, boolean findTime, Raid r) {
+				boolean done = false;
+				for(Town t: p.towns()) {
+					for(Raid theR :t.attackServer()) {
+						if(theR.getDigAmt()>0&&theR.getTicksToHit()==0&&!theR.isRaidOver()&&theR.getDockingFinished()!=null&&theR.getTown2().townID==idTown.townID) {
+							idTown.resetDig(idTown.getDigTownID(),idTown.getDigAmt(),true,theR);
+							done=true;
+							break;
+						}
+					}
+					if(done) break;
+				}
+			}
 
 			//	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
 
-			recall(idTown.townID,idTown.getPlayer().ID,yourTown.townID);
 			
 		} else {
 			setError("This message was never sent!");
@@ -12530,7 +12965,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		return true;
 	}
-	
+	/**
+	 * @deprecated
+	 * AI Wars function
+	 * @return
+	 */
 	private String getRandomCivvieTech() {
 		String random[] ={
 				"buildingSlotTech",
@@ -12553,6 +12992,88 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}while(counter<10&&canCompleteResearches(toSend,true));
 		return toSend[0];
 	}
+	private String getRandomTech() {
+		/*
+		 * 1.9.1.Firearm Research(double check)
+1.9.2.Ordinance Research(double check)
+1.9.3.Tesla Tech(double check)
+1.9.4.BloodMetal Plating(double check)
+1.9.5.Body Armor(double check)
+1.9.6.BloodMetal Armor(double check)
+1.9.7.Personal Shields(double check)
+1.9.8.Hydraulic Assistors(double check)
+1.9.9.Thrust Vectoring(double check)
+1.9.10.Clockwork Augments(double check)
+1.9.11.Clockwork Computers(double check)
+1.9.12.Architecture(double check)
+1.9.13.Airship Blueprint(double check)
+1.9.14.Advanced Fortifications(double check)
+1.9.15.Structural Integrity(NEEDS FURTHER IMPLEMENTATION)
+1.9.16.Infrastructure Tech(double check)
+1.9.17.Town Tech(double check)
+1.9.18.Construction Research(double check)
+1.9.19.Scout Tech(double check)
+1.9.20.Soldier Blueprints(double check)
+1.9.21.Tank Blueprints(double check)
+1.9.22.Golem Blueprints(double check)
+1.9.23.Light Airship Blueprints(double check)
+1.9.24.Heavy Airship Blueprints(double check)
+		 */
+		String random[] = {
+				"firearmResearch",
+				"ordinanceResearch",
+				"teslaTech",
+				"bloodMetalPlating",
+				"bodyArmor",
+				"bloodMetalArmor",
+				"personalShields",
+				"hydraulicAssistors",
+				"thrustVectoring",
+				"clockworkAugments",
+				"clockworkComputers",
+				"architecture",
+				"advancedFortifications",
+				"structuralIntegrity",
+				"infrastructureTech",
+				"townTech",
+				"constructionResearch",
+				"scoutTech",
+				"Panzerfaust",
+				"Pillager",
+				"Vanguard",
+				"Seeker",
+				"Damascus",
+				"Wolverine",
+				"Punisher",
+				"Dreadnaught",
+				"Collossus",
+				"Gunship",
+				"Thunderbolt",
+				"Blastmaster",
+				"Halcyon",
+				"Hades",
+				"Monolith"
+				
+				
+				
+		};
+		int counter=0;
+		String toSend[] = {"null"};
+		do{
+			int rand = (int) Math.round(Math.random()*(random.length-1));
+			if(rand<0) rand = 0;
+			toSend[0]=random[rand];
+			counter++;
+			
+		}while(counter<10&&canCompleteResearches(toSend,true)) ;
+		return toSend[0];
+	}
+
+	/**
+	 * @deprecated
+	 * AI Wars function
+	 * @return
+	 */
 	private String getRandomMiliTech() {
 		String random[] ={
 				"afTech",
@@ -12575,6 +13096,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}while(counter<10&&canCompleteResearches(toSend,true)) ;
 		return toSend[0];
 	}
+	/**
+	 * @deprecated
+	 * AI Wars function
+	 * @return
+	 */
 	private String getRandomAPI() {
 		String[] random ={
 				"digAPI",
@@ -12599,7 +13125,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			int rand = (int) Math.round(Math.random()*(random.length-1));
 			if(rand<0) rand = 0;
 			toSend[0]=random[rand];
-			System.out.println("random is " +toSend[0]);
+			//System.out.println("random is " +toSend[0]);
 			counter++;
 			
 		} while(counter<10&&canCompleteResearches(toSend,true));
@@ -12825,7 +13351,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * @param zeppelin
 	 * @return
 	 */
-	private int addZeppelin(int x, int y, double resEffects[], String townName) {
+	private int addZeppelin(int x, int y, double[] resEffects, String townName) {
 
 		int tid=-1;
 
@@ -13038,7 +13564,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * If you are not a vassal, and you have no sack, then you can swear fealty here too.
 	 * 
 	 * @param msgID
-	 * @return
+	 * @return True, if the vassalage request was accepted.  False otherwise.
 	 */
 	public boolean acceptVassalage(UUID msgID) {
 		

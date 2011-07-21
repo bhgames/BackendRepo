@@ -434,7 +434,8 @@ public class Player  {
 	public void addMessage(UserMessage m) {
 		
 		// m = new UserMessage(UUID.fromString(rs.getString(14)),pid_to,rs.getInt(3),userArray,God.getUsername(rs.getInt(3)),rs.getString(4),rs.getString(5),rs.getInt(6), rs.getBoolean(7), rs.getInt(9), UUID.fromString(rs.getString(10)),rs.getString(11),UUID.fromString(rs.getString(13)),rs.getBoolean(8));
-			
+			if(currMessages==null) getMessages(); // because then when we call it, it will add the messages anyway.
+			else
 			if(m.getOriginalSubjectID()==null) {
 				getMessages().add(new UserMessagePack());
 				//	public UserMessage(int messageID,int pidTo, int pidFrom, String body, String subject, int msgType, boolean readed, int tsid, int originalMessageID, String creationDate) {
@@ -686,6 +687,18 @@ public class Player  {
 					// we add the secondary stuff. It'll get added completely, the fractions add to one.
 				 synchronized(resBuff) {
 					 double befBuff = resBuff[j];
+<<<<<<< HEAD
+					 do {
+						 //	System.out.println(resBuff[j] + " before");
+						 double multiplier = 1;
+						 if((getMineTimer()>0&&j==0) || (getTimberTimer()>0&&j==1) ||
+							  (getMmTimer()>0&&j==2) || (getFTimer()>0&&j==3)) {
+							 
+							 multiplier*=1.25;
+						 }
+
+						 if(getPremiumTimer()>0) multiplier*=.75;
+=======
 				do {
 				//	System.out.println(resBuff[j] + " before");
 					double multiplier = 1;
@@ -695,6 +708,7 @@ public class Player  {
 					if(getFTimer()>0&&j==3) multiplier*=1.25;
 
 					if(getPremiumTimer()>0) multiplier*=.5;
+>>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 					
 					if(totalOpenSpace[j]!=0)
 					resBuff[j] +=multiplier*secbuff[j]*((double)(resCaps[j]+Building.baseResourceAmt-res[j])/(totalOpenSpace[j]));
@@ -862,6 +876,13 @@ public class Player  {
 			 }
 		 }
 		 return false;
+	 }
+	 public int knowledgePerDay() {
+		int ticks = getResearchTicksForPoint(getTotalScholars(),God.Maelstrom.getScholarEffect(this));
+		// so this is how many ticks per point.
+		// now we fucking take 24 hours.
+		double amt = 24*3600.0/(ticks*GodGenerator.gameClockFactor);
+		return (int) Math.round(amt);
 	 }
 	 public void territoryCalculator() {
 			/*
@@ -2350,8 +2371,8 @@ public class Player  {
 	 */
 	public Player[] generateFakePlayers(int number, int numberTownsEach, int startingPidOffset, int startingTidOffset) {
 		int[] numtowns = new int[number];
-		for(int i : numtowns) {
-			i = numberTownsEach;
+		for(int i=0;i<numtowns.length;i++) {
+			numtowns[i] = numberTownsEach;
 		}
 		return generateFakePlayers(number,numtowns,startingPidOffset,startingTidOffset);
 	}
@@ -2397,24 +2418,42 @@ public class Player  {
 				if(other.getLord()!=null&&other.getLord().ID==fake.ID) {
 					other.setLord(null);
 					other.setVassalFrom(new Timestamp(new Date().getTime()));
+					other.saveInfluence();
 				}
-				for(AttackUnit a: other.getAu()) {
-					if(a.getSize()>0&&a.getSupport()>0&&a.getOriginalPlayer()!=null&&a.getOriginalPlayer().ID==fake.ID) {
-						a.setSize(0); // will get picked up next aucheck.
+
+					for(AttackUnit a: other.getAu()) {
+						if(a.getSize()>0&&a.getSupport()>0&&a.getOriginalPlayer()!=null&&a.getOriginalPlayer().ID==fake.ID) {
+							a.setSize(0); // will get picked up next aucheck.
+						}
 					}
-				}
+					other.auCheck();
+				
+				
 			}
+			try {
+				UberPreparedStatement stmt = con.createStatement("delete from messages where pid = ?");
+				stmt.setInt(1,fake.ID);
+				stmt.execute();
+				stmt.close();
+				stmt = con.createStatement("delete from statreports where pid = ?");
+				stmt.setInt(1,fake.ID);
+				stmt.execute();
+				stmt.close();
+			} catch(SQLException exc) { exc.printStackTrace(); }
 			for(Player p:God.getPlayers()) {
 				if(p.getLord()!=null&&p.getLord().ID==fake.ID) {
 					p.makeVassalOf(null,false);
 				}
 			}
-			God.getPlayers().remove(fake);
 			
+			God.getPlayers().remove(fake);
+			System.out.println("Searching digs...");
 			for(Town t: fake.towns()) {
 				God.getTowns().remove(t);
 				for(Town other:God.getTowns()) {
+					if(other.townID==4127) System.out.println("My town id is " + t.townID + " and digtownid is " + other.getDigTownID());
 					if(other.getDigTownID()==t.townID) {
+						System.out.println("Deleting " + other.townID + " 's dig!");
 						other.resetDig(0,0,false,null);
 					}
 				}
