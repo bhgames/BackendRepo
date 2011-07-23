@@ -773,7 +773,7 @@ public class Raid {
 	
 	synchronized public void save() {
    		  try {
-   			  UberPreparedStatement stmt = con.createStatement("update raid set distance = ?, ticksToHit = ?, genocide = ?, raidOver = ?, allClear = ?, m = ?, t = ?, mm = ?, f = ?, auSizes=?, bomb = ?, bombtarget = ?, support = ?, scout = ?, invade = ?, resupplyID = ?, totalTicks = ?, dockingFinished = ? where id = ?;");
+   			  UberPreparedStatement stmt = con.createStatement("update raid set distance = ?, ticksToHit = ?, genocide = ?, raidOver = ?, allClear = ?, m = ?, t = ?, mm = ?, f = ?, auSizes=?, bomb = ?, bombtarget = ?, support = ?, scout = ?, invade = ?, resupplyID = ?, totalTicks = ?, dockingFinished = ?, reward = ? where id = ?;");
    	   		  //ArrayList<AttackUnit> au = getAu();
    	   		
    	   		  stmt.setDouble(1,distance);

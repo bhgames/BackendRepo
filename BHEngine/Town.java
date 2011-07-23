@@ -418,48 +418,46 @@ public class Town {
 			
 		
 			
-			UberPreparedStatement stmt;
-		      UUID id = UUID.randomUUID();
+		UberPreparedStatement stmt;
+		UUID id = UUID.randomUUID();
 
-			try {
+		try {
 
-		     
-		      stmt = con.createStatement("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,fortArray,id) values (?,?,?,0,0,0,0,?,?,false,?,?);");
-		      stmt.setString(1,type);
-		      stmt.setInt(2,lotNum);
-		      stmt.setInt(3,lvl);
-		      stmt.setInt(4,townID);
-		      stmt.setInt(5,lvlUp);
-		      int newSizes[] = new int[getPlayer().getAu().size()];
+			stmt = con.createStatement("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,fortArray,id) values (?,?,?,0,0,0,0,?,?,false,?,?);");
+			stmt.setString(1,type);
+			stmt.setInt(2,lotNum);
+			stmt.setInt(3,lvl);
+			stmt.setInt(4,townID);
+			stmt.setInt(5,lvlUp);
+			int newSizes[] = new int[getPlayer().getAu().size()];
 		      
-		      stmt.setString(6,PlayerScript.toJSONString(newSizes));
-		      stmt.setString(7,id.toString());
+			stmt.setString(6,PlayerScript.toJSONString(newSizes));
+			stmt.setString(7,id.toString());
 		      // First things first. We update the player table.
 
-				
-		      boolean transacted=false;
-		      while(!transacted) {
+			
+			boolean transacted=false;
+			while(!transacted) {
 				try {
-						stmt.executeUpdate();
+					stmt.executeUpdate();
 						
-						
-						
-						 stmt.close(); transacted=true; 
-						 Building b = new Building(id,getPlayer().God);
-						bldg().add(b);
-						return b; 
+					stmt.close(); transacted=true; 
+					Building b = new Building(id,getPlayer().God);
+					bldg().add(b);
+					return b; 
 				} catch(MySQLTransactionRollbackException exc) { } 
 			}
-			} catch(SQLException exc) { exc.printStackTrace();
+		} catch(SQLException exc) { 
+			exc.printStackTrace();
 			// if this is a fake player, we'll end up getting a SQL exception and we set it manually.
-				Building b = new Building(id,getPlayer().God); // we add it before we do SQL, which may falter
-					// if this is a fakey.
-				//	public void setBuildingValues(String type, int lotNum, int bldglvl, int ticksToFinish, int people, int pplbldging, int ticksLeft, int lvlUps, boolean deconstruct, UUID id, int refuelTicks,boolean nukeMode,int bunkerMode, String fortArrayStr) {
-				b.setBuildingValues(type,lotNum,lvl,0,0,0,0,lvlUp,false,id,0,false,0,"[]");
-				bldg().add(b);
-			}
-			return null;
-		
+			Building b = new Building(id,getPlayer().God); // we add it before we do SQL, which may falter
+			// if this is a fakey.
+			//	public void setBuildingValues(String type, int lotNum, int bldglvl, int ticksToFinish, int people, int pplbldging, int ticksLeft, int lvlUps, boolean deconstruct, UUID id, int refuelTicks,boolean nukeMode,int bunkerMode, String fortArrayStr) {
+			b.setBuildingValues(type,lotNum,lvl,0,0,0,0,lvlUp,false,id,0,false,0,"[]");
+			bldg().add(b);
+			return b;
+		}
+		return null;
 	}
 	
 	public void loadBuilding(Building b) {
@@ -1110,42 +1108,42 @@ public class Town {
 		if(b.isMineBldg()) {
 			int newcap = (int) Building.getCap(b.getLvl(),true);
 			synchronized(getResCaps()) {
-			if(b.getType().equals("Metal Warehouse")) {
-				getResCaps()[0]-=(b.getCap()-newcap);
+				if(b.getType().equals("Metal Warehouse")) {
+					getResCaps()[0]-=(b.getCap()-newcap);
+				} else if(b.getType().equals("Lumber Yard")) {
+					getResCaps()[1]-=(b.getCap()-newcap);
+				} else if(b.getType().equals("Crystal Repository")) {
+					getResCaps()[2]-=(b.getCap()-newcap);
+				} else if(b.getType().equals("Granary")) {
+					getResCaps()[3]-=(b.getCap()-newcap);
+				} else if(b.getType().equals("Storage Yard")) {
+					getResCaps()[0]-=(b.getCap()-newcap);
+					getResCaps()[1]-=(b.getCap()-newcap);
+					getResCaps()[2]-=(b.getCap()-newcap);
+					getResCaps()[3]-=(b.getCap()-newcap);
+				} 
 			}
-			else if(b.getType().equals("Lumber Yard")) {
-				getResCaps()[1]-=(b.getCap()-newcap);
-			}
-			else if(b.getType().equals("Crystal Repository")) {
-				getResCaps()[2]-=(b.getCap()-newcap);
-			}
-			else if(b.getType().equals("Granary")) {
-				getResCaps()[3]-=(b.getCap()-newcap);
-			}else if(b.getType().equals("Storage Yard")) {
-				getResCaps()[0]-=(b.getCap()-newcap);
-				getResCaps()[1]-=(b.getCap()-newcap);
-				getResCaps()[2]-=(b.getCap()-newcap);
-				getResCaps()[3]-=(b.getCap()-newcap);
-			} }
-			b.setCap(newcap); // So we use the old one to get the difference between the new and old
+			//b.setCap(newcap); // So we use the old one to get the difference between the new and old
 			// and subtract that amount from the town's resCaps!
-		}else 
-		b.setCap(Building.getCap(b.getLvl(),false));
+		}/* else {
+			b.setCap(Building.getCap(b.getLvl(),false));
+		}*/
 		 // level has already been lowered.
 		synchronized(getResInc()) {
-		if(b.getType().equals("Metal Mine")) {
-			getResInc()[0]=GodGenerator.gameClockFactor*Town.baseResourceGrowthRate*Math.pow(b.getLvl()+1,2)/3600;
+			if(b.getType().equals("Metal Mine")) {
+				getResInc()[0]=GodGenerator.gameClockFactor*Town.baseResourceGrowthRate*Math.pow(b.getLvl()+1,2)/3600;
 
-		} else if(b.getType().equals("Timber Field")) {
-			getResInc()[1]=GodGenerator.gameClockFactor*Town.baseResourceGrowthRate*Math.pow(b.getLvl()+1,2)/3600;
+			} else if(b.getType().equals("Timber Field")) {
+				getResInc()[1]=GodGenerator.gameClockFactor*Town.baseResourceGrowthRate*Math.pow(b.getLvl()+1,2)/3600;
 
-		}else if(b.getType().equals("Crystal Mine")) {
-			getResInc()[2]=GodGenerator.gameClockFactor*Town.baseResourceGrowthRate*Math.pow(b.getLvl()+1,2)/3600;
+			} else if(b.getType().equals("Crystal Mine")) {
+				getResInc()[2]=GodGenerator.gameClockFactor*Town.baseResourceGrowthRate*Math.pow(b.getLvl()+1,2)/3600;
 
-		}else if(b.getType().equals("Farm")) {
-			getResInc()[3]=GodGenerator.gameClockFactor*Town.baseResourceGrowthRate*Math.pow(b.getLvl()+1,2)/3600;
+			} else if(b.getType().equals("Farm")) {
+				getResInc()[3]=GodGenerator.gameClockFactor*Town.baseResourceGrowthRate*Math.pow(b.getLvl()+1,2)/3600;
 
-		}}
+			}
+		}
 	}
 	 public String levelDown(UUID bid) {
 		// Crap, this is actually...fairly complex. I guess the lvlups makes it so the level will
@@ -1548,62 +1546,87 @@ public class Town {
 	 }
 	 public void digProcessingBlock(int num) {
 		 if(getDigCounter()>=0) {
-    
+			 
 			 setDigCounter(getDigCounter()+num);
    
 			 //5. In iterate, if dig timer is >=0, it goes up, and so does probability. If dig timer is <0, probability goes down towards 0.
-			 //  When the random message send time hits, send the message, and then return them manually when the counter goes down.
 
+		//	 When the random message send time hits, send the message, and then return them manually when the counter goes down.
+			 // 
 			 if(!isResourceOutcropping()) // all this dig shit only happens if this is not a  resource outcropping.
-				 if(getDigCounter()>=getFindTime()) {
-					 if(!getMsgSent()) {
-						 ArrayList<QuestListener> digFinish = getEventListenerList("digFinish");
-						 if(digFinish!=null) {
-							 for(QuestListener q: digFinish) {
-								 q.digFinishCatch(this,God.findTown(getDigTownID()).getPlayer());
-							 }
-						 }
-						 // send the message.
-						 String reward = God.returnPrizeName(getRumor(),getX(),getY(),false,null,-1,null);
-						 String body = "Sir \n, We have found a " + reward + ". If we dig this reward out, it will destroy the site, Do you want us to do so, or continue digging? \n -The Dig Team at " + getTownName();
-						 Town otherT = getPlayer().God.getTown(getDigTownID());
-						 Raid r= null;
-						 //double rand = Math.random();
-						 for(Raid r2:otherT.attackServer()){
-							 if(r2.getTown2().townID==townID&&r2.getDigAmt()>0) {
-								 r=r2;
-								 break;
-							 }
-						 }
-						 r.setReward(reward);r.save();
-						 String subject = "Dig Message From "+ getTownName();
-						 int pid[] = {God.findTown(getDigTownID()).getPlayer().ID};
-						 String pid_to_s = PlayerScript.toJSONString(pid);
-						 UUID id = UUID.randomUUID();
+			 if(getDigCounter()>=getFindTime()) {
+				 /*
+				 if(getDigCounter()>=getFindTime()+24*3600/GodGenerator.gameClockFactor) {
+					 //	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
 
-						 try {
-							 UberPreparedStatement stmt = getPlayer().con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,pid,tsid,id) values (?,?,?,?,6,?,?,?);" );
-							 stmt.setString(1,pid_to_s);
-							 stmt.setInt(2,pid[0]);
-							 stmt.setString(3,body);
-							 stmt.setString(4,subject);
-							 stmt.setInt(5,pid[0]);
-							 stmt.setInt(6,townID);
-							 stmt.setString(7,id.toString());
-							 stmt.execute();
-  
-							 stmt.close();
-						 } catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");} 
-						 String userArray[] = {God.findTown(getDigTownID()).getPlayer().getUsername()};
-						 Date time = new Date();
-						 UserMessage myM = new UserMessage(id,pid,pid[0],userArray,p.getUsername(),body,subject,6, false, 0,null,time.toString(),id,false);
-						 God.findTown(getDigTownID()).getPlayer().addMessage(myM);
-						 setMsgSent(true);
-					 } 
-				 } else {
-					 setProbTimer(getProbTimer()+num); // probtimer only goes up when digcounter is less than find time,
-					 // otherwise the archaeologists are waiting at their hole for your call.
-				 }
+					String subject = "Dig Message From "+ getTownName();
+					int pid[] = {God.findTown(getDigTownID()).getPlayer().ID};
+					String body = "Sir,\n You did not respond in time to our message, and we ran out of supplies, so we headed home!\n -The Dig Team at " + getTownName();
+					String pid_to_s = PlayerScript.toJSONString(pid);
+
+				 try {
+						UberPreparedStatement stmt = getPlayer().con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,original_subject_id,pid,tsid) values (?,?,?,?,6,0,?,?);" );
+						stmt.setString(1,pid_to_s);
+						stmt.setInt(2,pid[0]);
+						stmt.setString(3,body);
+						stmt.setString(4,subject);
+						stmt.setInt(5,pid[0]);
+						stmt.setInt(6,townID);
+					stmt.execute();
+					
+					stmt.close();
+				} catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	
+				God.findTown(getDigTownID()).getPlayer().getPs().b.recall(townID,getPlayer().ID,getDigTownID());
+				 }*/
+				 
+				 if(!getMsgSent()) {
+					 ArrayList<QuestListener> digFinish = getEventListenerList("digFinish");
+					 if(digFinish!=null) {
+						 for(QuestListener q: digFinish) {
+							 q.digFinishCatch(this,God.findTown(getDigTownID()).getPlayer());
+						 }
+					 }
+					 // send the message.
+					 String reward = God.returnPrizeName(getRumor(),getX(),getY(),false,null,-1,null);
+					 String body = "Sir \n, We have found a " + reward + ". If we dig this reward out, it will destroy the site, Do you want us to do so, or continue digging? \n -The Dig Team at " + getTownName();
+					 Town otherT = getPlayer().God.getTown(getDigTownID());
+					 Raid r= null;
+					 double rand = Math.random();
+					 for(Raid r2:otherT.attackServer()){
+						 if(r2.getTown2().townID==townID&&r2.getDigAmt()>0) {
+							 r=r2;
+							 break;
+						 }
+					 }
+					 r.setReward(reward);r.save();
+					 String subject = "Dig Message From "+ getTownName();
+					 int pid[] = {God.findTown(getDigTownID()).getPlayer().ID};
+					 String pid_to_s = PlayerScript.toJSONString(pid);
+					 UUID id = UUID.randomUUID();
+					 
+					 try {
+						 UberPreparedStatement stmt = getPlayer().con.createStatement("insert into messages (pid_to,pid_from,body,subject,msg_type,pid,tsid,id) values (?,?,?,?,6,?,?,?);" );
+						 stmt.setString(1,pid_to_s);
+						 stmt.setInt(2,pid[0]);
+						 stmt.setString(3,body);
+						 stmt.setString(4,subject);
+						 stmt.setInt(5,pid[0]);
+						 stmt.setInt(6,townID);
+						 stmt.setString(7,id.toString());
+						 stmt.execute();
+						 
+						 stmt.close();
+					 } catch(SQLException exc) { exc.printStackTrace(); System.out.println("Combat went through though");}	
+					 String userArray[] = {God.findTown(getDigTownID()).getPlayer().getUsername()};
+					 Date time = new Date();
+					 UserMessage myM = new UserMessage(id,pid,pid[0],userArray,p.getUsername(),body,subject,6, false, 0,null,time.toString(),id,false);
+					 God.findTown(getDigTownID()).getPlayer().addMessage(myM);
+					 setMsgSent(true);
+				 } 	
+			 } else {
+				 setProbTimer(getProbTimer()+num); // probtimer only goes up when digcounter is less than find time,
+				 // otherwise the archaeologists are waiting at their hole for your call.
+			 }
 		 } else {
 			 // so if the dig counter is not on, then it goes down. 
 			 setProbTimer(getProbTimer()-num);
@@ -3856,46 +3879,43 @@ public class Town {
 		if(!getPlayer().isLeague()&&!isZeppelin())
 		while(i<bldg.size()) {
 			b = bldg.get(i);
+			int multiplier = 1;
+			if(getPlayer().getPremiumTimer()>0) multiplier -= .25;
 			if(b.getType().equals("Metal Mine")) {
 				resIncs[0]=((double) GodGenerator.gameClockFactor)*((double) Town.baseResourceGrowthRate)*Math.pow(b.getLvl()+1,2)/3600;
 				resIncs[0]*=(1+additions[0]);
-				if(getPlayer().getMineTimer()>0) resIncs[0]*=1.25;
+				if(getPlayer().getMineTimer()>0) multiplier+=.25;
+				resIncs[0]*=multiplier;
 				if(isResourceOutcropping()&&!getTownName().startsWith("MetalOutcropping")) resIncs[0]=0;
 			} else if(b.getType().equals("Timber Field")) {
 				resIncs[1]=((double) GodGenerator.gameClockFactor)*((double) Town.baseResourceGrowthRate)*Math.pow(b.getLvl()+1,2)/3600;
 				resIncs[1]*=(1+additions[1]);
 
-				if(getPlayer().getTimberTimer()>0) resIncs[1]*=1.25;
+				if(getPlayer().getTimberTimer()>0) multiplier+=.25; 
+				resIncs[1]*=multiplier;
 				if(isResourceOutcropping()&&!getTownName().startsWith("TimberOutcropping")) resIncs[1]=0;
 
 			}else if(b.getType().equals("Crystal Mine")) {
 				resIncs[2]=((double) GodGenerator.gameClockFactor)*((double) Town.baseResourceGrowthRate)*Math.pow(b.getLvl()+1,2)/3600;
 				resIncs[2]*=(1+additions[2]);
 
-				if(getPlayer().getMmTimer()>0) resIncs[2]*=1.25;
+				if(getPlayer().getMmTimer()>0) multiplier+=.25;
+				resIncs[2]*=multiplier;
 				if(isResourceOutcropping()&&!getTownName().startsWith("CrystalOutcropping")) resIncs[2]=0;
 
 			}else if(b.getType().equals("Farm")) {
 				resIncs[3]=((double) GodGenerator.gameClockFactor)*((double) Town.baseResourceGrowthRate)*Math.pow(b.getLvl()+1,2)/3600;
 				resIncs[3]*=(1+additions[3]);
 
-				if(getPlayer().getFTimer()>0) resIncs[3]*=1.25;
+				if(getPlayer().getFTimer()>0) multiplier+=.25;
+				resIncs[3]*=multiplier;
 				if(isResourceOutcropping()) resIncs[3]=0;
-
 			}
 			i++;
-		}
-		
-		if(getPlayer().getPremiumTimer()>0) {
-		i=0;
-		while(i<resIncs.length) {
-			resIncs[i]*=.75;
-			i++;
-		}
 		}
 	
 		return resIncs;
-			}
+	}
 
 	
 	public double[] getResEffects() {

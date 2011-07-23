@@ -643,42 +643,41 @@ public class Player  {
 				 */
 			
 			 int i = 0;
-			 int totalOpenSpace[] = new int[5];
-			 double newIncs[];
-				double resEffects[]; long resCaps[]; double resInc[];
-				long res[];
-				ArrayList<Town> towns = towns();
-				double resBuff[];
+			 int[] totalOpenSpace = new int[5];
+			 double[] newIncs,
+			 		  //resEffects, 
+			 		  //resInc, 
+			 		  resBuff;
+			 long[] res,resCaps;
+			 ArrayList<Town> towns = towns();
 				
-				while(i<towns.size()) {
-				
+			 while(i<towns.size()) {
 				
 				 int j = 0;
 				 holdTown = towns.get(i);
-				 resInc=holdTown.getResInc();
+				 //resInc=holdTown.getResInc();
 				 resCaps=holdTown.getResCaps();
 				 res = holdTown.getRes();
 
-						do {
-							totalOpenSpace[j]+=(resCaps[j]+Building.baseResourceAmt-res[j]);
-							j++;
-						} while(j<res.length);
+				 do {
+					 totalOpenSpace[j]+=(resCaps[j]+Building.baseResourceAmt-res[j]);
+					 j++;
+				 } while(j<res.length);
 						
 		
-					i++;
+				 i++;
 						
-					} 
-			i=0;
-			double tresEffects[];  double tresInc[];
+			 } 
+			 i=0;
+			 double tresEffects[];  double tresInc[];
 		
-			long[] secbuff = getSecondaryResBuff();
+			 long[] secbuff = getSecondaryResBuff();
 			 while(i<towns.size()) {
-				
 				
 				 int j = 0;
 				 holdTown = towns.get(i);
-				 resInc=holdTown.getResInc();
-				 resEffects=holdTown.getResEffects();
+				 //resInc=holdTown.getResInc();
+				 //resEffects=holdTown.getResEffects();
 				 resCaps=holdTown.getResCaps();
 				 resBuff = holdTown.getResBuff();
 				 res = holdTown.getRes();
@@ -686,108 +685,107 @@ public class Player  {
 				 
 					// we add the secondary stuff. It'll get added completely, the fractions add to one.
 				 synchronized(resBuff) {
-					 double befBuff = resBuff[j];
+					 //double befBuff = resBuff[j];
 					 do {
 						 //	System.out.println(resBuff[j] + " before");
 						 double multiplier = 1;
-						 if((getMineTimer()>0&&j==0) || (getTimberTimer()>0&&j==1) ||
-							  (getMmTimer()>0&&j==2) || (getFTimer()>0&&j==3)) {
-							 
-							 multiplier*=1.25;
-						 }
+						 if(getPremiumTimer()>0) multiplier-=.25;
+						 
+						 if((getMineTimer()>0&&j==0)|| 
+							(getTimberTimer()>0&&j==1)||
+							(getMmTimer()>0&&j==2)|| 
+							(getFTimer()>0&&j==3)) {multiplier+=.25;}
 
-						 if(getPremiumTimer()>0) multiplier*=.75;
 					
-					if(totalOpenSpace[j]!=0)
-					resBuff[j] +=multiplier*secbuff[j]*((double)(resCaps[j]+Building.baseResourceAmt-res[j])/(totalOpenSpace[j]));
-					//System.out.println(resBuff[j] + " after");
+						 if(totalOpenSpace[j]!=0)
+							 resBuff[j] +=multiplier*secbuff[j]*((double)(resCaps[j]+Building.baseResourceAmt-res[j])/(totalOpenSpace[j]));
+						 //System.out.println(resBuff[j] + " after");
 
-					// add taxrates here
+						 // add taxrates here
 					
-					int x = 0;
+						 int x = 0;
 				
-					while(x<God.getPlayers().size()) { //add taxes
-						curr = God.getPlayers().get(x);
-						if((curr.getLord()!=null&&curr.getLord().ID==ID)||curr.hasVassaledTowns(ID)) {
-							int y = 0;
-							p = curr;
-						//	if(p.owedTicks<3*24*3600/GodGenerator.gameClockFactor) p.update(); // No need to update if a player is this old, just collect!
-							// When we try to update players here, we often deadlock them.
-								ptowns = p.towns();
-								//checkForLeagueReference(p); Lordship is automatically retained the next day
-								// if the reference is somehow lost. Leagues don't have this luxury.
-							while(y<ptowns.size()) {
+						 while(x<God.getPlayers().size()) { //add taxes
+							 curr = God.getPlayers().get(x);
+							 if((curr.getLord()!=null&&curr.getLord().ID==ID)||curr.hasVassaledTowns(ID)) {
+								 int y = 0;
+								 p = curr;
+								 //	if(p.owedTicks<3*24*3600/GodGenerator.gameClockFactor) p.update(); // No need to update if a player is this old, just collect!
+								 // When we try to update players here, we often deadlock them.
+								 ptowns = p.towns();
+								 //checkForLeagueReference(p); Lordship is automatically retained the next day
+								 // if the reference is somehow lost. Leagues don't have this luxury.
+								 while(y<ptowns.size()) {
 								
-								t = ptowns.get(y);
-								double taxRate=t.getVassalRate();
+									 t = ptowns.get(y);
+									 double taxRate=t.getVassalRate();
 								 
-								if(t.getLord()!=null&&t.getLord().ID!=ID) taxRate=0; // so if this town belongs to another, it's 0 for you.
+									 if(t.getLord()!=null&&t.getLord().ID!=ID) taxRate=0; // so if this town belongs to another, it's 0 for you.
 								
 								
-								tresInc=t.getResInc();
-								// that's done by the town in question.
-								 tresEffects=t.getResEffects();
-								 newIncs = God.Maelstrom.getResEffects(tresInc,t.getX(),t.getY());
+									 tresInc=t.getResInc();
+									 // that's done by the town in question.
+									 tresEffects=t.getResEffects();
+									 newIncs = God.Maelstrom.getResEffects(tresInc,t.getX(),t.getY());
 								
 	
-								 if(totalOpenSpace[j]!=0){
+									 if(totalOpenSpace[j]!=0){
 							
-						//		if(j==0&&getUsername().equals("EAGLE"))
-							//	System.out.println("The internalclock is " + getLeagueInternalClock() + ". The tax rate is " + curr.taxRate + " for user " + curr.player.getUsername() + " from their town of " + t.getTownName() + ". The resInc is " + tresInc[j] + " and I am adding"  +
-								//		multiplier*num*newIncs[j]*(tresEffects[j]+1)*curr.taxRate*((double)(resCaps[j]+Building.baseResourceAmt-res[j])/(totalOpenSpace[j]))  + " because the difference is " + 
-									//	((double)(resCaps[j]+Building.baseResourceAmt-res[j])) + " and the open space is " + totalOpenSpace[j] + ", num: "+ num+ ", mult: "+  multiplier +", newIncs: " + newIncs[j]);
+										 //	if(j==0&&getUsername().equals("EAGLE"))
+										 //	System.out.println("The internalclock is " + getLeagueInternalClock() + ". The tax rate is " + curr.taxRate + " for user " + curr.player.getUsername() + " from their town of " + t.getTownName() + ". The resInc is " + tresInc[j] + " and I am adding"  +
+										 //	multiplier*num*newIncs[j]*(tresEffects[j]+1)*curr.taxRate*((double)(resCaps[j]+Building.baseResourceAmt-res[j])/(totalOpenSpace[j]))  + " because the difference is " + 
+										 //	((double)(resCaps[j]+Building.baseResourceAmt-res[j])) + " and the open space is " + totalOpenSpace[j] + ", num: "+ num+ ", mult: "+  multiplier +", newIncs: " + newIncs[j]);
 								
-								 resBuff[j]+=multiplier*num*newIncs[j]*(tresEffects[j]+1)*taxRate*((double)(resCaps[j]+Building.baseResourceAmt-res[j])/(totalOpenSpace[j]));
+										 resBuff[j]+=multiplier*num*newIncs[j]*(tresEffects[j]+1)*taxRate*((double)(resCaps[j]+Building.baseResourceAmt-res[j])/(totalOpenSpace[j]));
+									 }
+									 y++;
 								 }
-								 y++;
-							}
 							
 							
-							}
-						x++;
-					}
+							 }
+							 x++;
+						 }
 			
 					
-				//	if(j==0&&getUsername().equals("EAGLE")) System.out.println("Total resbuff take is: " + (resBuff[j]-befBuff));
-					j++;
-				} while(j<res.length);
+						 //if(j==0&&getUsername().equals("EAGLE")) System.out.println("Total resbuff take is: " + (resBuff[j]-befBuff));
+						 j++;
+					 } while(j<res.length);
+				 	}
+				 j = 0;
+				 synchronized(res) {
+					 synchronized(resBuff) {
+						 while(j<res.length){
+							 if(resBuff[j]>=1) {
+								 int toAdd = (int) Math.floor(resBuff[j]);
+								 res[j]+=toAdd;
+								 resBuff[j]-=toAdd;
+					
+								 if(res[j]>(resCaps[j]+Building.baseResourceAmt))
+									 res[j]=resCaps[j]+Building.baseResourceAmt;
+								 // works even if you lose the building and suddenly have a massive over the limit
+								 // amount of resources! HAHA :D
+					
+							 }
+							 j++;
+						 }
+					 }
 				 }
-				j = 0;
-				synchronized(res) {
-					synchronized(resBuff) {
-				while(j<res.length){
-				if(resBuff[j]>=1) {
-					int toAdd = (int) Math.floor(resBuff[j]);
-					res[j]+=toAdd;
-					resBuff[j]-=toAdd;
-					
-					if(res[j]>(resCaps[j]+Building.baseResourceAmt))
-						res[j]=resCaps[j]+Building.baseResourceAmt;
-					// works even if you lose the building and suddenly have a massive over the limit
-					// amount of resources! HAHA :D
-					
-					}
-				j++;
-				}
-				}
-				}
 				
 
-				// Then I need to check building and attack servers. Each town has a building server, and an attack server.
-			i++;
+				 // Then I need to check building and attack servers. Each town has a building server, and an attack server.
+				 i++;
 				
-			}
-			i = 0;
+			 }
+			 i = 0;
 			
-			while(i<secbuff.length) { //reset the resbuff of secondaryhood.
-				secbuff[i]=0;
-				i++;
-			}
+			 while(i<secbuff.length) { //reset the resbuff of secondaryhood.
+				 secbuff[i]=0;
+				 i++;
+			 }
 			
-			setLordInternalClock(getLordInternalClock() + num); // we only iterate after FINISHING THE SAVE!
+			 setLordInternalClock(getLordInternalClock() + num); // we only iterate after FINISHING THE SAVE!
 
-			
-		}
+	 }
 	 public Hashtable[] getVassalHash() {
 		 // makes a vassal hash for use by the player.
 		 /*
@@ -2984,6 +2982,8 @@ public class Player  {
 			      }
 			    
 			}catch(SQLException exc) { exc.printStackTrace(); }
+		} else {
+			deleteFakePlayers(new Player[] {this});
 		}
 	}
 	      

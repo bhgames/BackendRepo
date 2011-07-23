@@ -14763,6 +14763,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			amts[0]=100;
 			amts[1]=2;
 		}
+		 worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,mission,null,"noname",true);
 		 if(!worked) {
 				out.println(testType + " test failed because the second " + mission + " didn't send, and the error was: " + players[0].getPs().b.getError());
 				player.deleteFakePlayers(players);
@@ -15350,7 +15351,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		
 		
 		t1.getAu().get(0).setSize(1500);// now I'm a support who is going to try and take over and probably not win with 15 men.
-		amts = new int[1]; amts[0]=1500; 
+		amts = new int[] {1500};
 		worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname",true);
 	
 		if(!worked) {
@@ -15476,242 +15477,193 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		 */
 		getPlayer(5).territoryCalculator(); // i need it to reset everything to no lord that can be reset.
 
-		//int numTowns[] = {1};
-		Player[] players = player.generateFakePlayers(1,1,0,0);
+		int numTowns[] = {1};
+		Player[] players = player.generateFakePlayers(1,numTowns,0,0);
 		try {
-			Town t1 = players[0].towns().get(0);
-			//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
-			Town RO=null;
-			for(Town t: getPlayer(5).towns()) {
-				if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
-					RO=t;
-					break;
-				} 
-			}
-			if(RO==null) {
-				growId();
-				getPlayer(5).territoryCalculator();
-			}
-			for(Town t: getPlayer(5).towns()) {
-				//System.out.println(t.getTownID() + " has " + t.getInfluence() + " influence.");
-	
-				if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
-					RO=t;
-					break;
-				} 
-			}
-			if(RO==null) {
-				out.println("basicRO test failed because even growing Id didn't produce a viable RO to use.");
-				player.deleteFakePlayers(players);
-				return false;
-			}
-			RO.resIncsZeroed=true;
-			t1.setX(RO.getX()+10);
-			t1.setY(RO.getY());
-			t1.setInfluence(0);
-			t1.addBuilding("Command Center",4,5,0);
-			t1.bldg().get(0).setPeopleInside(5);
-			t1.setAu(new ArrayList<AttackUnit>());
-			t1.getAu().add(new AttackUnit("Pillager",0,0));
+		Town t1 = players[0].towns().get(0);
+		//	public Building addBuilding(String type, int lotNum, int lvl, int lvlUp) {
+		Town RO=null;
+		for(Town t: getPlayer(5).towns()) {
+			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+				RO=t;
+				break;
+			} 
 			
-			RO.getRes()[0]=1500;
-			RO.getRes()[1]=1500;
-			RO.getRes()[2]=1500;
-			RO.getRes()[3]=1500;
-			//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
-			int amts[] = {0,5};
-			boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname", true);
-			if(!worked) {
-				out.println("basicRO test failed because the attack didn't send, and the error was: " + players[0].getPs().b.getError());
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			if(t1.attackServer().size()!=1) {
-				out.println("basicRO test failed because the raid didn't load.");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			Raid r = t1.attackServer().get(0);
-			r.setTicksToHit(0);
-			attackServerCheck(t1,players[0]);
-	
-			if(r.isRaidOver()) {
-				out.println("basicRO test failed because the raid was set to over after landing, it shouldn't be..");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			if(r.getDockingFinished()==null) {
-				out.println("basicRO test failed because the raid did not have it's docking finished date set, but it should have.");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-	
-			if(t1.attackServer().size()!=1) {
-				out.println("basicRO test failed because the raid didn't remain after landing.");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			if(RO.getLord()==null) {
-				out.println("basicRO test failed because the RO didn't become owned by the player after landing.");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			if(RO.getInfluence()>0) {
-				out.println("basicRO test failed because the RO somehow gained influence after only one terr calc.");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			if(RO.getDigAmt()!=5) {
-				out.println("basicRO test failed because the RO didn't become inhabited by engineers.");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-		
-			// well, we know we've got 1000 res. We've got 5 engineers.
-			long total= returnCargoOfSupportAndEngineers(RO);
-			
-			 // we expect total to be t.getDigAmt()*(t.getDigAmt()+1)*engineerCarryAmount
-			// which is 15000. Engineer rate is 5000 per hour, so we expect that in 3 hours, the dig should be done.
-			
-			if(total!=5*(5+1)*engineerCarryAmount) {
-				out.println("basicRO test failed because the total holding amount wasn't correct, it was " + total);
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			attackServerCheck(t1,players[0]);
-	
-			if(t1.attackServer().size()!=1) {
-				out.println("basicRO test failed because the raid didn't remain after landing+1 tick.");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			if(r.isRaidOver()||r.getDockingFinished()==null) {
-				out.println("basicRO test failed because the raid was set to over or it had no docking finished date.");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-	
-			if(RO.getRes()[0]!=1500) {
-				out.println("basicRO test failed because the RO didn't have 1.5k resources to start with even though it should've. It has " + RO.getRes()[0]);
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			RO.doMyResources((int) Math.round(.1*3600/GodGenerator.gameClockFactor));
-			// now we expect the raid not to be over, but a third loaded...
-			if(t1.attackServer().size()!=1) {
-				out.println("basicRO test failed because the raid didn't remain after landing+1/3rd time tick.");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			
-			if(r.isRaidOver()||r.getDockingFinished()==null) {
-				out.println("basicRO test failed because the raid was set to over or it had no docking finished date after we went through a third of the ROexcavation.");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			 total = r.getMetal()+r.getTimber()+r.getManmat()+r.getFood();
-	
-			if(total!=500) {
-				out.println("basicRO test failed because the excavation had not excavated 500 by the time a third of time was up. It excavated " + total);
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			if(RO.getRes()[0]!=1000) {
-				out.println("basicRO test failed because the RO didn't have 1k resources after a third of time has passed even though it should've. It has " + RO.getRes()[0]);
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			RO.doMyResources((int) Math.round(.2*3600/GodGenerator.gameClockFactor+1)); // now we should be heading home.
-	
-			if(t1.attackServer().size()!=1) {
-				out.println("basicRO test failed because the raid didn't remain after finishing time tick.");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			
-			if(!r.isRaidOver()) {
-				out.println("basicRO test failed because the raid was set to not over even though it should be.");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			 total = r.getMetal()+r.getTimber()+r.getManmat()+r.getFood();
-			if(total!=1500) {
-				out.println("basicRO test failed because the excavation had not excavated 1500 by the time the time was up. It excavated " + total);
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			if(RO.getRes()[0]!=0) {
-				out.println("basicRO test failed because the RO didn't have 0 resources after all of time has passed even though it should've. It has " + RO.getRes()[0]);
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			if(RO.getDigTownID()!=0) {
-				out.println("basicRO test failed because the excavation didn't end when it was supposed to.");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			
-			r.setTicksToHit(0);
-			attackServerCheck(t1,players[0]);
-			if(t1.attackServer().size()!=0) {
-				out.println("basicRO test failed because the raid was still on the stack after arriving.");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			if(t1.getTotalEngineers()!=5) {
-				out.println("basicRO test failed because the engineers were not returned safely.");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			boolean haveSome=false;
-			for(AttackUnit a:RO.getAu()) {
-				if(a.getSize()>0) {
-					haveSome=true;
-					break;
-				}
-			}
-			// now we see if we still have the territory.
-			if(RO.getDigAmt()>0||haveSome) {
-				out.println("basicRO test failed because the RO had people on it after the raid should have left.");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			if(RO.getInfluence()>0) {
-				out.println("basicRO test failed because the RO had influence BEFORE a territoryCalculator on player when nobody was present..");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
-			
-			players[0].territoryCalculator();
-			/*
-			ArrayList<Hashtable> p = (ArrayList<Hashtable>)players[0].getTerritories().get(0).get("points");
-			for(Hashtable re:p){
-				System.out.println("NOW x is " + (Integer) re.get("x") + " y is " + (Integer) re.get("y"));
-			}
-			p = (ArrayList<Hashtable>)players[0].getTerritories().get(1).get("points");
-			for(Hashtable re:p){
-				System.out.println("NOW x is " + (Integer) re.get("x") + " y is " + (Integer) re.get("y"));
-			}
-			System.out.println("RO x is " + RO.getX() + " and y is " + RO.getY() + " the town x is " + players[0].towns().get(0).getX()
-					+ " the town y is " + players[0].towns().get(0).getY());*/
-	
-			if(RO.getInfluence()>0) {
-				out.println("basicRO test failed because the RO had influence after a territoryCalculator on player when nobody was present..");
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
+		}
+		if(RO==null) {
+			growId();
 			getPlayer(5).territoryCalculator();
-		
-			if(RO.getLord()!=null) {
-				out.println("basicRO test failed because the RO didn't get delorded when it should have, it was lorded to " + RO.getLord().ID + " and its tid is " + RO.townID + " and " + RO);
-				player.deleteFakePlayers(players);
-				RO.resIncsZeroed=false; return false;
-			}
+
 			
+		}
+		for(Town t: getPlayer(5).towns()) {
+			//System.out.println(t.getTownID() + " has " + t.getInfluence() + " influence.");
+
+			if(t.getInfluence()==0&&t.isResourceOutcropping()&&t.getLord()==null&&t.getPlayer().getPs().b.getCS(t.getTownID())==0&&t.getTownName().contains("MetalOutcropping")) {
+				RO=t;
+				break;
+			} 
+		}
+		if(RO==null) {
+			out.println("basicRO test failed because even growing Id didn't produce a viable RO to use.");
 			player.deleteFakePlayers(players);
-			RO.resIncsZeroed=false;
-			out.println("basicRO test successful.");
-			return true;
+			return false;
+		}
+		RO.resIncsZeroed=true;
+		t1.setX(RO.getX()+10);
+		t1.setY(RO.getY());
+		t1.setInfluence(0);
+		t1.addBuilding("Command Center",4,5,0);
+		t1.bldg().get(0).setPeopleInside(5);
+		t1.setAu(new ArrayList<AttackUnit>());
+		t1.getAu().add(new AttackUnit("Pillager",0,0));
+		
+		RO.getRes()[0]=1500;
+		RO.getRes()[1]=1500;
+		RO.getRes()[2]=1500;
+		RO.getRes()[3]=1500;
+		//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
+		int amts[] = {0,5};
+		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"excavation",null,"noname",true);
+		if(!worked) {
+			out.println("basicRO test failed because the attack didn't send, and the error was: " + players[0].getPs().b.getError());
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		if(t1.attackServer().size()!=1) {
+			out.println("basicRO test failed because the raid didn't load.");
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		Raid r = t1.attackServer().get(0);
+		r.setTicksToHit(0);
+		attackServerCheck(t1,players[0]);
+
+		if(r.isRaidOver()) {
+			out.println("basicRO test failed because the raid was set to over after landing, it shouldn't be..");
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		if(r.getDockingFinished()==null) {
+			out.println("basicRO test failed because the raid did not have it's docking finished date set, but it should have.");
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+
+		if(t1.attackServer().size()!=1) {
+			out.println("basicRO test failed because the raid didn't remain after landing.");
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		if(RO.getLord()==null) {
+			out.println("basicRO test failed because the RO didn't become owned by the player after landing.");
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		if(RO.getInfluence()>0) {
+			out.println("basicRO test failed because the RO somehow gained influence after only one terr calc.");
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		if(RO.getDigAmt()!=5) {
+			out.println("basicRO test failed because the RO didn't become inhabited by engineers.");
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+	
+		// well, we know we've got 1000 res. We've got 5 engineers.
+		long total= returnCargoOfSupportAndEngineers(RO);
+		
+		 // we expect total to be t.getDigAmt()*(t.getDigAmt()+1)*engineerCarryAmount
+		// which is 15000. Engineer rate is 5000 per hour, so we expect that in 3 hours, the dig should be done.
+		
+		if(total!=5*(5+1)*engineerCarryAmount) {
+			out.println("basicRO test failed because the total holding amount wasn't correct, it was " + total);
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		attackServerCheck(t1,players[0]);
+
+		if(t1.attackServer().size()!=1) {
+			out.println("basicRO test failed because the raid didn't remain after landing+1 tick.");
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		if(r.isRaidOver()||r.getDockingFinished()==null) {
+			out.println("basicRO test failed because the raid was set to over or it had no docking finished date.");
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+
+		if(RO.getRes()[0]!=1500) {
+			out.println("basicRO test failed because the RO didn't have 1.5k resources to start with even though it should've. It has " + RO.getRes()[0]);
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		RO.doMyResources((int) Math.round(.1*3600/GodGenerator.gameClockFactor));
+		// now we expect the raid not to be over, but a third loaded...
+		if(t1.attackServer().size()!=1) {
+			out.println("basicRO test failed because the raid didn't remain after landing+1/3rd time tick.");
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		
+		if(r.isRaidOver()||r.getDockingFinished()==null) {
+			out.println("basicRO test failed because the raid was set to over or it had no docking finished date after we went through a third of the ROexcavation.");
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		 total = r.getMetal()+r.getTimber()+r.getManmat()+r.getFood();
+
+		if(total!=500) {
+			out.println("basicRO test failed because the excavation had not excavated 500 by the time a third of time was up. It excavated " + total);
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		if(RO.getRes()[0]!=1000) {
+			out.println("basicRO test failed because the RO didn't have 1k resources after a third of time has passed even though it should've. It has " + RO.getRes()[0]);
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		RO.doMyResources((int) Math.round(.2*3600/GodGenerator.gameClockFactor+1)); // now we should be heading home.
+
+		if(t1.attackServer().size()!=1) {
+			out.println("basicRO test failed because the raid didn't remain after finishing time tick.");
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		
+		if(!r.isRaidOver()) {
+			out.println("basicRO test failed because the raid was set to not over even though it should be.");
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		 total = r.getMetal()+r.getTimber()+r.getManmat()+r.getFood();
+		if(total!=1500) {
+			out.println("basicRO test failed because the excavation had not excavated 1500 by the time the time was up. It excavated " + total);
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		if(RO.getRes()[0]!=0) {
+			out.println("basicRO test failed because the RO didn't have 0 resources after all of time has passed even though it should've. It has " + RO.getRes()[0]);
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		if(RO.getDigTownID()!=0) {
+			out.println("basicRO test failed because the excavation didn't end when it was supposed to.");
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		if(RO.getLord()!=null) {
+			out.println("basicRO test failed because the RO didn't get delorded when it should have, it was lorded to " + RO.getLord().ID + " and its tid is " + RO.townID + " and " + RO);
+			player.deleteFakePlayers(players);
+			RO.resIncsZeroed=false; return false;
+		}
+		
+		player.deleteFakePlayers(players);
+		RO.resIncsZeroed=false;
+		out.println("basicRO test successful.");
+		return true;
 		} catch(Exception exc) {
 			out.println("basicRO test failed because " + exc.toString());
 			for(StackTraceElement stackTrace: exc.getStackTrace()) {
@@ -17822,6 +17774,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		if(!tests[0].getPs().b.attack(testTowns[0].getTownID(), testTowns[1].getX(), 
 				testTowns[1].getY(), new int[] {10}, "blockade", new String[] {}, "", true)) {
 			out.println("Blockade movement test failed.  The blockade could not be sent.  Error: " + tests[0].getPs().b.getError());
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 		
@@ -17834,10 +17787,12 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		}
 		if(blockade.getSupport()!=3) {
 			out.println("Blockade movement test failed.  The blockade did not have support type 3.");
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 		if(testTowns[1].attackServer().contains(blockade)||testTowns[1].getBlockades().size()>0) {
 			out.println("Blockade movement test failed.  The blockade was placed into the second town's Attack Server to early.");
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 		blockade.setTicksToHit(0);
@@ -17846,21 +17801,25 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 
 		if(!testTowns[1].attackServer().contains(blockade)) {
 			out.println("Blockade movement test failed.  The blockade wasn't placed in the second town's Attack Server.");
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 		if(testTowns[1].getBlockades().size()<1) {
 			out.println("Blockade movement test failed.  The blockade is not gatherable by the getBlockades method.");
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 		blockade = testTowns[1].getBlockades().get(0);
 		if(blockade.getAu().get(0).getSize()<10) {
 			out.println("Blockade movement test failed.  The blockade did not arrive with all its units.");
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 
 		if(!tests[0].getPs().b.attack(testTowns[0].getTownID(), testTowns[1].getX(), 
 				testTowns[1].getY(), new int[] {10}, "blockade", new String[] {}, "", true)) {
 			out.println("Blockade movement test failed.  The second blockade could not be sent.  Error: " + tests[0].getPs().b.getError());
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 		Raid newBlockade = null;
@@ -17872,6 +17831,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		}
 		if(blockade==newBlockade) { //not sure how the fuck this would happen
 			out.println("Blockade movement test failed.  The existing blockade could not be distinguisted from the newly sent blockade.");
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 		
@@ -17880,32 +17840,38 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		
 		if(testTowns[0].attackServer().contains(newBlockade)||testTowns[1].attackServer().contains(newBlockade)) {
 			out.println("Blockade movement test failed.  The new blockade was not merged with the existing blockade and removed from both town's Attack Server.");
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 		blockade = testTowns[1].getBlockades().get(0);
 		
 		if(blockade.getAu().get(0).getSize()!=25) {
 			out.println("Blockade movement test failed.  The new blockade's AU were not added to the existing blockade's.");
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 		
 		if(!tests[0].getPs().b.recall(new int[] {10}, testTowns[1].getTownID(), tests[1].ID, testTowns[0].getTownID())) {
 			out.println("Blockade movement test failed.  Could not recall units from the blockade.");
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 		if(testTowns[1].getBlockades().size()!=1) {
 			out.println("Blockade movement test failed.  The recalled troops still show up in getBlockades.");
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 		blockade = testTowns[1].getBlockades().get(0);
 		if(blockade.getAu().get(0).getSize()!=15) {
 			out.println("Blockade movement test failed.  Recall did not remove the correct number of units.");
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 
 		if(!tests[2].getPs().b.attack(testTowns[2].getTownID(), testTowns[1].getX(), 
 				testTowns[1].getY(), new int[] {15}, "blockade", new String[] {}, "", true)) {
 			out.println("Blockade movement test failed.  The third blockade could not be sent.  Error: " + tests[2].getPs().b.getError());
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 		
@@ -17922,23 +17888,28 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		
 		if(blockades.size()<2) {
 			out.println("Blockade movement test failed.  Allied blockade did not coexist.");
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 		if(blockades.get(0).getAu().get(0).getSize()!=15||blockades.get(1).getAu().get(0).getSize()!=15) {
 			out.println("Blockade movement test failed.  The blockades do not have the correct number of troops.  Both should have 15, but blockade 1 had "
 					+blockades.get(0).getAu().get(0).getSize()+" and blockade 2 had "+blockades.get(1).getAu().get(0).getSize());
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 
 		if(!tests[0].getPs().b.recall(new int[] {15}, testTowns[1].getTownID(), tests[1].ID, testTowns[0].getTownID())) {
 			out.println("Blockade movement test failed.  Could not recall remaining units from the first blockade.");
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 		if(testTowns[1].getBlockades().size()>1) {
 			out.println("Blockade movement test failed.  Recalling all troops did not remove the blockade from the second town's Attack Server.");
+			p.deleteFakePlayers(tests);
 			return false;
 		}
 		
+		p.deleteFakePlayers(tests);
 		return true;
 	}
 
@@ -17951,6 +17922,60 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 	 * @return True if test sucessful.  False otherwise.
 	 */
 	public boolean blockadeCombatTest(HttpServletRequest req, PrintWriter out, Player p) {
+		
+		Player[] tests = p.generateFakePlayers(3, 1, 0, 0);
+		Town[] towns = new Town[tests.length];
+		for(int i=0;i<towns.length;i++) {
+			towns[i] = tests[i].towns().get(0);
+			ArrayList<AttackUnit> au = new ArrayList<AttackUnit>();
+			au.add(new AttackUnit("Pillager",0,0));
+			au.get(0).setSize(30);
+			towns[i].setAu(au);
+			tests[i].setAu(au);
+			towns[i].addBuilding("Command Center",0,0,0);
+		}
+		
+		tests[0].getPs().b.attack(towns[0].getTownID(), towns[1].getX(), towns[1].getY(), new int[] {10}, "blockade", new String[] {}, "", true);
+		
+		ArrayList<Raid> AS = towns[0].attackServer();
+		for(Raid r : AS) {
+			if(r.getSupport()==3)	{
+				r.setTicksToHit(0);
+				break;
+			}
+		}
+		attackServerCheck(towns[0],tests[0]);
+		
+		if(!tests[1].getPs().b.attack(towns[1].getTownID(), towns[0].getX(), towns[0].getY(), new int[] {5}, "attack", new String[] {}, "", true)) {
+			out.println("Blockade combat test failed.  The attack from town 2 could not be sent and the error was " + tests[1].getPs().b.getError());
+			p.deleteFakePlayers(tests);
+			return false;
+		}
+		
+		if(towns[1].getBlockades().get(0).getAu().get(0).getSize()==10) {
+			out.println("Blockade combat test failed.  The outgoing attack from town 2 did not cause combat to take place.");
+			p.deleteFakePlayers(tests);
+			return false;
+		}
+
+		tests[2].getPs().b.attack(towns[2].getTownID(), towns[1].getX(), towns[1].getY(), new int[] {30}, "blockade", new String[] {}, "", true);
+
+		AS = towns[2].attackServer();
+		for(Raid r : AS) {
+			if(r.getSupport()==3)	{
+				r.setTicksToHit(0);
+				break;
+			}
+		}
+		attackServerCheck(towns[2],tests[2]);
+		
+		if(towns[1].getBlockades().size()>1) {
+			out.println("Blockade combat test failed.  The hostile blockade did not initiate combat until the existing blockade was destroyed.");
+			p.deleteFakePlayers(tests);
+			return false;
+		}
+		
+		p.deleteFakePlayers(tests);
 		return true;
 	}
 
@@ -17963,7 +17988,102 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 	 * @return True if test sucessful.  False otherwise.
 	 */
 	public boolean blockadeTradeTest(HttpServletRequest req, PrintWriter out, Player p) {
-		return false;
+
+		Player[] tests = p.generateFakePlayers(5, 1, 0, 0);
+		Town[] towns = new Town[tests.length];
+		for(int i=0;i<towns.length;i++) {
+			towns[i] = tests[i].towns().get(0);
+			ArrayList<AttackUnit> au = new ArrayList<AttackUnit>();
+			au.add(new AttackUnit("Pillager",0,0));
+			au.get(0).setSize(30);
+			towns[i].setAu(au);
+			tests[i].setAu(au);
+		}
+		
+		towns[1].setRes(new long[] {500,500,500,500});
+		
+		
+		tests[0].setLord(tests[4]);
+		tests[3].setLord(tests[4]);
+		
+		tests[0].getPs().b.attack(towns[0].getTownID(), towns[1].getX(), towns[1].getY(), new int[] {10}, "blockade", new String[] {}, "", true);
+		
+		if(tests[1].getPs().b.setUpTradeSchedule(towns[1].getTownID(), towns[2].getTownID(), 100, 0, 0, 0, 60, 1)) {
+			out.println("Blockade trade test failed.  The blockaded town could trade to non-blockading players.  The error was "+tests[1].getPs().b.getError());
+			p.deleteFakePlayers(tests);
+			return false;
+		}
+
+		if(!tests[1].getPs().b.setUpTradeSchedule(towns[1].getTownID(), towns[0].getTownID(), 0, 100, 0, 0, 60, 1)) {
+			out.println("Blockade trade test failed.  The blockaded town could not trade to the blockading player's town.  The error was "+tests[1].getPs().b.getError());
+			p.deleteFakePlayers(tests);
+			return false;
+		}
+
+		if(!tests[1].getPs().b.setUpTradeSchedule(towns[1].getTownID(), towns[3].getTownID(), 0, 0, 100, 0, 60, 1)) {
+			out.println("Blockade trade test failed.  The blockaded town could not trade to the blockading player's allies.  The error was "+tests[1].getPs().b.getError());
+			p.deleteFakePlayers(tests);
+			return false;
+		}
+		
+		if(!tests[1].getPs().b.setUpTradeSchedule(towns[1].getTownID(), 100, 0, 0, 0, 0, 100, 0, 0, 60, 1)) {
+			out.println("Blockade trade test failed.  The blockaded town could not create the first open two way trade.  The error was "+tests[1].getPs().b.getError());
+			p.deleteFakePlayers(tests);
+			return false;
+		}
+		
+		UserTradeSchedule[] TS = tests[0].getPs().b.getOpenTwoWays(towns[0].getTownID());
+		UserTradeSchedule uts = null;
+		boolean found = false;
+		for(UserTradeSchedule ts : TS) {
+			if(ts.getTID1()==towns[1].getTownID()){
+				found = true;
+				uts = ts;
+				break;
+			}
+		}
+		if(!found) {
+			out.println("Blockade trade test failed.  The blockading town could not see open two way trades from the blockaded town.");
+			p.deleteFakePlayers(tests);
+			return false;
+		}
+		
+		TS = tests[2].getPs().b.getOpenTwoWays(towns[2].getTownID());
+		found = false;
+		for(UserTradeSchedule ts : TS) {
+			if(ts.getTID1()==towns[1].getTownID()){
+				found = true;
+				break;
+			}
+		}
+		if(found) {
+			out.println("Blockade trade test failed.  Town of non allied player can see blockaded town's open two ways.");
+			p.deleteFakePlayers(tests);
+			return false;
+		}
+		
+		TS = tests[3].getPs().b.getOpenTwoWays(towns[3].getTownID());
+		found = false;
+		for(UserTradeSchedule ts : TS) {
+			if(ts.getTID1()==towns[1].getTownID()){
+				found = true;
+				break;
+			}
+		}
+		if(!found) {
+			out.println("Blockade trade test failed.  Town of allied player can't see blockaded town's open two ways.");
+			p.deleteFakePlayers(tests);
+			return false;
+		}
+		
+		if(tests[2].getPs().b.acceptTradeSchedule(uts.getId(), towns[2].getTownID())) {
+			out.println("Blockade trade test failed.  Town of non allied player can accept open two ways from blockaded town.");
+			p.deleteFakePlayers(tests);
+			return false;
+		}
+
+		p.deleteFakePlayers(tests);
+		return true;
 	}
 }
 

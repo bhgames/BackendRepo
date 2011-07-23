@@ -1,10 +1,10 @@
 package BHEngine;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
+//import java.sql.Connection;
+//import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+//import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -14,57 +14,38 @@ public class Building {
 	// Just a note up here that we generally use totalEngineers+1 instead of totalEngineers
 	// because taking the log of zero is not fun for anybody.
 	private UUID id;
-	private int ticksToFinishTotal=0;
-	private ArrayList<QueueItem> Queue;
-	private long cap;
-	private boolean mineBldg;
-	private int refuelTicks;
-	private boolean nukeMode;
-	private int fortArray[];
+	private int lvl,
+				refuelTicks,
+				ticksLeft,
+				ticksToFinish,
+				numLeftToBuild,
+				bunkerMode,
+				lvlUps,
+				peopleInside,
+				lotNum,
+				ticksToFinishTotal=0,
+				ticksPerPerson=0;
+	private int[] fortArray;
+	//private long cap;
+	private boolean //mineBldg,
+					nukeMode,
+					deconstruct;
 	private String type;
-	private int lvl;
-	private boolean deconstruct;
-	private int ticksLeft,ticksToFinish,numLeftToBuild,bunkerMode,lvlUps;
-	private int peopleInside,lotNum;
-private GodGenerator God; private UberConnection con;
-//public	int ticksPerUnit[] = new int[6]; // for combat units ONLY.
-//public	int ticksLeftPerUnit[] = new int[6]; // for combat units ONLY.
+	private ArrayList<QueueItem> Queue;
+	private GodGenerator God; 
+	private UberConnection con;
+	//public int ticksPerUnit[] = new int[6]; // for combat units ONLY.
+	//public int ticksLeftPerUnit[] = new int[6]; // for combat units ONLY.
 
-private int ticksPerPerson=0;
-public static int resourceAmt = 600; // increase this to get an increase in
+	public static int resourceAmt = 600, // increase this to get an increase in
 // warehouse size per level, currently the amt of the building
 // but this roughly equals six hours of production at the mine level = warehouse lvl.
 // then level ups cannot happen anymore.
-public static int baseResourceAmt = 2000;
+					  baseResourceAmt = 2000;
 // This is the amount of resources that you can hold without any warehouses at all,
 // it's a systemwide attribute!
 	
 	
-	public boolean resetBunkerMode(int newMode) {
-		if(getType().equals("Bunker")&&newMode<3&&newMode>=0) setBunkerMode(newMode);
-		else return false;
-		return true;
-	}
-	
-
-	
-	
-	public Building returnCopy() {
-		return new Building(id,God);
-	}
-	
-	public void setBuildingValues(String type, int lotNum, int bldglvl, int ticksToFinish, int people, int pplbldging, int ticksLeft, int lvlUps, boolean deconstruct, UUID id, int refuelTicks,boolean nukeMode,int bunkerMode, String fortArrayStr) {
-		setLvl(bldglvl); this.ticksToFinish=ticksToFinish; peopleInside = people; numLeftToBuild = pplbldging;
-		this.nukeMode=nukeMode;
-		this.id=id;
-		this.ticksLeft = ticksLeft;
-		this.lvlUps=lvlUps;this.deconstruct=deconstruct;
-		this.lotNum = lotNum;
-		this.refuelTicks=refuelTicks;
-		this.bunkerMode=bunkerMode;
-		this.type=type;
-		setFortArray(PlayerScript.decodeStringIntoIntArray(fortArrayStr));
-	}
 	public Building(UUID id,GodGenerator God) {
 		
 		this.id=id;
@@ -354,6 +335,30 @@ public static int baseResourceAmt = 2000;
 		if(mineBldg) cap=(int) Math.ceil(resourceAmt*Math.exp(lvl+1));
 		else cap = (int) Math.ceil(Math.sqrt(2*Math.exp(lvl)));
 	}*/
+
+	public boolean resetBunkerMode(int newMode) {
+		if(getType().equals("Bunker")&&newMode<3&&newMode>=0) setBunkerMode(newMode);
+		else return false;
+		return true;
+	}
+	
+	
+	public Building returnCopy() {
+		return new Building(id,God);
+	}
+	
+	public void setBuildingValues(String type, int lotNum, int bldglvl, int ticksToFinish, int people, int pplbldging, int ticksLeft, int lvlUps, boolean deconstruct, UUID id, int refuelTicks,boolean nukeMode,int bunkerMode, String fortArrayStr) {
+		setLvl(bldglvl); this.ticksToFinish=ticksToFinish; peopleInside = people; numLeftToBuild = pplbldging;
+		this.nukeMode=nukeMode;
+		this.id=id;
+		this.ticksLeft = ticksLeft;
+		this.lvlUps=lvlUps;this.deconstruct=deconstruct;
+		this.lotNum = lotNum;
+		this.refuelTicks=refuelTicks;
+		this.bunkerMode=bunkerMode;
+		this.type=type;
+		setFortArray(PlayerScript.decodeStringIntoIntArray(fortArrayStr));
+	}
 	
 	public void addUnit(int number) {
 		/*
@@ -387,7 +392,7 @@ public static int baseResourceAmt = 2000;
 	public void modifyPeopleTicks(int totalEngineers, double cloudFactor, int engTech) {
 		//CONNECTED TO GET TICKS PER PERSON
 		// I honestly don't care about the current person left. ticksPerPerson can just be modified and then the next guy up will work do that shit.
-		int ppl=0,lvl=0;
+		//int ppl=0,lvl=0;
 /*
 		try {
 			UberStatement stmt = God.con.createStatement();
@@ -533,7 +538,7 @@ public static int baseResourceAmt = 2000;
 		    	  if(a.getSlot()==index) break;
 		    	  i++;
 		      }
-		int originalAUAmt = t.getPlayer().God.getTotalSize(a,t.getPlayer());
+		int originalAUAmt = GodGenerator.getTotalSize(a,t.getPlayer());
 		int totalNumber=number;
 		try {
 		
@@ -621,38 +626,35 @@ public static int baseResourceAmt = 2000;
 	
 	synchronized public void save() {
 		try {
-		 String  update ="";
-		 UberPreparedStatement stmt = con.createStatement("update bldg set name = ?, lvl = ?, lvling = ?, ppl = ?, pplbuild = ?, pplticks = ?, fortArray = ?, lvlUp = ?, deconstruct = ?, bunkerMode = ?, refuelTicks = ?, nukeMode = ? where id = ?;");
- 		stmt.setString(1,type);
- 		stmt.setInt(2,getLvl());
- 		stmt.setInt(3,ticksToFinish);
- 		stmt.setInt(4,peopleInside);
- 		stmt.setInt(5,numLeftToBuild);
- 		stmt.setInt(6,ticksLeft);
- 		stmt.setString(7,PlayerScript.toJSONString(fortArray));
- 		stmt.setInt(8,lvlUps);
- 		stmt.setBoolean(9,deconstruct);
- 		stmt.setInt(10,bunkerMode);
- 		stmt.setInt(11,refuelTicks);
- 		stmt.setBoolean(12,nukeMode);
- 		stmt.setString(13,id.toString());
+			//String  update ="";
+			UberPreparedStatement stmt = con.createStatement("update bldg set name = ?, lvl = ?, lvling = ?, ppl = ?, pplbuild = ?, pplticks = ?, fortArray = ?, lvlUp = ?, deconstruct = ?, bunkerMode = ?, refuelTicks = ?, nukeMode = ? where id = ?;");
+			stmt.setString(1,type);
+			stmt.setInt(2,getLvl());
+			stmt.setInt(3,ticksToFinish);
+			stmt.setInt(4,peopleInside);
+			stmt.setInt(5,numLeftToBuild);
+			stmt.setInt(6,ticksLeft);
+			stmt.setString(7,PlayerScript.toJSONString(fortArray));
+			stmt.setInt(8,lvlUps);
+			stmt.setBoolean(9,deconstruct);
+			stmt.setInt(10,bunkerMode);
+			stmt.setInt(11,refuelTicks);
+			stmt.setBoolean(12,nukeMode);
+			stmt.setString(13,id.toString());
 		 
- 	
- 			  
+			// crap, this is ugly.
  		  
-		
- 		  // crap, this is ugly.
- 		  
- 		  stmt.executeUpdate();
- 		  stmt.close();
- 		  int i = 0;
- 		  ArrayList<QueueItem> Queue = Queue();
- 		  while(i<Queue.size()) {
- 			  Queue.get(i).save();
- 			  i++;
- 		  }
+			stmt.executeUpdate();
+			stmt.close();
+			int i = 0;
+			ArrayList<QueueItem> Queue = Queue();
+			while(i<Queue.size()) {
+				Queue.get(i).save();
+				i++;
+			}
 		} catch(SQLException exc) { exc.printStackTrace(); }
 	}
+	
 	public long getCap() {
 		long cap=0;
 		if(type.equals("Airstrip")) return getAirshipCap(getTicksPerPerson());
@@ -660,6 +662,7 @@ public static int baseResourceAmt = 2000;
 		else cap = (long) Math.ceil(Math.sqrt(6)*(getLvl()+1));
 		return cap;
 	}
+	
 	public long getQueueCap() {
 		// only for military production facilities.
 		int cap = getLvl()*2;
@@ -1142,29 +1145,17 @@ public static int baseResourceAmt = 2000;
 		return ticksPerPerson;
 	}
 
-
-
-
 	public void setTicksPerPerson(int ticksPerPerson) {
 		this.ticksPerPerson = ticksPerPerson;
 	}
-
-
-
-
+/*
 	public void setCap(long cap) {
 		this.cap = cap;
-	}
-
-
-
-
+	}*/
+/*
 	public void setMineBldg(boolean mineBldg) {
 		this.mineBldg = mineBldg;
 	}
-
-
-/*
 
 	public void setMemType(String type) {
 		setString("name",type);
@@ -1387,58 +1378,34 @@ public static int baseResourceAmt = 2000;
 		}
 		return null;
 	}
-
 */
-
-
 	public void setRefuelTicks(int refuelTicks) {
 		this.refuelTicks = refuelTicks;
 	}
-
-
-
 
 	public int getRefuelTicks() {
 		return refuelTicks;
 	}
 
-
-
-
 	public void setNukeMode(boolean nukeMode) {
 		this.nukeMode = nukeMode;
 	}
-
-
-
 
 	public boolean isNukeMode() {
 		return nukeMode;
 	}
 
-
-
-
 	public void setFortArray(int fortArray[]) {
 		this.fortArray = fortArray;
 	}
-
-
-
 
 	public int[] getFortArray() {
 		return fortArray;
 	}
 
-
-
-
 	public void setId(UUID id) {
 		this.id = id;
 	}
-
-
-
 
 	public UUID getId() {
 		return id;

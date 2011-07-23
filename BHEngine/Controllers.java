@@ -2093,7 +2093,6 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 
 			if(p.getSupportstaff()||!p.getSupportstaff()) {
 				if(test.equals("fbPost")) {
-					
 					g.fbPostTest(req,out,p);
 				} else if(test.equals("separatedPoints")) {
 					g.separatedPointsTest(req,out);

@@ -4804,14 +4804,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * excavation,
 	 * blockade
 	 *
-	 * @param yourTownID - ID of the town you're sending from.
-	 * @param enemyx - The x coordinate of the target town.
-	 * @param enemyy - The y coordinate of the target town.
-	 * @param auAmts - The amount of units to send.  Should be of equal in length to your number of AU + any support units you wish to send.
-	 * @param attackType - The type of mission to send.  See above for valid types.
-	 * @param target - An array of building names to target, if bombing.  Ex. {"Command Center","Trade Center"}
-	 * @param name - The name of this mission.  This is purely cosmetic.
-	 * @param send - If true, attack() tries to send the mission.  If false, attack() checks if this mission could be sent.
+	 * @param yourTownID  	ID of the town you're sending from.
+	 * @param enemyx  		The x coordinate of the target town.
+	 * @param enemyy 	 	The y coordinate of the target town.
+	 * @param auAmts  		The amount of units to send.  Should be of equal in length to your number of AU + any support units you wish to send.
+	 * @param attackType	The type of mission to send.  See above for valid types.
+	 * @param target  		An array of building names to target, if bombing.  Ex. {"Command Center","Trade Center"}
+	 * @param name  		The name of this mission.  This is purely cosmetic.
+	 * @param send  		If true, attack() tries to send the mission.  If false, attack() checks if this mission could be sent.
 	 * 
 	 * @return True, if the mission was, or could be sent.  False otherwise.
 	 */
@@ -5233,7 +5233,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 	}
 		/**
-		 * @deprecated
+		 * @deprecated Replaced by {@link #attack(int yourTownID, int enemyx, int enemyy, int[] auAmts, String attackType, String[] target,String name, boolean send)}
 		 */
 	public boolean attack(String yourTownName, int enemyx, int enemyy, int[] auAmts, String attackType, String[] target,String name) {
 		// So if you are part of RQ3-5 or BQ8, you should get through no matter what.
@@ -11791,26 +11791,56 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("You do not have the Trading API!");
 			return false;
 		}
-		int i = 0; TradeSchedule ts=null; Town t = g.findTown(yourTID);
+		int i = 0; TradeSchedule ts=null; Town t = g.findTown(yourTID), t2 = null;
+		ArrayList<Town> towns = g.getTowns();
 		if(!checkMP(yourTID)) return false;
 		if(t.getPlayer().ID!=p.ID) {
 			setError("Not your town!");
 			return false;
 		}
-		while(i<g.getTowns().size()) {
-			ts = g.getTowns().get(i).findTradeSchedule(tsid);
-			if(ts!=null) break;
+		while(i<towns.size()) {
+			Town town = towns.get(i);
+			ts = town.findTradeSchedule(tsid);
+			if(ts!=null) {
+				t2 = town;
+				break;
+			}
 			i++;
 		}
 		if(ts==null) {
 			setError("No such Trade Schedule exists!");
 			return false;
 		}
-		synchronized(ts) {
-			
-			if(ts.getTown2()==null) {
-				ts.completeTradeSetUp(t);
-				return true;
+		ArrayList<Raid> blockadeT = t.getBlockades(), blockadeT2 = t2.getBlockades();
+		boolean canTrade = true;
+		//here we check if the blockading players are allied to the current player
+		if(blockadeT2.size()>0) {
+			canTrade = false;
+			for(Raid r : blockadeT2) {
+				if(r.getTown1().getPlayer().isAllied(p)) {
+					canTrade = true;
+					break;
+				}
+			}
+		}
+		//here we check if the blockading players are allied to the target player
+		//ie the one with the open TS
+		if(blockadeT.size()>0&&canTrade) {
+			canTrade = false;
+			for(Raid r : blockadeT) {
+				if(r.getTown1().getPlayer().isAllied(t2.getPlayer())) {
+					canTrade = true;
+					break;
+				}
+			}
+		}
+		if(canTrade) {
+			synchronized(ts) {
+				
+				if(ts.getTown2()==null) {
+					ts.completeTradeSetUp(t);
+					return true;
+				}
 			}
 		}
 		return false;
@@ -11841,9 +11871,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		while(i<g.getTowns().size()) {
 			t = g.getTowns().get(i);
 			ArrayList<Raid> tBlock = t.getBlockades();
-			boolean canTrade = false;
+			boolean canTrade = true;
 			if(yourTBlock.size()>0) { 	//if your town is blockaded, we have to check if the
-										//player you're trading to,or an ally, is blockading you
+				canTrade = false;		//player you're trading to,or an ally, is blockading you
 				for(Raid r : yourTBlock) {
 					if(r.getTown1().getPlayer().isAllied(t.getPlayer())) {
 						canTrade = true;
@@ -11852,7 +11882,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				}
 			}
 			//but what if they're blockaded too!
-			if(tBlock.size()>0) {
+			if(tBlock.size()>0&&canTrade) {
 				canTrade = false;
 				for(Raid r : tBlock) {
 					if(r.getTown1().getPlayer().isAllied(p)) {
@@ -11866,7 +11896,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				townTses = t.getPlayer().getPs().b.getUserTradeSchedules(t.townID);
 				while(j<townTses.length) {
 					ts = townTses[j];
-					if(ts.getTID2()==0) {
+					if(ts.getTID2()==0&&ts.getTID1()!=tidYouCalledFrom) {
 						ts.setDistance(Math.sqrt(Math.pow(t.getX()-yourT.getX(),2) + Math.pow(t.getY()-yourT.getY(),2)));
 						// THIS MEANS IT'S A TRADE THAT HAS NO PARDNER YET!
 						// now we need to see if it's TS is actually there. Just a check, really.
