@@ -1,7 +1,7 @@
 package BattlehardFunctions;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.Hashtable;
 
 
@@ -11,20 +11,62 @@ public class UserPlayer {
 	
 	public int playedTicks=0;
 	
-	private String username, league, email;
+	private String 	username, 
+					league, 
+					email;
 	
-	private int ID, knowledge, bp, scoutTech, bloodMetalPlating, scholTicksTotal, bodyArmor,
-				revTimer, townTech, architecture, clockworkComputers, constructionResearch, ordinanceResearch = 0,
-				capitaltid=-1, premiumTimer=0, ubTimer=0, mineTimer=0, timberTimer=0,
-				manMatTimer=0, totalBPEarned=0, lord=0, foodTimer=0, feroTimer=0,
-				teslaTech = 0, scholTicks = 0, totalScholars=0,totalPopulation=0,
-				infrastructureTech = 18, structuralIntegrity = 1, firearmResearch = 0; // default value.
+	private int ID, 
+				knowledge, 
+				bp, 
+				scoutTech, 
+				bloodMetalPlating, 
+				scholTicksTotal, 
+				bodyArmor,
+				revTimer, 
+				townTech, 
+				architecture, 
+				clockworkComputers, 
+				constructionResearch, 
+				ordinanceResearch = 0,
+				capitaltid=-1, 
+				premiumTimer=0, 
+				ubTimer=0, 
+				mineTimer=0, 
+				timberTimer=0,
+				manMatTimer=0, 
+				totalBPEarned=0, 
+				lord=0, 
+				foodTimer=0, 
+				feroTimer=0,
+				teslaTech = 0, 
+				scholTicks = 0, 
+				totalScholars=0,
+				totalPopulation=0,
+				infrastructureTech = 18, 
+				structuralIntegrity = 1, 
+				firearmResearch = 0; // default value.
 	
-	private boolean airshipTech, clockworkAugments, attackAPI, advancedAttackAPI, tradingAPI,
-					advancedTradingAPI, smAPI, researchAPI, buildingAPI, advancedBuildingAPI,
-					messagingAPI, zeppelinAPI, completeAnalyticAPI, nukeAPI ,worldMapAPI,
-					digAPI, personalShields, hydraulicAssistors, thrustVectoring,
-					bloodMetalArmor, advancedFortifications=false;
+	private boolean airshipTech, 
+					clockworkAugments, 
+					attackAPI, 
+					advancedAttackAPI, 
+					tradingAPI,
+					advancedTradingAPI, 
+					smAPI, 
+					researchAPI, 
+					buildingAPI, 
+					advancedBuildingAPI,
+					messagingAPI, 
+					zeppelinAPI, 
+					completeAnalyticAPI, 
+					nukeAPI,
+					worldMapAPI,
+					digAPI, 
+					personalShields, 
+					hydraulicAssistors, 
+					thrustVectoring,
+					bloodMetalArmor, 
+					advancedFortifications=false;
 	
 	private UserAttackUnit[] au; // To keep a private player-held list of home aus.
 	private Timestamp vassalFrom;
@@ -35,40 +77,50 @@ public class UserPlayer {
 	private UserTown[] towns;
 	
 	
-	public UserPlayer(int id, int infrastructureTech,
-			int bloodMetalPlating, UserAttackUnit[] au, 
-			boolean thrustVectoring, int knowledge, int constructionResearch,
-			boolean advancedFortifications, int firearmResearch, int architecture, boolean isLeague,
-			boolean hydraulicAssistors, String league,
-			int clockworkComputers, int scholTicks, int scholTicksTotal,
-			int structuralIntegrity,
-			int bodyArmor,
-			boolean personalShields, 
-			int totalPopulation, int totalScholars, int townTech,
-			UserTown[] towns, String username,
-			int capitaltid, int bp, int playedTicks, int premiumTimer,
-			int ubTimer, int mineTimer, int feroTimer, int timberTimer, int manMatTimer, int foodTimer, int revTimer, int totalBPEarned, String email,
-			boolean airshipTech, boolean clockworkAugments, boolean attackAPI, boolean advancedAttackAPI, boolean tradingAPI, boolean advancedTradingAPI,
-			boolean smAPI, boolean researchAPI, boolean buildingAPI, boolean advancedBuildingAPI, boolean messagingAPI,
-			boolean zeppelinAPI, boolean completeAnalyticAPI, boolean nukeAPI, boolean worldMapAPI, boolean digAPI, int scoutTech, boolean bloodMetalArmor, int lord, Timestamp vassalFrom, Hashtable[] vassalHash) {
+	public UserPlayer(int id, int infrastructureTech, int bloodMetalPlating, 
+			UserAttackUnit[] au, boolean thrustVectoring, int knowledge, 
+			int constructionResearch, boolean advancedFortifications, int firearmResearch, 
+			int architecture, boolean isLeague, boolean hydraulicAssistors, String league,
+			int clockworkComputers, int scholTicks, int scholTicksTotal, 
+			int structuralIntegrity, int bodyArmor, boolean personalShields,  
+			int totalPopulation, int totalScholars, int townTech, UserTown[] towns, 
+			String username, int capitaltid, int bp, int playedTicks, int premiumTimer,
+			int ubTimer, int mineTimer, int feroTimer, int timberTimer, int manMatTimer, 
+			int foodTimer, int revTimer, int totalBPEarned, String email, boolean airshipTech,
+			boolean clockworkAugments, boolean attackAPI, boolean advancedAttackAPI, 
+			boolean tradingAPI, boolean advancedTradingAPI, boolean smAPI, 
+			boolean researchAPI, boolean buildingAPI, boolean advancedBuildingAPI, 
+			boolean messagingAPI, boolean zeppelinAPI, boolean completeAnalyticAPI, 
+			boolean nukeAPI, boolean worldMapAPI, boolean digAPI, int scoutTech, 
+			boolean bloodMetalArmor, int lord, Timestamp vassalFrom, Hashtable[] vassalHash) {
 
 		this.bp=bp;
 		this.scoutTech=scoutTech;
 		this.bloodMetalArmor=(bloodMetalArmor);
-		this.timberTimer=timberTimer; this.manMatTimer=manMatTimer; this.foodTimer=foodTimer;
+		this.timberTimer=timberTimer; 
+		this.manMatTimer=manMatTimer; 
+		this.foodTimer=foodTimer;
 		this.playedTicks=playedTicks;
 		this.premiumTimer=premiumTimer;
-		this.attackAPI=attackAPI;this.advancedAttackAPI=advancedAttackAPI;
+		this.attackAPI=attackAPI;
+		this.advancedAttackAPI=advancedAttackAPI;
 		this.vassalHash=vassalHash;
 		this.lord=lord;
 		this.vassalFrom = new Timestamp(vassalFrom.getTime()); // must be copied.
-		this.tradingAPI=tradingAPI;this.advancedTradingAPI=advancedTradingAPI;
-		this.smAPI=smAPI;this.researchAPI=researchAPI;this.buildingAPI=buildingAPI;
-		this.advancedBuildingAPI=advancedBuildingAPI;this.messagingAPI=messagingAPI;
-		this.zeppelinAPI=zeppelinAPI;this.completeAnalyticAPI=completeAnalyticAPI;
+		this.tradingAPI=tradingAPI;
+		this.advancedTradingAPI=advancedTradingAPI;
+		this.smAPI=smAPI;
+		this.researchAPI=researchAPI;
+		this.buildingAPI=buildingAPI;
+		this.advancedBuildingAPI=advancedBuildingAPI;
+		this.messagingAPI=messagingAPI;
+		this.zeppelinAPI=zeppelinAPI;
+		this.completeAnalyticAPI=completeAnalyticAPI;
 		this.nukeAPI=nukeAPI;
 		this.worldMapAPI=worldMapAPI;
-		this.ubTimer=ubTimer; this.mineTimer=mineTimer; this.feroTimer=feroTimer;
+		this.ubTimer=ubTimer; 
+		this.mineTimer=mineTimer; 
+		this.feroTimer=feroTimer;
 		this.revTimer=revTimer;
 		this.airshipTech=airshipTech; 
 		this.clockworkAugments=clockworkAugments;

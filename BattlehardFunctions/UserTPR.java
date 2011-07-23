@@ -10,6 +10,7 @@ public class UserTPR {
 	String player;
 	String league;
 	int type;
+	
 	public UserTPR(String league, int pid, String player, String rank,
 			double taxRate, int[] tids, int tprID, int type) {
 		super();

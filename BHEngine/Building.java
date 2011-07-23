@@ -62,7 +62,7 @@ public class Building {
 		
 					String fortArrayStr = brs.getString(16);
 					
-					  setBuildingValues(brs.getString(1), brs.getInt(2), brs.getInt(3), brs.getInt(4), brs.getInt(5), 
+					setBuildingValues(brs.getString(1), brs.getInt(2), brs.getInt(3), brs.getInt(4), brs.getInt(5), 
 							brs.getInt(6),brs.getInt(7),brs.getInt(9),brs.getBoolean(10),id,brs.getInt(14),brs.getBoolean(15),brs.getInt(12),fortArrayStr);
 					
 					 

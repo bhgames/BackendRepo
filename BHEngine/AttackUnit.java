@@ -8,41 +8,73 @@ import java.util.ArrayList;
 import BattlehardFunctions.UserAttackUnit;
 
 public class AttackUnit {
-private	double armorType, armor, cargo, speed, attackDamage=0, hp = 0;
-
-private int originalSlot, originalTID, type, attackType, slot, lvl, expmod = 0,
-			support=0, 			// for support aus...do not confuse support w/ raid's support,
-								// this let's us know this is a foreign unit.
-								// say which town to put this in as a slot for!
-								// Which slot this unit is stored in.
-			lotNum=-1; 			// For the civilians.
-private boolean deleteMe=false, // these two booleans only used for template aus, which are more common than actual aus I bet.
-				addMe=false, 	// deleteMe removes au and db entry, addMe adds an entry for a new template,
-				editMe=false; 	// edit me makes it so the db entry isn't erased but the object is in place
-								// of a new modified version, which'll take up updating the entry afterwards.
-
-private Player originalPlayer; 	// Reference to original player if in slot so that I can easily access it.
-volatile private int size; 		// Optional, can be set if you want AttackUnit to store the number
-								// of this type in a raid/attack. This class can also be used to simply
-								// describe a general unit type also.
-private	String name, civType = "None";
-public static int soldierHP=100,tankHP=500,juggerHP=1000,bomberHP=4000,civilianHP=75,
-soldierExpMod=1,tankExpMod=10,juggerExpMod=40,bomberExpMod=20,civilianExpMod=1, soldierPop=1,
-tankPop=5,juggerPop=10,bomberPop=20,civilianPop=1,soldierPoints=400,tankPoints=800,juggerPoints=1600,bomberPoints=200,
-tier1=100,tier2=200,tier3=400,tier4=100;
-
-
-public int getLvl() {
-	return lvl;
-}public void setLvl(int lvl) {
-	this.lvl=lvl;
-}
-/**
- * Returns the modifier to the damage dealt based on this unit's armor type and the other unit's damage type.
- * Returns 1.25, for instance, if you want 25% more damage.
- * @param a
- * @return
- */
+	private	double 	armorType, 
+				 	armor, 
+				 	cargo, 
+				 	speed, 
+				 	attackDamage=0, 
+				 	hp = 0;
+	
+	private int originalSlot, 
+				originalTID, 
+				type, 
+				attackType, 
+				slot, 
+				lvl, 
+				expmod = 0,
+				support=0, 			// for support aus...do not confuse support w/ raid's support,
+									// this let's us know this is a foreign unit.
+									// say which town to put this in as a slot for!
+									// Which slot this unit is stored in.
+				lotNum=-1; 			// For the civilians.
+	private boolean deleteMe=false, // these two booleans only used for template aus, which are more common than actual aus I bet.
+					addMe=false, 	// deleteMe removes au and db entry, addMe adds an entry for a new template,
+					editMe=false; 	// edit me makes it so the db entry isn't erased but the object is in place
+									// of a new modified version, which'll take up updating the entry afterwards.
+	
+	private Player originalPlayer; 	// Reference to original player if in slot so that I can easily access it.
+	volatile private int size; 		// Optional, can be set if you want AttackUnit to store the number
+									// of this type in a raid/attack. This class can also be used to simply
+									// describe a general unit type also.
+	private	String 	name, 
+					civType = "None";
+	
+	public static int soldierHP=100,
+					  tankHP=500,
+					  juggerHP=1000,
+					  bomberHP=4000,
+					  civilianHP=75,
+					  soldierExpMod=1,
+					  tankExpMod=10,
+					  juggerExpMod=40,
+					  bomberExpMod=20,
+					  civilianExpMod=1, 
+					  soldierPop=1,
+					  tankPop=5,
+					  juggerPop=10,
+					  bomberPop=20,
+					  civilianPop=1,
+					  soldierPoints=400,
+					  tankPoints=800,
+					  juggerPoints=1600,
+					  bomberPoints=200,
+					  tier1=100,
+					  tier2=200,
+					  tier3=400,
+					  tier4=100;
+	
+	
+	public int getLvl() {
+		return lvl;
+	}public void setLvl(int lvl) {
+		this.lvl=lvl;
+	}
+	/**
+	 * Returns the modifier to the damage dealt based on this unit's armor type and the other unit's damage type.
+	 * Returns 1.25, for instance, if you want 25% more damage.
+	 * @param a
+	 * @return
+	 */
 	public double getArmorModifier(AttackUnit a, Player asP, Player myP) {
 		
 		/*

@@ -35,39 +35,101 @@ public class Player  {
 	UberConnection con;
 	
 	//Private Variables
-	private int bodyArmor,teslaTech,ordinanceResearch,scholTicks,scholTicksTotal,capitaltid,
-				infrastructureTech,firearmResearch,knowledge,architecture,scoutTech,clockworkComputers,
-				constructionResearch,structuralIntegrity,bloodMetalPlating,totalScholars,totalPopulation,
-				townTech=1,buildingCheckMax=360, buildingCheckTimer=360, internalClock=0, 
-				lordInternalClock=0, premiumTimer=0, revTimer=0, tPushes=0, ubTimer=0, mineTimer=0, 
-				feroTimer=0, timberTimer=0, mmTimer=0, fTimer=0, totalBPEarned=0, bp=0;
+	private int bodyArmor,
+				teslaTech,
+				ordinanceResearch,
+				scholTicks,
+				scholTicksTotal,
+				capitaltid,
+				infrastructureTech,
+				firearmResearch,
+				knowledge,
+				architecture,
+				scoutTech,
+				clockworkComputers,
+				constructionResearch,
+				structuralIntegrity,
+				bloodMetalPlating,
+				totalScholars,
+				totalPopulation,
+				townTech=1,
+				buildingCheckMax=360, 
+				buildingCheckTimer=360, 
+				internalClock=0, 
+				lordInternalClock=0, 
+				premiumTimer=0, 
+				revTimer=0, 
+				tPushes=0, 
+				ubTimer=0, 
+				mineTimer=0, 
+				feroTimer=0, 
+				timberTimer=0, 
+				mmTimer=0, 
+				fTimer=0, 
+				totalBPEarned=0, 
+				bp=0;
 	
 	private long fuid;
 	private long[] secondaryResBuff;
 	private double taxRate;
-	private boolean attackAPI, advancedAttackAPI, tradingAPI,advancedTradingAPI,smAPI,researchAPI,
-					buildingAPI,advancedBuildingAPI,messagingAPI,zeppelinAPI,completeAnalyticAPI,
-					nukeAPI,worldMapAPI,digAPI,airshipTech,clockworkAugments,supportstaff,
-					personalShields,hydraulicAssistors,thrustVectoring,advancedFortifications,
-					bloodMetalArmor, voluntaryVassal,isQuest=false, isLeague=false, beingDeleted=false,
-					facsimile=false, synchronize = false, fake = false;
+	private boolean attackAPI, 
+					advancedAttackAPI, 
+					tradingAPI,
+					advancedTradingAPI,
+					smAPI,
+					researchAPI,
+					buildingAPI,
+					advancedBuildingAPI,
+					messagingAPI,
+					zeppelinAPI,
+					completeAnalyticAPI,
+					nukeAPI,
+					worldMapAPI,
+					digAPI,
+					airshipTech,
+					clockworkAugments,
+					supportstaff,
+					personalShields,
+					hydraulicAssistors,
+					thrustVectoring,
+					advancedFortifications,
+					bloodMetalArmor, 
+					voluntaryVassal,
+					isQuest=false, 
+					isLeague=false, 
+					beingDeleted=false,
+					facsimile=false, 
+					synchronize = false, 
+					fake = false;
 	
-	private String 	version,username,password,email,holdingIteratorID="-1",pushLog="", 
+	private String 	version,
+					username,
+					password,
+					email,
+					holdingIteratorID="-1",
+					pushLog="", 
 					holdingLordIteratorID = "-1";
 	
 	private Timestamp vassalFrom;
 	private Hashtable<String, ArrayList<QuestListener>> eventListenerLists = new Hashtable<String, ArrayList<QuestListener>>();
 	private Player lord;
-	private ArrayList<Hashtable> achievements, territories=new ArrayList<Hashtable>(); 
+	private ArrayList<Hashtable> achievements, 
+								 territories=new ArrayList<Hashtable>(); 
 	private ArrayList<QuestListener> activeQuests;
 	private ArrayList<AttackUnit> au;
 	private ArrayList<Town> towns;
 	private League league=null;
 
 		//Public Variables
-	public int ID, last_auto_blast, iterTicks = 0, playedTicks=0, numLogins=0, owedTicks =0;
+	public int 	ID, 
+				last_auto_blast, 
+				iterTicks = 0, 
+				playedTicks=0, 
+				numLogins=0, 
+				owedTicks =0;
 	public long totalTimePlayed = 0;
-	public Timestamp last_session, last_login;
+	public Timestamp last_session, 
+					 last_login;
 	public String flicker="noflick";
 	public GodGenerator God;
 	public ArrayList<UserSR> currSRs;
