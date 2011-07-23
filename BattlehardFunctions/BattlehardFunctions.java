@@ -1659,7 +1659,7 @@ public class BattlehardFunctions {
 		/**
 		 * UI Implemented.
 		 * Sets up a two way trade schedule and sends out the invite automatically to the other player. intervaltime is in seconds and
-		 * is how long the system will wait before making the next trad, timesToDo is how many
+		 * is how long the system will wait before making the next trade, timesToDo is how many
 		 * times you wish to have the trade executed, and tid1 and tid2 is your town ID and the player
 		 * you wish to trade with's town ID, respectively.
 		 */
@@ -1690,12 +1690,6 @@ public class BattlehardFunctions {
 		if(intervaltime<1||(timesToDo<1&&timesToDo!=-1)) {
 			// so if timesToDo!=-1 and is less than one, is an illegal time.
 			setError("Illegal interval time or timesToDo amount.");
-			return false;
-		}
-
-		//make sure we're not blockaded
-		if(t1.getBlockades().size()>0) {
-			setError("Town blockaded.");
 			return false;
 		}
 
@@ -1810,10 +1804,22 @@ public class BattlehardFunctions {
 			return false;
 		}
 
-		//make sure neather town is blockaded
-		if(t1.getBlockades().size()>0||t2.getBlockades().size()>0) {
-			setError("One or both towns blockaded.");
-			return false;
+		//make sure neather town is blockaded by a hostile force
+		if(t1.getBlockades().size()>0) {
+			for(Raid r : t1.getBlockades()) {
+				if(!r.getTown1().getPlayer().isAllied(t2.getPlayer())) {
+					setError("Your town is blockaded by a hostile force.");
+					return false;
+				}
+			}
+		}
+		if(t2.getBlockades().size()>0) {
+			for(Raid r : t1.getBlockades()) {
+				if(!r.getTown1().getPlayer().isAllied(p)) {
+					setError("Target town is blockaded by a hostile force.");
+					return false;
+				}
+			}
 		}
 		
 		// just checking numbers.
@@ -1821,22 +1827,10 @@ public class BattlehardFunctions {
 		i = 0;
 		int t1Slots=0;
 		// do they both have trade centers?
-	/*	try {
-			UberStatement stmt = g.con.createStatement();
-			ResultSet rs = stmt.executeQuery("select sum(lvl) from bldg where tid = " + tid1 + " and name = 'Trade Center';");
-			if(rs.next()) t1Slots=rs.getInt(1);
-			
-			rs.close();
-			rs = stmt.executeQuery("select count(*) from tradeschedule where tid1 = " + tid1 + " and finished = false;");
-			if(rs.next()) t1Slots -= rs.getInt(1);
-			rs.close();
-			stmt.close();
-		} catch(SQLException exc) { exc.printStackTrace(); } */
-		boolean keep=false;
-		if(prog) keep=true;
+		boolean keep=!!prog;
 		prog=false;
 		UserBuilding b[] = getUserBuildings(tid1,"Trade Center");
-		if(keep) prog=true;
+		prog=!!keep;
 		while(i<b.length) {
 			t1Slots+=b[i].getLvl();
 			i++;
@@ -1854,10 +1848,9 @@ public class BattlehardFunctions {
 		// it's a one way-er then it doesn't really matter so much!
 		//	public boolean sendMessage(int pid_to, int pid_from, String body, String subject, int msg_type) {
 
+		@SuppressWarnings("unused")
 		TradeSchedule ts = new TradeSchedule(t1,  t2,  m,  t,  mm,  f,  0, 0,  0,  0,  intervaltime, timesToDo,  twoway,null);
 	
-		
-		
 		return true;
 		
 		
@@ -4786,363 +4779,43 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	public double getGameClockFactor() {
 		return GodGenerator.gameClockFactor;
 	}
+	
 	/**
-<<<<<<< HEAD
-	 * @deprecated
-=======
 	 * UI Implemented.
->>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
-	 * Returns true if you can send an attack with the auAmts specified, attackType chosen, and bomb target designated(ignored
-	 * if not a bombing run). auAmts is an array of integers of size six (or greater if you have support units, just
-	 * add the number of different support units there) and each entry represents the amount of that unit you wish sent.
+	 * Sends a mission, or checks if a mission could be sent with the auAmts specified, attackType chosen, and bomb target designated(ignored if not a bombing run).
 	 * 
-	 * valid attacktypes:
-	 * attack
-	 * siege
-	 * glass
-	 * strafe
-	 * invasion
-	 * scout
-	 * offsupport
-	 * support
-	 * debris
-	 * dig(this type can only be sent if you also have the dig api!)
-
-		 For the target string array, just send in an array of building names, like {"Command Center", "Storage Yard"},
-		 and your bombing mission will focus on buildings of that type.
-	 */
-	public boolean canSendAttack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target, String name) {
-		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")&&!QuestListener.partOfQuest(p,"BQ8")) {
-			setError("You do not have the Attack API!");
-			return false;
-		}
-		Town t = g.findTown(yourTownID);
-		if(t.getPlayer().ID!=p.ID) return false;
-		return canSendAttack(t.getTownName(),  enemyx,  enemyy,  auAmts,  attackType,  target,  name);
-		
-	}
-	
-		/**
-		 * @deprecated
-		 * UI Implemented.
-		 * Returns true if you can send an attack with the auAmts specified, attackType chosen, and bomb target designated(ignored
-		 * if not a bombing run). auAmts is an array of integers of size six (or greater if you have support units, just
-		 * add the number of different support units there) and each entry represents the amount of that unit you wish sent.
-		
-		 * valid attacktypes:
-		 * attack
-		 * siege
-		 * glass
-		 * strafe
-		 * invasion
-		 * scout
-		 * offsupport
-		 * support
-		 * debris
-		 * dig(this type can only be sent if you also have the dig api!)
-		 * 
-		 For the target string array, just send in an array of building names, like {"Command Center", "Storage Yard"},
-		 and your bombing mission will focus on buildings of that type.
-			 */
-	public boolean canSendAttack(String yourTownName, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
-		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")&&!QuestListener.partOfQuest(p,"BQ8")) {
-			setError("You do not have the Attack API!");
-			return false;
-		}
-		int holdNumbers[] = new int[auAmts.length]; // Should only have six types of unit, therefore
-		// attack method can be easily overloaded by making it so you can do
-		// attack(x,y,unit1,unit2) or add unit 3 on there...
-		int i = 0;
-		while(i<auAmts.length) {
-			holdNumbers[i]=auAmts[i];
-			i++;
-		}
-		// Gotta get the town first.
-		Town t1 = g.findTown(yourTownName,p);
-		if(!checkMP(t1.townID)) return false;
-
-		if(t1.getPlayer().ID!=p.ID) {
-			setError("Not your town!");
-			return false;
-		}
-		
-		if(!t1.slotsFree()) {
-			setError("No slots. Upgrade Command Center!");
-			return false; // no slots, no attacks, bitch.
-		}
-		
-		int x = enemyx;
-		
-		int y = enemyy;
-		int t1x = t1.getX();
-		int t1y = t1.getY();
-
-		int k = 0; // to make sure can only go up to six.
-				
-		 AttackUnit hau; int totalsize=0;
-		boolean zeroes = true; boolean negatives = false;
-		ArrayList<AttackUnit> t1au = t1.getAu(); int limit = holdNumbers.length;
-		if(attackType.equals("excavation")) limit--; // last guy is engineers number.
-		while(k<limit) {
-			
-
-			// Next we need to check if these numbers go over the max units in
-			// the town. If they do, send the max units instead.
-				  hau =t1au.get(k);
-				  if((attackType.equals("dig")||attackType.contains("support")||attackType.equals("excavation"))
-						  &&hau.getSupport()>0&&holdNumbers[k]>0) {
-					  setError("You cannot send other players' support units on supporting, dig, or excavation missions!");
-					  return false;
-				  }
-				if(hau.getSize()<holdNumbers[k]) holdNumbers[k]=hau.getSize();
-				 if(holdNumbers[k]>0) zeroes=false; // needs to be after the size-mod if overflowing.
-				if(holdNumbers[k]<0) negatives = true; // No less than zero crap..
-				 // Simple as cake.
-			//	holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getTrueSpeed(t1.getPlayer()));
-				totalsize+=holdNumbers[k]*hau.getExpmod();
-			
-			k++;
-		}
-	
-		if(zeroes&&((!attackType.equals("dig")&&!attackType.equals("excavation"))
-				||(holdNumbers[holdNumbers.length-1]==0&&(attackType.equals("dig")||attackType.equals("excavation"))))) {
-			setError("Can't send an empty raid.");
-			return false; // not sending a raid of nada.
-		}
-		
-		if(negatives) {
-			setError("No such thing as negative units.");
-			return false;
-		}
-		Town Town2 = g.findTown(x,y);
-
-		boolean Genocide = false; boolean Bomb = false; int support = 0; int scout = 0;
-		boolean invade = false;  boolean debris = false; boolean dig = false;
-		if(attackType.equals("invasion")&&t1.isZeppelin()) {
-			setError("You cannot invade with an Airship!");
-			return false;
-		}
-		if(attackType.equals("attack")) { } // alter if UberStatement for offsupporters down below to include
-		// invasion and scouting also!
-		else if(attackType.equals("genocide")||attackType.equals("siege")) Genocide = true; 
-		else if(attackType.equals("debris"))debris =true;
-		else if(attackType.equals("strafe")) { 
-			
-			/*
-				int z = 0; boolean foundBomber=false;
-				while(z<t1au.size()) {
-					hau = t1au.get(z);
-					if(hau.getType()==4&&holdNumbers.length>z&&holdNumbers[z]>0) {
-						foundBomber=true;
-						break;
-					}
-					z++;
-				}
-				if(!foundBomber) {
-					setError("You must send some bombers on a bombing mission type!");
-					return false;
-				}*/
-				Bomb = true; 
-
-		}
-		else if(attackType.equals("glass")) { 
-			int z = 0; boolean foundBomber=false;
-			while(z<t1au.size()) {
-				hau = t1au.get(z);
-				if(hau.getType()==4&&holdNumbers.length>z&&holdNumbers[z]>0) {
-					foundBomber=true;
-					break;
-				}
-				z++;
-			}
-			if(!foundBomber) {
-				setError("You must send some bombers on a bombing mission type!");
-				return false;
-			}
-			Genocide = true; Bomb = true; 
-			
-		}
-		else if(attackType.equals("support")) {support = 1;}
-		else if(attackType.equals("dig")||attackType.equals("excavation")) {support = 1; dig = true;
-			int z=0;
-			UserBuilding b[];
-			if(attackType.equals("excavation"))
-				b= getUserBuildings(t1.townID, "Command Center");
-			else
-			b= getUserBuildings(t1.townID, "Institute");
-			int totalScholars=0;
-			while(z<b.length) {
-				totalScholars+=b[z].getPeopleInside();
-				z++;
-			}
-			int req = GodGenerator.digScholarRequirement;
-			if(attackType.equals("excavation")) req = holdNumbers[holdNumbers.length-1];
-			if(totalScholars<req&&!(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian"))) {
-				if(attackType.equals("excavation"))
-					setError("You do not have enough Engineers!");
-				else
-				setError("You do not have enough Scholars!");
-				return false;
-			}
-			
-		}
-		else if(attackType.equals("offsupport")) { support=2;}
-		else if(attackType.equals("scout")) { scout = 1; }
-		else if(attackType.equals("invasion")&&(p.getTownTech()-p.towns().size())>0) {
-			if(Town2.isResourceOutcropping()) {
-				setError("You cannot invade a Resource Outcropping!");
-				return false;
-			}
-			 int z = 0; int aggregate=0; 
-			 /*
-				try {
-					UberStatement stmt = g.con.createStatement();
-					ResultSet rs = stmt.executeQuery("select sum(lvl) from bldg where tid = " + t1.townID + " and name = 'Command Center';");
-					if(rs.next()) aggregate = rs.getInt(1);
-					rs.close();
-					stmt.close();
-				} catch(SQLException exc) { exc.printStackTrace(); }*/
-
-			 ArrayList<Building> b = t1.bldg();
-							 while(z<b.size()) {
-								 if(b.get(z).getType().equals("Command Center"))
-								 aggregate+=b.get(z).getLvl();
-								 z++;
-							 }
-			 
-				aggregate+=2;
-			 double distance = Math.sqrt((x-t1x)*(x-t1x) + (y-t1y)*(y-t1y));
-			 if(distance>aggregate*3*(1)) {
-				 setError(" You can only invade " + ((aggregate*3)*(1)) + " spaces out. Level up your comms center.");
-
-				 return false;
-			 }
-			 
-			invade = true; }
-		// don't want players invading when townTech <= to town size!
-		else {
-			setError("Invalid attack type.");
-			return false; // if they don't get the code right, screw 'em.
-		}
-		
-		
-
-		if(Town2.townID==0) {
-			setError("Town doesn't exist!");
-			return false;
-		}
-		if(dig&&Town2.getPlayer().ID!=5){
-			setError("You must dig in an Id town!");
-			return false;
-		}
-		if(attackType.equals("excavation")&&!Town2.isResourceOutcropping()) {
-			
-			setError("You can only excavate in a Resource Outcropping!");
-			return false;
-		}
-		if(Town2.getX()==t1.getX()&&Town2.getY()==t1.getY()&&attackType.contains("support")) {
-			// This means zeppelin is directly overhead. 
-			Town possZepp = g.findZeppelin(x,y);
-			if(possZepp.townID!=0) {
-				// this means your zeppelin is just overhead.
-				Town2=possZepp; // You probably mean to support it!
-			}
-		}
-		if(Town2.isZeppelin()&&(attackType.equals("genocide")||attackType.equals("siege")||attackType.equals("strafe")||
-				attackType.equals("invasion")||attackType.equals("glass"))) {
-			setError("You can only attack, support, offsupport, or scout Airships!");
-			return false;
-			
-		}
-		
-		if(!t1.getPlayer().isQuest()&&(t1.getPlayer().getPlayedTicks())>(48*3600/GodGenerator.gameClockFactor)
-				&&(Town2.getPlayer().getPlayedTicks())<(48*3600.0/GodGenerator.gameClockFactor)&&
-				Town2.getPlayer().ID!=5&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=t1.getPlayer().ID&&!debris) {
-			// quests can attack any time...
-			setError("NOOB PROTECTION!");
-			return false;
-			
-		} else if((t1.getPlayer().getPlayedTicks())<(48*3600.0/GodGenerator.gameClockFactor)
-				&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=5&&!debris
-				&&(Town2.getPlayer().getPlayedTicks())>(48*3600/GodGenerator.gameClockFactor)) {
-			
-			// If you are under noob protection and you are attacking a player that is not a quest and not Id,
-			// then you lose your noob protection.
-			
-		//	t1.getPlayer().playedTicks=(int) Math.round(48*3600.0/GodGenerator.gameClockFactor);
-		}
-		if(Town2 == null) {
-			setError("Bad town.");
-			return false;
-		}
-		if(name.contains("'")) {
-			setError("God hates apostrophes.");
-			return false;
-		}
-		
-		k = 0;
-
-		ArrayList<AttackUnit> au = new ArrayList<AttackUnit>();
-		
-		k = 0; AttackUnit addThis; 
-		while(k<limit) { // making sure it satisfies  reqs here is all.
-			// if we combined this loop then units would be lost if later in the loop there was an
-			// error found. If the user only sends his own aus, he won't address supp aus in his array.
-			// so this loop is set up to either goto the holdnumbers max. If
-			// not, then index out of bounds on holdnumbers occurs.
-				 addThis = t1au.get(k).returnCopy();
-				
-				addThis.setSize(holdNumbers[k]);
-	
-				if(addThis.getSupport()>0&&addThis.getOriginalPlayer().ID!=p.ID&&support>0&&addThis.getSize()>0) return false; 
-				// You cannot send another player's unit to another location as
-				// support. See, since support is >0 this is a supporting run, and you can't move other player's supporting
-				// units(foreign aus identified by au.support>0) from their original destination protection place.
-				if(addThis.getSupport()==1&&addThis.getSize()>0){
-					setError("Not an offensive support unit.");
-					return false;
-				}
-				// If this is a support unit, but it's not an offensive one(i.e. support=2), then this
-				// user cannot send it anywhere.
-				if(scout==1&&addThis.getSize()>0&&addThis.getType()!=1) {
-					setError("Can't send non-soldiers on scouting missions.");
-					return false; 
-				}
-			
-			// if this happens to be a scouting mission, and you are sending some of this unit type,
-			// and it is NOT a soldier unit, then please, go away!
-			k++;
-		}
-		
-		return true;
-	}
-	/**
-<<<<<<< HEAD
-	 * @deprecated
-=======
-	 * UI Implemented.
->>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
-	 * Sends an attack with the auAmts specified, attackType chosen, and bomb target designated(ignored
-	 * if not a bombing run). auAmts is an array of integers of size six (or greater if you have support units, just
-	 * add the number of different support units there) and each entry represents the amount of that unit you wish sent.
-	 * 
-	 * valid attacktypes:
-	 * attack
-	 * siege
-	 * glass
-	 * strafe
-	 * invasion
-	 * scout
-	 * offsupport
-	 * support
-	 * debris
-	 * dig
-	 * excavation
+	 * Note: If you attack a city with an Airship above it and that city is an ID city, you will hit the Airship.
+	 * If you hit a player-owned city with an Airship above it, you will hit the city but can kill the Airship above it
+	 * if you wipe all of it's troops out.
 	 *
-		 For the target string array, just send in an array of building names, like {"Command Center", "Storage Yard"},
-		 and your bombing mission will focus on buildings of that type.
+	 * If you aim at an Airship directly, you may not commit Sieges or Glassings on it.
+	 *
+	 * valid attackTypes:
+	 * attack,
+	 * siege,
+	 * glass,
+	 * strafe,
+	 * invasion,
+	 * scout,
+	 * offsupport,
+	 * support,
+	 * debris,
+	 * dig,
+	 * excavation,
+	 * blockade
+	 *
+	 * @param yourTownID - ID of the town you're sending from.
+	 * @param enemyx - The x coordinate of the target town.
+	 * @param enemyy - The y coordinate of the target town.
+	 * @param auAmts - The amount of units to send.  Should be of equal in length to your number of AU + any support units you wish to send.
+	 * @param attackType - The type of mission to send.  See above for valid types.
+	 * @param target - An array of building names to target, if bombing.  Ex. {"Command Center","Trade Center"}
+	 * @param name - The name of this mission.  This is purely cosmetic.
+	 * @param send - If true, attack() tries to send the mission.  If false, attack() checks if this mission could be sent.
+	 * 
+	 * @return True, if the mission was, or could be sent.  False otherwise.
 	 */
-	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
+	public boolean attack(int yourTownID, int enemyx, int enemyy, int[] auAmts, String attackType, String[] target,String name, boolean send) {
 		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")&&!QuestListener.partOfQuest(p,"BQ8")) {
 			setError("You do not have the Attack API!");
 			return false;
@@ -5397,8 +5070,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				Town2p = Town2.getPlayer();
 			}
 		}
-		if(Town2.isZeppelin()&&!(attackType.equals("attack")||attackType.contains("support")||attackType.equals("scout"))) {
-			setError("You can only attack, support, or scout Airships!");
+		if(Town2.isZeppelin()&&!Genocide) {
+			setError("You cannot commit multi round attacks on Airships!");
 			return false;
 			
 		}
@@ -5459,7 +5132,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			// that the attack lineup remains intact. AttackUnits that aren't
 			// mentioned will still send zeroes.
 
-			 addThis = t1au.get(k).returnCopy();
+			addThis = t1au.get(k).returnCopy();
 
 			if(Town2p.ID!=t1p.ID&&support==1) addThis.makeSupportUnit(addThis.getSlot(),t1p,t1.townID);
 			else if(Town2p.ID!=t1p.ID&&support==2) addThis.makeOffSupportUnit(addThis.getSlot(),t1p,t1.townID);
@@ -5467,9 +5140,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			// marked as "foreign."
 			au.add(addThis);
 			if(k<limit) {
-			addThis.setSize(holdNumbers[k]);
-
-			t1.setSize(k,t1au.get(k).getSize() - holdNumbers[k]);
+				addThis.setSize(holdNumbers[k]);
+	
+				t1.setSize(k,t1au.get(k).getSize() - holdNumbers[k]);
 				
 			}
 			
@@ -5512,36 +5185,48 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				Player[] fakes = t1p.generateFakePlayers(1, 1, 0, 0); fakes[0].setAu(AU);
 				Town town = fakes[0].towns().get(0); town.setTownName("Blockade surrounding your town");
 				town.setAu(AU);
-				
-				Raid raid = new Raid(0,0,t1,town,false,false,0,false,"",false,au,digAmt);
-				GodGenerator.combatLogicBlock(raid,"your town is blockaded by a hostile force.");
-				holdAttack.setAu(raid.getAu());
-				holdAttack.setDigAmt(raid.getDigAmt());
-				boolean unitsLeft = holdAttack.getDigAmt()>0;
-				if(!unitsLeft) {
-					for(AttackUnit a : holdAttack.getAu()) {
-						if(a.getSize()>0) {
-							unitsLeft = true;
-							break;
+				boolean unitsLeft;
+				do {
+					Raid raid = new Raid(0,0,t1,town,false,false,0,false,"",false,holdAttack.getAu(),holdAttack.getDigAmt());
+					GodGenerator.combatLogicBlock(raid,"Your town is blockaded by a hostile force.");
+					holdAttack.setAu(raid.getAu());
+					holdAttack.setDigAmt(raid.getDigAmt());
+					unitsLeft = holdAttack.getDigAmt()>0;
+					if(!unitsLeft) {
+						for(AttackUnit a : holdAttack.getAu()) {
+							if(a.getSize()>0) {
+								unitsLeft = true;
+								break;
+							}
 						}
 					}
-				}
+					boolean breakOut = false;
+					if(unitsLeft) {
+						for(AttackUnit a : town.getAu()) {
+							if(a.getSize()>0) {
+								breakOut=true;
+								break;
+							}
+						}
+					}
+					if(breakOut) break;
+				} while(unitsLeft);
+				t1p.deleteFakePlayers(fakes);
+				t1.checkForDeadBlockades();
 				if(!unitsLeft) {
-					
+					return true;
 				}
-				fakes[0].deleteFakePlayers(fakes);
 			}
 			
 			//	public boolean runMethod(String methodName, Object... params) {
 			UserRaid theRaid =getUserRaid(holdAttack.getId());
 			holdAttack.getTown2().getPlayer().getPs().runMethod("onIncomingRaidDetectedCatch",theRaid);
 			ArrayList<QuestListener> list =  p.getEventListenerList("onRaidSent");
-			if(list!=null)
-			for(QuestListener q:list) {
-				q.onRaidSent(holdAttack,prog);
+			if(list!=null) {
+				for(QuestListener q:list) {
+					q.onRaidSent(holdAttack,prog);
+				}
 			}
-			//holdAttack.closeCon();
-			//notifyViewer();
 		}
 		
 		return true;
@@ -5549,37 +5234,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 		/**
 		 * @deprecated
-		 * UI Implemented.
-		 * Sends an attack with the auAmts specified, attackType chosen, and bomb target designated(ignored
-		 * if not a bombing run). auAmts is an array of integers of size six (or greater if you have support units, just
-		 * add the number of different support units there) and each entry represents the amount of that unit you wish sent.
-		 *
-		 *Note: If you attack a city with an Airship above it and that city is an ID city, you will hit the Airship.
-		 *If you hit a player-owned city with an Airship above it, you will hit the city but can kill the Airship above it
-		 *if you wipe all of it's troops out.
-		 *
-		 *If you aim at an Airship directly, you may not commit Sieges, Glassings, or Strafes on it.
-		 *
-		 *BLIMPIE DON'T TAKE NO PRISONERS!
-		 *
-		 * valid attacktypes:
-		 * attack
-		 * siege
-		 * glass
-		 * strafe
-		 * invasion
-		 * scout
-		 * offsupport
-		 * support
-		 * debris
-		 * dig
-		 * excavation
-		 * 
-		 * 
-		 For the target string array, just send in an array of building names, like {"Command Center", "Storage Yard"},
-		 and your bombing mission will focus on buildings of that type.
-		 * 	 */
-	public boolean attack(String yourTownName, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
+		 */
+	public boolean attack(String yourTownName, int enemyx, int enemyy, int[] auAmts, String attackType, String[] target,String name) {
 		// So if you are part of RQ3-5 or BQ8, you should get through no matter what.
 		// Get through = RQ3 + RQ4 + RQ5 + BQ8. Then not getting through is ! that,
 		// 
@@ -5589,391 +5245,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("You do not have the Attack API!");
 			return false;
 		}
-		pushLog("attack(" +yourTownName+","+enemyx+","+  enemyy +","+  PlayerScript.toJSONString(auAmts) +","+  attackType+","+  PlayerScript.toJSONString(target)+","+ name+");" );
-		int holdNumbers[] = auAmts; // Should only have six types of unit, therefore
-		// attack method can be easily overloaded by making it so you can do
-		// attack(x,y,unit1,unit2) or add unit 3 on there...
 		
 		// Gotta get the town first.
 		Town t1 = g.findTown(yourTownName,p);
-		Player t1p = t1.getPlayer();
-		if(!checkMP(t1.townID)) return false;
-
-		if(t1p.ID!=p.ID) {
-			setError("Not your town!");
-			return false;
-		}
-		if(!t1.slotsFree()) {
-			setError("No slots. Upgrade Command Center!");
-			return false; // no slots, no attacks, bitch.
-		}
 		
-		int x = enemyx;
-		
-		int y = enemyy;
-		int t1x = t1.getX();
-		int t1y = t1.getY();
-
-		int k = 0; // to make sure can only go up to six.
-				
-		AttackUnit hau; int totalsize=0, limit = holdNumbers.length;
-		boolean zeroes = true, negatives = false;
-		ArrayList<AttackUnit> t1au = t1.getAu();
-		if(attackType.equals("excavation")) limit--;
-		while(k<limit) {
-			
-			// Next we need to check if these numbers go over the max units in
-			// the town. If they do, send the max units instead.
-			if(k<t1au.size()) {
-				  hau =t1au.get(k);
-				  if(attackType.equals("dig")||attackType.contains("support")||attackType.equals("excavation")||attackType.equals("blockade")
-						  &&hau.getSupport()>0&&holdNumbers[k]>0) {
-					  setError("You cannot send other players' support units on supporting, dig, excavation, or blockade missions!");
-					  return false;
-				  }
-				if(hau.getSize()<holdNumbers[k]) holdNumbers[k]=hau.getSize();
-				if(holdNumbers[k]>0) zeroes=false; // needs to be after the size-mod if overflowing.
-				if(holdNumbers[k]<0) holdNumbers[k]=0; // No less than zero crap..
-				 // Simple as cake.
-			//	holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getTrueSpeed(t1.getPlayer()));
-				totalsize+=holdNumbers[k]*hau.getExpmod();
-			}
-			
-			k++;
-		}
-		
-		if(zeroes&&(!(attackType.equals("dig")||attackType.equals("excavation"))||holdNumbers[holdNumbers.length-1]==0)) {
-			setError("Can't send an empty raid.");
-			return false; // not sending a raid of nada.
-		}
-		/*if(negatives) {
-			setError("No such thing as negative units.");
-			return false;
-		}*/
-		Town Town2 = g.findTown(x,y); // findTown auto detects the town at the x,y, not the Zeppelin, if there is one.
-
-		boolean Genocide = false, Bomb = false, invade = false, 
-					debris = false, dig=false;
-		int support = 0, scout = 0, digAmt=0;
-		if(attackType.equals("invasion")&&t1.isZeppelin()) {
-			setError("You cannot invade with an Airship!");
-			return false;
-		}
-		if(attackType.equals("attack")) { } // alter if UberStatement for offsupporters down below to include
-		// invasion and scouting also!
-		else if(attackType.equals("genocide")||attackType.equals("siege")) Genocide = true; 
-		else if(attackType.equals("debris")) debris = true;
-		else if(attackType.equals("strafe")) {	
-			Bomb = true;
-		}
-		else if(attackType.equals("glass")) {
-			Bomb = true;
-			Genocide = true;
-		}
-		else if(attackType.equals("support")) {support = 1;}
-		else if(attackType.equals("offsupport")) {support=2;}
-		else if(attackType.equals("blockade")) {support = 3;}
-		else if(attackType.equals("dig")||attackType.equals("excavation")) {
-			if(prog&&!p.isdigAPI()) {
-				setError("You need the Dig API in order to use this!");
-				return false;
-			}
-			if(t1.getBlockades().size()>0) {
-				boolean hasOff = false;
-				for(int i = 0;i<holdNumbers.length-1;i++) {
-					if(holdNumbers[i]>0) {
-						hasOff = true;
-						break;
-					}
-				}
-				if(!hasOff) {
-					setError("Town blockaded.");
-					return false;
-				}
-			}
-			
-			support = 1; dig=true;
-			int z=0;UserBuilding b[];
-			if(attackType.equals("excavation"))
-				b = getUserBuildings(t1.townID, "Command Center");
-			else	
-				b = getUserBuildings(t1.townID, "Institute");
-			int totalScholars=0;
-			while(z<b.length) {
-				totalScholars+=b[z].getPeopleInside();
-				z++;
-			}
-			int req = GodGenerator.digScholarRequirement;
-			if(attackType.equals("excavation")) req = holdNumbers[holdNumbers.length-1];
-			if(totalScholars<req&&!(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian"))) {
-				if(attackType.equals("excavation"))
-					setError("You do not have enough Engineers!");
-				else
-					setError("You do not have enough Scholars!");
-				return false;
-			}
-			z=0; Building actb; UserBuilding bl;
-			int digToTake = req;
-			if(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian")) {
-				digToTake=1;
-			}
-			while(z<b.length) {
-				bl = b[z];
-				 actb = t1.findBuilding(bl.getId());
-				if(actb.getPeopleInside()>digToTake-digAmt) {
-					actb.setPeopleInside(actb.getPeopleInside()-(digToTake-digAmt));
-					digAmt+=(digToTake-digAmt);
-				} else {
-					digAmt+=actb.getPeopleInside();
-
-					actb.setPeopleInside(0);
-				}
-				 if(digAmt>=digToTake) break;
-				z++;
-			}
-			
-		}
-		else if(attackType.equals("scout")) { scout = 1; }
-		else if(attackType.equals("invasion")) {
-		
-			if(p.getTownTech()<=p.towns().size()) { // don't want players invading when townTech <= town size!
-				setError("Too many towns.  Level your Town Tech");
-				return false;
-			}
-			
-			if(Town2.isResourceOutcropping()) {
-				setError("You cannot invade a Resource Outcropping!");
-				return false;
-			}
-			
-			int aggregate=0; int z = 0;
-			/*
-				try {
-					UberStatement stmt = g.con.createStatement();
-					ResultSet rs = stmt.executeQuery("select sum(lvl) from bldg where tid = " + t1.townID + " and name = 'Command Center';");
-					if(rs.next()) aggregate = rs.getInt(1);
-					rs.close();
-					stmt.close();
-				} catch(SQLException exc) { exc.printStackTrace(); }
-			*/
-			 ArrayList<Building> b = t1.bldg();
-			 while(z<b.size()) {
-				 Building hb = b.get(z);
-				 if(hb.getType().equals("Command Center")) {
-					aggregate=hb.getLvl()+2;
-					break;
-				 }
-				 z++;
-			 }
-				
-			 double distance = Math.sqrt((x-t1x)*(x-t1x) + (y-t1y)*(y-t1y));
-			 if(distance>aggregate*3*(1)) {
-				 setError(" You can only invade " + ((aggregate*3)*(1)) + " spaces out. Level up your Command Center.");
-
-				 return false;
-			 }
-			 
-			invade = true;
-		
-		}
-		else {
-			setError("Invalid attack type.");
-			return false; // if they don't get the code right, screw 'em.
-		}
-		
-		
-		boolean keep=!!prog;//duplicate prog into keep
-		prog=false;			//set prog to false so we can call getAttackETA
-		int ticksToHit = getAttackETA(t1.townID, enemyx,enemyy,auAmts);
-		prog = !!keep;		//set prog back
-		// The only two cases that matter: You find the town at the x,y, or you'll find a Zeppelin.
-		// If it's a zeppelin, it's easy to deal with, if it's a town, it's easy to deal with.
-		if(Town2.townID==0) {
-			setError("Town doesn't exist!");
-			return false;
-		}
-		
-		Player Town2p = Town2.getPlayer();
-		
-		if(dig&&Town2p.ID!=5) {
-			setError("You can only dig in an Id town!");
-			return false;
-		}
-		if(support==3&&Town2p.ID==5){
-			setError("You cannot blockade Id towns!");
-			return false;
-		}
-		if(attackType.equals("excavation")&&!Town2.isResourceOutcropping()) {
-			
-			setError("You can only excavate in a Resource Outcropping!");
-			return false;
-		}
-		
-
-		if(Town2.getX()==t1.getX()&&Town2.getY()==t1.getY()&&attackType.contains("support")) {
-			// This means zeppelin is directly overhead. 
-			Town possZepp = g.findZeppelin(x,y);
-			if(possZepp.townID!=0) {
-				// this means your zeppelin is just overhead.
-				Town2=possZepp; // You probably mean to support it!
-				Town2p = Town2.getPlayer();
-			}
-		}
-		if(Town2.isZeppelin()&&!(attackType.equals("attack")||attackType.contains("support")||attackType.equals("scout"))) {
-			setError("You can only attack, support, or scout Airships!");
-			return false;
-			
-		}
-		if(!t1p.isQuest()&&!t1p.isNoob()&&Town2p.isNoob()&&Town2p.ID!=5&&!Town2p.isQuest()&&Town2p.ID!=t1p.ID&&!debris) {
-			// quests can attack any time...
-			setError("NOOB PROTECTION!");
-			return false;
-			
-		} else if(t1p.isNoob()&&!Town2p.isQuest()&&Town2p.ID!=5&&!debris&&!Town2p.isNoob()) {
-			
-			// If you are under noob protection and you are attacking a player that is not a quest and not Id and not under noob protection
-			// then you lose your noob protection.
-			
-			t1p.playedTicks=Player.noobDuration;
-		}
-		if(Town2 == null) {
-			setError("Could not find the town!");
-			return false;
-		}
-		if(name.contains("'")) {
-			setError("God hates apostrophes.");
-			return false;
-		}
-		
-		k = 0;
-
-		ArrayList<AttackUnit> au = new ArrayList<AttackUnit>();
-		//System.out.println("Where do I die?");
-		k = 0; AttackUnit addThis;
-		while(k<limit) { // making sure it satisfies  reqs here is all.
-			// if we combined this loop then units would be lost if later in the loop there was an
-			// error found. If the user only sends his own aus, he won't address supp aus in his array.
-			// so this loop is set up to either goto the holdnumbers max. If
-			// not, then index out of bounds on holdnumbers occurs.
-			 addThis = t1au.get(k).returnCopy();
-			
-			addThis.setSize(holdNumbers[k]);
-
-			if(addThis.getSupport()>0&&addThis.getOriginalPlayer().ID!=p.ID&&(support>0||dig)&&addThis.getSize()>0){
-				setError("You cannot send another player's unit to another location as support or in a blockade.");
-				return false; 
-			}
-			// You cannot send another player's unit to another location as
-			// support. See, since support is >0 this is a supporting run, and you can't move other player's supporting
-			// units(foreign aus identified by au.support>0) from their original destination protection place.
-			if(addThis.getSupport()==1&&addThis.getSize()>0){
-				setError("A unit you are sending is not an offensive support unit.");
-				return false;
-			}
-			// If this is a support unit, but it's not an offensive one(i.e. support=2), then this
-			// user cannot send it anywhere.
-			if(scout==1&&addThis.getSize()>0&&addThis.getType()!=1) {
-				setError("You must send soldiers on a scouting mission!");
-				return false; 
-			}
-			// if this happens to be a scouting mission, and you are sending some of this unit type,
-			// and it is NOT a soldier unit, then please, go away!
-			k++;
-		}
-		//System.out.println("Got here1.");
-
-
-		k=0;
-		while(k<t1au.size()) {
-			// by using all au, not just the array of holdNumbers, we insure
-			// that the attack lineup remains intact. AttackUnits that aren't
-			// mentioned will still send zeroes.
-
-			 addThis = t1au.get(k).returnCopy();
-
-			if(Town2p.ID!=t1p.ID&&support==1) addThis.makeSupportUnit(addThis.getSlot(),t1p,t1.townID);
-			else if(Town2p.ID!=t1p.ID&&support==2) addThis.makeOffSupportUnit(addThis.getSlot(),t1p,t1.townID);
-			// so if this is a supporting run, and you aren't sending to your own town, these units get
-			// marked as "foreign."
-			au.add(addThis);
-			if(k<limit) {
-			addThis.setSize(holdNumbers[k]);
-
-			t1.setSize(k,t1au.get(k).getSize() - holdNumbers[k]);
-				
-			}
-			
-			else addThis.setSize(0);
-
-			k++;
-		}
-
-		k=0;
-		Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, Town2, Genocide, Bomb,support,invade,name,debris,au,digAmt); // digAmt may not be the requirement,
-		// but it'll always be zero if dig isn't on!
-		
-		if(scout==1) holdAttack.makeScoutRun(); 
-		else {									// never going to be a bomb+scout run.
-			if(Bomb) holdAttack.setBombTarget(target);
-			else holdAttack.setBombTarget(new String[0]);
-		}
-		
-		ArrayList<Raid> blockades = t1.getBlockades();
-		if(blockades.size()>0){
-			//if we have blockades, it means we have bad guys here
-			//we have to set up a fake town to hold these blockades so that they can be attacked
-			ArrayList<AttackUnit> AU = blockades.get(0).getAu();
-			for(int i = 1;i<blockades.size();i++) {
-				for(AttackUnit a : blockades.get(i).getAu()) {	//first, we have to tally up and
-					boolean found = false;						//colleate all the au so we have
-					for(AttackUnit bu : AU) {					//no copies
-						if(a.getName().equals(bu.getName())) {
-							found = true; 
-							bu.setSize(bu.getSize()+a.getSize());
-						}
-					}
-					if(!found) {
-						AU.add(a);
-					}
-				}
-			}
-			
-			Player[] fakes = t1p.generateFakePlayers(1, 1, 0, 0); fakes[0].setAu(AU);
-			Town town = fakes[0].towns().get(0); town.setTownName("Blockade surrounding your town");
-			town.setAu(AU);
-			
-			Raid raid = new Raid(0,0,t1,town,false,false,0,false,"",false,au,digAmt);
-			GodGenerator.combatLogicBlock(raid,"your town is blockaded by a hostile force.");
-			holdAttack.setAu(raid.getAu());
-			holdAttack.setDigAmt(raid.getDigAmt());
-			boolean unitsLeft = holdAttack.getDigAmt()>0;
-			if(!unitsLeft) {
-				for(AttackUnit a : holdAttack.getAu()) {
-					if(a.getSize()>0) {
-						unitsLeft = true;
-						break;
-					}
-				}
-			}
-			if(!unitsLeft) {
-				
-			}
-			fakes[0].deleteFakePlayers(fakes);
-		}
-		
-		//	public boolean runMethod(String methodName, Object... params) {
-		UserRaid theRaid =getUserRaid(holdAttack.getId());
-		holdAttack.getTown2().getPlayer().getPs().runMethod("onIncomingRaidDetectedCatch",theRaid);
-		ArrayList<QuestListener> list =  p.getEventListenerList("onRaidSent");
-		if(list!=null)
-		for(QuestListener q:list) {
-			q.onRaidSent(holdAttack,prog);
-		}
-		//holdAttack.closeCon();
-		notifyViewer();
-
-		return true;
-		
+		return attack(t1.getTownID(), enemyx, enemyy, auAmts, attackType, target, name, true);
 	}
 	
 	
@@ -6581,24 +5857,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	/**
 	 * UI Implemented.
 	 * This recalls all support units from the town designated by town id, of the player
-	 * designated by pidOfRecallTime, to your town by the town id of destinationTown.
+	 * designated by pidOfRecallTown, to your town by the town id of destinationTown.
 	 */
 	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
-		if(prog&&!p.isAttackAPI()) {
-			setError("You do not have the Attack API!");
-			return false;
-		}
-		int i = 0; boolean found = false;
-		Town yourTown = g.findTown(yourTownID);
-		if(yourTown.getPlayer().ID!=p.ID) { setError("Not your town!"); return false; }
-		Town theirTown = g.findTown(townToRecallFromID);
-		if(theirTown.getPlayer().ID!=pidOfRecallTown) { setError("Not their town!"); return false; }
 		
-		 
-	
-		
-			int auAmts[] = new int[0];
-			return recall(auAmts,townToRecallFromID,pidOfRecallTown,  yourTownID);
+		int auAmts[] = new int[0];
+		return recall(auAmts,townToRecallFromID,pidOfRecallTown,  yourTownID);
 
 	}
 
@@ -6636,181 +5900,209 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 * came from! :OOOO
 		 */
 		
-		 
+		Town myTown = g.findTown(yourTownID);
+		Town t = g.findTown(townToRecallFromID); 
+		if(myTown.getPlayer().ID!=p.ID) { setError("Not your town!"); return false; }
+		int g = 0;
+		if(!checkMP(myTown.townID)) return false;
+
+		Player otherP; ArrayList<AttackUnit> au;
+		if(t.getPlayer().ID!=pidOfRecallTown) { setError("Not their town!"); return false; }
+		ArrayList<Raid> blockades = t.getBlockades();
+		Raid raid = null;
+		for(Raid r : blockades) {
+			if(r.getTown1().getTownID()==yourTownID) {
+				raid = r;
+				break;
+			}
+		}
 		
-		 Town myTown = g.findTown(yourTownID);
-		 Town t = g.findTown(townToRecallFromID); 
-		 if(myTown.getPlayer().ID!=p.ID) { setError("Not your town!"); return false; }
-		 int g = 0;
-			if(!checkMP(myTown.townID)) return false;
-
-		 Player otherP; ArrayList<AttackUnit> au;
-		 if(t.getPlayer().ID!=pidOfRecallTown) { setError("Not their town!"); }
-		 if(t.getDigAmt()>0) {
-			 t.returnDigOrRO(false,false);
-		 } else {
-		 AttackUnit hau; Raid holdAttack;
-		 AttackUnit a;
-		 ArrayList<Raid> t2as;
-		 ArrayList<AttackUnit> asau;
-		int i = 0; boolean found = false;
-			// better than missing one.
-					 g = 0;  au = new ArrayList<AttackUnit>();
-					
-					while(g<p.getAu().size()) { // get an array ready!
-						au.add(p.getAu().get(g).returnCopy());
-						g++;
-					}
-					
-					int k = 0;
-					ArrayList<AttackUnit> t1au = t.getAu();
-					while(k<t1au.size()) {
-					
-						 a = t1au.get(k);
+		if(t.getDigAmt()>0) {
+			t.returnDigOrRO(false,false);
+		} else if(raid!=null) {
+			//if we're recalling a blockade, this is much easier since the units aren't
+			//added to the base town
+			boolean totalRecall = true;
+			au = raid.getAu();
+			for(int i=0;i<auAmts.length;i++) {
+				AttackUnit a = au.get(i);
+				a.setSize(Math.max(a.getSize()-auAmts[i], 0));
+				if(a.getSize()>0) 
+					totalRecall = false;
+			}
+			if(totalRecall) {
+				t.attackServer().remove(raid);
+				raid.setRaidOver(true);
+				raid.setTicksToHit(raid.getTotalTicks());
+			} else {
+				ArrayList<AttackUnit> au2 = new ArrayList<AttackUnit>();
+				for(int i=0;i<au.size();i++) {
+					AttackUnit a = au.get(i).returnCopy();
+					au2.add(i, a);
+					au2.get(i).setSize(auAmts[i]);
+				}
+				Raid holdRaid = new Raid(raid.getDistance(), raid.getTotalTicks(), raid.getTown1(), 
+											raid.getTown2(), false, false, 0, false, raid.getName(), false,
+											au2, 0);
+				holdRaid.setRaidOver(true);
+				//and the rest is handled by the iterators.  :D
+			}
+		} else {
+			AttackUnit hau; Raid holdAttack;
+			AttackUnit a;
+			ArrayList<Raid> t2as;
+			ArrayList<AttackUnit> asau;
+			int i = 0; boolean found = false;
+			//better than missing one.
+			g = 0;  au = new ArrayList<AttackUnit>();
+			
+			while(g<p.getAu().size()) { // get an array ready!
+				au.add(p.getAu().get(g).returnCopy());
+				g++;
+			}
+			
+			int k = 0;
+			ArrayList<AttackUnit> t1au = t.getAu();
+			while(k<t1au.size()) {
+		
+				a = t1au.get(k);
+		
+				if(a.getSupport()>0&&a.getOriginalPlayer().ID==p.ID) {
 				
-						if(a.getSupport()>0&&a.getOriginalPlayer().ID==p.ID) {
-						
-							/*
-							 * Here I remove the units one at a time from the other player's
-							 * data structure, turn them into normal "AUs" and add them to
-							 * an au list to return...but we've got to use their original
-							 * lots and create a completely authentic raid...
-							 * 
-							 * And we remove them from the supportAU table.
-							 * 
-							 * Don't forget to set raidOver = true. This'll let the
-							 * attackServer know what to do.
-							 */
-							
-							
-							/*
-							 * WHY FOUND IS TRUE BELOW:
-							 * if it gets here, most likely, the unit has
-							 * some size to it(otherwise it was called one cycle before
-							 * a player could erase it) and that size must be on raids
-							 * somewhere then and
-							 * so we can set found=true because this means we found the support units
-							 * to return!
-							 */
-							
-							found=true;
-							 // it's original slot num corresponds to the index of it's storage in the au array.
-							if(auAmts.length>0) {
-								if(auAmts[a.getOriginalSlot()]>a.getSize()) auAmts[a.getOriginalSlot()] = a.getSize();
-								
-								else if(auAmts[a.getOriginalSlot()]<0) auAmts[a.getOriginalSlot()]=0;
-								
-								au.get(a.getOriginalSlot()).setSize(auAmts[a.getOriginalSlot()]);
-								t.setSize(k,a.getSize() - auAmts[a.getOriginalSlot()]);
-							} else
-								au.get(a.getOriginalSlot()).setSize(a.getSize());
+				 /*
+				  * Here I remove the units one at a time from the other player's
+				  * data structure, turn them into normal "AUs" and add them to
+				  * an au list to return...but we've got to use their original
+				  * lots and create a completely authentic raid...
+				  * 
+				  * And we remove them from the supportAU table.
+				  * 
+				  * Don't forget to set raidOver = true. This'll let the
+				  * attackServer know what to do.
+				  */
+					
+					
+				 /*
+				  * WHY FOUND IS TRUE BELOW:
+				  * if it gets here, most likely, the unit has
+				  * some size to it(otherwise it was called one cycle before
+				  * a player could erase it) and that size must be on raids
+				  * somewhere then and
+				  * so we can set found=true because this means we found the support units
+				  * to return!
+				  */
+					
+					found=true;
+					// it's original slot num corresponds to the index of it's storage in the au array.
+					if(auAmts.length>0) {
+						if(auAmts[a.getOriginalSlot()]>a.getSize()) auAmts[a.getOriginalSlot()] = a.getSize();
+					
+						else if(auAmts[a.getOriginalSlot()]<0) auAmts[a.getOriginalSlot()]=0;
+					
+						au.get(a.getOriginalSlot()).setSize(auAmts[a.getOriginalSlot()]);
+						t.setSize(k,a.getSize() - auAmts[a.getOriginalSlot()]);
+					} else
+						au.get(a.getOriginalSlot()).setSize(a.getSize());
 
-							 int y = 0;
-							 // go through each raid, find the au, return those units.
-							 // I know some may be far away but this is easiest for
-							 // the computer and for me.
-							 if(auAmts.length==0){ // >0 indicates only a partial recall. No need to do that for that.
-							/*	try {
-									UberStatement stmt = this.g.con.createStatement();
-									ResultSet rs = stmt.executeQuery("select size from raidSupportAU where tidslot = " + a.getSlot() + " and tid = " + t.townID +";");
-									while(rs.next()) {
-										au.get(a.getOriginalSlot()).setSize(au.get(a.getOriginalSlot()).getSize()+rs.getInt(1));
-										
-									}
-									rs.close();
-									stmt.executeUpdate("delete from raidSupportAU where tidslot = " + a.getSlot() + " and tid = " + t.townID +";");
-									stmt.close();
-								} catch(SQLException exc) { exc.printStackTrace(); }*/
-								 // size in this case being the size of all the support units out on raids.
-								 t2as = t.attackServer();
-								 while(y<t2as.size()) {
-									 asau = t2as.get(y).getAu();
-									 int j = 0;
-									 while(j<asau.size()) {
-										 if(asau.get(j).getSupport()>0&&asau.get(j).getOriginalPlayer().ID==p.ID&&asau.get(j).getOriginalSlot()==a.getOriginalSlot()) {
-												au.get(a.getOriginalSlot()).setSize(au.get(a.getOriginalSlot()).getSize()+asau.get(j).getSize());
-												asau.get(j).setSize(0);
-											 
-										 }
-										 j++;
-									 }
-									 y++;
-								 }
-								 
-								 
-							 }
+					int y = 0;
+					// go through each raid, find the au, return those units.
+					// I know some may be far away but this is easiest for
+					// the computer and for me.
+					if(auAmts.length==0){ // >0 indicates only a partial recall. No need to do that for that.
+					 /*	try {
+						UberStatement stmt = this.g.con.createStatement();
+						ResultSet rs = stmt.executeQuery("select size from raidSupportAU where tidslot = " + a.getSlot() + " and tid = " + t.townID +";");
+						while(rs.next()) {
+							au.get(a.getOriginalSlot()).setSize(au.get(a.getOriginalSlot()).getSize()+rs.getInt(1));
 							
-							// now to remove it from the supportAU and raidSupportAU table. Player
-							// has the ability to do this - it happens when the support AU
-							 // has zero size. So just set it that and save memory.
-							 // This will also remove the au from the attackunit array
-							 // of the town naturally via player.
-							 if(auAmts.length==0)
-							 t.setSize(k,0);
-
-
-							 
 						}
-						k++;
+						rs.close();
+						stmt.executeUpdate("delete from raidSupportAU where tidslot = " + a.getSlot() + " and tid = " + t.townID +";");
+						stmt.close();
+					} catch(SQLException exc) { exc.printStackTrace(); }*/
+					 //size in this case being the size of all the support units out on raids.
+						t2as = t.attackServer();
+						while(y<t2as.size()) {
+							asau = t2as.get(y).getAu();
+							int j = 0;
+							while(j<asau.size()) {
+								if(asau.get(j).getSupport()>0&&asau.get(j).getOriginalPlayer().ID==p.ID&&asau.get(j).getOriginalSlot()==a.getOriginalSlot()) {
+									au.get(a.getOriginalSlot()).setSize(au.get(a.getOriginalSlot()).getSize()+asau.get(j).getSize());
+									asau.get(j).setSize(0);
+								 
+								}
+								j++;
+							}
+							y++;
+						}
+					 
 					}
-					 // Now I create a "false" return raid for the town by making it and setting raidOver=true instantaneously so
-					// that attackServer thinks it's a return raid. Support=0 here, just to mention that - it's
-					// as if it were a normal attack.
-					 g = 0; double holdLowSpeed=0;
-					 int totalsize=0;
-					 while(g<au.size()) {
-						  hau = au.get(g);
-							//if(hau.speed < holdLowSpeed && hau.size>0)   holdLowSpeed = hau.speed;
-						  holdLowSpeed+=(hau.getSize()*hau.getExpmod()*hau.getTrueSpeed(t.getPlayer()));
-						  totalsize+=hau.getSize()*hau.getExpmod();
-						  g++; 
-					 }
-					 if(totalsize==0&&t.getDigCounter()>0) { // so digs with zero guys will send back at scholar speed.
-						 holdLowSpeed=GodGenerator.scholarSpeed;
-						 totalsize=1; 
-					 }
-					 holdLowSpeed/=totalsize;
-				
-					 if(holdLowSpeed>0) { 
-						 // if we have a good holdLowSpeed that means we can send a returnRaid.
-						 // if not that means found was never set to true and no support units were ever found
-						 // or they were found but with zero size and not removed yet.
-				
-						 int t1x = t.getX(); int t1y = t.getY(); int t2x = myTown.getX(); int t2y = myTown.getY();
-					 
-					 int ticksToHit = (int) Math.round(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2))*10/(holdLowSpeed*this.g.speedadjust)/GodGenerator.gameClockFactor);
-					 if(ticksToHit==0) ticksToHit=(int) Math.round(((double) 10/(holdLowSpeed*this.g.speedadjust))/GodGenerator.gameClockFactor);
-					/* 	int digAmt=0; No longer needed.
-					 if(pidOfRecallTown==5&&t.getDigCounter()>0&&auAmts.length==1) {
-						 digAmt=t.getDigAmt();
-//						 System.out.println("I am setting everything in " + t.getTownName());
+					
+					// now to remove it from the supportAU and raidSupportAU table. Player
+					// has the ability to do this - it happens when the support AU
+					// has zero size. So just set it that and save memory.
+					// This will also remove the au from the attackunit array
+					// of the town naturally via player.
+					if(auAmts.length==0)
+						t.setSize(k,0);
 
-						 t.resetDig(0,0,false,null);// because the second you set dig counter
-						 // to -1, the town becomes inactive!
-					//	 System.out.println("t's owed ticks are " + t.owedTicks + " and t is " +t.getTownName());
-					 }*/
-					 int digAmt=0;
-					 holdAttack=null;
-					try {
-						 holdAttack = new Raid(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2)), ticksToHit, myTown,t, false, false,0,false,"noname",false,au,digAmt);
-					} catch(Exception exc) { exc.printStackTrace(); System.out.println("Error happened with recall but we caught it."); }
-						 // myTown needs to be town1 because this is going to be the ghost destinator town - where the raid
-						// will "believe" this return raid came from.
-						g=0;
-						
-						holdAttack.endRaid(); // uses endRaid method to set raidOver=true;
-					
-					
-					 }
-		 }
-					 return true;
-					 
+				}
+				k++;
+			}
+			// Now I create a "false" return raid for the town by making it and setting raidOver=true instantaneously so
+			// that attackServer thinks it's a return raid. Support=0 here, just to mention that - it's
+			// as if it were a normal attack.
+			g = 0; double holdLowSpeed=0;
+			int totalsize=0;
+			while(g<au.size()) {
+				hau = au.get(g);
+				//if(hau.speed < holdLowSpeed && hau.size>0)   holdLowSpeed = hau.speed;
+				holdLowSpeed+=(hau.getSize()*hau.getExpmod()*hau.getTrueSpeed(t.getPlayer()));
+				totalsize+=hau.getSize()*hau.getExpmod();
+				g++; 
+			}
+			if(totalsize==0&&t.getDigCounter()>0) { // so digs with zero guys will send back at scholar speed.
+				holdLowSpeed=GodGenerator.scholarSpeed;
+				totalsize=1; 
+			}
+			holdLowSpeed/=totalsize;
 		
+			if(holdLowSpeed>0) { 
+				// if we have a good holdLowSpeed that means we can send a returnRaid.
+				// if not that means found was never set to true and no support units were ever found
+				// or they were found but with zero size and not removed yet.
+				
+				int t1x = t.getX(), t1y = t.getY(), t2x = myTown.getX(), t2y = myTown.getY();
+			 
+				int ticksToHit = (int) Math.round(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2))*10/(holdLowSpeed*this.g.speedadjust)/GodGenerator.gameClockFactor);
+				if(ticksToHit==0) ticksToHit=(int) Math.round(((double) 10/(holdLowSpeed*this.g.speedadjust))/GodGenerator.gameClockFactor);
+				/* 	int digAmt=0; No longer needed.
+				if(pidOfRecallTown==5&&t.getDigCounter()>0&&auAmts.length==1) {
+				digAmt=t.getDigAmt();
+				//System.out.println("I am setting everything in " + t.getTownName());
+
+				t.resetDig(0,0,false,null);	// because the second you set dig counter
+											// to -1, the town becomes inactive!
+				// System.out.println("t's owed ticks are " + t.owedTicks + " and t is " +t.getTownName());
+			}*/
+				int digAmt=0;
+				holdAttack=null;
+				try {
+					holdAttack = new Raid(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2)), ticksToHit, myTown,t, false, false,0,false,"noname",false,au,digAmt);
+				} catch(Exception exc) { exc.printStackTrace(); System.out.println("Error happened with recall but we caught it."); }
+				// myTown needs to be town1 because this is going to be the ghost destinator town - where the raid
+				// will "believe" this return raid came from.
+				g=0;
+				
+				holdAttack.endRaid(); // uses endRaid method to set raidOver=true;
+			
+			}
+		}
+		return true;
 	}
 	
 	
 	/**
-	 * 
 	 * UI Implemented.
 	 * Builds a building of the type specified at the lotNum given in the town
 	 * specified by the town id if possible.
@@ -12545,31 +11837,51 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		UserTradeSchedule ts;
 		TradeSchedule actts;
 		Town t;
+		ArrayList<Raid> yourTBlock = yourT.getBlockades();
 		while(i<g.getTowns().size()) {
 			t = g.getTowns().get(i);
-			int j = 0;
-			townTses = t.getPlayer().getPs().b.getUserTradeSchedules(t.townID);
-			while(j<townTses.length) {
-				ts = townTses[j];
-				if(ts.getTID2()==0) {
-					ts.setDistance(Math.sqrt(Math.pow(t.getX()-yourT.getX(),2) + Math.pow(t.getY()-yourT.getY(),2)));
-					// THIS MEANS IT'S A TRADE THAT HAS NO PARDNER YET!
-					// now we need to see if it's TS is actually there. Just a check, really.
-					 tses.add(ts);
-					
-					
+			ArrayList<Raid> tBlock = t.getBlockades();
+			boolean canTrade = false;
+			if(yourTBlock.size()>0) { 	//if your town is blockaded, we have to check if the
+										//player you're trading to,or an ally, is blockading you
+				for(Raid r : yourTBlock) {
+					if(r.getTown1().getPlayer().isAllied(t.getPlayer())) {
+						canTrade = true;
+						break;
+					}
 				}
-				j++;
+			}
+			//but what if they're blockaded too!
+			if(tBlock.size()>0) {
+				canTrade = false;
+				for(Raid r : tBlock) {
+					if(r.getTown1().getPlayer().isAllied(p)) {
+						canTrade = true;
+						break;
+					}
+				}
+			}
+			if(canTrade) {
+				int j = 0;
+				townTses = t.getPlayer().getPs().b.getUserTradeSchedules(t.townID);
+				while(j<townTses.length) {
+					ts = townTses[j];
+					if(ts.getTID2()==0) {
+						ts.setDistance(Math.sqrt(Math.pow(t.getX()-yourT.getX(),2) + Math.pow(t.getY()-yourT.getY(),2)));
+						// THIS MEANS IT'S A TRADE THAT HAS NO PARDNER YET!
+						// now we need to see if it's TS is actually there. Just a check, really.
+						tses.add(ts);
+						
+					}
+					j++;
+				}
 			}
 			i++;
 		}
 		
 		i = 0;
 		townTses = new UserTradeSchedule[tses.size()];
-		while(i<townTses.length) {
-			townTses[i]=tses.get(i);
-			i++;
-		}
+		townTses = tses.toArray(townTses);
 		
 		return townTses;
 	}

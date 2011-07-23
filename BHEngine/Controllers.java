@@ -1,11 +1,11 @@
 package BHEngine;
 
-import java.io.BufferedReader;
+//import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+//import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.URL;
-import java.net.URLConnection;
+//import java.net.URL;
+//import java.net.URLConnection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -16,13 +16,13 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.json.JSONArray;
+//import org.apache.commons.httpclient.HttpClient;
+//import org.apache.commons.httpclient.HttpException;
+//import org.apache.commons.httpclient.methods.GetMethod;
+//import org.apache.commons.httpclient.methods.PostMethod;
+//import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
+//import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import BattlehardFunctions.UserAttackUnit;
@@ -2123,20 +2123,13 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.foodConsumptionTest(req,out,p);
 				}else if(test.equals("basicRO")) {
 					g.basicROTest(req,out,p);
-<<<<<<< HEAD
 				} else if(test.equals("ROContested")) {
 					g.ROContestedTest(req,out,p, false);
 				} else if(test.equals("ROInfluence")) {
-=======
-				}else if(test.equals("ROContested")) {
-					g.ROContestedTest(req,out,p);
-				}else if(test.equals("ROInfluence")) {
->>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 					g.ROInfluenceTest(req,out,p);
 				}else if(test.equals("ROEngCap")) {
 					g.ROEngCapTest(req,out,p);
 				}else if(test.equals("ROCollapse")) {
-<<<<<<< HEAD
 					g.ROCollapseTest(req,out,p,false);
 				}else if(test.equals("basicDig")) {
 					g.basicDigTest(req,out,p);
@@ -2146,27 +2139,28 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.ROContestedTest(req,out,p,true);
 				}else if(test.equals("digCollapse")) {
 					g.ROCollapseTest(req,out,p,true);
+				}else if(test.equals("blockadeMovement")) {
+					g.blockadeMovementTest(req, out, p);
+				}else if(test.equals("blockadeCombat")) {
+					g.blockadeCombatTest(req, out, p);
+				}else if(test.equals("blockadeTrade")) {
+					g.blockadeTradeTest(req, out, p);
+				}else if(test.equals("allBlockade")) {
+					g.blockadeMovementTest(req, out, p);
+					g.blockadeCombatTest(req, out, p);
+					g.blockadeTradeTest(req, out, p);
 				}else if(test.equals("allDig")) { 
 					g.basicDigTest(req,out,p);
 					g.digProbabilityTest(req,out);
 					g.ROContestedTest(req,out,p,true);
 					g.ROCollapseTest(req,out,p,true);
-=======
-					g.ROCollapseTest(req,out,p);
->>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 				}else if(test.equals("allRO")) {
 					g.basicROTest(req,out,p);
 					g.ROContestedTest(req,out,p,false);
 					g.ROInfluenceTest(req,out,p);
 					g.ROEngCapTest(req,out,p);
-<<<<<<< HEAD
 					g.ROCollapseTest(req,out,p,false);
 				} else if(test.equals("allVassalAndTerritories")) {
-=======
-					g.ROCollapseTest(req,out,p);
-				}
-				else if(test.equals("allVassalAndTerritories")) {
->>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 					g.fbPostTest(req,out,p);
 					g.separatedPointsTest(req,out);
 					g.giftWrappingTest(req,out);
@@ -2199,19 +2193,14 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.breakVassalageTest(req,out,p);
 					g.lordvlordTest(req,out,p);
 					g.vassalThatIsLordTest(req,out,p);
-<<<<<<< HEAD
 					g.basicDigTest(req,out,p);
 					g.digProbabilityTest(req,out);
 					g.ROContestedTest(req,out,p,true);
 					g.ROCollapseTest(req,out,p,true);
+					g.blockadeMovementTest(req, out, p);
 					g.blockadeCombatTest(req, out, p);
 					g.blockadeTradeTest(req, out, p);
 				} else{
-=======
-				}
-				else{
-
->>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 					out.println("Illegal test.");
 				}
 				

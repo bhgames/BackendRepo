@@ -139,7 +139,7 @@ public class BQ8 extends QuestListener {
 				t.setSize(0,100);
 				int auAmts[] = {100,0,0,0,0,0};
 				PlayerScript ps = getPs();
-				ps.b.attack(t.townID,theirT.getX(),theirT.getY(),auAmts,"attack",null,"noname");
+				ps.b.attack(t.townID,theirT.getX(),theirT.getY(),auAmts,"attack",null,"noname",true);
 				
 				ArrayList<Raid> as = t.attackServer();
 				if(as.size()>0&&as.get(0).getTicksToHit()>((double) 3600.0)/((double) GodGenerator.gameClockFactor)) {

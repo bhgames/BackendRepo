@@ -687,7 +687,6 @@ public class Player  {
 					// we add the secondary stuff. It'll get added completely, the fractions add to one.
 				 synchronized(resBuff) {
 					 double befBuff = resBuff[j];
-<<<<<<< HEAD
 					 do {
 						 //	System.out.println(resBuff[j] + " before");
 						 double multiplier = 1;
@@ -698,17 +697,6 @@ public class Player  {
 						 }
 
 						 if(getPremiumTimer()>0) multiplier*=.75;
-=======
-				do {
-				//	System.out.println(resBuff[j] + " before");
-					double multiplier = 1;
-					if(getMineTimer()>0&&j==0) multiplier*=1.25;
-					if(getTimberTimer()>0&&j==1) multiplier*=1.25;
-					if(getMmTimer()>0&&j==2) multiplier*=1.25;
-					if(getFTimer()>0&&j==3) multiplier*=1.25;
-
-					if(getPremiumTimer()>0) multiplier*=.5;
->>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 					
 					if(totalOpenSpace[j]!=0)
 					resBuff[j] +=multiplier*secbuff[j]*((double)(resCaps[j]+Building.baseResourceAmt-res[j])/(totalOpenSpace[j]));

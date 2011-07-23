@@ -26,7 +26,6 @@ public class Raid {
 	private UUID id, resupplyID;// for resupply runs.
 	private Timestamp dockingFinished=null;
 	private double distance; 
-<<<<<<< HEAD
 	private int ticksToHit, 
 				digAmt, 
 				scout = 0, 
@@ -37,12 +36,6 @@ public class Raid {
 				 town1;
 	private String 	name,
 					reward="nothing";
-=======
-	private int ticksToHit, digAmt, scout = 0, totalTicks = 0, genoRounds = 0,
-			support = 0; // do not confuse with au's support, this lets us know this raid is actually a support run.
-	private Town town2, town1;
-	private String name;
->>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 	private String[] bombTarget;
 	UberConnection con; 
 	GodGenerator God;
@@ -170,7 +163,9 @@ public class Raid {
 		this.totalTicks=getMemTotalTicks();this.name=getMemName();this.genoRounds=getMemGenoRounds();*/
 		// we set nothing else!
 	}
-	public Raid(double distance, int ticksToHit, Town town1, Town town2, boolean Genocide, boolean Bomb, int support,boolean invade, String name, boolean debris,ArrayList<AttackUnit> au,int digAmt) {
+	public Raid(double distance, int ticksToHit, Town town1, Town town2, boolean Genocide, 
+			boolean Bomb, int support,boolean invade, String name, boolean debris,
+			ArrayList<AttackUnit> au,int digAmt) {
 		// Can't do an infinite number of arguments here so need to add manually.
 		// holds distance and ticksToHit in this object.
 		this.setInvade(invade);
@@ -179,13 +174,15 @@ public class Raid {
 		this.digAmt=digAmt;
 		this.setName(name);
 		this.au = au;
-		this.setDistance(distance); this.setTicksToHit(ticksToHit);
+		this.setDistance(distance); 
+		this.setTicksToHit(ticksToHit);
 		if(distance==0) distance=1;
 		God = town1.getPlayer().God;
 	
 		
 		this.setBomb(Bomb);
-		this.setTown2(town2);this.setTown1(town1);
+		this.setTown2(town2);
+		this.setTown1(town1);
 		 
 		setRaidOver(false);
 		this.setTotalTicks(ticksToHit);
@@ -195,8 +192,10 @@ public class Raid {
 		// player1 hits player2's town2, only need town2 to access units.
 	    id = UUID.randomUUID();
 
-	    town1.attackServer().add(this); // even if this error happens, raid still works...
-
+	    town1.attackServer().add(this); 			// even if this error happens, raid still works...
+	    if(support==3&&getDockingFinished()!=null)	//blockades need to be on the second town's AS too
+	    	town2.attackServer().add(this);
+	    	
 	    UberPreparedStatement stmt;
 		try {
 
@@ -750,25 +749,25 @@ public class Raid {
 		  // By placeholders I mean they are like extra au fields for the raid, the actual
 		  // data is held on the supportAU table.
 		try {
-		   int k = 0;
-		   UberPreparedStatement stmt = con.createStatement("delete from raidSupportAU where tid = ? and rid = ? and tidslot = ?;");
-		   stmt.setInt(1,getTown1().townID);
-		   stmt.setString(2,id.toString());
-		   ArrayList<AttackUnit> au = getAu();
-		//   stmt.executeUpdate("update raid set ticksToHit=-1 where rid = " + raidID);
-		   setTicksToHit(-1);
-		   save(); // save the current state right before deletion.
-		  while(k<au.size()) {
-			  if(au.get(k).getSupport()>0) {
-				
-			  
-				   stmt.setInt(3,au.get(k).getSlot());
-				  stmt.executeUpdate();	
-			  }
-			  k++;
-		  }
-		  stmt.close();
-		  getTown1().attackServer().remove(this); // and we remove it from memory....
+			int k = 0;
+			UberPreparedStatement stmt = con.createStatement("delete from raidSupportAU where tid = ? and rid = ? and tidslot = ?;");
+			stmt.setInt(1,getTown1().townID);
+			stmt.setString(2,id.toString());
+			ArrayList<AttackUnit> au = getAu();
+			//   stmt.executeUpdate("update raid set ticksToHit=-1 where rid = " + raidID);
+			setTicksToHit(-1);
+			save(); // save the current state right before deletion.
+			while(k<au.size()) {
+				if(au.get(k).getSupport()>0) {
+				  
+					stmt.setInt(3,au.get(k).getSlot());
+					stmt.executeUpdate();
+				}
+				k++;
+			}
+			stmt.close();
+			getTown1().attackServer().remove(this); // and we remove it from memory....
+			if(getSupport()==3) getTown2().attackServer().remove(this);
 		} catch(SQLException exc) { exc.printStackTrace(); }
 	}
 	

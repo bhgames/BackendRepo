@@ -24,7 +24,6 @@ import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 
 public class Town {
 	
-<<<<<<< HEAD
 	 public int townID, 
 	 			influence, 
 	 			probTimer, 
@@ -51,30 +50,17 @@ public class Town {
 	 				  resBuff;
 	 private Player p,
 	 				lord;
-=======
-	 public int townID, influence, probTimer, findTime, digCounter, digAmt, owedTicks, x, y, destX,
-	 			destY, fuelCells, ticksTillMove, digTownID, internalClock=0; 
-	 private String townName, holdingIteratorID = "-1";
-	 private GodGenerator God; private UberConnection con;
-	 private long[] res, debris;
-	 private double[] resEffects,resBuff;
-	 private Player p,lord;
->>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 	 private Timestamp vassalFrom;
 	 private ArrayList<Trade> tradeServer;
 	 private ArrayList<TradeSchedule> tradeSchedules;
 	 private ArrayList<Raid> attackServer;
 	 private ArrayList<AttackUnit> au;
 	 private ArrayList<Building> bldg;
-<<<<<<< HEAD
 	 private boolean zeppelin, 
 	 				 msgSent, 
 	 				 resourceOutcropping;
 	 public boolean iterable =true;
 	 public boolean resIncsZeroed=false;
-=======
-	 private boolean zeppelin, msgSent, resourceOutcropping;
->>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
 	 private Hashtable<String, ArrayList<QuestListener>> eventListenerLists = new Hashtable<String, ArrayList<QuestListener>>();
 	 public static int 	zeppelinTicksPerMove= (int) Math.round(((double) Math.sqrt(1)*10/(500*GodGenerator.speedadjust))/GodGenerator.gameClockFactor),
 			 			ticksPerFuelPointBase =(int) Math.round((3600.0*24.0/((double) GodGenerator.gameClockFactor*10))),
@@ -190,7 +176,7 @@ public class Town {
 	public ArrayList<Raid> getBlockades() {
 		ArrayList<Raid> blockades = new ArrayList<Raid>(), AS = attackServer();
 		for(Raid r : AS) {
-			if(r.getSupport()==3) {
+			if(r.getSupport()==3&&!r.isRaidOver()&&r.getDockingFinished()!=null) {
 				blockades.add(r);
 			}
 		}
@@ -359,6 +345,23 @@ public class Town {
 			i++;
 		}
 	}
+	
+	public void checkForDeadBlockades() {
+		//ArrayList<Raid> blockades = getBlockades();
+		for(Raid r : getBlockades()) {
+			boolean dead = true;
+			for(AttackUnit au : r.getAu()) {
+				if(au.getSize()>0) {
+					dead = false;
+				}
+			}
+			if(dead) {
+				r.setRaidOver(true);
+				r.deleteMe();
+			}
+		}
+	}
+	
 	 public boolean addEventListener(QuestListener q, String type) {
 		ArrayList<QuestListener> list =(ArrayList<QuestListener>) eventListenerLists.get(type);
 		if(list!=null)
@@ -754,9 +757,9 @@ public class Town {
 							i++;
 						}
 						synchronized(attackServer()) {
-						getPlayer().getPs().b.attack(townID,getX(),getY(),auAmts,"attack",null,"noname");
-						GodGenerator.combatLogicBlock(attackServer().get(attackServer().size()-1),""); // EARLY CALL
-						// FOR THE LATEST RAID JUST ADDED!
+							getPlayer().getPs().b.attack(townID,getX(),getY(),auAmts,"attack",null,"noname",true);
+							GodGenerator.combatLogicBlock(attackServer().get(attackServer().size()-1),""); // EARLY CALL
+							// FOR THE LATEST RAID JUST ADDED!
 						}
 						zeppelins = getPlayer().God.findZeppelins(getX(),getY()); // refresh after the attack.
 						// now this loop is gonna keep running...though this Blimpie will die if it loses.

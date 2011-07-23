@@ -6792,24 +6792,26 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 	 */
 	
 	public static boolean blockadeLogicBlock(Raid r) {
-		int ie = 0;int totalCheckedSize=0; ArrayList<AttackUnit> au = r.getAu();
+		int ie = 0, totalCheckedSize=0; 
+		ArrayList<AttackUnit> au = r.getAu();
 		while(ie<au.size()) {
 			totalCheckedSize+=au.get(ie).getSize();
 			// SuggestTitleVideoId
 			ie++;
 		}
 		if(totalCheckedSize==0) {
-			// this means we called getAu() for the first time before the au statements got to update and put
-			// the units into the raid!
+			// this means we called getAu() for the first time before the au statements got 
+			// to update and put the units into the raid!
 			r.setAu(null);
 			r.getAu(); // reset.
 		}
 		
-		Player t1p = r.getTown1().getPlayer(); ArrayList<Raid> blockades = r.getTown2().getBlockades();
+		Player t1p = r.getTown1().getPlayer(); 
+		ArrayList<Raid> blockades = r.getTown2().getBlockades();
 		
+		boolean fight = false;
 		if(blockades.size()>0) { 	//there are already blockades at the town
 									//we have to determine if combat must take place
-			boolean fight = false;
 			for(Raid ra : blockades){
 				Player raT1p = ra.getTown1().getPlayer();
 				if(t1p.getID()!=raT1p.getID()&&!raT1p.isAllied(t1p)) {
@@ -6820,20 +6822,115 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			if(fight) {
 				combatLogicBlock(r,"A hostile Blockade was already around the target.");
 			}
-		} else { //no blockades here, boss.
-			r.setDockingFinished(new Timestamp((new Date()).getTime()));
-			//now we need to make sure that our newly blockaded town's trades are all canceled
-<<<<<<< HEAD
-			//the active trades should continue normally though.
-			ArrayList<TradeSchedule> trades = r.getTown2().tradeSchedules();
-=======
-			ArrayList<TradeSchedule> trades = r.getTown2().getTradeSchedules();
->>>>>>> parent of 7824027... finished blockade tests.  Cleaned up variable declarations and whitespace in all UserObject classes.
-			for(TradeSchedule t : trades) {
-				t.deleteMeInterrupt();
+		} 
+		//no hostile blockades here, boss.
+		if(!fight) {
+			int index = -1;
+			boolean foundSame = false, foundPlayer = false;
+			for(Raid ra : blockades) {
+				if(ra.getTown1().getTownID()==r.getTown1().getTownID()) {
+					index = blockades.indexOf(ra);
+					foundSame = true;
+					break;
+				}
+			}
+			if(foundSame) {
+				Raid extR = blockades.get(index);
+				ArrayList<AttackUnit> extRAU = extR.getAu();
+				for(int i=0;i<extRAU.size();i++) {
+					AttackUnit a = extRAU.get(i);
+					a.setSize(a.getSize()+r.getAu().get(i).getSize());
+				}
+				r.deleteMe();
+				r = extR;
+			} else {
+				r.setDockingFinished(new Timestamp((new Date()).getTime()));
+				//now we need to make sure that our newly blockaded town's trades are all canceled
+				//the active trades should continue normally though.
+				ArrayList<TradeSchedule> trades = r.getTown2().tradeSchedules();
+				for(TradeSchedule t : trades) {
+					t.deleteMeInterrupt();
+				}
+			}
+
+			String unitsGained = "[", unitsReturned = "[", unitNames = "[";
+			for(int i=0;i<au.size();i++) {
+				AttackUnit a = au.get(i);
+				if(i!=0) {
+					unitsGained+=",";
+					unitsReturned+=",";
+					unitNames+=",";
+				}
+				unitsGained+=a.getSize();
+				unitsReturned+="0";
+				unitNames+=a.getName();
+			}
+			unitsGained+="]";
+			unitsReturned+="]";
+			unitNames+="]";
+			
+			try {	
+				UberPreparedStatement stmt = t1p.God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,offTownName,defTownName,support,offdig,ax,ay,dx,dy,id) values (?,?,?,?,?,?,?,?,true,?,?,?,?,?,?);");
+			    stmt.setInt(1,t1p.ID);
+			    stmt.setInt(2, r.getTown1().townID);
+			    stmt.setInt(3,r.getTown2().townID);
+			    stmt.setString(4,unitsGained);
+			    stmt.setString(5,unitsReturned);
+			    stmt.setString(6,unitNames);
+			    stmt.setString(7,r.getTown1().getTownName());
+			    stmt.setString(8,r.getTown2().getTownName());
+			    // if it's an old town!
+			    // First things first. We update the player table.
+			    stmt.setBoolean(9,false);
+			    stmt.setInt(10,r.getTown1().getX());
+			    stmt.setInt(11,r.getTown1().getY());
+			    stmt.setInt(12,r.getTown2().getX());
+			    stmt.setInt(13,r.getTown2().getY());
+		
+			    UUID id=UUID.randomUUID();
+			    stmt.setString(14,id.toString());
+
+			    Date today = new Date();
+				//public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
+				//boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+				//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage)
+			    UserSR blockSR = new UserSR(id,unitsGained,unitsReturned,null,null,unitNames,
+			    		null,r.getTown1().getTownName(),r.getTown2().getTownName(),false,false,
+			    		false,false,0,0,0,0,0,false,false,0,false,"No data on this yet.",
+			    		today.toString(),r.getName(),0,false,false,r.getTown1().getX(),
+			    		r.getTown1().getY(),r.getTown2().getX(),r.getTown2().getY(),"none",0,0,
+			    		0,0,false,false,false,false,false,"none",false);
+				ArrayList<Player> ps = new ArrayList<Player>();
+			    //add SR to sending player
+			    t1p.addUserSR(blockSR.clone());
+				stmt.execute();
+				ps.add(t1p);
+				//add SR to blockaded player
+				Player t2p = r.getTown2().getPlayer();
+				stmt.setInt(1,t2p.ID);
+				id = UUID.randomUUID();
+				stmt.setString(14,id.toString());
+				blockSR.id=id;
+				t2p.addUserSR(blockSR.clone());
+				stmt.execute();
+				ps.add(t2p);
+				//add SR to all other blockading players
+				for(Raid ra : blockades) {
+					Player p = ra.getTown1().getPlayer();
+					if(!ps.contains(p)) {	//don't want duplicates
+						stmt.setInt(1,p.ID);
+						id = UUID.randomUUID();
+						stmt.setString(14,id.toString());
+						blockSR.id=id;
+						p.addUserSR(blockSR.clone());
+						stmt.execute();
+						ps.add(p);
+					}
+				}
+			} catch(SQLException exc) {
+				exc.printStackTrace();
 			}
 		}
-		
 		return true;
 	}
 	
@@ -7462,7 +7559,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		      stmt.close(); transacted=true;
 		   } catch(MySQLTransactionRollbackException exc) { } 
 		   }
-		}catch(SQLException exc) { exc.printStackTrace(); }
+		} catch(SQLException exc) { exc.printStackTrace(); }
 
 			// At this point, if there are still units in the raid,
 			// Just no more room left, may or may not be AU object for it.
@@ -9968,6 +10065,11 @@ public boolean checkForGenocides(Town t) {
 		 	 * If the dig offensive was unsuccessful and the dig def was successful, then the dig attacker goes home and the dig defensive stays. FALSE
 		 	 * 
 		 	 */
+		  /*
+		   * if a blockade was encountered, then we have to reset the values and delete the
+		   * fake player.  Then, we have to run another attackServerCheck to rerun the logic
+		   * and continue whatever the original raid was doing.
+		   */
 		if(enemies.size()>0) {
 			Player[] fakes = {t2.getPlayer()};
 			t2 = holdRaid.getTown2();
@@ -10263,29 +10365,31 @@ public boolean checkForGenocides(Town t) {
 				} else if (holdAttack.eta()<=0&&holdAttack.raidOver()) {
 				
 					ArrayList<Raid> blockades = r.getTown1().getBlockades(); boolean fight = false;
-					for(Raid ra : blockades) {
-						if(!r.getTown1().getPlayer().isAllied(ra.getTown1().getPlayer())) {
-							fight = true;
+					while(true) {
+						for(Raid ra : blockades) {
+							if(!r.getTown1().getPlayer().isAllied(ra.getTown1().getPlayer())) {
+								fight = true;
+								break;
+							}
+						}
+						if(fight) {
+							combatLogicBlock(r,"Return town is blockaded by a hostile force.");
+						} else {
 							break;
 						}
-					}
-					if(fight) {
-						combatLogicBlock(r,"Return town is blockaded by a hostile force.");
 					}
 					// Now this is a return raid.
 				//	System.out.println("Returning...");
 					int c = 0;
 					r.getTown1().getPlayer().getPs().runMethod("onOutgoingRaidReturnedCatch",r.getTown1().getPlayer().getPs().b.getUserRaid(r.getId()));
 
-						AU = r.getAu(); tAU = t1.getAu();
+					AU = r.getAu(); tAU = t1.getAu();
 					do {
 						 au = AU.get(c);
 						 int k = 0;
 						 while(k<tAU.size()) {
 							 if(tAU.get(k).getSlot()==au.getSlot())
-									t1.setSize(k,
-											tAU.get(k).getSize()
-													+ au.getSize());
+									t1.setSize(k, tAU.get(k).getSize() + au.getSize());
 					//		 System.out.println("Adding unit " + c + " of size " + au.size);
 							 k++;
 						 }
@@ -14421,7 +14525,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			RO.getRes()[3]=15000;
 			//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
 			int amts[] = {900};
-			boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"dig",null,"noname");
+			boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"dig",null,"noname",true);
 			if(!worked) {
 				out.println("basicDig test failed because the first dig didn't send, and the error was: " + players[0].getPs().b.getError());
 				player.deleteFakePlayers(players);
@@ -15089,7 +15193,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		else {
 			amts = new int[2]; amts[0]=5;amts[1]=5;
 		}
-		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,mission,null,"noname");
+		boolean worked= players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,mission,null,"noname", true);
 		if(!worked) {
 			out.println(testName + " test failed because the "+ mission + " didn't send, and the error was: " + players[0].getPs().b.getError());
 			player.deleteFakePlayers(players);
@@ -15117,7 +15221,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			amts = new int[2];
 			amts[0]=200; amts[1]=4;
 		}
-		worked = players[1].getPs().b.attack(t2.townID,RO.getX(),RO.getY(),amts,mission,null,"noname");
+		worked = players[1].getPs().b.attack(t2.townID,RO.getX(),RO.getY(),amts,mission,null,"noname",true);
 	
 		if(!worked) {
 			out.println(testName + " test failed because the second " + mission + " didn't send(greater " + mission + " vs " + mission + "), and the error was: " + players[1].getPs().b.getError());
@@ -15177,7 +15281,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			t1.bldg().get(0).setPeopleInside(5);
 			amts[0]=15; amts[1]=5;
 		}
-		worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,mission,null,"noname");
+		worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,mission,null,"noname",true);
 	
 		if(!worked) {
 			out.println(testName + " test failed because the third attack didn't send(lesser " + mission + " vs " + mission + "), and the error was: " + players[0].getPs().b.getError());
@@ -15211,7 +15315,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		t1.getAu().get(0).setSize(15);// now I'm a support who is going to try and take over and probably not win with 15 men.
 		t1.bldg().get(0).setPeopleInside(5);
 		amts = new int[1]; amts[0]=15; 
-		worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
+		worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname",true);
 	
 		if(!worked) {
 			out.println(testName + " test failed because the fourth attack didn't send(lesser support vs " + mission + "), and the error was: " + players[0].getPs().b.getError());
@@ -15247,7 +15351,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		
 		t1.getAu().get(0).setSize(1500);// now I'm a support who is going to try and take over and probably not win with 15 men.
 		amts = new int[1]; amts[0]=1500; 
-		worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
+		worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname",true);
 	
 		if(!worked) {
 			out.println(testName + " test failed because the fifth attack didn't send(greater support vs " + mission + "), and the error was: " + players[0].getPs().b.getError());
@@ -15297,7 +15401,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		
 			t2.getAu().get(0).setSize(10000);// now I'm a support who is going to try and take over and probably not win with 15 men.
 			amts = new int[1]; amts[0]=10000; 
-			worked = players[1].getPs().b.attack(t2.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
+			worked = players[1].getPs().b.attack(t2.townID,RO.getX(),RO.getY(),amts,"support",null,"noname",true);
 		
 			if(!worked) {
 				out.println(testName + " test failed because the sixth attack didn't send(greater support vs support), and the error was: " + players[1].getPs().b.getError());
@@ -15323,7 +15427,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			
 			t1.getAu().get(0).setSize(10);// now I'm a support who is going to try and take over and probably not win with 15 men.
 			amts = new int[1]; amts[0]=10; 
-			worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname");
+			worked = players[0].getPs().b.attack(t1.townID,RO.getX(),RO.getY(),amts,"support",null,"noname",true);
 		
 			if(!worked) {
 				out.println(testName + " test failed because the seventh attack didn't send(lesser support vs support), and the error was: " + players[0].getPs().b.getError());
@@ -17679,6 +17783,188 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 			out.println("fbPost failed("+stat+").");
 		}
 	}
+	
+	/**
+	 * Tests sending of, combining, and recalling blockades.
+	 * 
+	 * @param req - the request that started the call.  Not used.
+	 * @param out - the output stream.  Used for funneling out error messages.
+	 * @param p - Player to use when making generateFake calls.
+	 * @return True if test sucessful.  False otherwise.
+	 */
+	public boolean blockadeMovementTest(HttpServletRequest req, PrintWriter out, Player p) {
+		Player[] tests = p.generateFakePlayers(4, 1, 0, 0);
+		Town[] testTowns = new Town[tests.length];
+		ArrayList<ArrayList<AttackUnit>> au = new ArrayList<ArrayList<AttackUnit>>();
+		for(int i=0;i<tests.length;i++) {
+			testTowns[i] = tests[i].towns().get(0);
+			au.add(i, new ArrayList<AttackUnit>());
+		}
+		
+		au.get(0).add(new AttackUnit("Pillager",0,0));
+		au.get(0).get(0).setSize(50);
+		testTowns[0].setAu(au.get(0));
+		tests[0].setAu(au.get(0));
+		
+		au.get(1).add(new AttackUnit("Vanguard",0,0));
+		au.get(1).get(0).setSize(10);
+		testTowns[1].setAu(au.get(1));
+		tests[1].setAu(au.get(1));
+
+		au.get(2).add(new AttackUnit("Pillager",0,0));
+		au.get(2).get(0).setSize(20);
+		testTowns[2].setAu(au.get(2));
+		tests[2].setAu(au.get(2));
+		
+		tests[0].setLord(tests[3]);
+		tests[2].setLord(tests[3]);
+		
+		if(!tests[0].getPs().b.attack(testTowns[0].getTownID(), testTowns[1].getX(), 
+				testTowns[1].getY(), new int[] {10}, "blockade", new String[] {}, "", true)) {
+			out.println("Blockade movement test failed.  The blockade could not be sent.  Error: " + tests[0].getPs().b.getError());
+			return false;
+		}
+		
+		Raid blockade = null;
+		for(Raid r : testTowns[0].attackServer()) {
+			if(r.getTown2().getTownID()==testTowns[1].getTownID()) {
+				blockade = r;
+				break;
+			}
+		}
+		if(blockade.getSupport()!=3) {
+			out.println("Blockade movement test failed.  The blockade did not have support type 3.");
+			return false;
+		}
+		if(testTowns[1].attackServer().contains(blockade)||testTowns[1].getBlockades().size()>0) {
+			out.println("Blockade movement test failed.  The blockade was placed into the second town's Attack Server to early.");
+			return false;
+		}
+		blockade.setTicksToHit(0);
+		attackServerCheck(testTowns[0], tests[0]);
+		
+
+		if(!testTowns[1].attackServer().contains(blockade)) {
+			out.println("Blockade movement test failed.  The blockade wasn't placed in the second town's Attack Server.");
+			return false;
+		}
+		if(testTowns[1].getBlockades().size()<1) {
+			out.println("Blockade movement test failed.  The blockade is not gatherable by the getBlockades method.");
+			return false;
+		}
+		blockade = testTowns[1].getBlockades().get(0);
+		if(blockade.getAu().get(0).getSize()<10) {
+			out.println("Blockade movement test failed.  The blockade did not arrive with all its units.");
+			return false;
+		}
+
+		if(!tests[0].getPs().b.attack(testTowns[0].getTownID(), testTowns[1].getX(), 
+				testTowns[1].getY(), new int[] {10}, "blockade", new String[] {}, "", true)) {
+			out.println("Blockade movement test failed.  The second blockade could not be sent.  Error: " + tests[0].getPs().b.getError());
+			return false;
+		}
+		Raid newBlockade = null;
+		for(Raid r : testTowns[0].attackServer()) {
+			if(r.getTown2().getTownID()==testTowns[1].getTownID()&&r.getDockingFinished()==null) {
+				newBlockade = r;
+				break;
+			}
+		}
+		if(blockade==newBlockade) { //not sure how the fuck this would happen
+			out.println("Blockade movement test failed.  The existing blockade could not be distinguisted from the newly sent blockade.");
+			return false;
+		}
+		
+		newBlockade.setTicksToHit(0);
+		attackServerCheck(testTowns[0], tests[0]);
+		
+		if(testTowns[0].attackServer().contains(newBlockade)||testTowns[1].attackServer().contains(newBlockade)) {
+			out.println("Blockade movement test failed.  The new blockade was not merged with the existing blockade and removed from both town's Attack Server.");
+			return false;
+		}
+		blockade = testTowns[1].getBlockades().get(0);
+		
+		if(blockade.getAu().get(0).getSize()!=25) {
+			out.println("Blockade movement test failed.  The new blockade's AU were not added to the existing blockade's.");
+			return false;
+		}
+		
+		if(!tests[0].getPs().b.recall(new int[] {10}, testTowns[1].getTownID(), tests[1].ID, testTowns[0].getTownID())) {
+			out.println("Blockade movement test failed.  Could not recall units from the blockade.");
+			return false;
+		}
+		if(testTowns[1].getBlockades().size()!=1) {
+			out.println("Blockade movement test failed.  The recalled troops still show up in getBlockades.");
+			return false;
+		}
+		blockade = testTowns[1].getBlockades().get(0);
+		if(blockade.getAu().get(0).getSize()!=15) {
+			out.println("Blockade movement test failed.  Recall did not remove the correct number of units.");
+			return false;
+		}
+
+		if(!tests[2].getPs().b.attack(testTowns[2].getTownID(), testTowns[1].getX(), 
+				testTowns[1].getY(), new int[] {15}, "blockade", new String[] {}, "", true)) {
+			out.println("Blockade movement test failed.  The third blockade could not be sent.  Error: " + tests[2].getPs().b.getError());
+			return false;
+		}
+		
+		for(Raid r : testTowns[2].attackServer()) {
+			if(r.getTown2().getTownID()==testTowns[1].getTownID()) {
+				newBlockade = r;
+				break;
+			}
+		}
+		
+		newBlockade.setTicksToHit(0);
+		attackServerCheck(testTowns[2],tests[2]);
+		ArrayList<Raid> blockades = testTowns[1].getBlockades();
+		
+		if(blockades.size()<2) {
+			out.println("Blockade movement test failed.  Allied blockade did not coexist.");
+			return false;
+		}
+		if(blockades.get(0).getAu().get(0).getSize()!=15||blockades.get(1).getAu().get(0).getSize()!=15) {
+			out.println("Blockade movement test failed.  The blockades do not have the correct number of troops.  Both should have 15, but blockade 1 had "
+					+blockades.get(0).getAu().get(0).getSize()+" and blockade 2 had "+blockades.get(1).getAu().get(0).getSize());
+			return false;
+		}
+
+		if(!tests[0].getPs().b.recall(new int[] {15}, testTowns[1].getTownID(), tests[1].ID, testTowns[0].getTownID())) {
+			out.println("Blockade movement test failed.  Could not recall remaining units from the first blockade.");
+			return false;
+		}
+		if(testTowns[1].getBlockades().size()>1) {
+			out.println("Blockade movement test failed.  Recalling all troops did not remove the blockade from the second town's Attack Server.");
+			return false;
+		}
+		
+		return true;
+	}
+
+	/**
+	 * Tests combat as it relates to blockades.  Namely, sending through a blockade and sending to a blockaded town.
+	 * 
+	 * @param req - the request that started the call.  Not used.
+	 * @param out - the output stream.  Used for funneling out error messages.
+	 * @param p - Player to use when making generateFake calls.
+	 * @return True if test sucessful.  False otherwise.
+	 */
+	public boolean blockadeCombatTest(HttpServletRequest req, PrintWriter out, Player p) {
+		return true;
+	}
+
+	/**
+	 * Tests that blockades correctly affect trades.
+	 * 
+	 * @param req - the request that started the call.  Not used.
+	 * @param out - the output stream.  Used for funneling out error messages.
+	 * @param p - Player to use when making generateFake calls.
+	 * @return True if test sucessful.  False otherwise.
+	 */
+	public boolean blockadeTradeTest(HttpServletRequest req, PrintWriter out, Player p) {
+		return false;
+	}
 }
 
 
@@ -17703,16 +17989,6 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
  * 	  [imp] = implimented, not tested
  *	[check] = implimented, tested
  *
- * Okay so, blockade checklist to make sure all that shit is done:
- * 		1) raids encountering blockaded towns should fight the blockade if it's a hostile party. [imp]
- * 		2) blockaded towns cannot send unescorted digs/excavations. [imp]
- * 		3) blockaded towns cannot trade (except with the blockading player and his allies ;)). [part]
- * 		4) blockaded towns have their Influence reduced by the size and duration of the blockade. [imp]
- * 
- * 
- * 
- * 
- * 
  * 
  * 
  * 

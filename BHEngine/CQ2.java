@@ -72,7 +72,7 @@ public class CQ2 extends QuestListener {
 					 }
 				 }
 				 writeToMemory(t.townID+";",p.ID);
-				t.getPlayer().getPs().b.attack(t.townID,cap.getX(),cap.getY(),auAmts,"attack",null,"");
+				t.getPlayer().getPs().b.attack(t.townID,cap.getX(),cap.getY(),auAmts,"attack",null,"",true);
 				 
 				 
 				 t.killBuilding(b.getId());

@@ -809,72 +809,39 @@ public class PlayerScript implements Runnable {
     		 int numCommas = commaCount(holdPart);
     		 // generally they should have 6 commas + 0,0,0,0,0,0 (ausize-1) commas if they are naming,
     		 // and minus one that if not, so that's how we can identify old versions vs new ones.
-    		 try {
-    			 
-    			 int num1 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
-        		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
-        		 int int2 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
-        		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
-        		 int int3 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
-        		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
-        		  arrayString = holdPartUse.substring(0,holdPartUse.indexOf("],")+1);
-        		 int intArr4[] = decodeStringIntoIntArray(arrayString);
-        		
-     			holdPartUse=holdPartUse.substring(holdPartUse.indexOf("],")+2,holdPartUse.length());
-        		 String str5 = holdPartUse.substring(0,holdPartUse.indexOf(","));
-        		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
-        		 int int6=0; String str7=null;
-        		 
-        		// System.out.println(numCommas);
-        		 //System.out.println("I am in here.");
-        		 String str6[]=null;
-        		 if(numCommas<player.God.findTown(num1).getAu().size()+5)
-        		   str6 =  decodeStringIntoStringArray(holdPartUse);
-        		 else {
-        		//	 System.out.println("I got in here.");
-        		 str6 = decodeStringIntoStringArray(holdPartUse.substring(0,holdPartUse.indexOf("],")+1));
-        		str7 = holdPartUse.substring(holdPartUse.indexOf("],")+2,holdPartUse.length());
-        		 }
-        		 
-        		
-        		 if(holdCmd.equals("bf.attack"))
-        			 if(str7==null)
-        		 toRet+=""+b.attack(num1,int2,int3,intArr4,str5,str6,"noname");
-        			 else   toRet+=""+b.attack(num1,int2,int3,intArr4,str5,str6,str7);
-
-        		 else
-        			 if(str7==null)
-            	toRet+=""+b.canSendAttack(num1,int2,int3,intArr4,str5,str6,"noname");
-        			 else
-        				toRet+=""+b.canSendAttack(num1,int2,int3,intArr4,str5,str6,str7);
- 
-    		 } catch(Exception exc) {
-    			// exc.printStackTrace();
-    		 String str1 = holdPart.substring(0,holdPart.indexOf(","));
-    		 holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
-    		 int int2 = Integer.parseInt(holdPart.substring(0,holdPart.indexOf(",")));
-    		 holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
-    		 int int3 = Integer.parseInt(holdPart.substring(0,holdPart.indexOf(",")));
-    		 holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
-    		 int intArr4[] = decodeStringIntoIntArray(holdPart.substring(0,holdPart.indexOf("],")+1));
-    		/* int i = 0;
-    		 while(i<intArr4.length) {
-    			 System.out.println(intArr4[i]);
-    			 i++;
-    		 }*/
     		 
- 			holdPart=holdPart.substring(holdPart.indexOf("],")+2,holdPart.length());
-    		 String str5 = holdPart.substring(0,holdPart.indexOf(","));
-    		 holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
-    		 String str6[] = decodeStringIntoStringArray(holdPart);
+    		 int num1 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
+    		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
+    		 int int2 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
+    		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
+    		 int int3 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
+    		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
+    		 arrayString = holdPartUse.substring(0,holdPartUse.indexOf("],")+1);
+    		 int intArr4[] = decodeStringIntoIntArray(arrayString);
+    		
+    		 holdPartUse=holdPartUse.substring(holdPartUse.indexOf("],")+2,holdPartUse.length());
+    		 String str5 = holdPartUse.substring(0,holdPartUse.indexOf(","));
+    		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
+    		 int int6=0; 
+    		 String str7="noname";
+    		 
+    		// System.out.println(numCommas);
+    		 //System.out.println("I am in here.");
+    		 String str6[]=null;
+    		 if(numCommas<player.God.findTown(num1).getAu().size()+5)
+    			 str6 =  decodeStringIntoStringArray(holdPartUse);
+    		 else {
+    		//	 System.out.println("I got in here.");
+    			 str6 = decodeStringIntoStringArray(holdPartUse.substring(0,holdPartUse.indexOf("],")+1));
+    			 str7 = holdPartUse.substring(holdPartUse.indexOf("],")+2,holdPartUse.length());
+    		 }
+    		 
     		
     		 if(holdCmd.equals("bf.attack"))
-    		 toRet+=""+b.attack(str1,int2,int3,intArr4,str5,str6,"noname");
+    			 toRet+=""+b.attack(num1,int2,int3,intArr4,str5,str6,str7,true);
     		 else
-        	toRet+=""+b.canSendAttack(str1,int2,int3,intArr4,str5,str6,"noname");
-    		 }
-
-    		 
+    			 toRet+=""+b.attack(num1,int2,int3,intArr4,str5,str6,str7,false);
+ 
     	 }else if(holdCmd.equals("bf.sendMessage")) {
     		 
     		 //	public boolean attack(String yourTownName, int enemyx, int enemyy, int auAmts[], String attackType, int target) {
