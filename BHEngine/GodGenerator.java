@@ -10417,68 +10417,8 @@ public boolean checkForGenocides(Town t) {
 				 * Time to offload resources!
 				 */
 				if(!t.isStockMarketTrade()) {
-					
-					if(!actt.getTs().isTwoway()&&otherP.getLeague()!=null) {
-						/*
-						 * If this is a two way trade,
-						 * then town 2, where the dump is occurring, paid tax
-						 * on the resources they shipped already through collecting them
-						 * in a raid or by mines. If this is just someone
-						 * dumping resources on them, ie, a one way trade, this
-						 * trade needs to be taxed!
-						 */
-
-							double afterTax = (1-otherP.getLeague().getTaxRate(otherP.ID));
-							double tax = 1-afterTax;
-							actt.setMetal((long) Math.round(t.getMetal()*afterTax));
-							actt.setTimber((long) Math.round(t.getTimber()*afterTax));
-							actt.setManmat((long) Math.round(t.getManmat()*afterTax));
-							actt.setFood((long) Math.round(t.getFood()*afterTax));
-							
-							long[] secbuff = otherP.getLeague().getSecondaryResBuff();
-							synchronized(secbuff) {
-								double modifier=1;
-								if(otherP.getLeague().getPremiumTimer()>0) modifier=.5;
-								secbuff[0]+=t.getMetal()*tax*modifier;
-								secbuff[1]+=t.getTimber()*tax*modifier;
-								secbuff[2]+=t.getManmat()*tax*modifier;
-								secbuff[3]+=t.getFood()*tax*modifier;
-							}
-
-							
-					}
-					
-					if(!actt.getTs().isTwoway()&&otherP.getLord()!=null||t2.getLord()!=null) {
-						/*
-						 * If this is a two way trade,
-						 * then town 2, where the dump is occurring, paid tax
-						 * on the resources they shipped already through collecting them
-						 * in a raid or by mines. If this is just someone
-						 * dumping resources on them, ie, a one way trade, this
-						 * trade needs to be taxed!
-						 */
-						double tax = t2.getVassalRate();
-						Player theLord = t2.getLord();
-						if(theLord==null) theLord = otherP.getLord();
-						
-							double afterTax = (1-tax);
-							actt.setMetal((long) Math.round(t.getMetal()*afterTax));
-							actt.setTimber((long) Math.round(t.getTimber()*afterTax));
-							actt.setManmat((long) Math.round(t.getManmat()*afterTax));
-							actt.setFood((long) Math.round(t.getFood()*afterTax));
-							
-							long[] secbuff = theLord.getSecondaryResBuff();
-							synchronized(secbuff) {
-								double modifier=1;
-								if(theLord.getPremiumTimer()>0) modifier=.5;
-								secbuff[0]+=t.getMetal()*tax*modifier;
-								secbuff[1]+=t.getTimber()*tax*modifier;
-								secbuff[2]+=t.getManmat()*tax*modifier;
-								secbuff[3]+=t.getFood()*tax*modifier;
-							}
-
-							
-					}
+					long befRes = actt.getMetal(); // if this is a caravan, m=t=mm, we keep this for later.
+						doTaxesOnTrade(actt,otherP,t2,t);
 					
 						res = t2.getRes();
 						synchronized(res) {
@@ -10488,10 +10428,21 @@ public boolean checkForGenocides(Town t) {
 						res[2]+=t.getManmat();
 						res[3]+=t.getFood();
 						}
-						actt.setMetal(0);
-						actt.setTimber(0);
-						actt.setManmat(0);
-						actt.setFood(0);
+						if(!actt.getTs().isCaravan()) {
+							actt.setMetal(0);
+							actt.setTimber(0);
+							actt.setManmat(0);
+							actt.setFood(0);
+						} else { // before we send this caravan trade back, we load it up
+							// with tax-reduced resources for the other player.
+							// Then they'll just get them when it returns!
+							actt.setMetal(befRes);
+							actt.setTimber(befRes);
+							actt.setManmat(befRes);
+							t = p.getPs().b.getUserTrade(t.getId());
+							doTaxesOnTrade(actt,p,t1,t);
+
+						}
 					
 					
 				
@@ -10730,7 +10681,10 @@ public boolean checkForGenocides(Town t) {
 		
 		
 		// THIS EQUATION RELATED TO BATTLEHARDFUNCTIONS HOWMANYTRADERS!
-		int t1Required = t1.getPlayer().getPs().b.howManyTraders(ts.getMetal()+ts.getTimber()+ts.getManmat()+ts.getFood(),t1.townID);
+		int t1Required = 0;
+		if(ts.isCaravan()) t1Required=1;
+		else
+		 t1Required = t1.getPlayer().getPs().b.howManyTraders(ts.getMetal()+ts.getTimber()+ts.getManmat()+ts.getFood(),t1.townID);
 		if(t1Required>t1Traders) return false;
 		
 		int t2Traders=0,t2Required=0;
@@ -10761,7 +10715,8 @@ public boolean checkForGenocides(Town t) {
 				if(othertotalresource<ts.getOthertimber()) return false;
 				if(othertotalresource<ts.getOthermanmat()) return false;
 				if(othertotalresource<ts.getOtherfood()) return false;
-
+				if(ts.isCaravan()) t2Required=1;
+				else
 				 t2Required = t2.getPlayer().getPs().b.howManyTraders(ts.getOthermetal()+ts.getOthertimber()+ts.getOthermanmat()+ts.getOtherfood(),t2.townID);
 				 if(t2Required>t2Traders) return false;
 		} 
@@ -10833,14 +10788,15 @@ public boolean checkForGenocides(Town t) {
 			i++;
 			}
 			i = 0;
-			
-			 res = t1.getRes();
-			 synchronized(res) {
-			res[0]-=ts.getMetal();
-			res[1]-=ts.getTimber();
-			res[2]-=ts.getManmat();
-			res[3]-=ts.getFood();
-			 }
+			if(!ts.isCaravan()) {
+				 res = t1.getRes();
+				 synchronized(res) {
+				res[0]-=ts.getMetal();
+				res[1]-=ts.getTimber();
+				res[2]-=ts.getManmat();
+				res[3]-=ts.getFood();
+				 }
+			}
 			// okay so now we need to create the damn trade.
 			
 			actts.makeTrade(false,totalT1TravTraders); // it's not the second entity.
@@ -10875,13 +10831,14 @@ public boolean checkForGenocides(Town t) {
 			
 			i++;
 			}
-			res =t2.getRes();
-			synchronized(res) {
-			res[0]-=ts.getOthermetal();
-			res[1]-=ts.getOthertimber();
-			res[2]-=ts.getOthermanmat();
-			res[3]-=ts.getOtherfood();
-			}
+				res =t2.getRes();
+				synchronized(res) {
+				res[0]-=ts.getOthermetal();
+				res[1]-=ts.getOthertimber();
+				res[2]-=ts.getOthermanmat();
+				res[3]-=ts.getOtherfood();
+				}
+			
 			actts.getMate().makeTrade(true,totalT2TravTraders); // it IS the second entity.
 
 			}
@@ -10892,6 +10849,69 @@ public boolean checkForGenocides(Town t) {
 		return true;
 		
 				
+	}
+	public static void doTaxesOnTrade(Trade actt, Player otherP, Town t2, UserTrade t) {
+		if(!actt.getTs().isTwoway()&&otherP.getLeague()!=null) {
+			/*
+			 * If this is a two way trade,
+			 * then town 2, where the dump is occurring, paid tax
+			 * on the resources they shipped already through collecting them
+			 * in a raid or by mines. If this is just someone
+			 * dumping resources on them, ie, a one way trade, this
+			 * trade needs to be taxed!
+			 */
+
+				double afterTax = (1-otherP.getLeague().getTaxRate(otherP.ID));
+				double tax = 1-afterTax;
+				actt.setMetal((long) Math.round(t.getMetal()*afterTax));
+				actt.setTimber((long) Math.round(t.getTimber()*afterTax));
+				actt.setManmat((long) Math.round(t.getManmat()*afterTax));
+				actt.setFood((long) Math.round(t.getFood()*afterTax));
+				
+				long[] secbuff = otherP.getLeague().getSecondaryResBuff();
+				synchronized(secbuff) {
+					double modifier=1;
+					if(otherP.getLeague().getPremiumTimer()>0) modifier=.5;
+					secbuff[0]+=t.getMetal()*tax*modifier;
+					secbuff[1]+=t.getTimber()*tax*modifier;
+					secbuff[2]+=t.getManmat()*tax*modifier;
+					secbuff[3]+=t.getFood()*tax*modifier;
+				}
+
+				
+		}
+		
+		if(!actt.getTs().isTwoway()&&(otherP.getLord()!=null||t2.getLord()!=null)) {
+			/*
+			 * If this is a two way trade,
+			 * then town 2, where the dump is occurring, paid tax
+			 * on the resources they shipped already through collecting them
+			 * in a raid or by mines. If this is just someone
+			 * dumping resources on them, ie, a one way trade, this
+			 * trade needs to be taxed!
+			 */
+			double tax = t2.getVassalRate();
+			Player theLord = t2.getLord();
+			if(theLord==null) theLord = otherP.getLord();
+			
+				double afterTax = (1-tax);
+				actt.setMetal((long) Math.round(t.getMetal()*afterTax));
+				actt.setTimber((long) Math.round(t.getTimber()*afterTax));
+				actt.setManmat((long) Math.round(t.getManmat()*afterTax));
+				actt.setFood((long) Math.round(t.getFood()*afterTax));
+				
+				long[] secbuff = theLord.getSecondaryResBuff();
+				synchronized(secbuff) {
+					double modifier=1;
+					if(theLord.getPremiumTimer()>0) modifier=.5;
+					secbuff[0]+=t.getMetal()*tax*modifier;
+					secbuff[1]+=t.getTimber()*tax*modifier;
+					secbuff[2]+=t.getManmat()*tax*modifier;
+					secbuff[3]+=t.getFood()*tax*modifier;
+				}
+
+				
+		}
 	}
 	public static int getTotalPopWithExpMod(Player p) {
 		/*

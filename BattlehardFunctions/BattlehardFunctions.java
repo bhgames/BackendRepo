@@ -1597,7 +1597,7 @@ public class BattlehardFunctions {
 		i = 0;
 		ArrayList<TradeSchedule> tses = t1.tradeSchedules();
 		while(i<tses.size()) {
-			if(!tses.get(i).isFinished()) t1Slots-=1;
+			if(!tses.get(i).isFinished()||tses.get(i).isCaravan()) t1Slots-=1;
 			i++;
 		}
 		
@@ -1712,7 +1712,7 @@ public class BattlehardFunctions {
 		i = 0;
 		ArrayList<TradeSchedule> tses = t1.tradeSchedules();
 		while(i<tses.size()) {
-			if(!tses.get(i).isFinished()) t1Slots-=1;
+			if(!tses.get(i).isFinished()||tses.get(i).isCaravan()) t1Slots-=1;
 			i++;
 		}
 		
@@ -1823,7 +1823,7 @@ public class BattlehardFunctions {
 		i = 0;
 		ArrayList<TradeSchedule> tses = t1.tradeSchedules();
 		while(i<tses.size()) {
-			if(!tses.get(i).isFinished()) t1Slots-=1;
+			if(!tses.get(i).isFinished()||tses.get(i).isCaravan()) t1Slots-=1;
 			i++;
 		}
 		if(t1Slots<1) return false;
@@ -10742,7 +10742,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 							t.getOthermanmat(),t.getOthermetal(),t.getOthertimber(),t.getTimber(),
 							t.getTimesDone(),t.getTimesToDo(),t.getTown1().townID,tid2,t.id,t.isTwoway(),t.getTown1().getTownName(),
 							t.getTown1().getPlayer().getUsername(),town2Name,
-							town2PlayerName);
+							town2PlayerName,t.isCaravan());
 					
 				}
 				j++;
@@ -10823,7 +10823,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 								t.getOthermanmat(),t.getOthermetal(),t.getOthertimber(),t.getTimber(),
 								t.getTimesDone(),t.getTimesToDo(),t.getTown1().townID,tid2,t.id,t.isTwoway(),t.getTown1().getTownName(),
 								t.getTown1().getPlayer().getUsername(),town2Name,
-								town2PlayerName));
+								town2PlayerName,t.isCaravan()));
 						
 					
 					j++;
@@ -13294,5 +13294,43 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("You are either a forced vassal, or not a vassal at all.");
 			return false;
 		}
+	}
+	/**
+	 * UI Implemented.
+	 * Cancels a trade caravan by the given tsid.
+	 * @param tsid
+	 * @return
+	 */
+	public boolean cancelTradeCaravan(UUID tsid) {
+		
+	}
+	/**
+	 * UI Implemented.
+	 * Offers a trade caravan to the town of choice from the town of choice. Is a type of two way trade,
+	 * so you can accept the trade caravan the same way you would a two-way.
+	 * @param yourTownID
+	 * @param theirTownID
+	 * @return
+	 */
+	public boolean makeTradeCaravan(int yourTownID, int x, int y) {
+		Town t = g.findTown(x,y);
+		if(t==null) {
+			setError("No town on this x,y!");
+			return false;
+		}
+		
+		Town myT = g.findTown(yourTownID);
+		if(myT==null) {
+			setError("Invalid tid!");
+			return false;
+		}
+		if(t.isZeppelin()||myT.isZeppelin()) {
+			setError("Both towns must not be Airships for a trade caravan to work!");
+			return false;
+		}
+		int ticksToHit=getTradeETA(myT.townID,t.townID);
+
+		TradeSchedule ts = new TradeSchedule(myT,  t,(long)  0,(long)0,(long)0,(long)0, (long) 0,(long) 0, (long) 0,(long)  0,  ticksToHit+2, -1,  false,null,true);
+		return true;
 	}
 	}

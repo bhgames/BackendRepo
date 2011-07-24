@@ -11,14 +11,14 @@ public class UserTradeSchedule {
 	int currTicks = 0,timesDone=0,timesToDo=1; UUID mateID; // keep set at 0 to test for
 	// twoways without mates! Then it'll set incorrectly, we hope.
 	private double distance;
-	int intervaltime=3600; boolean agreed=false; boolean finished = false,stockMarketTrade=false;
+	int intervaltime=3600; boolean agreed=false,caravan=false; boolean finished = false,stockMarketTrade=false;
 	public UserTradeSchedule(boolean agreed, int currTicks, boolean finished,
 			long food, int intervaltime, long manmat, 
 			UUID mateID, long metal, long otherfood,
 			long othermanmat, long othermetal, long othertimber,
 			long timber,
 			int timesDone, int timesToDo, int tid1, int tid2,
-			UUID id, boolean twoway,String originatingTown, String originatingPlayer, String destTown,String destPlayer) {
+			UUID id, boolean twoway,String originatingTown, String originatingPlayer, String destTown,String destPlayer, boolean caravan) {
 		this.agreed = agreed;
 		this.currTicks = currTicks;
 		this.finished = finished;
@@ -34,6 +34,7 @@ public class UserTradeSchedule {
 		this.othertimber = othertimber;
 		this.timber = timber;
 		this.timesDone = timesDone;
+		this.caravan=caravan;
 		this.timesToDo = timesToDo;
 		this.setOriginatingPlayer(originatingPlayer); this.setOriginatingTown(originatingTown);
 		this.setDestPlayer(destPlayer); this.setDestTown(destTown);
@@ -41,6 +42,9 @@ public class UserTradeSchedule {
 		if(tid1==tid2) stockMarketTrade=true;
 		this.id = id;
 		this.twoway = twoway;
+	}
+	public boolean isCaravan() {
+		return caravan;
 	}
 	public long getMetal() {
 		return metal;

@@ -641,7 +641,15 @@ public class PlayerScript implements Runnable {
         		 toRet+= b.moveAirship(num1,num2,num3);
         		 
         		 
-        		 }else if(holdCmd.equals("bf.changeBombTarget")) {
+        		 }else if(holdCmd.equals("bf.makeTradeCaravan")) {
+            		 //number, number, number
+            		 int num1 = Integer.parseInt(holdPart.substring(0,holdPart.indexOf(",")));
+            		 int num2 = Integer.parseInt(holdPart.substring(holdPart.indexOf(",")+1,holdPart.lastIndexOf(",")));
+            		 int num3 = Integer.parseInt(holdPart.substring(holdPart.lastIndexOf(",")+1,holdPart.length()));
+            		 toRet+= b.makeTradeCaravan(num1,num2,num3);
+            		 
+            		 
+            		 }else if(holdCmd.equals("bf.changeBombTarget")) {
         		 //number, String[], number
         		 String str1 =(holdPart.substring(0,holdPart.indexOf(",")));
         		 String str2[] = decodeStringIntoStringArray(holdPart.substring(holdPart.indexOf(",")+1,holdPart.indexOf("]")+1));
@@ -2024,11 +2032,14 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     	 		 ||holdCmd.equals("bf.useBP")||holdCmd.equals("bf.pingQuest")
     	 		 ||holdCmd.equals("bf.abortAirship")||holdCmd.equals("bf.offloadResources")
     	 		 ||holdCmd.equals("bf.setVersion")||holdCmd.equals("bf.getCacheEffectToString")
-    	 		 ||holdCmd.equals("bf.acceptVassalage")) {
+    	 		 ||holdCmd.equals("bf.acceptVassalage")
+    	 		 ||holdCmd.equals("bf.cancelTradeCaravan")) {
     		 //int
     		 if(holdCmd.equals("bf.deleteUserSR"))
     			 toRet+=b.deleteUserSR(UUID.fromString(holdPart));
     		 else if(holdCmd.equals("bf.markReadUserSR")) 
+    			 toRet+=b.markReadUserSR(UUID.fromString(holdPart));
+    		 else if(holdCmd.equals("bf.cancelTradeCaravan")) 
     			 toRet+=b.markReadUserSR(UUID.fromString(holdPart));
     		 else if(holdCmd.equals("bf.acceptVassalage")) 
     			 toRet+=b.acceptVassalage(UUID.fromString(holdPart));

@@ -17,11 +17,11 @@ public class TradeSchedule {
 	private int currTicks = 0,timesDone=0,timesToDo=1;private  UUID mateID;
 	TradeSchedule mate;  public boolean threadSafe=true;
 	private int intervaltime=3600; private boolean agreed=false; private boolean finished =  false; private boolean stockMarketTrade=false;
-	private UberConnection con; private GodGenerator God; 
+	private UberConnection con; private GodGenerator God; private boolean caravan=false;
 	// they happen to be handled at the same time.
 	
 	public void setTradeScheduleValues(UUID id, Town town1, Town town2,
-			long metal, long timber, long manmat, long food, long othermetal,long othertimber, long othermanmat, long otherfood, int currTicks, int timesDone,boolean twoway,boolean agreed, int intervaltime, int timesToDo, UUID mateTradeScheduleID) {
+			long metal, long timber, long manmat, long food, long othermetal,long othertimber, long othermanmat, long otherfood, int currTicks, int timesDone,boolean twoway,boolean agreed, int intervaltime, int timesToDo, UUID mateTradeScheduleID,boolean caravan) {
 		// This constructor does not use the support integer because it is rarely used compared to other things
 		// and so to save space that is exported as an extra usable method. It is only necessary
 		// when creating raids.
@@ -39,6 +39,7 @@ public class TradeSchedule {
 		 this.othermetal=othermetal;this.othertimber=othertimber;
 		 this.othermanmat=othermanmat;this.otherfood=otherfood;
 		this.currTicks=currTicks;
+		this.caravan=caravan;
 		
 	
 	}
@@ -64,7 +65,7 @@ public class TradeSchedule {
 				Town town2Obj = God.findTown(rrs.getInt(2));
 
 				setTradeScheduleValues(id,town1,town2Obj,rrs.getLong(8),
-						 rrs.getLong(9),rrs.getLong(10),rrs.getLong(11),rrs.getLong(14), rrs.getLong(15), rrs.getLong(16), rrs.getLong(17), rrs.getInt(13),rrs.getInt(12),rrs.getBoolean(6),rrs.getBoolean(7),rrs.getInt(4),rrs.getInt(5),UUID.fromString(rrs.getString(19))); // this one has no sql addition!
+						 rrs.getLong(9),rrs.getLong(10),rrs.getLong(11),rrs.getLong(14), rrs.getLong(15), rrs.getLong(16), rrs.getLong(17), rrs.getInt(13),rrs.getInt(12),rrs.getBoolean(6),rrs.getBoolean(7),rrs.getInt(4),rrs.getInt(5),UUID.fromString(rrs.getString(19)),rrs.getBoolean(21)); // this one has no sql addition!
 				
 		
 			}
@@ -88,7 +89,7 @@ public class TradeSchedule {
 			Town town2Obj = God.findTown(rrs.getInt(2));
 
 			setTradeScheduleValues(id,town1,town2Obj,rrs.getLong(8),
-					 rrs.getLong(9),rrs.getLong(10),rrs.getLong(11),rrs.getLong(14), rrs.getLong(15), rrs.getLong(16), rrs.getLong(17), rrs.getInt(13),rrs.getInt(12),rrs.getBoolean(6),rrs.getBoolean(7),rrs.getInt(4),rrs.getInt(5),UUID.fromString(rrs.getString(19))); // this one has no sql addition!
+					 rrs.getLong(9),rrs.getLong(10),rrs.getLong(11),rrs.getLong(14), rrs.getLong(15), rrs.getLong(16), rrs.getLong(17), rrs.getInt(13),rrs.getInt(12),rrs.getBoolean(6),rrs.getBoolean(7),rrs.getInt(4),rrs.getInt(5),UUID.fromString(rrs.getString(19)),rrs.getBoolean(21)); // this one has no sql addition!
 			
 	
 		}
@@ -107,7 +108,7 @@ public class TradeSchedule {
 	
 	synchronized public void save() {
 		try {
-		UberPreparedStatement stmt = con.createStatement("update tradeschedule set  m = ?, t = ?, mm = ?, f = ?, tid1 = ?, tid2 = ?, intervaltime = ?, times = ?, twoway = ?, agreed = ?, timesdone = ?, currticks = ?, otherm = ?, othert = ?, othermm = ?, otherf = ?, finished =  ?, mate_tsid = ? where tsid = ?;");
+		UberPreparedStatement stmt = con.createStatement("update tradeschedule set  m = ?, t = ?, mm = ?, f = ?, tid1 = ?, tid2 = ?, intervaltime = ?, times = ?, twoway = ?, agreed = ?, timesdone = ?, currticks = ?, otherm = ?, othert = ?, othermm = ?, otherf = ?, finished =  ?, mate_tsid = ?,caravan = ? where tsid = ?;");
 			int tid2 = 0;
 			  if(getTown2()!=null) tid2 = getTown2().townID;
 
@@ -130,7 +131,9 @@ public class TradeSchedule {
 			 stmt.setBoolean(17,finished);
 			 if(mateID!=null)
 			 stmt.setString(18,mateID.toString());
-			 stmt.setString(19,id.toString());
+			 stmt.setBoolean(19,caravan);
+
+			 stmt.setString(20,id.toString());
 		  
 		  stmt.executeUpdate();
 		  stmt.close();
@@ -245,7 +248,7 @@ public class TradeSchedule {
 		
 		return false;
 	}
-	public TradeSchedule(Town town1, Town town2, long m, long t, long mm, long f, long othermetal,long othertimber, long othermanmat, long otherfood, int intervaltime,int timesToDo, boolean twoway,UUID mateTradeScheduleID) {
+	public TradeSchedule(Town town1, Town town2, long m, long t, long mm, long f, long othermetal,long othertimber, long othermanmat, long otherfood, int intervaltime,int timesToDo, boolean twoway,UUID mateTradeScheduleID, boolean caravan) {
 		// Can't do an infinite number of arguments here so need to add manually.
 		// holds distance and ticksToHit in this object.
 		 this.con=town1.getPlayer().God.con; this.God=town1.getPlayer().God;
@@ -266,7 +269,7 @@ public class TradeSchedule {
 			try {
 
 		      
-		      stmt = con.createStatement("insert into tradeschedule (tid1, tid2,m,t,mm,f,otherm,othert,othermm,otherf,intervaltime,times,twoway,mate_tsid,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
+		      stmt = con.createStatement("insert into tradeschedule (tid1, tid2,m,t,mm,f,otherm,othert,othermm,otherf,intervaltime,times,twoway,mate_tsid,id,caravan) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
 		      
 		      // First things first. We update the player table.
 		      boolean transacted=false;
@@ -289,6 +292,7 @@ public class TradeSchedule {
 		      stmt.setString(13,mateID.toString());
 		      id = UUID.randomUUID();
 		      stmt.setString(14,id.toString());
+		      stmt.setBoolean(15,caravan);
 		      // let's add this raid and therefore get the rid out of it.
 		      stmt.executeUpdate();
 		    
@@ -315,8 +319,14 @@ public class TradeSchedule {
 		// don't need to worry about threadSafety here due to it being checked in sendTradeIfPossible method in God.
 		// Even nonsafe trade schedules can make trades, they just have to have their makeTrade method called by the safe one's
 		//getMate() return.
-		Trade t = new Trade(getTown1(),getTown2(),getMetal(),getTimber(),getManmat(),getFood(),this,traders);
-		
+		Trade t;
+		if(!isCaravan()) 
+			t = new Trade(getTown1(),getTown2(),getMetal(),getTimber(),getManmat(),getFood(),this,traders);
+		else {
+			long theResource = 25+1*getTimesDone();
+			if(theResource>300) theResource=300;
+			t = new Trade(getTown1(),getTown2(),theResource,theResource,theResource,0,this,traders);
+		}
 		// makes this bitch.
 		if(!second)
 		setCurrTicks(getIntervaltime());
@@ -750,5 +760,11 @@ public class TradeSchedule {
 			exc.printStackTrace();
 		}
 		return null;
+	}
+	public void setCaravan(boolean caravan) {
+		this.caravan = caravan;
+	}
+	public boolean isCaravan() {
+		return caravan;
 	}
 }
