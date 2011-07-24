@@ -13302,7 +13302,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * @return
 	 */
 	public boolean cancelTradeCaravan(UUID tsid) {
-		
+		TradeSchedule ts = p.findTradeSchedule(tsid);
+		if(ts==null) {
+			setError("Invalid tsid!");
+			return false;
+		}
+		ts.deleteMeInterrupt();
+		return false;
 	}
 	/**
 	 * UI Implemented.
