@@ -1,12 +1,11 @@
 package BHEngine;
 
-import java.sql.DriverManager;
+//import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+//import java.sql.Statement;
 import java.util.ArrayList;
-
-import java.sql.Connection;
+//import java.sql.Connection;
 import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 
 public class League extends Player {
@@ -139,6 +138,10 @@ public class League extends Player {
 	}
 
 	
+	public boolean isAllied(League l) {
+		//will return the actual alliance of the two leagues once diplo is in place
+		return false;
+	}
 	
 	public String JSONMap() {
 		// input the mapper output code here.
