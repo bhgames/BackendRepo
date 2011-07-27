@@ -139,7 +139,10 @@ public class League extends Player {
 
 	
 	public boolean isAllied(League l) {
+		if(l==null) return false;
 		//will return the actual alliance of the two leagues once diplo is in place
+		if(ID==l.ID) return true;
+		
 		return false;
 	}
 	

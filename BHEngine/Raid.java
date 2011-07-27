@@ -139,7 +139,10 @@ public class Raid {
 			//int y = 0;
 		
 			 setRaidValues(rrs.getInt(3),rrs.getDouble(4),rrs.getInt(5),town1,town2Obj,rrs.getBoolean(6),
-					rrs.getBoolean(8), rrs.getInt(9),rrs.getInt(10),rrs.getInt(11),rrs.getInt(12),rrs.getBoolean(7), rrs.getBoolean(19),rrs.getBoolean(23),rrs.getInt(25),rrs.getString(26),rrs.getInt(27),rrs.getBoolean(28),rrs.getInt(29),UUID.fromString(rrs.getString(31)),new Timestamp((new Date(rrs.getString(32))).getTime()),rrs.getString(33)); // this one has no sql addition!
+					rrs.getBoolean(8), rrs.getInt(9),rrs.getInt(10),rrs.getInt(11),rrs.getInt(12),rrs.getBoolean(7), 
+					rrs.getBoolean(19),rrs.getBoolean(23),rrs.getInt(25),rrs.getString(26),rrs.getInt(27),
+					rrs.getBoolean(28),rrs.getInt(29),UUID.fromString(rrs.getString(31)),
+					new Timestamp((new Date(rrs.getString(32))).getTime()),rrs.getString(33)); // this one has no sql addition!
 
 			getAu();
 					
@@ -193,8 +196,6 @@ public class Raid {
 	    id = UUID.randomUUID();
 
 	    town1.attackServer().add(this); 			// even if this error happens, raid still works...
-	    if(support==3&&getDockingFinished()!=null)	//blockades need to be on the second town's AS too
-	    	town2.attackServer().add(this);
 	    	
 	    UberPreparedStatement stmt;
 		try {

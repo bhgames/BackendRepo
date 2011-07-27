@@ -4405,7 +4405,6 @@ Ideas for extras once game engine is finished:
 -J.
  */
 
-
 /*
 Version Info:
 v.12
@@ -4503,14 +4502,15 @@ v. 01
 -Gameclock implemented.
 
  */
+@SuppressWarnings("serial")
 public class GodGenerator extends HttpServlet implements Runnable {
 	//BattlehardViewer bh;
 	int res1[] = new int[8]; // There is metal and number of bland military units for this alpha software.
 	// Metal is 0, timber is 1. Stealthtech is 2. Population is 3.
 	// 28.3 for .01, 2.83 for .1, 
 	
-	public static double gameClockFactor=10; // At 1, 1 tick = 1s.
-	public static double sessionLagTime = 2*3600000; // How much time in Date speech till a session logs out.
+	public static double gameClockFactor=10, // At 1, 1 tick = 1s.
+						 sessionLagTime = 2*3600000; // How much time in Date speech till a session logs out.
 	// so with timers, you'll want to divide by the gameClockFactor, diminishing it...
 	// so divide 10 ticks by 10, then with 1 tick=1s at ticks = 10 is 10s to do,
 	// now at 1 tick = 10s, the timer will be 1 tick means 10s to do. Same dealie.
@@ -4550,170 +4550,138 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	 */
 	//	public double[] generateGaussianDist(int numOfPoints, double height, double center, double width) {
 
-	public static double nothingCtr = 1;
-	public static double nothingWidth = 2; // 2 days homes.
-	public static double nothingHeight = 1;
-	public static double daily10Ctr = 2;
-	public static double daily10Width = 2; // 2 days homes.
-	public static double daily10Height = 1;
-	public static double daily20Ctr = 3;
-	public static double daily20Width = 2; // 2 days homes.
-	public static double daily20Height = 1;
-	public static double daily30Ctr = 4;
-	public static double daily30Width = 2; // 2 days homes.
-	public static double daily30Height = 1;
-	public static double daily50Ctr = 5;
-	public static double daily50Width = 2; // 2 days homes.
-	public static double daily50Height = 1;
-	public static double lowKPCtr = 3;
-	public static double lowKPWidth = 2; // 2 days homes.
-	public static double lowKPHeight = 1;
-	public static double medKPCtr = 4;
-	public static double medKPWidth = 2; // 2 days homes.
-	public static double medKPHeight = 1;
-	public static double highKPCtr = 5;
-	public static double highKPWidth = 2; // 2 days homes.
-	public static double highKPHeight = 1;
-	public static double apiCtr = 6;
-	public static double apiWidth = 2; // 2 days homes.
-	public static double apiHeight = .5;
-	public static double soldierCtr = 6;
-	public static double soldierWidth = 2; // 2 days homes.
-	public static double soldierHeight = .5;
-	public static double techCtr = 6;
-	public static double techWidth = 2; // 2 days homes.
-	public static double techHeight = .5;
-	public static double tankCtr = 7;
-	public static double tankWidth = 2; // 2 days homes.
-	public static double tankHeight = .5;
-	public static double resIncCtr = 7;
-	public static double resIncWidth = 2; // 2 days homes.
-	public static double resIncHeight = .5;
-	public static double juggernaughtCtr = 8;
-	public static double juggernaughtWidth = 2; // 2 days homes.
-	public static double juggernaughtHeight = .5;
-	public static double siloCtr = 9;
-	public static double siloWidth = 2; // 2 days homes.
-	public static double siloHeight = .3;
-	public static double zeppelinCtr = 9;
-	public static double zeppelinWidth = 2; // 2 days homes.
-	public static double zeppelinHeight = .3;
-	public static double engineerRORate=1000*gameClockFactor/3600; // 1000 per hour.
-	public static int digScholarRequirement=10;
-	public static int constructionResearchPrice=10; // how much it costs to buy this research.
-	public static int infrastructureTechPrice=20;
-	public static int structuralIntegrityPrice=10;
-	public static int townTechPrice=200;
-	public static int civEfficiencyPrice=25;
-	public static int bloodMetalPlatingPrice=75;
-	public static int advancedFortificationsPrice=1000;
-	public static int bodyArmorPrice=50;
-	public static int scoutTechPrice=25;
-	public static int personalShieldsPrice=1000;
-	public static int hydraulicAssistorsPrice=500;
-	public static int thrustVectoringPrice=600;
-	public static int airshipTechPrice=2000;
-	public static int clockworkAugmentsPrice=300;
-	public static int soldierPrice=50;
-	public static int tankPrice=150;
-	public static int golemPrice=450;
-	public static int airPrice=250;
-	public static int firearmResearchPrice=50;
-	public static int ordinanceResearchPrice=50;
-	public static int teslaTechPrice=50;
-	public static int bloodMetalArmorPrice=750;
-
-	public static int startingTownInfluence=140;
-
-
+	public static double nothingCtr = 1,
+						 nothingWidth = 2,// 2 days homes.
+						 nothingHeight = 1,
+						 daily10Ctr = 2,
+						 daily10Width = 2,// 2 days homes.
+						 daily10Height = 1,
+						 daily20Ctr = 3,
+						 daily20Width = 2,// 2 days homes.
+						 daily20Height = 1,
+						 daily30Ctr = 4,
+						 daily30Width = 2,// 2 days homes.
+						 daily30Height = 1,
+						 daily50Ctr = 5,
+						 daily50Width = 2, // 2 days homes.
+						 daily50Height = 1,
+						 lowKPCtr = 3,
+						 lowKPWidth = 2, // 2 days homes.
+						 lowKPHeight = 1,
+						 medKPCtr = 4,
+						 medKPWidth = 2, // 2 days homes.
+						 medKPHeight = 1,
+						 highKPCtr = 5,
+						 highKPWidth = 2, // 2 days homes.
+						 highKPHeight = 1,
+						 apiCtr = 6,
+						 apiWidth = 2, // 2 days homes.
+						 apiHeight = .5,
+						 soldierCtr = 6,
+						 soldierWidth = 2, // 2 days homes.
+						 soldierHeight = .5,
+						 techCtr = 6,
+						 techWidth = 2, // 2 days homes.
+						 techHeight = .5,
+						 tankCtr = 7,
+						 tankWidth = 2, // 2 days homes.
+						 tankHeight = .5,
+						 resIncCtr = 7,
+						 resIncWidth = 2, // 2 days homes.
+						 resIncHeight = .5,
+						 juggernaughtCtr = 8,
+						 juggernaughtWidth = 2, // 2 days homes.
+						 juggernaughtHeight = .5,
+						 siloCtr = 9,
+						 siloWidth = 2, // 2 days homes.
+						 siloHeight = .3,
+						 zeppelinCtr = 9,
+						 zeppelinWidth = 2, // 2 days homes.
+						 zeppelinHeight = .3,
+						 engineerRORate=1000*gameClockFactor/3600, // 1000 per hour.
+						 speedadjust = .001; //down raises timers //283 s for .001 for a trade between adjacent towns
 	
-	public static int digAPITechPrice = 400;
+	public static int digScholarRequirement=10,
+					  constructionResearchPrice=10, // how much it costs to buy this research.
+					  infrastructureTechPrice=20,
+					  structuralIntegrityPrice=10,
+					  townTechPrice=200,
+					  civEfficiencyPrice=25,
+					  bloodMetalPlatingPrice=75,
+					  advancedFortificationsPrice=1000,
+					  bodyArmorPrice=50,
+					  scoutTechPrice=25,
+					  personalShieldsPrice=1000,
+					  hydraulicAssistorsPrice=500,
+					  thrustVectoringPrice=600,
+					  airshipTechPrice=2000,
+					  clockworkAugmentsPrice=300,
+					  soldierPrice=50,
+					  tankPrice=150,
+					  golemPrice=450,
+					  airPrice=250,
+					  firearmResearchPrice=50,
+					  ordinanceResearchPrice=50,
+					  teslaTechPrice=50,
+					  bloodMetalArmorPrice=750,
+					  startingTownInfluence=140,
+					  digAPITechPrice = 400,
+					  attackAPITechPrice=50,
+					  advancedAttackAPITechPrice=75,
+					  tradingAPITechPrice=50,
+					  advancedTradingAPITechPrice=75,
+					  smAPITechPrice=200,
+					  researchAPITechPrice=50,
+					  buildingAPITechPrice=75,
+					  advancedBuildingAPITechPrice=125,
+					  messagingAPITechPrice=100,// EXCEPT SENDYOURSELF
+					  zeppelinAPITechPrice=400,
+					  completeAnalyticAPITechPrice=50,
+					  nukeAPITechPrice=200,
+					  worldMapAPITechPrice = 50,
+					  scholarSpeed=33,
+					  traderCarryAmount=300,
+					  scholarCarryAmount=10000,
+					  engineerCarryAmount=500,
+					  traderSpeed = 100,
+					  infrastructureTechLimit=18, // how many lots you can have maximum.
+					  tradeDistance = 20,
+					  maxMessageLimit=100,
+					  	// default stockmarket time
+					  stockMarketTime=(int) Math.round(tradeDistance*10/(traderSpeed*speedadjust)),
+					  invasionDistance = 20, // This is the limit on how far you can make an invasion from.
+					  totalUnitPrice=70,
+					  unarmedAmt = 10, 	// The unarmed weapon which occurs when soldiers/tanks/juggers/bombers
+					  					// fight unarmed. Currently is 10.
+					  minIterators=3,
+					  maxIterators=10,
+					  printWhenTicks=(int) (100000/gameClockFactor),
+					  ticksTillIncrease=5,
+					  ticksTillDecrease = 20,
+					  mapTileWidthX=9,
+					  mapTileWidthY=9,
+					  saveWhenTicks = (int) (60*15/gameClockFactor),
+					  leagueLagTime=360, // how many ticks before taxes are done with leagues.
+					  lordLagTime=360; // once an hour.
 	
-	public static int attackAPITechPrice=50;
-	public static int advancedAttackAPITechPrice=75;
-	
-	public static int tradingAPITechPrice=50;
-	public static int advancedTradingAPITechPrice=75;
-	
-	public static int smAPITechPrice=200;
-	
-	public static int researchAPITechPrice=50;
-
-	public static int buildingAPITechPrice=75;
-	public static int advancedBuildingAPITechPrice=125;
-	
-	public static int messagingAPITechPrice=100;// EXCEPT SENDYOURSELF
-	
-	public static int zeppelinAPITechPrice=400;
-	
-	public static int  completeAnalyticAPITechPrice=50;
-	
-	public static int nukeAPITechPrice=200;
-	
-	public static int worldMapAPITechPrice = 50;
-
-
-	public static int scholarSpeed=33;
-	public static double speedadjust = .001; //down raises timers //283 s for .001 for a trade between adjacent towns
-
-	public static int traderCarryAmount=300;
-	public static int scholarCarryAmount=10000;
-	public static int engineerCarryAmount=500;
-
-	public static int traderSpeed = 100; 
-	public static int infrastructureTechLimit=18; // how many lots you can have maximum.
-	public static int tradeDistance = 20;
-	public static int maxMessageLimit=100;
-	public static int stockMarketTime=(int) Math.round(tradeDistance*10/(traderSpeed*speedadjust));
-	public static int invasionDistance = 20; // This is the limit on how far you can make an invasion from.
-	// default stockmarket time
-	public ArrayList<Hashtable<String, Object>> mapTileHashes;
-	private Hashtable[] achievements;
-	UberConnection zongCon;
-	
-	public Trader Trader;
-	public static int leagueLagTime=360; // how many ticks before taxes are done with leagues.
-	public static int lordLagTime=360; // once an hour.
 	//public int gpid; // The player this God is based around, if -1, is a normal God.
 	//public int lgpid;
 	public int gameClock=0;
+	public int printCounter=0;
+	public int saveCounter=0;
+	public boolean killGod;
 	public boolean serverLoaded=false;
-	public MemoryLeakDetector Gigabyte;
-	ArrayList<Iterator> iterators=new ArrayList<Iterator>();
-	
+	public boolean loaded=false;
+	public String status="";
+	public Thread holdGod;
+	public ArrayList<Hashtable<String, Object>> mapTileHashes;
 	public ArrayList<Hashtable> programs = new ArrayList<Hashtable>();
 	public Hashtable<Object, Hashtable<String, Object>> accounts = new Hashtable();
-	private ArrayList<Player> iteratorPlayers;
-	private ArrayList<Town> iteratorTowns;
+	public Trader Trader;
 	public Maelstrom Maelstrom;
-	public boolean loaded=false;
-	public static int totalUnitPrice=70;
-	public static int unarmedAmt = 10; // The unarmed weapon which occurs when soldiers/tanks/juggers/bombers
-	// fight unarmed. Currently is 10.
-	public static int minIterators=3;
-	public static int maxIterators=10;
-	public static int printWhenTicks=(int) (100000/gameClockFactor);
-	public int printCounter=0;
-	public static int ticksTillIncrease=5;
-	public static int ticksTillDecrease = 20;
-	public static int mapTileWidthX=9;
-	public static int mapTileWidthY=9;
-	public static int saveWhenTicks = (int) (60*15/gameClockFactor);
-	public int saveCounter=0;
-	Hashtable entryPointURLs = new Hashtable();
-	Controllers Router;
-	int res2[] = new int[7]; // For the second player.
-	int resInc[] = new int[7]; // for both players, for now.
-	public boolean killGod;
-	OutOfMemoryError holdE;
-	Timer lagTimer;
-	Exception holdE2;
-	int ticks = 0; // Gameclock.
-	boolean testMe = false;
-	boolean elseflag = false;
-	//ArrayList<Raid> attackServer = new ArrayList<Raid>();
-	//public static int maxXSize=60,maxYSize=42; // the size of the world in town-sized chunks.
-	//ArrayList<Raid> attackServer = new ArrayList<Raid>();
+	public UberConnection con;
+	public MemoryLeakDetector Gigabyte;
+	
 	// NOTE I USED NONLOCAL ADDRESS FOR MOST RECENT PROGRAM TEST...I THINK IT'LL STILL WORK JUST FINE THOUGH.
 	//static String url = "jdbc:mysql://72.167.46.39:3306/bhdb";
 	static String url = "jdbc:mysql://localhost:3306/bhdb";
@@ -4727,14 +4695,32 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	String specurl,specuser,specpass;
 	static boolean server = true;
 	static boolean activated = false; // activate for better streamlining.
-	public String status="";
+	
+	UberConnection zongCon;
+	OutOfMemoryError holdE;
+	Timer lagTimer;
+	Exception holdE2;
+	int ticks = 0; // Gameclock.
+	boolean testMe = false;
+	boolean elseflag = false;
+	boolean godHere = true;
+	ArrayList<Iterator> iterators=new ArrayList<Iterator>();
+	Hashtable entryPointURLs = new Hashtable();
+	Controllers Router;
+	int res2[] = new int[7]; // For the second player.
+	int resInc[] = new int[7]; // for both players, for now.
+	//ArrayList<Raid> attackServer = new ArrayList<Raid>();
+	//public static int maxXSize=60,maxYSize=42; // the size of the world in town-sized chunks.
+	//ArrayList<Raid> attackServer = new ArrayList<Raid>();
+	
 	private static String srcdirectory = "/users/arkavon/documents/apache-tomcat-6.0.26/webapps/AIWars/WEB-INF/classes/src/";
 	private static String bindirectory = "/users/arkavon/documents/apache-tomcat-6.0.26/webapps/AIWars/WEB-INF/classes/";
 //	private static String srcdirectory = "/home/jmp3qa/BattlehardAIWars/src/";
 //	private static String bindirectory = "/home/jmp3qa/BattlehardAIWars/bin/";
-	boolean godHere = true;
-	public UberConnection con;
-	public Thread holdGod;
+	
+	private Hashtable[] achievements;
+	private ArrayList<Player> iteratorPlayers;
+	private ArrayList<Town> iteratorTowns;
 
 	public void doPost(HttpServletRequest req, HttpServletResponse res) 
 	throws IOException, ServletException {
@@ -4744,53 +4730,54 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	res.setContentType("text/html");
 
 	PrintWriter out = res.getWriter();
-	if(serverLoaded) 
-	if(req.getParameter("reqtype").equals("command")) {
-		Router.command(req,out);
-	} else if(req.getParameter("reqtype").equals("saveProgram")) {
-		Router.saveProgram(req,out);
-	}else if(req.getParameter("reqtype").equals("serverStatus")) {
-		Router.serverStatus(req,out);
-	}else if(req.getParameter("reqtype").equals("createNewPlayer")) {
-		Router.createNewPlayer(req,out);
-	}else if(req.getParameter("reqtype").equals("deleteAccount")) {
-		Router.deleteAccount(req,out);
-	}else if(req.getParameter("reqtype").equals("forgotPass")) {
-		Router.forgotPass(req,out);
-	}else if(req.getParameter("reqtype").equals("upgrade")) {
-		Router.upgrade(req,out);
-	}else if(req.getParameter("reqtype").equals("logout")) {
-		Router.logout(req,out);
-	}else if(req.getParameter("reqtype").equals("username")) {
-		Router.username(req,out);
-	}else if(req.getParameter("reqtype").equals("noFlick")) {
-		Router.noFlick(req,out);
-	}else if(req.getParameter("reqtype").equals("support")) {
-		Router.support(req,out);
-	}else if(req.getParameter("reqtype").equals("flickStatus")) {
-		Router.flickStatus(req,out);
-	}else if(req.getParameter("reqtype").equals("getTiles")) {
-		Router.getTiles(req,out);
-	}else if(req.getParameter("reqtype").equals("resetPass")) {
-		Router.resetPass(req,out);
-	}
-	else if(req.getParameter("reqtype").equals("linkFB")) {
-		Router.linkFB(req,out);
-	} else if(req.getParameter("reqtype").equals("login")) {
-		Router.login(req,out);
-	} else if(req.getParameter("reqtype").equals("FBBlast")) {
-		Router.FBBlast(req,out);
-	} else if(req.getParameter("reqtype").equals("makePaypalReq")) {
-		Router.makePaypalReq(req,out);
-	}else if(req.getParameter("reqtype").equals("sendTestEmail")) {
-		Router.sendTestEmail(req,out);
-	}
-	else {
+	if(serverLoaded) {
+		if(req.getParameter("reqtype").equals("command")) {
+			Router.command(req,out);
+		} else if(req.getParameter("reqtype").equals("player")) {
+			Router.loadPlayer(req,out,false);
+		} else if(req.getParameter("reqtype").equals("league")) {
+			Router.loadPlayer(req,out,true);
+		}  else if(req.getParameter("reqtype").equals("saveProgram")) {
+			Router.saveProgram(req,out);
+		} else if(req.getParameter("reqtype").equals("serverStatus")) {
+			Router.serverStatus(req,out);
+		} else if(req.getParameter("reqtype").equals("createNewPlayer")) {
+			Router.createNewPlayer(req,out);
+		} else if(req.getParameter("reqtype").equals("deleteAccount")) {
+			Router.deleteAccount(req,out);
+		} else if(req.getParameter("reqtype").equals("forgotPass")) {
+			Router.forgotPass(req,out);
+		} else if(req.getParameter("reqtype").equals("upgrade")) {
+			Router.upgrade(req,out);
+		} else if(req.getParameter("reqtype").equals("logout")) {
+			Router.logout(req,out);
+		} else if(req.getParameter("reqtype").equals("username")) {
+			Router.username(req,out);
+		} else if(req.getParameter("reqtype").equals("noFlick")) {
+			Router.noFlick(req,out);
+		} else if(req.getParameter("reqtype").equals("support")) {
+			Router.support(req,out);
+		} else if(req.getParameter("reqtype").equals("flickStatus")) {
+			Router.flickStatus(req,out);
+		} else if(req.getParameter("reqtype").equals("getTiles")) {
+			Router.getTiles(req,out);
+		} else if(req.getParameter("reqtype").equals("resetPass")) {
+			Router.resetPass(req,out);
+		} else if(req.getParameter("reqtype").equals("linkFB")) {
+			Router.linkFB(req,out);
+		} else if(req.getParameter("reqtype").equals("login")) {
+			Router.login(req,out);
+		} else if(req.getParameter("reqtype").equals("FBBlast")) {
+			Router.FBBlast(req,out);
+		} else if(req.getParameter("reqtype").equals("makePaypalReq")) {
+			Router.makePaypalReq(req,out);
+		} else if(req.getParameter("reqtype").equals("sendTestEmail")) {
+			Router.sendTestEmail(req,out);
+		} else {
+			out.println(status);
+		} 
+	} else 
 		out.println(status);
-	}
-	else 
-		out.println(status);
-
 
 	out.close();
 }
@@ -6814,7 +6801,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 									//we have to determine if combat must take place
 			for(Raid ra : blockades){
 				Player raT1p = ra.getTown1().getPlayer();
-				if(t1p.getID()!=raT1p.getID()&&!raT1p.isAllied(t1p)) {
+				if(!raT1p.isAllied(t1p)) {
 					fight = true;
 					break;
 				}
@@ -6826,7 +6813,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		//no hostile blockades here, boss.
 		if(!fight) {
 			int index = -1;
-			boolean foundSame = false, foundPlayer = false;
+			boolean foundSame = false;
 			for(Raid ra : blockades) {
 				if(ra.getTown1().getTownID()==r.getTown1().getTownID()) {
 					index = blockades.indexOf(ra);
@@ -6849,8 +6836,10 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				//the active trades should continue normally though.
 				ArrayList<TradeSchedule> trades = r.getTown2().tradeSchedules();
 				for(TradeSchedule t : trades) {
-					t.deleteMeInterrupt();
+					if(!t1p.isAllied(t.getTown2().getPlayer()))
+						t.deleteMeInterrupt();
 				}
+				r.getTown2().attackServer().add(r);
 			}
 
 			String unitsGained = "[", unitsReturned = "[", unitNames = "[";
@@ -10362,6 +10351,7 @@ public boolean checkForGenocides(Town t) {
 				} else if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&holdAttack.raidType().equals("blockade")) {
 					if(holdAttack.getDockingFinished()==null)
 						blockadeLogicBlock(r);
+					
 				} else if (holdAttack.eta()<=0&&holdAttack.raidOver()) {
 				
 					ArrayList<Raid> blockades = r.getTown1().getBlockades(); boolean fight = false;
@@ -17745,12 +17735,18 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 	 * @return True if test sucessful.  False otherwise.
 	 */
 	public boolean blockadeMovementTest(HttpServletRequest req, PrintWriter out, Player p) {
+		out.println("<br/>");
 		Player[] tests = p.generateFakePlayers(4, 1, 0, 0);
 		Town[] testTowns = new Town[tests.length];
 		ArrayList<ArrayList<AttackUnit>> au = new ArrayList<ArrayList<AttackUnit>>();
 		for(int i=0;i<tests.length;i++) {
 			testTowns[i] = tests[i].towns().get(0);
 			au.add(i, new ArrayList<AttackUnit>());
+			testTowns[i].addBuilding("Command Center",5,20,0);
+			testTowns[i].setX(i);
+			testTowns[i].setY(10000);
+			testTowns[i].setDebris(new long[] {0,0,0,0});
+			out.println("Fake Player "+i+"'s ID is "+tests[i].ID+" and its Fake Town ID is"+testTowns[i].getTownID()+"<br/>");
 		}
 		
 		au.get(0).add(new AttackUnit("Pillager",0,0));
@@ -17771,6 +17767,8 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		tests[0].setLord(tests[3]);
 		tests[2].setLord(tests[3]);
 		
+		out.println("Fake Town 0's player's ID is "+testTowns[0].getPlayer().ID);
+		
 		if(!tests[0].getPs().b.attack(testTowns[0].getTownID(), testTowns[1].getX(), 
 				testTowns[1].getY(), new int[] {10}, "blockade", new String[] {}, "", true)) {
 			out.println("Blockade movement test failed.  The blockade could not be sent.  Error: " + tests[0].getPs().b.getError());
@@ -17785,12 +17783,17 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 				break;
 			}
 		}
+		if(blockade==null) {
+			out.println("Blockade movement test failed.  The blockade could not be found in the first town's Attack Server.");
+			p.deleteFakePlayers(tests);
+			return false;
+		}
 		if(blockade.getSupport()!=3) {
 			out.println("Blockade movement test failed.  The blockade did not have support type 3.");
 			p.deleteFakePlayers(tests);
 			return false;
 		}
-		if(testTowns[1].attackServer().contains(blockade)||testTowns[1].getBlockades().size()>0) {
+		if(testTowns[1].getBlockades().size()>0) {
 			out.println("Blockade movement test failed.  The blockade was placed into the second town's Attack Server to early.");
 			p.deleteFakePlayers(tests);
 			return false;
@@ -17798,12 +17801,6 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		blockade.setTicksToHit(0);
 		attackServerCheck(testTowns[0], tests[0]);
 		
-
-		if(!testTowns[1].attackServer().contains(blockade)) {
-			out.println("Blockade movement test failed.  The blockade wasn't placed in the second town's Attack Server.");
-			p.deleteFakePlayers(tests);
-			return false;
-		}
 		if(testTowns[1].getBlockades().size()<1) {
 			out.println("Blockade movement test failed.  The blockade is not gatherable by the getBlockades method.");
 			p.deleteFakePlayers(tests);
@@ -17829,7 +17826,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 				break;
 			}
 		}
-		if(blockade==newBlockade) { //not sure how the fuck this would happen
+		if(blockade.getId()==newBlockade.getId()) { //not sure how the fuck this would happen
 			out.println("Blockade movement test failed.  The existing blockade could not be distinguisted from the newly sent blockade.");
 			p.deleteFakePlayers(tests);
 			return false;
@@ -17838,7 +17835,24 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		newBlockade.setTicksToHit(0);
 		attackServerCheck(testTowns[0], tests[0]);
 		
-		if(testTowns[0].attackServer().contains(newBlockade)||testTowns[1].attackServer().contains(newBlockade)) {
+		boolean found = false;
+		for(Raid r : testTowns[0].attackServer()) {
+			if(r.getId()==newBlockade.getId()) {
+				found = true;
+				break;
+			}
+		}
+		
+		if(!found) {
+			for(Raid r : testTowns[1].attackServer()) {
+				if(r.getId()==newBlockade.getId()) {
+					found = true;
+					break;
+				}
+			}
+		}
+		
+		if(found) {
 			out.println("Blockade movement test failed.  The new blockade was not merged with the existing blockade and removed from both town's Attack Server.");
 			p.deleteFakePlayers(tests);
 			return false;
@@ -17922,7 +17936,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 	 * @return True if test sucessful.  False otherwise.
 	 */
 	public boolean blockadeCombatTest(HttpServletRequest req, PrintWriter out, Player p) {
-		
+		out.println("<br/>");
 		Player[] tests = p.generateFakePlayers(3, 1, 0, 0);
 		Town[] towns = new Town[tests.length];
 		for(int i=0;i<towns.length;i++) {
@@ -17932,7 +17946,11 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 			au.get(0).setSize(30);
 			towns[i].setAu(au);
 			tests[i].setAu(au);
-			towns[i].addBuilding("Command Center",0,0,0);
+			towns[i].addBuilding("Command Center",5,20,0);
+			towns[i].setX(i);
+			towns[i].setY(10000);
+			towns[i].setDebris(new long[] {0,0,0,0});
+			out.println("Fake Player "+i+"'s ID is "+tests[i].ID+" and its Fake Town ID is"+towns[i].getTownID()+"<br/>");
 		}
 		
 		tests[0].getPs().b.attack(towns[0].getTownID(), towns[1].getX(), towns[1].getY(), new int[] {10}, "blockade", new String[] {}, "", true);
@@ -17976,6 +17994,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		}
 		
 		p.deleteFakePlayers(tests);
+		out.println("Blockade combat test passed!");
 		return true;
 	}
 
@@ -17989,6 +18008,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 	 */
 	public boolean blockadeTradeTest(HttpServletRequest req, PrintWriter out, Player p) {
 
+		out.println("<br/>");
 		Player[] tests = p.generateFakePlayers(5, 1, 0, 0);
 		Town[] towns = new Town[tests.length];
 		for(int i=0;i<towns.length;i++) {
@@ -17996,11 +18016,17 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 			ArrayList<AttackUnit> au = new ArrayList<AttackUnit>();
 			au.add(new AttackUnit("Pillager",0,0));
 			au.get(0).setSize(30);
-			towns[i].setAu(au);
 			tests[i].setAu(au);
+			towns[i].setAu(au);
+			towns[i].addBuilding("Command Center",5,20,0);
+			towns[i].setX(i);
+			towns[i].setY(10000);
+			towns[i].setDebris(new long[] {0,0,0,0});
+			out.println("Fake Player "+i+"'s ID is "+tests[i].ID+" and its Fake Town ID is"+towns[i].getTownID()+"<br/>");
 		}
 		
 		towns[1].setRes(new long[] {500,500,500,500});
+		towns[1].addBuilding("Trade Center",0,20,0).setPeopleInside(20);
 		
 		
 		tests[0].setLord(tests[4]);

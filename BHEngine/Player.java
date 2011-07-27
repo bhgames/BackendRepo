@@ -310,7 +310,7 @@ public class Player  {
 	public boolean[] getDeepAlliance(Player p) {
 		boolean[] ally = {false,false,false};
 		if(ID==p.ID) {
-			ally[0]=true;
+			ally = new boolean[] {true,true,true};
 			return ally;
 		}
 		/*
@@ -330,20 +330,23 @@ public class Player  {
 		Player pLord = p.getLord();
 		League pLeague = p.getLeague();
 		
-		ally[2] = pLord.getID()==getLord().getID() || pLord.isAllied(lord);
+		if(pLord!=null)
+			ally[2] = pLord.isAllied(lord);
 		
-		ally[1] = pLeague.getID()==league.getID() || pLeague.isAllied(league);
+		if(pLeague!=null)
+			ally[1] = pLeague.isAllied(league);
 		
 		return ally;
 	}
 	
 	public boolean isAllied(Player p) {
+		if(p==null) return false;
 		//add check for diplomatic alliance
 		Player pLord = p.getLord();
 		League pLeague = p.getLeague();
 		if(ID==p.ID) return true;
-		if(pLord.getID()==lord.getID() || pLord.isAllied(lord)) return true;
-		if(pLeague.getID()==league.getID() || pLeague.isAllied(league)) return true;
+		if(pLord!=null&&pLord.isAllied(lord)) return true;
+		if(pLeague!=null&&pLeague.isAllied(league)) return true;
 		return false;
 	}
 	

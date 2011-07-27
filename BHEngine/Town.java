@@ -3414,8 +3414,9 @@ public class Town {
 				
 			try {
 		
-				 rus = con.createStatement("select id from raid where tid1 = ? and (raidOver = false or ticksToHit >= 0)");
+				 rus = con.createStatement("select id from raid where (tid1 = ? and (raidOver = false or ticksToHit >= 0)) or (tid2 = ? and support = 3 and raidOver = false)");
 				 rus.setInt(1,townID);
+				 rus.setInt(2,townID);
 			
 				 rrs = rus.executeQuery();
 	
@@ -3486,18 +3487,18 @@ public class Town {
 		if(bldg==null) {
 			ArrayList<Building> tres = new ArrayList<Building>();
 			try {
-			UberPreparedStatement rus = getPlayer().con.createStatement("select id from bldg where tid = ?;");
-			rus.setInt(1,townID);
-				
-			ResultSet rrs = rus.executeQuery();
-			// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
-			// Then F = !(R!T) = !R + T;
-			while(rrs.next()) {
-				
-				tres.add(new Building(UUID.fromString(rrs.getString(1)),getPlayer().God));
-		
-			}
-					rrs.close();rus.close();
+				UberPreparedStatement rus = getPlayer().con.createStatement("select id from bldg where tid = ?;");
+				rus.setInt(1,townID);
+					
+				ResultSet rrs = rus.executeQuery();
+				// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
+				// Then F = !(R!T) = !R + T;
+				while(rrs.next()) {
+					
+					tres.add(new Building(UUID.fromString(rrs.getString(1)),getPlayer().God));
+			
+				}
+				rrs.close();rus.close();
 			} catch(SQLException exc) { exc.printStackTrace(); }
 			
 			bldg= tres;

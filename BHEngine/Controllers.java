@@ -1292,7 +1292,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			        .key("fuelCells")
 			        .value(t.getFuelCells())
 			        .key("fuelCellCap")
-			        .value((int) Math.round(Town.maxFuelCells*g.getAverageLevel(g.findTown(t.getTownID()))))
+			        .value((int) Math.round(Town.maxFuelCells*GodGenerator.getAverageLevel(g.findTown(t.getTownID()))))
 			        .key("movementTicks")
 			        .value(t.getTicksTillMove())
 			        .key("resEffects").array();
