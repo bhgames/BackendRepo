@@ -19,7 +19,7 @@ import BHEngine.AttackUnit;
 import BHEngine.Building;
 import BHEngine.GodGenerator;
 import BHEngine.League;
-import BHEngine.NQ5;
+import BHEngine.BQ5;
 import BHEngine.Player;
 import BHEngine.PlayerScript;
 import BHEngine.QuestListener;
@@ -9315,219 +9315,202 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 */
 	private boolean completeResearches(String array[], boolean free) {
 		int i = 0;
-		if(QuestListener.partOfQuest(p,"NQ5")) {
+		if(QuestListener.partOfQuest(p,"BQ5")) {
 			try {
-			((NQ5) g.getPlayer(g.getPlayerId("NQ5"))).callMeIfResearched(p.ID);
+				((BQ5) g.getPlayer(g.getPlayerId("BQ5"))).callMeIfResearched(p.ID);
 			} catch(Exception exc) { 
 				exc.printStackTrace();
-				System.out.println("System saved. Couldn't find NQ5 player for research.");
+				System.out.println("System saved. Couldn't find BQ5 player for research.");
 				
 			}
 		}
-		//23456...so at 11 we get 1.1 which we floor to 1 and then add 2 to get 3.
-		
-		// 2.2 floored to 2 + 2 = 4.
-		
-		// we do brkthrus-brkups because ups is how many they have not used yet.
-		// So if we're at brkthru 5 and you've got 4 that you haven't used in ups, then you're
-		// really on 5-4 = breakthrough 1.
-		
-	
-		
-		
-		//23456...so at 11 we get 1.1 which we floor to 1 and then add 2 to get 3.
-		
-		// 2.2 floored to 2 + 2 = 4.
-		
-		// we do brkthrus-brkups because ups is how many they have not used yet.
-		// So if we're at brkthru 5 and you've got 4 that you haven't used in ups, then you're
-		// really on 5-4 = breakthrough 1.
 	
 		Town t; Building b;
 		if(canCompleteResearches(array,free)) {// if it's free... then this'll return true depending.
-		while(i<array.length) {
 			
-
-			
-			
-			if(array[i].equals("infrastructureTech")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()- GodGenerator.infrastructureTechPrice*(Math.pow(2,(p.getInfrastructureTech()-8)/2))));
-				 p.setInfrastructureTech(p.getInfrastructureTech() + 1);
-			} else if(array[i].equals("scoutTech")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.scoutTechPrice*(Math.pow(2,p.getScoutTech()/2))));
-				 p.setScoutTech(p.getScoutTech() + 1);
-			}else if(array[i].equals("zeppelinTech")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.airshipTechPrice);
-				p.setAirshipTech(true);
-			}else if(array[i].equals("attackAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.attackAPITechPrice);
-				p.setAttackAPI(true);
-			}else if(array[i].equals("digAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.digAPITechPrice);
-				p.setdigAPI(true);
-			}else if(array[i].equals("advancedAttackAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedAttackAPITechPrice);
-				p.setAdvancedAttackAPI(true);
-			}else if(array[i].equals("tradingAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.tradingAPITechPrice);
-				p.setTradingAPI(true);
-			}else if(array[i].equals("advancedTradingAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedTradingAPITechPrice);
-				p.setAdvancedTradingAPI(true);
-			}else if(array[i].equals("smAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.smAPITechPrice);
-				p.setSmAPI(true);
-			}else if(array[i].equals("researchAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.researchAPITechPrice);
-				p.setResearchAPI(true);
-			}else if(array[i].equals("buildingAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.buildingAPITechPrice);
-				p.setBuildingAPI(true);
-			}else if(array[i].equals("advancedBuildingAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedBuildingAPITechPrice);
-				p.setAdvancedBuildingAPI(true);
-			}else if(array[i].equals("messagingAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.messagingAPITechPrice);
-				p.setMessagingAPI(true);
-			}else if(array[i].equals("zeppelinAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.zeppelinAPITechPrice);
-				p.setZeppelinAPI(true);
-			}else if(array[i].equals("completeAnalyticAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.completeAnalyticAPITechPrice);
-				p.setCompleteAnalyticAPI(true);
-			}else if(array[i].equals("nukeAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.nukeAPITechPrice);
-				p.setNukeAPI(true);
-			}else if(array[i].equals("worldMapAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.worldMapAPITechPrice);
-				p.setWorldMapAPI(true);
-			}else if(array[i].equals("clockworkAugments")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.clockworkAugmentsPrice);
-				p.setClockworkAugments(true);
-			}else if(array[i].equals("advancedFortifications")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedFortificationsPrice);
-				p.setAdvancedFortifications(true);
-			}
-			else if(array[i].equals("townTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-(int) Math.round(GodGenerator.townTechPrice*Math.pow(2,(p.getTownTech()-1))));
-
-				p.setTownTech(p.getTownTech() + 1);
-			}else if(array[i].equals("architecture")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.civEfficiencyPrice*Math.pow(2,(p.getArchitecture()/2))));
-
-				 p.setArchitecture(p.getArchitecture() + 1);
-			}else if(array[i].equals("clockworkComputers")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.civEfficiencyPrice*Math.pow(2,(p.getClockworkComputers()/2))));
-
-				p.setClockworkComputers(p.getClockworkComputers() + 1);
-			}else if(array[i].equals("constructionResearch")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.constructionResearchPrice*Math.pow(2,(p.getConstructionResearch()/2))));
-
-				p.setConstructionResearch(p.getConstructionResearch() + 1);
-			}else if(array[i].equals("structuralIntegrity")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.structuralIntegrityPrice*Math.pow(2,(p.getStructuralIntegrity()/2))));
-
-				p.setStructuralIntegrity(p.getStructuralIntegrity() + 1);
-			}else if(array[i].equals("firearmResearch")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.firearmResearchPrice*Math.pow(2,(p.getFirearmResearch()/2))));
-
-				p.setFirearmResearch(p.getFirearmResearch() + 1);
-			}else if(array[i].equals("ordinanceResearch")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.ordinanceResearchPrice*Math.pow(2,(p.getOrdinanceResearch()/2))));
-
-				p.setOrdinanceResearch(p.getOrdinanceResearch() + 1);
-			}else if(array[i].equals("teslaTech")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.teslaTechPrice*Math.pow(2,(p.getTeslaTech()/2))));
-
-				p.setTeslaTech(p.getTeslaTech() + 1);
-			}else if(array[i].equals("bloodMetalPlating")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.bloodMetalPlatingPrice*Math.pow(2,(p.getBloodMetalPlating()/2))));
-
-				p.setBloodMetalPlating(p.getBloodMetalPlating() + 1);
-			}else if(array[i].equals("bodyArmor")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.bodyArmorPrice*Math.pow(2,(p.getBodyArmor()/2))));
-
-				p.setBodyArmor(p.getBodyArmor() + 1);
-			}else if(array[i].equals("bloodMetalArmor")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.bloodMetalArmorPrice));
-
-				p.setBloodMetalArmor(true);
-			}else if(array[i].equals("personalShields")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.personalShieldsPrice));
-
-				p.setPersonalShields(true);
-			}else if(array[i].equals("thrustVectoring")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.thrustVectoringPrice));
-
-				p.setThrustVectoring(true);
-			}else if(array[i].equals("hydraulicAssistors")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.hydraulicAssistorsPrice));
-
-				p.setHydraulicAssistors(true);
-			}else if(array[i].equals("Panzerfaust")||array[i].equals("Pillager")||array[i].equals("Vanguard")) {
-				int k = 0;
-				for(AttackUnit a: p.getAu()) {
-					
-					if(a.getType()==1) k++;
-				}
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.soldierPrice*Math.pow(2,k)));
-
-				p.addAu(new AttackUnit(array[i],0,0));
-			}else if(array[i].equals("Seeker")||array[i].equals("Damascus")||array[i].equals("Wolverine")) {
-				int k = 0;
-				for(AttackUnit a: p.getAu()) {
-					
-					if(a.getType()==2) k++;
-				}
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.tankPrice*Math.pow(2,k)));
-
-				p.addAu(new AttackUnit(array[i],0,0));
-			}else if(array[i].equals("Punisher")||array[i].equals("Dreadnaught")||array[i].equals("Collossus")) {
-				int k = 0;
-				for(AttackUnit a: p.getAu()) {
-					
-					if(a.getType()==3) k++;
-				}
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.golemPrice*Math.pow(2,k)));
-
-				p.addAu(new AttackUnit(array[i],0,0));
-			}else if(array[i].equals("Gunship")||array[i].equals("Thunderbolt")||array[i].equals("Blastmaster")
-					) {
-				int k = 0;
-				for(AttackUnit a: p.getAu()) {
-					
-					if(a.getType()==4&&
-							(a.getName().equals("Gunship")||a.getName().equals("Blastmaster")||a.getName().equals("Thunderbolt"))) k++;
+			if(QuestListener.partOfQuest(p,"BQ5")) {
+				try {
+					((BQ5) g.getPlayer(g.getPlayerId("BQ5"))).callMeIfResearched(p.ID);
+				} catch(Exception exc) { 
+					exc.printStackTrace();
+					System.out.println("System saved. Couldn't find BQ5 player for research.");
 					
 				}
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.airPrice*Math.pow(2,k)));
-
-				p.addAu(new AttackUnit(array[i],0,0));
-			}else if(array[i].equals("Monolith")||array[i].equals("Halcyon")||array[i].equals("Hades")) {
-				int k = 0;
-				for(AttackUnit a: p.getAu()) {
-					
-					if(a.getType()==4&&
-							(a.getName().equals("Monolith")||a.getName().equals("Halcyon")||a.getName().equals("Hades"))) k++;
-					
-				}
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.airPrice*Math.pow(2,k)));
-
-				p.addAu(new AttackUnit(array[i],0,0));
-			}else {
-				setError("Invalid research!");
-				return false;
 			}
 			
-			
-			
-		
-			
-			
-			i++;
-		}
-		//p.setBrkups(p.getBrkups() - 1); 
-		return true;
+			while(i<array.length) {
+				
+				if(array[i].equals("infrastructureTech")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()- GodGenerator.infrastructureTechPrice*(Math.pow(2,(p.getInfrastructureTech()-8)/2))));
+					 p.setInfrastructureTech(p.getInfrastructureTech() + 1);
+				} else if(array[i].equals("scoutTech")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.scoutTechPrice*(Math.pow(2,p.getScoutTech()/2))));
+					 p.setScoutTech(p.getScoutTech() + 1);
+				}else if(array[i].equals("zeppelinTech")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.airshipTechPrice);
+					p.setAirshipTech(true);
+				}else if(array[i].equals("attackAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.attackAPITechPrice);
+					p.setAttackAPI(true);
+				}else if(array[i].equals("digAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.digAPITechPrice);
+					p.setdigAPI(true);
+				}else if(array[i].equals("advancedAttackAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedAttackAPITechPrice);
+					p.setAdvancedAttackAPI(true);
+				}else if(array[i].equals("tradingAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.tradingAPITechPrice);
+					p.setTradingAPI(true);
+				}else if(array[i].equals("advancedTradingAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedTradingAPITechPrice);
+					p.setAdvancedTradingAPI(true);
+				}else if(array[i].equals("smAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.smAPITechPrice);
+					p.setSmAPI(true);
+				}else if(array[i].equals("researchAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.researchAPITechPrice);
+					p.setResearchAPI(true);
+				}else if(array[i].equals("buildingAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.buildingAPITechPrice);
+					p.setBuildingAPI(true);
+				}else if(array[i].equals("advancedBuildingAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedBuildingAPITechPrice);
+					p.setAdvancedBuildingAPI(true);
+				}else if(array[i].equals("messagingAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.messagingAPITechPrice);
+					p.setMessagingAPI(true);
+				}else if(array[i].equals("zeppelinAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.zeppelinAPITechPrice);
+					p.setZeppelinAPI(true);
+				}else if(array[i].equals("completeAnalyticAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.completeAnalyticAPITechPrice);
+					p.setCompleteAnalyticAPI(true);
+				}else if(array[i].equals("nukeAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.nukeAPITechPrice);
+					p.setNukeAPI(true);
+				}else if(array[i].equals("worldMapAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.worldMapAPITechPrice);
+					p.setWorldMapAPI(true);
+				}else if(array[i].equals("clockworkAugments")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.clockworkAugmentsPrice);
+					p.setClockworkAugments(true);
+				}else if(array[i].equals("advancedFortifications")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedFortificationsPrice);
+					p.setAdvancedFortifications(true);
+				}else if(array[i].equals("townTech")) {
+					if(!free) p.setKnowledge(p.getKnowledge()-(int) Math.round(GodGenerator.townTechPrice*Math.pow(2,(p.getTownTech()-1))));
+	
+					p.setTownTech(p.getTownTech() + 1);
+				}else if(array[i].equals("architecture")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.civEfficiencyPrice*Math.pow(2,(p.getArchitecture()/2))));
+	
+					 p.setArchitecture(p.getArchitecture() + 1);
+				}else if(array[i].equals("clockworkComputers")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.civEfficiencyPrice*Math.pow(2,(p.getClockworkComputers()/2))));
+	
+					p.setClockworkComputers(p.getClockworkComputers() + 1);
+				}else if(array[i].equals("constructionResearch")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.constructionResearchPrice*Math.pow(2,(p.getConstructionResearch()/2))));
+	
+					p.setConstructionResearch(p.getConstructionResearch() + 1);
+				}else if(array[i].equals("structuralIntegrity")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.structuralIntegrityPrice*Math.pow(2,(p.getStructuralIntegrity()/2))));
+	
+					p.setStructuralIntegrity(p.getStructuralIntegrity() + 1);
+				}else if(array[i].equals("firearmResearch")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.firearmResearchPrice*Math.pow(2,(p.getFirearmResearch()/2))));
+	
+					p.setFirearmResearch(p.getFirearmResearch() + 1);
+				}else if(array[i].equals("ordinanceResearch")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.ordinanceResearchPrice*Math.pow(2,(p.getOrdinanceResearch()/2))));
+	
+					p.setOrdinanceResearch(p.getOrdinanceResearch() + 1);
+				}else if(array[i].equals("teslaTech")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.teslaTechPrice*Math.pow(2,(p.getTeslaTech()/2))));
+	
+					p.setTeslaTech(p.getTeslaTech() + 1);
+				}else if(array[i].equals("bloodMetalPlating")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.bloodMetalPlatingPrice*Math.pow(2,(p.getBloodMetalPlating()/2))));
+	
+					p.setBloodMetalPlating(p.getBloodMetalPlating() + 1);
+				}else if(array[i].equals("bodyArmor")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.bodyArmorPrice*Math.pow(2,(p.getBodyArmor()/2))));
+	
+					p.setBodyArmor(p.getBodyArmor() + 1);
+				}else if(array[i].equals("bloodMetalArmor")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.bloodMetalArmorPrice));
+	
+					p.setBloodMetalArmor(true);
+				}else if(array[i].equals("personalShields")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.personalShieldsPrice));
+	
+					p.setPersonalShields(true);
+				}else if(array[i].equals("thrustVectoring")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.thrustVectoringPrice));
+	
+					p.setThrustVectoring(true);
+				}else if(array[i].equals("hydraulicAssistors")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.hydraulicAssistorsPrice));
+	
+					p.setHydraulicAssistors(true);
+				}else if(array[i].equals("Panzerfaust")||array[i].equals("Pillager")||array[i].equals("Vanguard")) {
+					int k = 0;
+					for(AttackUnit a: p.getAu()) {
+						
+						if(a.getType()==1) k++;
+					}
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.soldierPrice*Math.pow(2,k)));
+	
+					p.addAu(new AttackUnit(array[i],0,0));
+				}else if(array[i].equals("Seeker")||array[i].equals("Damascus")||array[i].equals("Wolverine")) {
+					int k = 0;
+					for(AttackUnit a: p.getAu()) {
+						
+						if(a.getType()==2) k++;
+					}
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.tankPrice*Math.pow(2,k)));
+	
+					p.addAu(new AttackUnit(array[i],0,0));
+				}else if(array[i].equals("Punisher")||array[i].equals("Dreadnaught")||array[i].equals("Collossus")) {
+					int k = 0;
+					for(AttackUnit a: p.getAu()) {
+						
+						if(a.getType()==3) k++;
+					}
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.golemPrice*Math.pow(2,k)));
+	
+					p.addAu(new AttackUnit(array[i],0,0));
+				}else if(array[i].equals("Gunship")||array[i].equals("Thunderbolt")||array[i].equals("Blastmaster")
+						) {
+					int k = 0;
+					for(AttackUnit a: p.getAu()) {
+						
+						if(a.getType()==4&&
+								(a.getName().equals("Gunship")||a.getName().equals("Blastmaster")||a.getName().equals("Thunderbolt"))) k++;
+						
+					}
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.airPrice*Math.pow(2,k)));
+	
+					p.addAu(new AttackUnit(array[i],0,0));
+				}else if(array[i].equals("Monolith")||array[i].equals("Halcyon")||array[i].equals("Hades")) {
+					int k = 0;
+					for(AttackUnit a: p.getAu()) {
+						
+						if(a.getType()==4&&
+								(a.getName().equals("Monolith")||a.getName().equals("Halcyon")||a.getName().equals("Hades"))) k++;
+						
+					}
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.airPrice*Math.pow(2,k)));
+	
+					p.addAu(new AttackUnit(array[i],0,0));
+				}else {
+					setError("Invalid research!");
+					return false;
+				}
+				
+				i++;
+			}
+			return true;
 		}
 		else return false;
 		

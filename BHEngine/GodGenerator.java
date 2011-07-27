@@ -5398,135 +5398,130 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	}
 	public QuestListener loadQuest(int ID, String questcode, String questname) {
 		
-	       	 String toWrite; ResultSet holdRevStuff; String oldRev; FileWriter fw;
-	  		String makeItExist[]; Process proc; StreamGobbler outputGobbler,inputGobbler,
-	  		errorGobbler; Timer j; BattlehardFunctions bf;
-	  		File oldR, oldRJ; String total,holdParcel; 
-	  	 boolean transacted=false;
+		String toWrite; ResultSet holdRevStuff; String oldRev; FileWriter fw;
+		String makeItExist[]; Process proc; StreamGobbler outputGobbler,inputGobbler,
+		errorGobbler; Timer j; BattlehardFunctions bf;
+		File oldR, oldRJ; String total,holdParcel; 
+		boolean transacted=false;
   			
   			
-                   toWrite = "";
-         			if(!questcode.equals("Classfile")) {
-         				// !!!! NOTE THIS COMPILES EVERY FUCKING TIME. YOU NEED TO CHANGE THIS FOR QUEST API FOR DEVELOPERS.
-                  try {
+		toWrite = "";
+		if(!questcode.equals("Classfile")) {
+			// !!!! NOTE THIS COMPILES EVERY FUCKING TIME. YOU NEED TO CHANGE THIS FOR QUEST API FOR DEVELOPERS.
+			try {
   				
-  			//	String[] oldRev = GodGenerator.returnStringArrayFromFile("/users/arkavon/documents/programs/workspace/BattlehardAIWars/src/userscripts/" + player.username + "/Revelations.java");
+				//	String[] oldRev = GodGenerator.returnStringArrayFromFile("/users/arkavon/documents/programs/workspace/BattlehardAIWars/src/userscripts/" + player.username + "/Revelations.java");
   			
-  			 oldRev = questcode;
-  			 // make it if it's not already there!
-  			 fw = new FileWriter(PlayerScript.bhengsrcdirectory+"BHEngine/" + questname + ".java"); // we use bhengbindirectory
-  			 // so they compile and make in same place, easy.
+				oldRev = questcode;
+				// make it if it's not already there!
+				fw = new FileWriter(PlayerScript.bhengsrcdirectory+"BHEngine/" + questname + ".java"); // we use bhengbindirectory
+				// so they compile and make in same place, easy.
 
   			 	fw.write(oldRev);
-  				fw.close(); } catch(IOException exc) { exc.printStackTrace(); System.out.println("IO Exception occured in loadQuests. Please contact support");
-  				return null;}
+  				fw.close(); 
+			} catch(IOException exc) { 
+				exc.printStackTrace(); System.out.println("IO Exception occured in loadQuests. Please contact support");
+				return null;
+			}
 
-  				try {
-  					String toExec = "javac -cp " + PlayerScript.bhengbindirectory + ":" + PlayerScript.apachedirectory  +  "lib/servlet-api.jar"+
+			try {
+				String toExec = "javac -cp " + PlayerScript.bhengbindirectory + ":" + PlayerScript.apachedirectory  +  "lib/servlet-api.jar"+
 						" -d " + PlayerScript.bhengbindirectory + 
-							" " + PlayerScript.bhengsrcdirectory +"BHEngine/"+ questname + ".java";
-  					System.out.println("Executing " + toExec);
-  				 proc = 	Runtime.getRuntime().exec(toExec);
-  	             errorGobbler = new 
-                  StreamGobbler(proc.getErrorStream(), "ERROR");     
-  	             
-  	             inputGobbler = new StreamGobbler(proc.getInputStream(),"INPUT");
+						" " + PlayerScript.bhengsrcdirectory +"BHEngine/"+ questname + ".java";
+				System.out.println("Executing " + toExec);
+				proc = 	Runtime.getRuntime().exec(toExec);
+				errorGobbler = new StreamGobbler(proc.getErrorStream(), "ERROR");     
+				
+				inputGobbler = new StreamGobbler(proc.getInputStream(),"INPUT");
               
-              // any output?
-               outputGobbler = new 
-                  StreamGobbler(proc.getInputStream(), "OUTPUT");
-              // kick them off
-              errorGobbler.start();
-              outputGobbler.start();
-              inputGobbler.start();
-               j= new Timer(7);
-              while((!errorGobbler.isDone()||!outputGobbler.isDone())&&!j.isDone()) {
-              	// This loop should play over and over until either j is done or outputgobbler and error gobbler are done.
-              	// so we know the loop should not play if w = jdone + (outputgob*errorgob) 
-              	// there for we should play it while not(w) is true which is !jdone*!(og*eg) = !jdone(!og + !eg)
-              }
+				// any output?
+				outputGobbler = new StreamGobbler(proc.getInputStream(), "OUTPUT");
+				// kick them off
+				errorGobbler.start();
+				outputGobbler.start();
+				inputGobbler.start();
+				j= new Timer(7);
+				while((!errorGobbler.isDone()||!outputGobbler.isDone())&&!j.isDone()) {
+					// This loop should play over and over until either j is done or outputgobbler and error gobbler are done.
+					// so we know the loop should not play if w = jdone + (outputgob*errorgob) 
+					// there for we should play it while not(w) is true which is !jdone*!(og*eg) = !jdone(!og + !eg)
+				}
               
                                       
-              // any error???
-              int exitVal = proc.waitFor();
-              toWrite = errorGobbler.returnRead()+"\n"+outputGobbler.returnRead()+"\n"+inputGobbler.returnRead()+"\nExitValue: "+exitVal;
-              System.out.println(toWrite);
+				// any error???
+				int exitVal = proc.waitFor();
+				toWrite = errorGobbler.returnRead()+"\n"+outputGobbler.returnRead()+"\n"+inputGobbler.returnRead()+"\nExitValue: "+exitVal;
+				System.out.println(toWrite);
   				proc.destroy(); // to kill it off and release resources!
-  				}
-  					catch(IOException exc) { exc.printStackTrace(); System.out.println("IO Exception occured in Quest Making. Please contact support"); ; return null;}
-  					catch(InterruptedException exc) { exc.printStackTrace(); System.out.println("Interrupted Exception occured in Quest Making. Please contact support"); ; return null; }
+			}
+			catch(IOException exc) { exc.printStackTrace(); System.out.println("IO Exception occured in Quest Making. Please contact support"); ; return null;}
+			catch(InterruptedException exc) { exc.printStackTrace(); System.out.println("Interrupted Exception occured in Quest Making. Please contact support"); ; return null; }
   				
-  				 // after these two statements, no reference to the former currRev to bother us.
-  				//		System.gc();
+			// after these two statements, no reference to the former currRev to bother us.
+			//		System.gc();
   				
   			//	 bf = new BattlehardFunctions(player.God,player,"4p5v3sxQ");
   			//	System.out.println("Here.");
-  				 j = new Timer(7);
-  				do {
-  					makeItExist = GodGenerator.returnStringArrayFromFile(PlayerScript.bhengbindirectory +"BHEngine/"+ questname +".class");
-  			//	makeItExist = GodGenerator.returnStringArrayFromFile( "/users/arkavon/documents/programs/workspace/BattlehardAIWars/bin2/"+"userscripts/"+ player.username+"/Revelations"+timeshit+".class");
+			j = new Timer(7);
+			do {
+				makeItExist = GodGenerator.returnStringArrayFromFile(PlayerScript.bhengbindirectory +"BHEngine/"+ questname +".class");
+				//	makeItExist = GodGenerator.returnStringArrayFromFile( "/users/arkavon/documents/programs/workspace/BattlehardAIWars/bin2/"+"userscripts/"+ player.username+"/Revelations"+timeshit+".class");
 
-  					// so it has time to compile, once it's not load again we know it exists.
-  					// should only get out if the timer is 0 or make it exist does not equal load again(is 1)
-  					// call load again 0, timer at 0 is 0, then !F = !t + m, so it should go while F, or while(!(!t + m))
-  					// or while(t!m) goodie. j.isDone() is true if 0, so j.isDone() is actually !t. Sorry for confusion.
-  				} while(!j.isDone()&&makeItExist[0].equals("load again"));
-  				boolean toRet=true;
-  				if(!makeItExist[0].equals("load again")) System.out.println("loaded " + questname + "'s program."); else {
-  					System.out.println("Nope, " +questname + ".");
-  					toRet=false;
-  					}
+				// so it has time to compile, once it's not load again we know it exists.
+				// should only get out if the timer is 0 or make it exist does not equal load again(is 1)
+				// call load again 0, timer at 0 is 0, then !F = !t + m, so it should go while F, or while(!(!t + m))
+				// or while(t!m) goodie. j.isDone() is true if 0, so j.isDone() is actually !t. Sorry for confusion.
+			} while(!j.isDone()&&makeItExist[0].equals("load again"));
+			boolean toRet=true;
+			if(!makeItExist[0].equals("load again")) System.out.println("loaded " + questname + "'s program."); else {
+				System.out.println("Nope, " +questname + ".");
+				toRet=false;
+			}
 
-         			} else {
-         				makeItExist = new String[1]; // to get past the if down there.
-         				makeItExist[0] = "loaded";
-         			}
+		} else {
+			makeItExist = new String[1]; // to get past the if down there.
+			makeItExist[0] = "loaded";
+		}
          			
-  				if(!makeItExist[0].equals("load again"))
-  				try {
-  					// NOTE WE DO NOT USE URLCLASSLOADER BECAUSE WE ONLY LOAD THESE
-  					// CLASSES ONCE, NOT DYNAMICALLY, SO WE CAN USE THE MAIN CLASSLOADER,
-  					// ALSO MAIN CLASSLOADER HAS THE REQUIRED SERVLET CLASSES LOADED!!!
-  					Class<QuestListener> currRev=null;
-  					currRev = (Class<QuestListener>) Class.forName("BHEngine." + questname);
+		if(!makeItExist[0].equals("load again"))
+			try {
+				// NOTE WE DO NOT USE URLCLASSLOADER BECAUSE WE ONLY LOAD THESE
+				// CLASSES ONCE, NOT DYNAMICALLY, SO WE CAN USE THE MAIN CLASSLOADER,
+				// ALSO MAIN CLASSLOADER HAS THE REQUIRED SERVLET CLASSES LOADED!!!
+				Class<QuestListener> currRev=null;
+				currRev = (Class<QuestListener>) Class.forName("BHEngine." + questname);
   				
-  					Constructor newSCons = currRev.getConstructors()[0];
+				Constructor newSCons = currRev.getConstructors()[0];
   							
   						
   					
-  					QuestListener currRevInstance = (QuestListener) newSCons.newInstance(ID,this);
-  				// oldR = new File(bindirectory +"userscripts/"+ player.username.toLowerCase()+"/Revelations.class");
+				QuestListener currRevInstance = (QuestListener) newSCons.newInstance(ID,this);
+				// oldR = new File(bindirectory +"userscripts/"+ player.username.toLowerCase()+"/Revelations.class");
   	  			//	oldRJ = new File(PlayerScript.bhengbindirectory+"BHEngine/"+questcode+".class");
-  			//	oldR = new File(PlayerScript.bhengbindirectory+"BHEngine/"+questcode+".java");
-  			//	oldR.delete(); 
-  			//	oldRJ.delete();
- 				 return currRevInstance;
+				//	oldR = new File(PlayerScript.bhengbindirectory+"BHEngine/"+questcode+".java");
+				//	oldR.delete(); 
+				//	oldRJ.delete();
+				return currRevInstance;
 
   			//	timeshit++;
-  				} 
-  				catch(ClassNotFoundException exc) { exc.printStackTrace(); System.out.println("ClassNotFoundException occured in Gigabyte. Please contact support");  return null; } catch (SecurityException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} /*catch (NoSuchMethodException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}*/ catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (InstantiationException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (InvocationTargetException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			} 
+		catch(ClassNotFoundException exc) { exc.printStackTrace(); System.out.println("ClassNotFoundException occured in Gigabyte. Please contact support");  return null; } catch (SecurityException e) {
+			e.printStackTrace();
+		} /*catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		}*/ catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		}
   			
   				
             
-           return null;
+		return null;
 	
 	}
 	public int getGameClock() {
@@ -6314,13 +6309,11 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 					p.getPs().b.joinQuest("AQ"+k);
 					k++;
 				}
-				if(p.getVersion().equals("new")) {
-					p.getPs().b.joinQuest("NQ1");
-					p.setKnowledge(p.getKnowledge()+soldierPrice);
-					String toRes[] = {"ShockTrooper"};
-					ps.b.completeResearches(toRes); // give them a default template.
-				}
-
+				
+				p.getPs().b.joinQuest("BQ1");
+				p.setKnowledge(p.getKnowledge()+soldierPrice);
+				String toRes[] = {"Pillager"};
+				ps.b.completeResearches(toRes); // give them a default template.
 			}
 
 			p.setInternalClock(gameClock);
@@ -6343,6 +6336,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		
 		return null;
 	}
+	
 	public static boolean scoutLogicBlock(Raid holdAttack) {
 		/*
 		 * We could have two filters? No. Need concealment to help army size.

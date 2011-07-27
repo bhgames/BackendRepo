@@ -1,8 +1,9 @@
+//<div class='goalBox'>Goals:<ul></ul></div><div class='descBox'></div><div class='rewardBox'>
 package BHEngine;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+//import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.UUID;
@@ -15,7 +16,7 @@ import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
  * calls it's iterate method once every processing cycle. Therefore, you can have multiple players
  * on your quest and you can even use them to interact with one another, or group them based on
  * your own additions.
- * 
+ * <br/><br/>
  * Please be responsible in your questwriting, all quests will be reviewed before being added
  * to the main server.
  * 
@@ -146,17 +147,17 @@ public abstract class QuestListener extends Player {
 		
 		Player p = findPlayer(pid);
 		ArrayList<Town> towns = p.towns();
-		int i = 0; Town t; long[] res; double resInc[];
+		int i = 0; Town t; long[] res; double[] resInc;
 		while(i<towns.size()) {
 			t = towns.get(i);
 			res = t.getRes();
 			resInc = t.getResInc();
 			int j = 0;
 			synchronized(res) {
-			while(j<res.length-1) {
-				res[j]+=(long) Math.round((resInc[j]*((double) 3600)/((double) GodGenerator.gameClockFactor)));
-				j++;
-			}
+				while(j<res.length-1) {
+					res[j]+=(long) Math.round((resInc[j]*((double) 3600)/((double) GodGenerator.gameClockFactor)));
+					j++;
+				}
 			}
 			i++;
 		}
@@ -797,6 +798,7 @@ public abstract class QuestListener extends Player {
 	/**
 	 * Adds a town for this quest at the location specified, if possible. If pidsInvadableBy is 0, this town
 	 * is invadable by anybody.
+	 * 
 	 * @param x
 	 * @param y
 	 * @return
@@ -928,9 +930,10 @@ public abstract class QuestListener extends Player {
 	}
 	/**
 	 * Removes a town for this quest by the given tid.
-	 * @param x
-	 * @param y
-	 * @return
+	 * 
+	 * @param tid the tid of the quest town to remove
+	 * 
+	 * @return True, if no errors occurred.
 	 */
 	public boolean killTown(int tid) {
 		/*
@@ -969,8 +972,8 @@ public abstract class QuestListener extends Player {
 			t.deleteTown();
 
 
-		}
-		else return false;
+		} else 
+			return false;
 		
 	
 		return true;
@@ -988,7 +991,7 @@ public abstract class QuestListener extends Player {
 	public abstract boolean checkPlayer(Player p);
 	
 	public Player findPlayer(int pid) {
-		int i = 0; Player p=null;
+		int i = 0; //Player p=null;
 		/*
 		try {
 			UberStatement stmt = con.createStatement();
@@ -1018,7 +1021,7 @@ public void deleteInvadableBy(int tid, int pid) {
 	try {
 		UberPreparedStatement stmt = con.createStatement("delete from invadable where tid = ? and pid = ? and type = 0;");
 		
-		Player p = findPlayer(pid); Town t = God.findTown(tid);
+		//Player p = findPlayer(pid); Town t = God.findTown(tid);
 		int i = 0;
 		while(i<invadableBy().size()) {
 			if(invadableBy().get(i).tid==tid&&invadableBy().get(i).pid==pid){ 
@@ -1036,7 +1039,7 @@ public void deleteInvadableBy(int tid, int pid) {
 public void deleteViewableBy(int tid, int pid) {
 	try {
 		UberPreparedStatement stmt = con.createStatement("delete from invadable where tid = ? and pid = ? and type = 1;");
-		Player p = findPlayer(pid); Town t = God.findTown(tid);
+		//Player p = findPlayer(pid); Town t = God.findTown(tid);
 		stmt.setInt(1,tid);
 		stmt.setInt(2,pid);
 		stmt.execute();
@@ -1059,7 +1062,7 @@ public void addAchievement(String achievementName, int pid) {
 	
 	while(i<a.length) {
 		if(((String) a[i].get("aname")).equals(achievementName)) {
-			int j = 0;
+			//int j = 0;
 			p.addAchievement(a[i]);
 			break;
 /* ONLY USE THIS IF YOU WANT TO ACTIVATE PERMISSIONS!
@@ -1086,10 +1089,10 @@ public String getRewardBlock(int hourlyAmt, int pid, String additional[]) {
 	
 		int i = 0;
 		if(additional!=null)
-		while(i<additional.length){
-			res+="<div style='display:inline-block;width:170px;'>"+additional[i]+"</div>";
-			i++;
-		}
+			while(i<additional.length){
+				res+="<div style='display:inline-block;width:170px;'>"+additional[i]+"</div>";
+				i++;
+			}
 		res+="</div>";
 		return res;
 }
