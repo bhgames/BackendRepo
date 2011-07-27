@@ -258,6 +258,7 @@ public class TradeSchedule {
 			intervaltime=(int) Math.round(intervaltime/GodGenerator.gameClockFactor);
 			 this.town2=town2;
 			 this.town1 = town1; currTicks=intervaltime;
+			 this.caravan=caravan;
 			 this.timesToDo=timesToDo;
 			 	metal=m;timber=t;manmat=mm;food=f;
 			 	if(town2!=null&&town2.townID==town1.townID) stockMarketTrade=true;
@@ -287,12 +288,17 @@ public class TradeSchedule {
 		      stmt.setLong(8,othertimber);
 		      stmt.setLong(9,othermanmat);
 		      stmt.setLong(10,otherfood);
-		      stmt.setInt(11,timesToDo);
-		      stmt.setBoolean(12,twoway);
-		      stmt.setString(13,mateID.toString());
+		      stmt.setInt(11,intervaltime);
+		      stmt.setInt(12,timesToDo);
+		      stmt.setBoolean(13,twoway);
+		      if(mateID==null)
+		    	  stmt.setString(14,"none");
+		      else
+		      stmt.setString(14,mateID.toString());
 		      id = UUID.randomUUID();
-		      stmt.setString(14,id.toString());
-		      stmt.setBoolean(15,caravan);
+		      stmt.setString(15,id.toString());
+		      stmt.setBoolean(16,caravan);
+		      town1.tradeSchedules().add(this); // before we execute, or else an exc may kill it and this could be a test.
 		      // let's add this raid and therefore get the rid out of it.
 		      stmt.executeUpdate();
 		    
@@ -371,7 +377,7 @@ public class TradeSchedule {
 		
 		TradeSchedule ts =
 			new TradeSchedule(getTown2(),  getTown1(), getOthermetal(),  getOthertimber(),  getOthermanmat(),  getOtherfood(),
-					 getMetal(), getTimber(),  getManmat(),  getFood(),  getIntervaltime(), getTimesToDo(),  true,id);
+					 getMetal(), getTimber(),  getManmat(),  getFood(),  getIntervaltime(), getTimesToDo(),  true,id,caravan);
 		ts.setIntervaltime(getIntervaltime()); // Because when you create a new schedule, it goes by a shorter interval, because it divides
 		ts.setCurrTicks(getCurrTicks()); // Because when you create a new schedule, it goes by a shorter interval, because it divides
 

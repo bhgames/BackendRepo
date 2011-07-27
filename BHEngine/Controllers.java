@@ -2139,6 +2139,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.ROContestedTest(req,out,p,true);
 				}else if(test.equals("digCollapse")) {
 					g.ROCollapseTest(req,out,p,true);
+				}else if(test.equals("basicTradeCaravan")) {
+					g.basicTradeCaravanTest(req,out,p);
 				}else if(test.equals("allDig")) { 
 					g.basicDigTest(req,out,p);
 					g.digProbabilityTest(req,out);
@@ -2188,6 +2190,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.digProbabilityTest(req,out);
 					g.ROContestedTest(req,out,p,true);
 					g.ROCollapseTest(req,out,p,true);
+					g.basicTradeCaravanTest(req,out,p);
+
 				}
 				else{
 

@@ -1637,7 +1637,7 @@ public class BattlehardFunctions {
 			break;
 		default: return false;
 		}
-		TradeSchedule ts = new TradeSchedule(t1,  t1,  m,  t,  mm,  f, otherm,othert,othermm,otherf,  1, 1,  false,null);
+		TradeSchedule ts = new TradeSchedule(t1,  t1,  m,  t,  mm,  f, otherm,othert,othermm,otherf,  1, 1,  false,null,false);
 		
 		
 		return true;
@@ -1722,7 +1722,7 @@ public class BattlehardFunctions {
 		// it's a one way-er then it doesn't really matter so much!
 		//	public boolean sendMessage(int pid_to, int pid_from, String body, String subject, int msg_type) {
 		int toSend[] = new int[1];
-		TradeSchedule ts = new TradeSchedule(t1,  null,  m,  t,  mm,  f,  otherm, othert,  othermm,  otherf,  intervaltime, timesToDo,  twoway,null);
+		TradeSchedule ts = new TradeSchedule(t1,  null,  m,  t,  mm,  f,  otherm, othert,  othermm,  otherf,  intervaltime, timesToDo,  twoway,null,false);
 	/*	 sendTradeMessage(t2.getPlayer().ID,"Do you accept this trading schedule request from " + t1.getPlayer().getUsername() + "" +
 				" of " + m + " metal " + t + " timber " + mm + " man. mat. " + f + " food in exchange for "
 				+ otherm + " metal " + othert + " timber " + othermm + " man. mat. " + otherf + " that will be completed " + 
@@ -1832,7 +1832,7 @@ public class BattlehardFunctions {
 		// it's a one way-er then it doesn't really matter so much!
 		//	public boolean sendMessage(int pid_to, int pid_from, String body, String subject, int msg_type) {
 
-		TradeSchedule ts = new TradeSchedule(t1,  t2,  m,  t,  mm,  f,  0, 0,  0,  0,  intervaltime, timesToDo,  twoway,null);
+		TradeSchedule ts = new TradeSchedule(t1,  t2,  m,  t,  mm,  f,  0, 0,  0,  0,  intervaltime, timesToDo,  twoway,null,false);
 	
 		
 		
@@ -13334,8 +13334,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("Both towns must not be Airships for a trade caravan to work!");
 			return false;
 		}
-		int ticksToHit=getTradeETA(myT.townID,t.townID);
-
+		int ticksToHit=(int) ((2*getTradeETA(myT.townID,t.townID)+2)*GodGenerator.gameClockFactor);
+		//intervaltime is always in s!
 		TradeSchedule ts = new TradeSchedule(myT,  t,(long)  0,(long)0,(long)0,(long)0, (long) 0,(long) 0, (long) 0,(long)  0,  ticksToHit+2, -1,  false,null,true);
 		return true;
 	}

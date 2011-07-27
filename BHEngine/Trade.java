@@ -94,7 +94,6 @@ public class Trade {
 		}
 		int ticksToHit=(town1.getPlayer().getPs().b.getTradeETA(t1.townID,t2.townID));
 		 
-		 
 		this.ts=ts;
 	
 		 this.town2=town2;this.town1 = town1; tradeOver=false;
@@ -133,6 +132,7 @@ public class Trade {
 		    	  stmt.setInt(11,traders);
 		    	  id = UUID.randomUUID();
 			      stmt.setString(12,id.toString());
+			      town1.tradeServer().add(this);
 		    	  stmt.executeUpdate();
 		    	  stmt.close();
 		      }

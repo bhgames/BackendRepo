@@ -14146,6 +14146,141 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 		return -1;
 	}
+	public boolean basicTradeCaravanTest(HttpServletRequest req, PrintWriter out, Player player) {
+		int numTowns[] = {1,1};
+		Player[] players = player.generateFakePlayers(2,numTowns,0,0);
+		try {
+			Town t1 = players[0].towns().get(0);
+			Town t2 = players[1].towns().get(0);
+			t1.setX(100000);
+			t1.setY(100000);
+			t2.setX(100003);
+			t2.setY(100000);
+			t1.setInfluence(0);
+			t1.addBuilding("Command Center",4,5,0);
+			t1.addBuilding("Trade Center",5,5,0);
+			
+
+			t1.bldg().get(1).setPeopleInside(5);
+			//	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
+			boolean worked= players[0].getPs().b.makeTradeCaravan(t1.townID,t2.getX(),t2.getY());
+			if(!worked) {
+				out.println("basicTradeCaravan test failed because the first caravan didn't set, and the error was: " + players[0].getPs().b.getError());
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			 
+			if(t1.tradeSchedules().size()!=1) {
+				out.println("basicTradeCaravan test failed because the the trade schedule didn't create.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			// now there should be no trade.
+			if(t1.tradeServer().size()!=0) {
+				out.println("basicTradeCaravan test failed because the there was a trade that shouldn't be there yet on the server..");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			
+			tradeServerCheck(t1,players[0]);
+			if(t1.tradeServer().size()!=0) {
+				out.println("basicTradeCaravan test failed because the there was a trade that shouldn't be there yet on the server after only one tick..");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			int i  = 0;
+			while(t1.tradeSchedules().get(0).getCurrTicks()>0) {
+				tradeServerCheck(t1,players[0]);
+
+			}
+			tradeServerCheck(t1,players[0]);
+
+			if(t1.tradeServer().size()!=1) {
+				out.println("basicTradeCaravan test failed because the there was there wasn't a trade there after the first tc interval.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			
+			Trade t = t1.tradeServer().get(0);
+			
+			if(t.getMetal()!=25||t.getTimber()!=25||t.getManmat()!=25||t.getFood()!=0) {
+				out.println("basicTradeCaravan test failed because the first trade didn't have correct resources on board. Instead, they had " + t.getMetal() + " m " + t.getTimber() + " t " + t.getManmat() + " mm " + t.getFood() + " f.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(t1.bldg().get(1).getPeopleInside()!=4) {
+				out.println("basicTradeCaravan test failed because the first trade didn't take the correct traders from the building.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(t.getTraders()!=1) {
+				out.println("basicTradeCaravan test failed because the first trade didn't have correct traders on board.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			
+			while(t1.tradeSchedules().get(0).getCurrTicks()>5) {
+				tradeServerCheck(t1,players[0]);
+
+			}
+			if(t.getMetal()!=25||t.getTimber()!=25||t.getManmat()!=25||t.getFood()!=0) {
+				out.println("basicTradeCaravan test failed because the first trade didn't have correct resources on board after it returned..");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+		//	out.println("Intervaltime is " + t1.tradeSchedules().get(0).getIntervaltime());
+			while(t1.tradeSchedules().get(0).getCurrTicks()>=1) {
+			
+				tradeServerCheck(t1,players[0]);
+
+			}
+			// now that trade should be returned.
+			if(t1.tradeServer().size()!=0) {
+				out.println("basicTradeCaravan test failed because the first trade hadn't disappeared by 1 tick before the next one launched.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(t1.bldg().get(1).getPeopleInside()!=5) {
+				out.println("basicTradeCaravan test failed because the first trade didn't take give the trader back after it's run.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			tradeServerCheck(t1,players[0]); // now it should launch the next one.
+			tradeServerCheck(t1,players[0]); // now it should launch the next one.
+
+			if(t1.tradeServer().size()!=1) {
+				out.println("basicTradeCaravan test failed because the second trade hadn't appeared when it was supposed to.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			if(t.getMetal()!=26||t.getTimber()!=26||t.getManmat()!=26||t.getFood()!=0) {
+				out.println("basicTradeCaravan test failed because the second trade didn't have correct resources on board going out.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+
+			while(t1.tradeSchedules().get(0).getCurrTicks()>=5) {
+				tradeServerCheck(t1,players[0]);
+
+			}
+			
+			if(t.getMetal()!=26||t.getTimber()!=26||t.getManmat()!=26||t.getFood()!=0) {
+				out.println("basicTradeCaravan test failed because the second trade didn't have correct resources on board coming back.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			out.println("basicTradeCaravan test successful.");
+			player.deleteFakePlayers(players);
+			return true;
+		} catch(Exception exc) {
+			out.println("basicTradeCaravan test failed because " + exc.toString());
+			for(StackTraceElement stackTrace: exc.getStackTrace()) {
+				out.println(stackTrace.toString());
+			}
+			player.deleteFakePlayers(players);
+			return false;
+		}
+	}
 	public boolean digProbabilityTest(HttpServletRequest req, PrintWriter out) {
 	//	public String returnPrizeName(String rumor, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
 		/*
