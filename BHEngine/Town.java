@@ -176,7 +176,7 @@ public class Town {
 	public ArrayList<Raid> getBlockades() {
 		ArrayList<Raid> blockades = new ArrayList<Raid>(), AS = attackServer();
 		for(Raid r : AS) {
-			if(r.getSupport()==3&&!r.isRaidOver()&&r.getDockingFinished()!=null) {
+			if(r.getTown2().getTownID()==townID&&r.getSupport()==3&&!r.isRaidOver()&&r.getDockingFinished()!=null) {
 				blockades.add(r);
 			}
 		}

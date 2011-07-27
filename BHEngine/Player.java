@@ -307,6 +307,19 @@ public class Player  {
 		fake = isFake;
 	}
 
+	/**
+	 * Used to determine how two players are allied.  Useful for determining when diplomatic arrangement should be 
+	 * overwritten by other arrangements.
+	 * <br/><br/>
+	 * If you just want to know if two players are allied, use {@link #isAllied(Player p) isAllied} instead.
+	 * 
+	 * @param p the player to check our alliance against
+	 * 
+	 * @return an array containing how the players are allied.<br/> 
+	 * return[0] is true if the players have created an alliance with each other.<br/>
+	 * return[1] is true if the player's lords are allied or the same.<br/>
+	 * return[2] is true if the player's leagues are allied or the same. 
+	 */
 	public boolean[] getDeepAlliance(Player p) {
 		boolean[] ally = {false,false,false};
 		if(ID==p.ID) {

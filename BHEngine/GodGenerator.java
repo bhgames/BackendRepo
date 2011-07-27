@@ -6779,6 +6779,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 	 */
 	
 	public static boolean blockadeLogicBlock(Raid r) {
+
 		int ie = 0, totalCheckedSize=0; 
 		ArrayList<AttackUnit> au = r.getAu();
 		while(ie<au.size()) {
@@ -6814,11 +6815,13 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		if(!fight) {
 			int index = -1;
 			boolean foundSame = false;
-			for(Raid ra : blockades) {
-				if(ra.getTown1().getTownID()==r.getTown1().getTownID()) {
-					index = blockades.indexOf(ra);
-					foundSame = true;
-					break;
+			if(blockades.size()>0) {
+				for(Raid ra : blockades) {
+					if(ra.getTown1().getTownID()==r.getTown1().getTownID()) {
+						index = blockades.indexOf(ra);
+						foundSame = true;
+						break;
+					}
 				}
 			}
 			if(foundSame) {
@@ -6859,7 +6862,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			unitNames+="]";
 			
 			try {	
-				UberPreparedStatement stmt = t1p.God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,offTownName,defTownName,support,offdig,ax,ay,dx,dy,id) values (?,?,?,?,?,?,?,?,true,?,?,?,?,?,?);");
+				UberPreparedStatement stmt = t1p.God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,offTownName,defTownName,support,offdig,ax,ay,dx,dy,id) values (?,?,?,?,?,?,?,?,false,?,?,?,?,?,?);");
 			    stmt.setInt(1,t1p.ID);
 			    stmt.setInt(2, r.getTown1().townID);
 			    stmt.setInt(3,r.getTown2().townID);
@@ -8330,13 +8333,15 @@ public boolean checkForGenocides(Town t) {
 		int t2pid = t2p.ID;
 		UserBuilding b;
 	
-		UserBuilding t2bldg[] = t2p.getPs().b.getUserBuildings(t2.townID,"all");
-		while(j<t2bldg.length) {
-			 b = t2bldg[j];
-			if(b.getType().equals("Command Center"))  bunkerSize+=Math.round(getPeople(b.getLvl(),3,4,totalUnitPrice));
-		//	else if(b.type.equals("Bunker")&&b.bunkerMode==1&&b.getLvl()>25) bunkerSize+=Math.exp(25)+(b.getLvl()-25)*Math.exp(25);
-			
-			j++;
+		UserBuilding[] t2bldg = t2p.getPs().b.getUserBuildings(t2.townID,"all");
+		if(t2bldg!=null) { //fake towns used for blockades will have no buildings
+			while(j<t2bldg.length) {
+				 b = t2bldg[j];
+				if(b.getType().equals("Command Center"))  bunkerSize+=Math.round(getPeople(b.getLvl(),3,4,totalUnitPrice));
+			//	else if(b.type.equals("Bunker")&&b.bunkerMode==1&&b.getLvl()>25) bunkerSize+=Math.exp(25)+(b.getLvl()-25)*Math.exp(25);
+				
+				j++;
+			}
 		}
 	
 		j=0;
@@ -8604,7 +8609,7 @@ public boolean checkForGenocides(Town t) {
 		// and so on it keeps sorting.
 		// If it ever goes through an iteration where no swaps occur, 
 		// then it will get out. If it does swap, it's got to go through again!
-		if(forts.length>1) {
+		if(forts!=null&&forts.length>1) {
 			j=1; UserBuilding old;
 			boolean swap=false;
 			while(!swap) {
@@ -8717,38 +8722,39 @@ public boolean checkForGenocides(Town t) {
 						int numTroopsTotal = def.getSize()*def.getExpmod();
 						 
 						if(def.getSupport()==0){ // forts only used by nonsupport units.
-							
-							for(UserBuilding fort: forts) {
-								// we know we go from highest level to lowest.
-								combatData+="\n"+("Doing fort at lotnum " + fort.getLotNum() + " of lvl " + fort.getLvl());
-								if(k<fort.getFortArray().length) { // if k > than fortArray, this must be a civilian or a building au, which
-									// means it was added during this combat run, and will be removed after, so no user could have assigned them
-									// to a fortification.
-									int numInThisFort = fort.getFortArray()[k];
-									numTroops-=numInThisFort;
-									int numForFrac = numInThisFort;
-									if(numTroops<0) numForFrac+=numTroops;
-									// System.out.println("numInThisFort is " + numInThisFort + " numTroops is "+  numTroops + " numForFrac is " + numForFrac);
-
-									// so if there were meant to be 10 troops in the fort, but you've got 3 left, then
-									// the number you use for fracOfTroops is 10+-7=3. Sweet huh?
+							if(forts!=null) {
+								for(UserBuilding fort: forts) {
+									// we know we go from highest level to lowest.
+									combatData+="\n"+("Doing fort at lotnum " + fort.getLotNum() + " of lvl " + fort.getLvl());
+									if(k<fort.getFortArray().length) { // if k > than fortArray, this must be a civilian or a building au, which
+										// means it was added during this combat run, and will be removed after, so no user could have assigned them
+										// to a fortification.
+										int numInThisFort = fort.getFortArray()[k];
+										numTroops-=numInThisFort;
+										int numForFrac = numInThisFort;
+										if(numTroops<0) numForFrac+=numTroops;
+										// System.out.println("numInThisFort is " + numInThisFort + " numTroops is "+  numTroops + " numForFrac is " + numForFrac);
+	
+										// so if there were meant to be 10 troops in the fort, but you've got 3 left, then
+										// the number you use for fracOfTroops is 10+-7=3. Sweet huh?
+											
+										 double fracOfTroops = ((double) numForFrac)/((double) numTroopsTotal);
 										
-									 double fracOfTroops = ((double) numForFrac)/((double) numTroopsTotal);
-									
-									 // so fracOfTroops may be say .3 - Fort 1 protects 30% of the troops. It's level determines it's protection, 2.5% per level.
-									 double protection=1;
-									 if(t2p.getAdvancedFortifications())
-										 protection = 1-fort.getLvl()*.033;
-									 else
-										 protection = 1-fort.getLvl()*.025;
-									 
-									 fortSummation+=(fracOfTroops)*protection;// so it'll be like .995*.3+.5*.7 and so on. 
-									 combatData+="\n"+("numInThisFort is " + numInThisFort + " numTroops is "+  numTroops + " numForFrac is " + numForFrac
-											 + " fracOfTroops is " +fracOfTroops + " the protection this fort gives is " + protection + " which should be like .95, meaning they receive 5% less damage."
-											  );
-
-									 combatData+="\n"+("Adding " + (fracOfTroops)*protection + " to my summation.");
-									 if(numTroops<=0) break; // we break out of the loop if we've run out of troops to protect.
+										 // so fracOfTroops may be say .3 - Fort 1 protects 30% of the troops. It's level determines it's protection, 2.5% per level.
+										 double protection=1;
+										 if(t2p.getAdvancedFortifications())
+											 protection = 1-fort.getLvl()*.033;
+										 else
+											 protection = 1-fort.getLvl()*.025;
+										 
+										 fortSummation+=(fracOfTroops)*protection;// so it'll be like .995*.3+.5*.7 and so on. 
+										 combatData+="\n"+("numInThisFort is " + numInThisFort + " numTroops is "+  numTroops + " numForFrac is " + numForFrac
+												 + " fracOfTroops is " +fracOfTroops + " the protection this fort gives is " + protection + " which should be like .95, meaning they receive 5% less damage."
+												  );
+	
+										 combatData+="\n"+("Adding " + (fracOfTroops)*protection + " to my summation.");
+										 if(numTroops<=0) break; // we break out of the loop if we've run out of troops to protect.
+									}
 								}
 							}
 							// So now we've got this fortSummation number which includes part of fortfrac that's devoted to forts, but what about units
@@ -10252,7 +10258,7 @@ public boolean checkForGenocides(Town t) {
 					}
 					//	System.out.println("raidOver is currently " + holdAttack.raidOver);
 					// this else UberStatement is for the actual attack server to use, the above is the facsimile treatment.
-				if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&!holdAttack.raidType().equals("support")&&!holdAttack.raidType().equals("offsupport")&&!holdAttack.raidType().equals("scout")&&!holdAttack.raidType().equals("resupply")&&!holdAttack.raidType().equals("debris")&&!holdAttack.raidType().equals("dig")&&!holdAttack.raidType().equals("excavation")) { 
+				if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("attack")||holdAttack.raidType().equals("siege")||holdAttack.raidType().equals("strafe")||holdAttack.raidType().equals("glass"))) { 
 					// support = 0 means not supporting run, and scout=0 means it's  not
 					// a scouting run.
 					if(r.getTown2().getDigCounter()>0) {
@@ -10269,7 +10275,7 @@ public boolean checkForGenocides(Town t) {
 							try {
 								String unitStart=""; String unitNames="";String unitEnd="";
 								k = 0;
-								Player t1p = r.getTown1().getPlayer();
+								//Player t1p = r.getTown1().getPlayer();
 								String msg = "";
 								if(r.getTown2().isResourceOutcropping()) {
 									msg = "The defensive excavation site was forced out of their excavation by an enemy attack.";
@@ -10354,15 +10360,22 @@ public boolean checkForGenocides(Town t) {
 					
 				} else if (holdAttack.eta()<=0&&holdAttack.raidOver()) {
 				
-					ArrayList<Raid> blockades = r.getTown1().getBlockades(); boolean fight = false;
+					ArrayList<Raid> blockades = r.getTown1().getBlockades();
 					while(true) {
+						boolean fight = false, dead = true;
 						for(Raid ra : blockades) {
 							if(!r.getTown1().getPlayer().isAllied(ra.getTown1().getPlayer())) {
 								fight = true;
 								break;
 							}
 						}
-						if(fight) {
+						for(AttackUnit a : r.getAu()) {
+							if(a.getSize()>0) {
+								dead = false;
+								break;
+							}
+						}
+						if(fight&&!dead) {
 							combatLogicBlock(r,"Return town is blockaded by a hostile force.");
 						} else {
 							break;
@@ -10387,10 +10400,10 @@ public boolean checkForGenocides(Town t) {
 					} while (c<AU.size());
 					long res[] =t1.getRes();
 					synchronized(res) {
-					res[0]+=holdAttack.resources()[0];
-					res[1]+=holdAttack.resources()[1];
-					res[2]+=holdAttack.resources()[2];
-					res[3]+=holdAttack.resources()[3];
+						res[0]+=holdAttack.resources()[0];
+						res[1]+=holdAttack.resources()[1];
+						res[2]+=holdAttack.resources()[2];
+						res[3]+=holdAttack.resources()[3];
 					}
 					
 					if(r.getDigAmt()>0) {
@@ -17746,7 +17759,6 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 			testTowns[i].setX(i);
 			testTowns[i].setY(10000);
 			testTowns[i].setDebris(new long[] {0,0,0,0});
-			out.println("Fake Player "+i+"'s ID is "+tests[i].ID+" and its Fake Town ID is"+testTowns[i].getTownID()+"<br/>");
 		}
 		
 		au.get(0).add(new AttackUnit("Pillager",0,0));
@@ -17766,8 +17778,6 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		
 		tests[0].setLord(tests[3]);
 		tests[2].setLord(tests[3]);
-		
-		out.println("Fake Town 0's player's ID is "+testTowns[0].getPlayer().ID);
 		
 		if(!tests[0].getPs().b.attack(testTowns[0].getTownID(), testTowns[1].getX(), 
 				testTowns[1].getY(), new int[] {10}, "blockade", new String[] {}, "", true)) {
@@ -17798,8 +17808,33 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 			p.deleteFakePlayers(tests);
 			return false;
 		}
-		blockade.setTicksToHit(0);
+		
+		//this seems overcomplicated, but.....
+		testTowns[0].attackServer().get(testTowns[0].attackServer().indexOf(blockade)).setTicksToHit(0);
+		
+		UserRaid urBlock = tests[0].getPs().b.getUserRaid(blockade.getId());
+		
+		if(!(urBlock.eta()<=0&&!urBlock.raidOver()&&urBlock.raidType().equals("blockade"))) {
+			out.println("Blockade movement test failed.  The conditions for activating the blockadeLogicBlock were not met even though they should have been."+
+						"<br/>ETA: "+urBlock.eta()+"  raidOver: "+urBlock.raidOver()+"  raidType: "+urBlock.raidType());
+			p.deleteFakePlayers(tests);
+			return false;
+		}
+		
 		attackServerCheck(testTowns[0], tests[0]);
+		
+		for(Raid r : testTowns[0].attackServer()) {
+			if(r.getTown2().getTownID()==testTowns[1].getTownID()) {
+				blockade = r;
+				break;
+			}
+		}
+		
+		if(blockade.getDockingFinished()==null) {
+			out.println("Blockade movement test failed.  The blockade did not have it's docking finished set.");
+			p.deleteFakePlayers(tests);
+			return false;
+		}
 		
 		if(testTowns[1].getBlockades().size()<1) {
 			out.println("Blockade movement test failed.  The blockade is not gatherable by the getBlockades method.");
@@ -17859,7 +17894,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		}
 		blockade = testTowns[1].getBlockades().get(0);
 		
-		if(blockade.getAu().get(0).getSize()!=25) {
+		if(blockade.getAu().get(0).getSize()!=20) {
 			out.println("Blockade movement test failed.  The new blockade's AU were not added to the existing blockade's.");
 			p.deleteFakePlayers(tests);
 			return false;
@@ -17876,7 +17911,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 			return false;
 		}
 		blockade = testTowns[1].getBlockades().get(0);
-		if(blockade.getAu().get(0).getSize()!=15) {
+		if(blockade.getAu().get(0).getSize()!=10) {
 			out.println("Blockade movement test failed.  Recall did not remove the correct number of units.");
 			p.deleteFakePlayers(tests);
 			return false;
@@ -17905,23 +17940,26 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 			p.deleteFakePlayers(tests);
 			return false;
 		}
-		if(blockades.get(0).getAu().get(0).getSize()!=15||blockades.get(1).getAu().get(0).getSize()!=15) {
+		if(blockades.get(0).getAu().get(0).getSize()!=10||blockades.get(1).getAu().get(0).getSize()!=15) {
 			out.println("Blockade movement test failed.  The blockades do not have the correct number of troops.  Both should have 15, but blockade 1 had "
 					+blockades.get(0).getAu().get(0).getSize()+" and blockade 2 had "+blockades.get(1).getAu().get(0).getSize());
 			p.deleteFakePlayers(tests);
 			return false;
 		}
 
-		if(!tests[0].getPs().b.recall(new int[] {15}, testTowns[1].getTownID(), tests[1].ID, testTowns[0].getTownID())) {
+		if(!tests[0].getPs().b.recall(new int[] {10}, testTowns[1].getTownID(), tests[1].ID, testTowns[0].getTownID())) {
 			out.println("Blockade movement test failed.  Could not recall remaining units from the first blockade.");
 			p.deleteFakePlayers(tests);
 			return false;
 		}
+		
 		if(testTowns[1].getBlockades().size()>1) {
 			out.println("Blockade movement test failed.  Recalling all troops did not remove the blockade from the second town's Attack Server.");
 			p.deleteFakePlayers(tests);
 			return false;
 		}
+		
+		out.println("Blockade movement test passed!");
 		
 		p.deleteFakePlayers(tests);
 		return true;
