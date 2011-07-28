@@ -11679,7 +11679,7 @@ public boolean checkForGenocides(Town t) {
 			double testDist = 0;
 			
 		 Town closest=null;
-		 if(tid==-1&&type!=2) {
+		 if(tid==-1&&type==0) {
 			 
 			
 					j=0;
@@ -11721,7 +11721,7 @@ public boolean checkForGenocides(Town t) {
 		 j=0;
 		// System.out.println("I got here. town id is " + t.townName + " and distance is " + distance);
 			
-		 } else if (tid==-1&&type==2) { 
+		 } else if (tid==-1&&(type==2||type==1)) { 
 		
 				try {
 				
@@ -11835,7 +11835,7 @@ public boolean checkForGenocides(Town t) {
 		 // Remember we just want zero-size copies because the actual au there
 		 // will soon ret
 	// System.out.println("Got here to give it.");
-		 if(type!=2) // if type is 2, we already give it up there when we make it!
+		 if(type==2||(type==1&&tid!=-1)) // if type is 2, or 1 and tid isn't set, we already give it up there when we make it!
 		 t.giveTown(null,p);
 		
 		 return true;
@@ -14145,6 +14145,9 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			e.printStackTrace();
 		}
 		return -1;
+	}
+	public boolean leagueCreateTest(HttpServletRequest req, PrintWriter out, Player player) { 
+		
 	}
 	public boolean basicTradeCaravanTest(HttpServletRequest req, PrintWriter out, Player player) {
 		int numTowns[] = {1,1};

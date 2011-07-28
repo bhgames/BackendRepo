@@ -8355,6 +8355,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				setError("Do this from your league player!");
 				return false;
 			}
+			if(taxRate!=0) {
+				setError("You cannot set taxrates on members currently. This is an upcoming feature.");
+				return false;
+			}
 			return ((League) p).createTPR( taxRate,  pid,  rank,  type, tids,p.ID);
 		
 		
@@ -8471,13 +8475,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * @param letters - Initials of the League
 	 * @return
 	 */
-	 public boolean createLeague(int tid, String name, String description, String website, String letters) {
+	 public boolean createLeague(String name, String description, String website, String letters) {
 		if(p.getLeague()!=null) {
 			setError("Already in a league!");
 			return false;
 		}
 		if(p.towns().size()==1) {
-			setError("Need more than one city. Can't give up your only one!");
+			setError("Need more than one city.");
 			return false;
 		}
 		int i = 0;
@@ -8489,7 +8493,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				return false;
 			}
 			i++;
-		}
+		}/*
 		if(tid==p.getCapitaltid()) {
 			error = "Your capital cannot be made into a League city!";
 			return false;
@@ -8501,8 +8505,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			error = "Can't take a town that isnt yours!";
 		}
 		
-		
-		League newLeague = (League) g.createNewPlayer(letters,"4p5v3sxQ",1, tid,"0000","nolinkedemail",true,0,0,false,0);
+		*/
+		League newLeague = (League) g.createNewPlayer(letters,"4p5v3sxQ",1, -1,"0000","nolinkedemail",true,0,0,false,0);
 		//public void createLeague(String leagueName,String leagueLetters, Player initial) {
 		if(newLeague==null){
 			error = "Player create failed for some reason.";

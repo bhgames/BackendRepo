@@ -999,10 +999,10 @@ public class PlayerScript implements Runnable {
         		
     		 
     	 } else if(holdCmd.equals("bf.createLeague")) { 
-    		 // number, string, string, string, string
+    		 // string, string, string, string
     		 holdPartUse = new String(holdPart);
-    		 int int1 =Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
-  		 	holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
+    	//	 int int1 =Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
+  		// 	holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
   		 	 String str2 =holdPartUse.substring(0,holdPartUse.indexOf(","));
    		 	holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
   			 String str3 = holdPartUse.substring(0,holdPartUse.indexOf(","));
@@ -1012,7 +1012,7 @@ public class PlayerScript implements Runnable {
       		 String str5 = holdPartUse.substring(0,holdPartUse.length());
       	
       		
-      		 toRet+=b.createLeague(int1,str2,str3,str4,str5);
+      		 toRet+=b.createLeague(str2,str3,str4,str5);
     		 
     		 
     	 } else if(holdCmd.equals("bf.createTPR")) { 
