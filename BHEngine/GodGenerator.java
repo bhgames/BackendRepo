@@ -14247,14 +14247,14 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			}
 			tradeServerCheck(t1,players[0]); // now it should launch the next one.
 			tradeServerCheck(t1,players[0]); // now it should launch the next one.
-
+			t = t1.tradeServer().get(0);
 			if(t1.tradeServer().size()!=1) {
 				out.println("basicTradeCaravan test failed because the second trade hadn't appeared when it was supposed to.");
 				player.deleteFakePlayers(players);
 				return false;
 			}
 			if(t.getMetal()!=26||t.getTimber()!=26||t.getManmat()!=26||t.getFood()!=0) {
-				out.println("basicTradeCaravan test failed because the second trade didn't have correct resources on board going out.");
+				out.println("basicTradeCaravan test failed because the second trade didn't have correct resources on board going out. Instead, they had " + t.getMetal() + " m " + t.getTimber() + " t " + t.getManmat() + " mm " + t.getFood() + " f.");
 				player.deleteFakePlayers(players);
 				return false;
 			}
