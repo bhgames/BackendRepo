@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.URL;
 import java.net.URLConnection;
 import java.sql.ResultSet;
@@ -32,7 +34,7 @@ import BattlehardFunctions.UserSR;
 import BattlehardFunctions.UserTown;
 
 
-public class Controllers {
+public class Controllers  {
 	GodGenerator g;
 		public Controllers(GodGenerator g) {
 			this.g=g;
@@ -287,6 +289,43 @@ public class Controllers {
 					return true;
 					
 				}
+				
+			
+			retry(out); return false;
+		
+	}
+	public boolean stopServer(HttpServletRequest req, PrintWriter out) {
+
+		if(!session(req,out,true)) return false;
+			Player p;
+			// must be a player request.
+				 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+				 	//System.out.println("HEY2");
+				//if(p.getSupportstaff()) {
+					
+						try {
+						// 	System.out.println("HEY23");
+
+	        	      //      ServerSocket socket = new ServerSocket(8079, 1, InetAddress.getByName("127.0.0.1"));
+
+	        	                 System.out.println("*** stopping jetty embedded server");
+		        		        	g.killGod=true;
+		        		        	
+		        		        	g.serverInst.stop();
+	        	                
+	        	 
+	        	            //     socket.close();
+	        	 
+	        	        	success(out);
+							return true;
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					
+				
+					
+			//	}
 				
 			
 			retry(out); return false;
@@ -2141,6 +2180,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.ROCollapseTest(req,out,p,true);
 				}else if(test.equals("basicTradeCaravan")) {
 					g.basicTradeCaravanTest(req,out,p);
+				}else if(test.equals("leagueCreate")) {
+					g.leagueCreateTest(req,out,p);
 				}else if(test.equals("allDig")) { 
 					g.basicDigTest(req,out,p);
 					g.digProbabilityTest(req,out);
@@ -2191,6 +2232,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					g.ROContestedTest(req,out,p,true);
 					g.ROCollapseTest(req,out,p,true);
 					g.basicTradeCaravanTest(req,out,p);
+					g.leagueCreateTest(req,out,p);
 
 				}
 				else{

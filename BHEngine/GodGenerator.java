@@ -10,7 +10,10 @@ import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
@@ -24,6 +27,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.UUID;
+
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.websocket.WebSocket;
+import org.eclipse.jetty.websocket.WebSocketFactory;
+import org.eclipse.jetty.websocket.WebSocketServlet;
+
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -4520,7 +4533,7 @@ v. 01
 -Gameclock implemented.
 
  */
-public class GodGenerator extends HttpServlet implements Runnable {
+public class GodGenerator extends WebSocketServlet implements Runnable {
 	//BattlehardViewer bh;
 	int res1[] = new int[8]; // There is metal and number of bland military units for this alpha software.
 	// Metal is 0, timber is 1. Stealthtech is 2. Population is 3.
@@ -4697,7 +4710,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	public boolean serverLoaded=false;
 	public MemoryLeakDetector Gigabyte;
 	ArrayList<Iterator> iterators=new ArrayList<Iterator>();
-	
+    WebSocketFactory _websocket;
+
 	public ArrayList<Hashtable> programs = new ArrayList<Hashtable>();
 	public Hashtable accounts = new Hashtable();
 	private ArrayList<Player> iteratorPlayers;
@@ -4714,6 +4728,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	public static int ticksTillIncrease=5;
 	public static int ticksTillDecrease = 20;
 	public static int mapTileWidthX=9;
+	Server serverInst=null;
 	public static int mapTileWidthY=9;
 	public static int saveWhenTicks = (int) (60*15/gameClockFactor);
 	public int saveCounter=0;
@@ -4828,6 +4843,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		Router.serverStatus(req,out);
 	}else if(req.getParameter("reqtype").equals("convert")) {
 		Router.convert(req,out);
+	}else if(req.getParameter("reqtype").equals("stopServer")) {
+		Router.stopServer(req,out);
 	}else if(req.getParameter("reqtype").equals("runTest")) {
 		Router.runTest(req,out);
 	}else if(req.getParameter("reqtype").equals("deleteOldPlayers")) {
@@ -4902,31 +4919,67 @@ public class GodGenerator extends HttpServlet implements Runnable {
 
 	out.close();
 }
-
+	public WebSocket doWebSocketConnect(HttpServletRequest arg0, String arg1) {
+		// TODO Auto-generated method stub
+		System.out.println("Hey there I'm websocking");
+		return null;
+	}
 
 	public void init() {
 		// called instead of constructor by tomcat, use it also when not being called by tomcat.
+		try {
+			super.init();
+		} catch (ServletException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		 Router = new Controllers(this);
-		
+			
 		  
-		       con =
-		                     new UberConnection(
-		                                 url,user, pass,this);
-		      zongCon =
-                   new UberConnection(
-                               zongurl,user, pass,this);
-   
-	
-	holdGod = new Thread(this);
-	holdGod.start();
+	       con =
+	                     new UberConnection(
+	                                 url,user, pass,this);
+	      zongCon =
+             new UberConnection(
+                         zongurl,user, pass,this);
+
+
+	      holdGod = new Thread(this);
+	      holdGod.start();
+		 serverInst = new Server(8079);
+		 
+	        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+	        context.setContextPath("/");
+	        serverInst.setHandler(context);
+	 
+	        context.addServlet(new ServletHolder(this),"/*");
+	    
+	 
+	        try {
+	        	serverInst.start();
+           //  serverInst.stop();
+	        //	killGod=true;
+	        //	serverInst.setStopAtShutdown(true);
+	        //	serverInst.stop();
+	        //	serverInst.join();
+	        	 
+
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
 	
 	}
+	
+
 	public GodGenerator() {
 		if(!server)
 		init();
 		// turn on init when doing it via java application for testing,
 		// but server app goes straight to init(), and runs main. So it calls
 		// it twice. We only want to do it once, so we blank out init for server tests.
+		
 	}
 	public GodGenerator(int gpid, String url, String user, String pass) {
 		
@@ -5173,6 +5226,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 				saveCounter++;
 				gameClock++;
 				printCounter++;
+				if(killGod) break;
 			
 		}
 	} catch(SQLException exc) { exc.printStackTrace(); }
@@ -14147,6 +14201,41 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		return -1;
 	}
 	public boolean leagueCreateTest(HttpServletRequest req, PrintWriter out, Player player) { 
+		int numTowns[] = {2};
+		Player[] players = player.generateFakePlayers(1,numTowns,0,0);
+		try {
+			players[0].getPs().b.createLeague("blah","blah","blah","blah");
+			League l = players[0].getLeague();
+			if(l==null) {
+				out.println("leagueCreate test failed because the league wasn't created properly.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			
+			if(l.towns().size()!=1) {
+				out.println("leagueCreate test failed because the league had no town.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			Town t = l.towns().get(0);
+			if(t.getX()<10000) {
+				out.println("leagueCreate test failed because the league didn't get a town far out enough.");
+				player.deleteFakePlayers(players);
+				return false;
+			}
+			
+			deletePlayer(l,false);
+			player.deleteFakePlayers(players);
+			out.println("leagueCreate test successful.");
+			return true;
+		} catch(Exception exc) {
+			out.println("leagueCreate test failed because " + exc.toString());
+			for(StackTraceElement stackTrace: exc.getStackTrace()) {
+				out.println(stackTrace.toString());
+			}
+			player.deleteFakePlayers(players);
+			return false;
+		}
 		
 	}
 	public boolean basicTradeCaravanTest(HttpServletRequest req, PrintWriter out, Player player) {
@@ -17753,6 +17842,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 			out.println("fbPost failed("+stat+").");
 		}
 	}
+	
 }
 
 
