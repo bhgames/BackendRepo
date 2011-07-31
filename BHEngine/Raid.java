@@ -31,7 +31,8 @@ public class Raid {
 				scout = 0, 
 				totalTicks = 0, 
 				genoRounds = 0,
-				support = 0; // do not confuse with au's support, this lets us know this raid is actually a support run.
+				support = 0; 	// do not confuse with au's support, this lets us know this raid is actually a support run.
+								// unless it's 3, then it's a blockade
 	private Town town2, 
 				 town1;
 	private String 	name,

@@ -4681,6 +4681,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	public Maelstrom Maelstrom;
 	public UberConnection con;
 	public MemoryLeakDetector Gigabyte;
+	public PrintWriter out = null;
 	
 	// NOTE I USED NONLOCAL ADDRESS FOR MOST RECENT PROGRAM TEST...I THINK IT'LL STILL WORK JUST FINE THOUGH.
 	//static String url = "jdbc:mysql://72.167.46.39:3306/bhdb";
@@ -4721,6 +4722,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	private Hashtable[] achievements;
 	private ArrayList<Player> iteratorPlayers;
 	private ArrayList<Town> iteratorTowns;
+	
 
 	public void doPost(HttpServletRequest req, HttpServletResponse res) 
 	throws IOException, ServletException {
@@ -6173,16 +6175,16 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				rs = stmt.executeQuery();
 				rs.next();
 				Hashtable<String, Object> r = new Hashtable<String, Object>();
-				  r.put("uid",rs.getInt(1));
-		    	   r.put("fuid",fuid);
-		    	   r.put("username",username);
-		    	   r.put("password",rs.getString(2));
-		    	   r.put("registration_date",rs.getTimestamp(3));
-		    	   r.put("email",email);
-		    	 accounts.put(username,r);
-		    	 if(fuid!=0) accounts.put(fuid,r);
-		    	   rs.close();
-		    	   stmt.close();
+				r.put("uid",rs.getInt(1));
+				r.put("fuid",fuid);
+				r.put("username",username);
+				r.put("password",rs.getString(2));
+				r.put("registration_date",rs.getTimestamp(3));
+				r.put("email",email);
+				accounts.put(username,r);
+				if(fuid!=0) accounts.put(fuid,r);
+				rs.close();
+				stmt.close();
 				
 			}
 
@@ -8205,7 +8207,7 @@ public boolean checkForGenocides(Town t) {
 		String combatData=""; Raid holdRaid = null;
 		Town t1 = actattack.getTown1(), t2 = actattack.getTown2(), possZepp=null;int[] oldTownSizeArray = null;
 		boolean offdig = false, defdig = false, isZeppAbove=false; ArrayList<AttackUnit> t1au=null,t2au=null;
-		Player t2p = t2.getPlayer(), t1p = t1.getPlayer(); ArrayList<Raid> enemies= new ArrayList<Raid>();
+		Player t2p = t2.getPlayer(), t1p = t1.getPlayer(), temp = null; ArrayList<Raid> enemies= new ArrayList<Raid>();
 		
 	    if(actattack.getDigAmt()>0) offdig=true;
 		if(t2.getDigAmt()>0) defdig=true;
@@ -8273,10 +8275,11 @@ public boolean checkForGenocides(Town t) {
 				t2 = tempTown; 						//tada, this is now a blockade
 				fake.setAu(autotals);				//it even supports multiplayer blockades.
 				t2.setAu(autotals);					//and you thought I was crazy.  ;)
+				temp = t2p;
+				t2p = fake;
 				actattack = new Raid(holdRaid.getDistance(),0,t1,t2,false,false,0,false,"",false,holdRaid.getAu(),0);
 				actattack.setRes(holdRaid.getRes());
-				t1.attackServer().remove(actattack);//don't want this sticking around in
-			}										//the attack server since it's fake
+			}										
 		}
 		try {
 			t1au = actattack.getAu();
@@ -8939,7 +8942,7 @@ public boolean checkForGenocides(Town t) {
 					
 					
 			k=0; 
-			ArrayList<Building> bldg;
+			//ArrayList<Building> bldg;
 			Building actb;
 
 			while(k<t2au.size()) {
@@ -9058,7 +9061,8 @@ public boolean checkForGenocides(Town t) {
 				}
 				int l = 0;
 				while(l<totalCost.length-1) {
-					totalCost[l]+=particularCost[l];
+					if(particularCost!=null)
+						totalCost[l]+=particularCost[l];
 					l++;
 				}
 						
@@ -9203,19 +9207,19 @@ public boolean checkForGenocides(Town t) {
 			k++;
 		}
 		
+		Town tempTown = null;
+		if(enemies.size()>0) {
+			tempTown = t2;
+			t2 = enemies.get(0).getTown2(); //temporarily set t2 to the blockaded town.
+		}
+		//this means this raid is attacking a blockade around it's origin town
+		//so debris has to be set around the origin, not the target
+		if(t1.getBlockades().size()>0&&actattack.getDistance()==0) {
+			tempTown = t2;
+			t2 = t1;
+		}
 		synchronized(t2.getDebris()) { // ADDING DEBRIS
 			int l = 0;
-			Town tempTown = null;
-			if(enemies.size()>0) {
-				tempTown = t2;
-				t2 = enemies.get(0).getTown2(); //temporarily set t2 to the blockaded town.
-			}
-			//this means this raid is attacking a blockade around it's origin town
-			//so debris has to be set around the origin, not the target
-			if(t1.getBlockades().size()>0&&actattack.getDistance()==0) {
-				tempTown = t2;
-				t2 = t1;
-			}
 			long[] res = actattack.getRes();
 			while(l<totalCost.length-1) {
 				totalCost[l]=(long) Math.round(((double) totalCost[l])*.1);
@@ -9249,9 +9253,10 @@ public boolean checkForGenocides(Town t) {
 					l++;
 				}
 			}
-			if(tempTown!=null) {
-				t2 = tempTown;
-			}
+		}
+		//and now we set everything back
+		if(tempTown!=null) {
+			t2 = tempTown;
 		}
 		
 		int numUnitsDestroyedD=currentExpAdvSizeDef-expModDefAft;
@@ -9261,12 +9266,14 @@ public boolean checkForGenocides(Town t) {
 			UserBuilding[] bldgs = t2p.getPs().b.getUserBuildings(t2.townID,"Missile Silo");
 		//	System.out.println("Destroying the Missile Silos.");
 			int l = 0;
-			if(bldgs.length>0) t2p.God.sendNukeMessage(t1p.getUsername(),t2,false);
-			while(l<bldgs.length) {
-				if(bldgs[l].getLvl()==0) {
-					t2.killBuilding(bldgs[l].getId());
+			if(bldgs!=null) {
+				if(bldgs.length>0) t2p.God.sendNukeMessage(t1p.getUsername(),t2,false);
+				while(l<bldgs.length) {
+					if(bldgs[l].getLvl()==0) {
+						t2.killBuilding(bldgs[l].getId());
+					}
+					l++;
 				}
-				l++;
 			}
 								
 		}
@@ -9285,6 +9292,10 @@ public boolean checkForGenocides(Town t) {
 		}
 		combatHeader+=" The offense lost " + Math.round(percentlossoff) + "% of their " +
 				"forces, and the defense lost " + Math.round(percentlossdef) + "% leading to a percent loss difference of " + percentlossdiff + "%.";
+		
+		if(temp!=null) {
+			t2p = temp;
+		}
 		
 		boolean premium=false;
 		int bp=0;
@@ -10060,21 +10071,10 @@ public boolean checkForGenocides(Town t) {
 		   * and continue whatever the original raid was doing.
 		   */
 		if(enemies.size()>0) {
-			Player[] fakes = {t2.getPlayer()};
 			t2 = holdRaid.getTown2();
-			fakes[0].deleteFakePlayers(fakes);
+			t1p.deleteFakePlayers(new Player[] {t2.getPlayer()});
 			actattack.deleteMe();
-			ArrayList<Raid> blockades = t2.getBlockades();
-			for(int i = 0;i<blockades.size();i++) {
-				int sizeLeft = 0; Raid r = blockades.get(i);
-				for(AttackUnit a : r.getAu()) {
-					sizeLeft += a.getSize();
-				}
-				if(sizeLeft==0) { //if the blockade is empty, we have to get rid of it
-					blockades.remove(i--);
-					r.deleteMe();
-				}
-			}
+			t2.checkForDeadBlockades();
 			attackServerCheck(t1,t1p);
 		}
 		return toRet;
@@ -17982,7 +17982,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 			towns[i].setX(i);
 			towns[i].setY(10000);
 			towns[i].setDebris(new long[] {0,0,0,0});
-			out.println("Fake Player "+i+"'s ID is "+tests[i].ID+" and its Fake Town ID is"+towns[i].getTownID()+"<br/>");
+			tests[i].God.out = out;
 		}
 		
 		tests[0].getPs().b.attack(towns[0].getTownID(), towns[1].getX(), towns[1].getY(), new int[] {10}, "blockade", new String[] {}, "", true);
@@ -17996,7 +17996,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		}
 		attackServerCheck(towns[0],tests[0]);
 		
-		if(!tests[1].getPs().b.attack(towns[1].getTownID(), towns[0].getX(), towns[0].getY(), new int[] {5}, "attack", new String[] {}, "", true)) {
+		if(!tests[1].getPs().b.attack(towns[1].getTownID(), towns[0].getX(), towns[0].getY(), new int[] {9}, "attack", new String[] {}, "combatTest", true)) {
 			out.println("Blockade combat test failed.  The attack from town 2 could not be sent and the error was " + tests[1].getPs().b.getError());
 			p.deleteFakePlayers(tests);
 			return false;

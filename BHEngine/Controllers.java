@@ -2225,7 +2225,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 	
 	public boolean createNewPlayer(HttpServletRequest req, PrintWriter out) {
 		try {
-			HttpSession session = req.getSession(true);
+			//HttpSession session = req.getSession(true);
 		/*	String code = req.getParameter("code");
 			if(code==null) { retry(out);
 			out.print(":invalid code!;"); return false; }
@@ -2240,7 +2240,6 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 				long fuid=0;
 				if(fuidString!=null){
 					fuid = Long.parseLong(fuidString);
-					Pass = "none";
 				}
 				boolean skipMe =Boolean.parseBoolean(req.getParameter("skipMe"));
 				int chosenTileX = Integer.parseInt(req.getParameter("chosenTileX"));

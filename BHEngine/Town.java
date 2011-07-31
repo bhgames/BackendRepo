@@ -229,6 +229,13 @@ public class Town {
 			y = getMemY();
 		} else {
 			setTownName("TestTown-"+townID);
+			//initialize these towns so that they don't throw errors left and fucking right
+			/* TODO 
+			 * 		add more initializers for towns to catch values that aren't set here
+			 * 		We really only need to set values that are checked in situations that could use a fake town
+			 * 		and that aren't already checked by their get method
+			 */
+			debris = new long[]{0,0,0,0};
 		}
 	}
 	synchronized public void synchronize() {

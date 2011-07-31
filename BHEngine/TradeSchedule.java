@@ -240,66 +240,71 @@ public class TradeSchedule {
 		
 		return false;
 	}
-	public TradeSchedule(Town town1, Town town2, long m, long t, long mm, long f, long othermetal,long othertimber, long othermanmat, long otherfood, int intervaltime,int timesToDo, boolean twoway,UUID mateTradeScheduleID) {
+	public TradeSchedule(Town town1, Town town2, long m, long t, long mm, long f, long othermetal,long othertimber, 
+			long othermanmat, long otherfood, int intervaltime,int timesToDo, boolean twoway,UUID mateTradeScheduleID) {
 		// Can't do an infinite number of arguments here so need to add manually.
 		// holds distance and ticksToHit in this object.
-		 this.con=town1.getPlayer().God.con; this.God=town1.getPlayer().God;
-			//boolean smtrade=false;
-		 	//if(town2!=null&&town2.townID==town1.townID) smtrade=true;
-			this.twoway=twoway;
-			intervaltime=(int) Math.round(intervaltime/GodGenerator.gameClockFactor);
-			 this.town2=town2;
-			 this.town1 = town1; currTicks=intervaltime;
-			 this.timesToDo=timesToDo;
-			 	metal=m;timber=t;manmat=mm;food=f;
-			 	if(town2!=null&&town2.townID==town1.townID) stockMarketTrade=true;
-				 this.othermetal=othermetal;this.othertimber=othertimber;
-				 this.intervaltime=intervaltime;
-				 this.othermanmat=othermanmat;this.otherfood=otherfood;
+		this.con=town1.getPlayer().God.con; 
+		this.God=town1.getPlayer().God;
+		//boolean smtrade=false;
+		//if(town2!=null&&town2.townID==town1.townID) smtrade=true;
+		this.twoway=twoway;
+		intervaltime=(int) Math.round(intervaltime/GodGenerator.gameClockFactor);
+		this.town2=town2;
+		this.town1 = town1; currTicks=intervaltime;
+		this.timesToDo=timesToDo;
+		metal=m;
+		timber=t;
+		manmat=mm;
+		food=f;
+		if(town2!=null&&town2.townID==town1.townID) stockMarketTrade=true;
+		this.othermetal=othermetal;
+		this.othertimber=othertimber;
+		this.intervaltime=intervaltime;
+		this.othermanmat=othermanmat;
+		this.otherfood=otherfood;
 				 
 			UberPreparedStatement stmt;
 			try {
 
-		      
 		      stmt = con.createStatement("insert into tradeschedule (tid1, tid2,m,t,mm,f,otherm,othert,othermm,otherf,intervaltime,times,twoway,mate_tsid,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
 		      
 		      // First things first. We update the player table.
 		      boolean transacted=false;
 		      while(!transacted) {
 		    	  try {
-
-		      int tid2 = 0; if(town2!=null) tid2=town2.townID;
-		      stmt.setInt(1,town1.townID);
-		      stmt.setInt(2,tid2);
-		      stmt.setLong(3,m);
-		      stmt.setLong(4,t);
-		      stmt.setLong(5,mm);
-		      stmt.setLong(6,f);
-		      stmt.setLong(7,othermetal);
-		      stmt.setLong(8,othertimber);
-		      stmt.setLong(9,othermanmat);
-		      stmt.setLong(10,otherfood);
-		      stmt.setInt(11,timesToDo);
-		      stmt.setBoolean(12,twoway);
-		      stmt.setString(13,mateID.toString());
-		      id = UUID.randomUUID();
-		      stmt.setString(14,id.toString());
-		      // let's add this raid and therefore get the rid out of it.
-		      stmt.executeUpdate();
-		    
-
-		      /*
-		      ArrayList<TradeSchedule> a  = town1.tradeSchedules();
-		      while(a.size()<=0&&timesTried<10) {
-			  Thread.currentThread().sleep(10);
-		      a= town1.tradeSchedules();
-		      timesTried++;
-		      
-		      }		     
-		      tradeScheduleID=a.get(a.size()-1).tradeScheduleID;*/
-		      stmt.close(); transacted=true;  }
+				      int tid2 = 0; if(town2!=null) tid2=town2.townID;
+				      stmt.setInt(1,town1.townID);
+				      stmt.setInt(2,tid2);
+				      stmt.setLong(3,m);
+				      stmt.setLong(4,t);
+				      stmt.setLong(5,mm);
+				      stmt.setLong(6,f);
+				      stmt.setLong(7,othermetal);
+				      stmt.setLong(8,othertimber);
+				      stmt.setLong(9,othermanmat);
+				      stmt.setLong(10,otherfood);
+				      stmt.setInt(11,timesToDo);
+				      stmt.setBoolean(12,twoway);
+				      stmt.setString(13,mateID.toString());
+				      id = UUID.randomUUID();
+				      stmt.setString(14,id.toString());
+				      // let's add this raid and therefore get the rid out of it.
+				      stmt.executeUpdate();
+				    
+		
+				      /*
+				      ArrayList<TradeSchedule> a  = town1.tradeSchedules();
+				      while(a.size()<=0&&timesTried<10) {
+					  Thread.currentThread().sleep(10);
+				      a= town1.tradeSchedules();
+				      timesTried++;
+				      
+				      }		     
+				      tradeScheduleID=a.get(a.size()-1).tradeScheduleID;*/
+				      stmt.close(); transacted=true;  }
 		    	  catch(MySQLTransactionRollbackException exc) { } 
-		      }// need connection for attackunit adds!
+		      }
 		 } catch(SQLException exc) { exc.printStackTrace(); }
 
 		

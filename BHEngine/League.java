@@ -54,12 +54,6 @@ public class League extends Player {
 
 	}
 	
-	
-	
-	
-
-
-
 	 ArrayList<TaxPlayerRank> tpr() {
 		 int i = 0; boolean foundnullers=false;
 		 if(tpr!=null)
@@ -144,6 +138,10 @@ public class League extends Player {
 		if(ID==l.ID) return true;
 		
 		return false;
+	}
+	
+	public void propagateDiplo() {
+		
 	}
 	
 	public String JSONMap() {

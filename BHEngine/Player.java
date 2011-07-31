@@ -118,6 +118,7 @@ public class Player  {
 	private ArrayList<QuestListener> activeQuests;
 	private ArrayList<AttackUnit> au;
 	private ArrayList<Town> towns;
+	private ArrayList<Diplo> diplo;		//holds diplo that directly targets you
 	private League league=null;
 
 		//Public Variables
@@ -161,13 +162,14 @@ public class Player  {
 			   ID = 5; // this means a test player, and we'll use Id as our example player for both sides.
 		   }
 		   
-		   if(fake||ID>=999999900) {
+		   this.ID=ID;
+		   this.God=God;
+	       internalClock = God.gameClock;
+		   
+		   if(ID>=999999900) {
 			   stmt.close(); 	// not a real player, no need.
 			   facsimile=false; // this is a more sophisticated test player, capable of generating it's own attackunits.
 			   					// this means we're in the special testing zone.
-			   this.ID=ID;
-			   this.God=God;
-		       internalClock = God.gameClock;
 			   username = "Test-"+ID;
 		       password = "4p5v3sxQ";
 		       playedTicks=0;
@@ -187,19 +189,14 @@ public class Player  {
 		       numLogins = 0;
 		       totalTimePlayed = 0;
 		       
-				if(!facsimile) { // you must set them yourself if you are.
-					au = getAu(); 
-					try {
-						getAchievements();
-					} catch(Exception exc) { exc.printStackTrace(); System.out.println("No idea why this error happened, but player load saved."); } 
-				}
-			   
+		       au = getAu(); 
+		       try {
+		    	   getAchievements();
+		       } catch(Exception exc) { exc.printStackTrace(); System.out.println("No idea why this error happened, but player load saved."); } 
+				
 		   } else {
-			   this.ID=ID;
-			   this.God=God;
 			   stmt.setInt(1,ID);
 			   ResultSet rs = stmt.executeQuery();
-		       internalClock = God.gameClock;
 			   rs.next();
 			   username = rs.getString(2);
 		       password = rs.getString(26);
@@ -295,6 +292,16 @@ public class Player  {
 						getAchievements();
 					} catch(Exception exc) { exc.printStackTrace(); System.out.println("No idea why this error happened, but player load saved."); } 
 				}
+				try {
+					diplo = new ArrayList<Diplo>();
+					stmt = con.createStatement("select dipid from diplo where p1id=? or p2id=?");
+					stmt.setInt(1, ID);
+					stmt.setInt(2, ID);
+					rs = stmt.executeQuery();
+					while(rs.next()) {
+						diplo.add(new Diplo(UUID.fromString(rs.getString(1)),God));
+					}
+				} catch(SQLException exc) { exc.printStackTrace(); }
 		   }
 		   
 		} catch(SQLException exc) { exc.printStackTrace(); }
@@ -303,7 +310,7 @@ public class Player  {
 	}
 	
 	public Player(int ID, GodGenerator God, boolean isFake) {
-		this(ID, God);
+		this(ID,God);
 		fake = isFake;
 	}
 
@@ -323,8 +330,7 @@ public class Player  {
 	public boolean[] getDeepAlliance(Player p) {
 		boolean[] ally = {false,false,false};
 		if(ID==p.ID) {
-			ally = new boolean[] {true,true,true};
-			return ally;
+			return new boolean[] {true,true,true};
 		}
 		/*
 		 * 	ally[0] isDirectAlly
@@ -361,6 +367,10 @@ public class Player  {
 		if(pLord!=null&&pLord.isAllied(lord)) return true;
 		if(pLeague!=null&&pLeague.isAllied(league)) return true;
 		return false;
+	}
+	
+	public void propagateDiplo() {
+		
 	}
 	
 	public TradeSchedule findTradeSchedule(UUID trid) {
@@ -2817,13 +2827,18 @@ public class Player  {
 	public void setBp(int bp) {
 		this.bp = bp;
 	}
-
+	
+	public ArrayList<Diplo> getDiplo() {
+		return diplo;
+	}
 
 	public void iterate(int num) {
 		// this method is now only for Id.
 		
-		
 	}
+	
+	
+	
 	synchronized public void saveInfluence() {
 		// special save function that just saves influence related stuff for towns. Used when territoryCalculator is called.
 		try {
@@ -2955,7 +2970,7 @@ public class Player  {
 				       }
 				       if(getVassalFrom()!=null)
 							 stmt.setString(66,getVassalFrom().toString());
-							 else stmt.setString(66,"2011-01-01 00:00:01");
+				       else stmt.setString(66,"2011-01-01 00:00:01");
 				       stmt.setInt(67,ID);
 		  /*   String  updatePlayer = "update player set bodyArmor = " + bodyArmor +", personalShields = " + personalShields + 
 		    		  ", hydraulicAssistors = " + hydraulicAssistors +  ", thrustVectoring = " + thrustVectoring + ", bloodMetalPlating = " + bloodMetalPlating +", bloodMetalArmor = " + bloodMetalArmor+ ", advancedFortifications = " + advancedFortifications + ", constructionResearch = " + constructionResearch + ", firearmResearch = " + firearmResearch +

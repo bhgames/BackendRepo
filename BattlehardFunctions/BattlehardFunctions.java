@@ -5029,7 +5029,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * @return True, if the mission was, or could be sent.  False otherwise.
 	 */
 	public boolean attack(int yourTownID, int enemyx, int enemyy, int[] auAmts, String attackType, String[] target,String name, boolean send) {
-		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")&&!QuestListener.partOfQuest(p,"BQ8")) {
+		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")) {
 			setError("You do not have the Attack API!");
 			return false;
 		}
@@ -5047,6 +5047,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		// Gotta get the town first.
 		Town t1 = g.findTown(yourTownID);
 		Player t1p = t1.getPlayer();
+		PrintWriter out = t1p.God.out;
 
 		if(attackType.equals("invasion")&&t1.isZeppelin()) {
 			setError("You cannot invade with an Airship!");
@@ -5220,15 +5221,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			 while(z<b.size()) {
 				 Building hb = b.get(z);
 				 if(hb.getType().equals("Command Center")) {
-					aggregate=hb.getLvl()+2;
+					aggregate=(hb.getLvl()+2)*3;
 					break;
 				 }
 				 z++;
 			 }
 				
 			 double distance = Math.sqrt((x-t1x)*(x-t1x) + (y-t1y)*(y-t1y));
-			 if(distance>aggregate*3*(1)) {
-				 setError(" You can only invade " + (aggregate*3) + " spaces out. Level up your Command Center.");
+			 if(distance>aggregate) {
+				 setError(" You can only invade " + (aggregate) + " spaces out. Level up your Command Center.");
 
 				 return false;
 			 }
@@ -5376,10 +5377,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			}
 			
 			ArrayList<Raid> blockades = t1.getBlockades();
-			if(blockades.size()>0){
+			if(blockades.size()>0) {
 				//if we have blockades, it means we have bad guys here
 				//we have to set up a fake town to hold these blockades so that they can be attacked
-				ArrayList<AttackUnit> AU = blockades.get(0).getAu();
+				ArrayList<AttackUnit> AU = blockades.get(0).getAu(),
+									  AUafter;
 				for(int i = 1;i<blockades.size();i++) {
 					for(AttackUnit a : blockades.get(i).getAu()) {	//first, we have to tally up and
 						boolean found = false;						//colleate all the au so we have
@@ -5398,12 +5400,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				Player[] fakes = t1p.generateFakePlayers(1, 1, 0, 0); fakes[0].setAu(AU);
 				Town town = fakes[0].towns().get(0); town.setTownName("Blockade surrounding your town");
 				town.setAu(AU);
+				fakes[0].setAu(AU);
 				boolean unitsLeft;
 				do {
 					Raid raid = new Raid(0,0,t1,town,false,false,0,false,"",false,holdAttack.getAu(),holdAttack.getDigAmt());
 					GodGenerator.combatLogicBlock(raid,"Your town is blockaded by a hostile force.");
 					holdAttack.setAu(raid.getAu());
 					holdAttack.setDigAmt(raid.getDigAmt());
+					raid.deleteMe();
 					unitsLeft = holdAttack.getDigAmt()>0;
 					if(!unitsLeft) {
 						for(AttackUnit a : holdAttack.getAu()) {
@@ -5415,15 +5419,32 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					}
 					boolean breakOut = false;
 					if(unitsLeft) {
+						breakOut = true;
 						for(AttackUnit a : town.getAu()) {
 							if(a.getSize()>0) {
-								breakOut=true;
+								breakOut=false;
 								break;
 							}
 						}
 					}
 					if(breakOut) break;
 				} while(unitsLeft);
+				AUafter = town.getAu();
+				for(int i = 0; i<AUafter.size();i++) {
+					AttackUnit holdUnit = AUafter.get(i);
+					int holdOld = AU.get(i).getSize();
+					for(int j = 0; i<blockades.size();i++) {
+						Raid r = blockades.get(j);
+						for(int l = 0;l<r.getAu().size();l++) {
+							AttackUnit a = r.getAu().get(l);
+							if(a.getName().equals(holdUnit.getName())) {
+								//if holdOld is 0, then there aren't any in the blockade, so we shouldn't mess with them
+								//especially since dividing by 0 is awesome!
+								if(holdOld>0) a.setSize((int)Math.round(a.getSize()*(holdUnit.getSize()/holdOld)));
+							}
+						}
+					}
+				}
 				t1p.deleteFakePlayers(fakes);
 				t1.checkForDeadBlockades();
 				if(!unitsLeft) {
@@ -9839,7 +9860,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * @param tid	the ID of the town to get the buildings from
 	 * @param type	the type of building to get
 	 * 
-	 * @return an array of {@link UserBuilding UserBuildings} or null, if type does not match any buildings or an error occurred.
+	 * @return an array of {@link UserBuilding UserBuildings} or null, if an error occurred.
 	 */
 	
 	public UserBuilding[] getUserBuildings(int tid, String type) {
@@ -9854,31 +9875,40 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("Invalid town!");
 			return null;
 		}
-		if(t.getPlayer().ID!=p.ID) return null; Building actb;
+		if(t.getPlayer().ID!=p.ID) {
+			setError("Not your town!");
+			return null;
+		}
+		Building actb;
 		ArrayList<UserBuilding> tses = new ArrayList<UserBuilding>();
 		int totalEngineers = t.getTotalEngineers(); int x = t.getX(); int y = t.getY();
 		double engEffect = g.Maelstrom.getEngineerEffect(x,y);
 		ArrayList<Building> bldg = t.bldg();
-		if(!checkMP(t.townID)) return null;
+		if(!checkMP(t.townID)) {
+			setError("You don't have permission for that.");
+			return null;
+		}
 
 		while(i<bldg.size()) {
 			actb = bldg.get(i);
 			if(type.equals("all")||actb.getType().equals(type)||(type.equals("CombatProduction")
-					&&(type.equals("Arms Factory")||type.equals("Manufacturing Plant")||type.equals("Airstrip"))
-					)) {
-		boolean mineBldg=false;
+					&&(actb.getType().equals("Arms Factory")||actb.getType().equals("Manufacturing Plant")
+							||actb.getType().equals("Airstrip")))) {
+				
 		String name = actb.getType();
-		if(name.contains("Warehouse"))mineBldg=true;
+		boolean mineBldg = name.contains("Warehouse");
 		
 		int lvl = actb.getLvl();
 		int ppl = actb.getPeopleInside();
 		UUID  bid = actb.getId();
 
 		 tses.add(new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),Building.getCap(lvl,mineBldg),
-			Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,
-			actb.getLvlUps(),actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
-			Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
-			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),name,actb.getRefuelTicks(),actb.getFortArray()));
+				 Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,actb.getLvlUps(),
+				 actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
+				 Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
+				 actb.getTicksToFinish(),
+				 Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),
+				 name,actb.getRefuelTicks(),actb.getFortArray()));
 			}
 		 i++;
 		}
@@ -10154,9 +10184,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return null;
 		}
 		
-		
 		int i = 0;
-		UserRaid temp = null; 
 		AttackUnit a; String raidType="attack";
 		String auNames[]; int auAmts[];
 		ArrayList<AttackUnit> auset;
@@ -10229,8 +10257,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					else dfin= new Timestamp(r.getDockingFinished().getTime());
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
-					return new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),dfin,r.getReward());
+					return new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),
+							r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),
+							r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),
+							r.getFood(),r.isAllClear(),r.getBombTarget(),r.getTown1().townID,r.getTown2().townID,
+							r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),dfin,r.getReward());
 				}
 				j++;
 			}
@@ -10315,7 +10346,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		i = 0;
 		setError("noerror");
 
-		return temp;
+		return null;
 	}
 	/**
 	 * Returns an array of UserRaid objects from the town id.
