@@ -4949,10 +4949,9 @@ public class GodGenerator extends WebSocketServlet implements Runnable {
 		 serverInst = new Server(8079);
 		 
 	        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-	        context.setContextPath("/");
+	        context.setContextPath("/AIWars/GodGenerator");
 	        serverInst.setHandler(context);
-	 
-	        context.addServlet(new ServletHolder(this),"/*");
+	        context.addServlet(new ServletHolder(new TextDemo(Router)),"/*");
 	    
 	 
 	        try {
