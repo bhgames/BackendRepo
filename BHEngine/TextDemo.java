@@ -29,6 +29,7 @@ public class TextDemo extends WebSocketServlet {
 
 	
 	//res.setContentType("text/html");
+		/*
 	res.setContentType("text/html");
 	PrintWriter out = res.getWriter();
 	if(true||req.getParameter("reqtype").equals("restartServer")) 
@@ -114,7 +115,7 @@ public class TextDemo extends WebSocketServlet {
 	else 
 		out.println("BLAH");
 
-	out.close();
+	out.close();*/
 }
 	public WebSocket doWebSocketConnect(HttpServletRequest arg0, String arg1) {
 		// TODO Auto-generated method stub

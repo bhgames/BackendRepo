@@ -25,6 +25,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONStringer;
 import org.json.JSONWriter;
 
 import BattlehardFunctions.UserAttackUnit;
@@ -39,13 +40,13 @@ public class Controllers  {
 		public Controllers(GodGenerator g) {
 			this.g=g;
 		}
-	public  boolean loadWorldMap(HttpServletRequest req,PrintWriter out) {
-		JSONWriter j = new JSONWriter(out);
-		if(!session(req,out,true)) return false;
+	public  boolean loadWorldMap(UberSocketPrintWriter out) {
+		JSONStringer j = new JSONStringer();
+		if(!session(out,true)) return false;
 
 		
 
-		Player ourP = g.getPlayer((Integer) req.getSession().getAttribute("pid"));		
+		Player ourP = g.getPlayer((Integer) out.getAttribute("pid"));		
 			try {
 			j.object();
 
@@ -217,20 +218,20 @@ public class Controllers  {
 			}
 			j.endArray().*/
 			j.endObject();
-
+			out.println(j.toString());
 			//out.println("hello");
 			} catch(JSONException exc) { exc.printStackTrace(); }
 			return true;
 	}
 	
-	public boolean saveProgram(HttpServletRequest req, PrintWriter out) {
-		if(!session(req,out,true)) return false;
+	public boolean saveProgram(UberSocketPrintWriter out) {
+		if(!session(out,true)) return false;
 		boolean league = false;
-		if(req.getParameter("league").equals("true")) league = true;
-		Player p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+		if(out.getParameter("league").equals("true")) league = true;
+		Player p = g.getPlayer((Integer) out.getAttribute("pid"));
 		if(league&&p.getLeague()!=null) {
 			p = p.getLeague();
-			boolean toret = p.getPs().b.saveProgram(req.getParameter("program"));
+			boolean toret = p.getPs().b.saveProgram(out.getParameter("program"));
 			if(toret){
 			out.println(true+";");
 			return true;
@@ -240,7 +241,7 @@ public class Controllers  {
 			}
 			
 			} else {
-			boolean toret = p.getPs().b.saveProgram(req.getParameter("program"));
+			boolean toret = p.getPs().b.saveProgram(out.getParameter("program"));
 			if(toret){
 			out.println(true+";");
 			return true;
@@ -254,17 +255,17 @@ public class Controllers  {
 		
 		
 	}
-	public boolean pausePlayer(HttpServletRequest req, PrintWriter out) {
+	public boolean pausePlayer(UberSocketPrintWriter out) {
 	
-		if(!session(req,out,true)) return false;
+		if(!session(out,true)) return false;
 			Player p;
 
 			// must be a player request.
-			if( req.getParameter("UN")!=null) {
-				 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+			if( out.getParameter("UN")!=null) {
+				 p = g.getPlayer((Integer) out.getAttribute("pid"));
 
 				if(p.getSupportstaff()) {
-					g.getPlayer(g.getPlayerId(req.getParameter("UN"))).setSynchronize(true);
+					g.getPlayer(g.getPlayerId(out.getParameter("UN"))).setSynchronize(true);
 					cmdsucc(out);
 					return true;
 					
@@ -274,14 +275,14 @@ public class Controllers  {
 			retry(out); return false;
 		
 	}
-	public boolean convert(HttpServletRequest req, PrintWriter out) {
+	public boolean convert(UberSocketPrintWriter out) {
 		
-		if(!session(req,out,true)) return false;
+		if(!session(out,true)) return false;
 			Player p;
 
 			// must be a player request.
 			
-				 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+				 p = g.getPlayer((Integer) out.getAttribute("pid"));
 
 				if(p.getSupportstaff()) {
 					g.convertPlayers();
@@ -294,12 +295,12 @@ public class Controllers  {
 			retry(out); return false;
 		
 	}
-	public boolean stopServer(HttpServletRequest req, PrintWriter out) {
+	public boolean stopServer(UberSocketPrintWriter out) {
 
-		if(!session(req,out,true)) return false;
+		if(!session(out,true)) return false;
 			Player p;
 			// must be a player request.
-				 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+				 p = g.getPlayer((Integer) out.getAttribute("pid"));
 				 	//System.out.println("HEY2");
 				//if(p.getSupportstaff()) {
 					
@@ -331,18 +332,18 @@ public class Controllers  {
 			retry(out); return false;
 		
 	}
-	public boolean syncPlayer(HttpServletRequest req, PrintWriter out) {
+	public boolean syncPlayer(UberSocketPrintWriter out) {
 	
-		if(!session(req,out,true)) return false;
+		if(!session(out,true)) return false;
 			Player p;
 
 			// must be a player request.
-			if( req.getParameter("UN")!=null) {
-				 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+			if( out.getParameter("UN")!=null) {
+				 p = g.getPlayer((Integer) out.getAttribute("pid"));
 
 				if(p.getSupportstaff()) {
 					try {
-						Player otherP = g.getPlayer(g.getPlayerId(req.getParameter("UN")));
+						Player otherP = g.getPlayer(g.getPlayerId(out.getParameter("UN")));
 						if(otherP.isSynchronize()) {
 						otherP.synchronize();
 						cmdsucc(out);
@@ -364,13 +365,13 @@ public class Controllers  {
 		
 	}
 	
-	public boolean saveServer(HttpServletRequest req, PrintWriter out) {
+	public boolean saveServer(UberSocketPrintWriter out) {
 		
-		if(!session(req,out,true)) return false;
+		if(!session(out,true)) return false;
 			Player p;
 
 			// must be a player request.
-				 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+				 p = g.getPlayer((Integer) out.getAttribute("pid"));
 
 				if(p.getSupportstaff()) {
 					int i =0;
@@ -393,13 +394,13 @@ public class Controllers  {
 			
 			retry(out); return false;
 		
-	}public boolean repairMap(HttpServletRequest req, PrintWriter out) {
+	}public boolean repairMap(UberSocketPrintWriter out) {
 		
-		if(!session(req,out,true)) return false;
+		if(!session(out,true)) return false;
 			Player p;
 
 			// must be a player request.
-				 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+				 p = g.getPlayer((Integer) out.getAttribute("pid"));
 
 				if(p.getSupportstaff()) {
 					g.repairMap();
@@ -411,17 +412,17 @@ public class Controllers  {
 			retry(out); return false;
 		
 	}
-	public boolean support(HttpServletRequest req, PrintWriter out)  {
-		if(!session(req,out,true)) return false;
+	public boolean support(UberSocketPrintWriter out)  {
+		if(!session(out,true)) return false;
 		Player p;
 
 		// must be a player request.
-			 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+			 p = g.getPlayer((Integer) out.getAttribute("pid"));
 			 //reqtype=support&message=&subject=&problemSubject=
 
-			 String message = req.getParameter("message");
-			 String subject = req.getParameter("subject");
-			 String email = req.getParameter("email");
+			 String message = out.getParameter("message");
+			 String subject = out.getParameter("subject");
+			 String email = out.getParameter("email");
 			 
 			Player id =  g.getPlayer(5);
 			int toSend[] = {5,809};
@@ -429,18 +430,18 @@ public class Controllers  {
 		
 			return true;
 	}
-	public boolean makePlayers(HttpServletRequest req, PrintWriter out) {
+	public boolean makePlayers(UberSocketPrintWriter out) {
 		
-		if(!session(req,out,true)) return false;
+		if(!session(out,true)) return false;
 		Player p;
 
 		// must be a player request.
-			 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+			 p = g.getPlayer((Integer) out.getAttribute("pid"));
 			 
 			 if(p.getSupportstaff()) {
 				 
-				 int num = Integer.parseInt(req.getParameter("num"));
-				 String name = req.getParameter("name");
+				 int num = Integer.parseInt(out.getParameter("num"));
+				 String name = out.getParameter("name");
 				 int i = 0;
 				 while(i<num) {
 					 
@@ -453,12 +454,12 @@ public class Controllers  {
 			 retry(out);
 			 return false;
 	}
-	public boolean upgrade(HttpServletRequest req, PrintWriter out) {
+	public boolean upgrade(UberSocketPrintWriter out) {
 		
 		Player p;
 
 		// must be a player request.
-		 int tID = Integer.parseInt(req.getParameter("transactionRef")); 
+		 int tID = Integer.parseInt(out.getParameter("transactionRef")); 
 		 int pid=0;
 		 String item="autopilot";
 
@@ -477,19 +478,19 @@ public class Controllers  {
 		 
 		 
 			 p = g.getPlayer(pid);
-			// String itemDesc = req.getParameter("itemRef");
+			// String itemDesc = out.getParameter("itemRef");
 			 String itemDesc = item;
-			 String status = req.getParameter("status");
-			 String failure = req.getParameter("failure");
+			 String status = out.getParameter("status");
+			 String failure = out.getParameter("failure");
 			 if(failure==null) failure = "noFail";
-			 String method = req.getParameter("method");
-			 String msisdn = req.getParameter("msisdn");
-			 String outPayment = req.getParameter("outPayment");
-			 String consumerPrice = req.getParameter("consumerPrice");
-			 String consumerCurrency = req.getParameter("consumerCurrency");
-			 boolean sim = Boolean.parseBoolean( req.getParameter("simulated"));
-			 String signature = req.getParameter("signature");
-			 String signatureVersion = req.getParameter("signatureVersion");
+			 String method = out.getParameter("method");
+			 String msisdn = out.getParameter("msisdn");
+			 String outPayment = out.getParameter("outPayment");
+			 String consumerPrice = out.getParameter("consumerPrice");
+			 String consumerCurrency = out.getParameter("consumerCurrency");
+			 boolean sim = Boolean.parseBoolean( out.getParameter("simulated"));
+			 String signature = out.getParameter("signature");
+			 String signatureVersion = out.getParameter("signatureVersion");
 
 
 			 try {
@@ -555,12 +556,12 @@ public class Controllers  {
 			 
 			 return false;
 	}
-	public boolean refund(HttpServletRequest req, PrintWriter out) {
+	public boolean refund(UberSocketPrintWriter out) {
 		// NOT MADE YET
 		Player p;
 
 		// must be a player request.
-		 int tID = Integer.parseInt(req.getParameter("transactionRef")); 
+		 int tID = Integer.parseInt(out.getParameter("transactionRef")); 
 		 int pid=0;
 		 
 		 try {
@@ -575,18 +576,18 @@ public class Controllers  {
 		 
 		 
 			 p = g.getPlayer(pid);
-			 String itemDesc = req.getParameter("itemRef");
-			 String status = req.getParameter("status");
-			 String failure = req.getParameter("failure");
+			 String itemDesc = out.getParameter("itemRef");
+			 String status = out.getParameter("status");
+			 String failure = out.getParameter("failure");
 			 if(failure==null) failure = "noFail";
-			 String method = req.getParameter("method");
-			 String msisdn = req.getParameter("msisdn");
-			 String outPayment = req.getParameter("outPayment");
-			 String consumerPrice = req.getParameter("consumerPrice");
-			 String consumerCurrency = req.getParameter("consumerCurrency");
-			 boolean sim = Boolean.parseBoolean( req.getParameter("simulated"));
-			 String signature = req.getParameter("signature");
-			 String signatureVersion = req.getParameter("signatureVersion");
+			 String method = out.getParameter("method");
+			 String msisdn = out.getParameter("msisdn");
+			 String outPayment = out.getParameter("outPayment");
+			 String consumerPrice = out.getParameter("consumerPrice");
+			 String consumerCurrency = out.getParameter("consumerCurrency");
+			 boolean sim = Boolean.parseBoolean( out.getParameter("simulated"));
+			 String signature = out.getParameter("signature");
+			 String signatureVersion = out.getParameter("signatureVersion");
 
 
 			 try {
@@ -646,16 +647,16 @@ public class Controllers  {
 			 
 			 return false;
 	}
-	public boolean makePaypalReq(HttpServletRequest req, PrintWriter out) {
+	public boolean makePaypalReq(UberSocketPrintWriter out) {
 		
-		if(!session(req,out,true)) return false;
+		if(!session(out,true)) return false;
 			Player p;
 
 			// must be a player request.
-				 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
-				 String country = (String) req.getParameter("country");
-				 int purchaseCode = Integer.parseInt(req.getParameter("purchaseCode"));
-				 boolean league = Boolean.parseBoolean(req.getParameter("league"));
+				 p = g.getPlayer((Integer) out.getAttribute("pid"));
+				 String country = (String) out.getParameter("country");
+				 int purchaseCode = Integer.parseInt(out.getParameter("purchaseCode"));
+				 boolean league = Boolean.parseBoolean(out.getParameter("league"));
 			//	 System.out.println("your player is " + p.getUsername() + " and your country is " + country + " and purchaseCode is " + purchaseCode  + " and league is " + league);
 				 // so if you ask for a league and have a league, and you're an admin, you get it for your leagued player.
 				 if(league&&p.getLeague()!=null&&p.getLeague().getType(p.ID)==2)  {
@@ -670,16 +671,16 @@ public class Controllers  {
 				
 		
 	}
-	public boolean getZongScreen(HttpServletRequest req, PrintWriter out) {
+	public boolean getZongScreen(UberSocketPrintWriter out) {
 		
-		if(!session(req,out,true)) return false;
+		if(!session(out,true)) return false;
 			Player p;
 
 			// must be a player request.
-				 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
-				 String country = (String) req.getParameter("country");
-				 int purchaseCode = Integer.parseInt(req.getParameter("purchaseCode"));
-				 boolean league = Boolean.parseBoolean(req.getParameter("league"));
+				 p = g.getPlayer((Integer) out.getAttribute("pid"));
+				 String country = (String) out.getParameter("country");
+				 int purchaseCode = Integer.parseInt(out.getParameter("purchaseCode"));
+				 boolean league = Boolean.parseBoolean(out.getParameter("league"));
 				 System.out.println("your player is " + p.getUsername() + " and your country is " + country + " and purchaseCode is " + purchaseCode  + " and league is " + league);
 				 // so if you ask for a league and have a league, and you're an admin, you get it for your leagued player.
 				 if(league&&p.getLeague()!=null&&p.getLeague().getType(p.ID)==2)  {
@@ -750,12 +751,12 @@ public class Controllers  {
 		
 	}
 //	public static int sendMail(String email, String name, String promotion, String subject, String message) {
-	public boolean newsletter(HttpServletRequest req, PrintWriter out) {
-		if(!session(req,out,true)) return false;
+	public boolean newsletter(UberSocketPrintWriter out) {
+		if(!session(out,true)) return false;
 		Player p;
 
 		// must be a player request.
-			 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+			 p = g.getPlayer((Integer) out.getAttribute("pid"));
 
 			if(p.getSupportstaff()) {
 				try {
@@ -785,15 +786,15 @@ public class Controllers  {
 	
 	}
 
-public boolean linkFB(HttpServletRequest req, PrintWriter out) {
-		if(!session(req,out,true)) return false;
+public boolean linkFB(UberSocketPrintWriter out) {
+		if(!session(out,true)) return false;
 			Player p;
 			// must be a player request.
-				 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+				 p = g.getPlayer((Integer) out.getAttribute("pid"));
 				if(p.getFuid()!=0) {
 					retry(out); return false;
 				}
-				 long fuid =Long.parseLong( req.getParameter("fuid"));
+				 long fuid =Long.parseLong( out.getParameter("fuid"));
 				 int i = 0;
 				 while(i<g.getPlayers().size()) {
 					 if(g.getPlayers().get(i).getFuid()==fuid) return false;
@@ -807,21 +808,21 @@ public boolean linkFB(HttpServletRequest req, PrintWriter out) {
 				 return true;
 		
 	}
-public boolean FBBlast(HttpServletRequest req, PrintWriter out) {
-	if(!session(req,out,true)) return false;
+public boolean FBBlast(UberSocketPrintWriter out) {
+	if(!session(out,true)) return false;
 		Player p;
 		// must be a player request.
 		System.out.println("Got a reqest for an fb blast.");
-			 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
-			 int type = (Integer.parseInt( req.getParameter("rewardChoice")));
-			 UUID sid = (UUID.fromString( req.getParameter("SID")));
+			 p = g.getPlayer((Integer) out.getAttribute("pid"));
+			 int type = (Integer.parseInt( out.getParameter("rewardChoice")));
+			 UUID sid = (UUID.fromString( out.getParameter("SID")));
 
 			if(p.getFuid()==0) {
 				retry(out); return false;
 			}
 			System.out.println("Got past all the shitnuggets.");
 
-			 long fuid =Long.parseLong( req.getParameter("fuid"));
+			 long fuid =Long.parseLong( out.getParameter("fuid"));
 				System.out.println("Got past all the shitnuggets2.");
 
 			 if(p.getFuid()==fuid||p.getUsername().equals("Azel")) {
@@ -889,14 +890,14 @@ public boolean FBBlast(HttpServletRequest req, PrintWriter out) {
 			 return true;
 	
 }
-public boolean noFlick(HttpServletRequest req, PrintWriter out) {
+public boolean noFlick(UberSocketPrintWriter out) {
 	
-	if(!session(req,out,true)) return false;
+	if(!session(out,true)) return false;
 		Player p;
 
 		// must be a player request.
-			 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
-			 boolean league = Boolean.parseBoolean(req.getParameter("league"));
+			 p = g.getPlayer((Integer) out.getAttribute("pid"));
+			 boolean league = Boolean.parseBoolean(out.getParameter("league"));
 			 if(league&&p.getLeague()!=null&&p.getLeague().getType(p.ID)>=1) {
 				 p.getLeague().flicker="noflick";
 			 }else
@@ -908,14 +909,14 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		
 			 return true;
 	
-}public boolean flickStatus(HttpServletRequest req, PrintWriter out) {
+}public boolean flickStatus(UberSocketPrintWriter out) {
 	
-	if(!session(req,out,true)) return false;
+	if(!session(out,true)) return false;
 		Player p;
 
 		// must be a player request.
-			 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
-			 boolean league = Boolean.parseBoolean(req.getParameter("league"));
+			 p = g.getPlayer((Integer) out.getAttribute("pid"));
+			 boolean league = Boolean.parseBoolean(out.getParameter("league"));
 			 if(league&&p.getLeague()!=null&&p.getLeague().getType(p.ID)>=1) {
 				out.println(p.getLeague().flicker);
 			 }else
@@ -927,8 +928,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			 return true;
 	
 }
-	public boolean username(HttpServletRequest req, PrintWriter out) {
-		String username = (String) req.getParameter("username").toLowerCase();
+	public boolean username(UberSocketPrintWriter out) {
+		String username = (String) out.getParameter("username").toLowerCase();
 		int i = 0;
 		while(i<g.getPlayers().size()) {
 			if(g.getPlayers().get(i).getUsername().toLowerCase().equals(username.toLowerCase())) {
@@ -941,8 +942,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		
 		return true;
 	}
-	public boolean getTiles(HttpServletRequest req, PrintWriter out) {
-		JSONWriter j = new JSONWriter(out);
+	public boolean getTiles(UberSocketPrintWriter out) {
+		JSONStringer j = new JSONStringer();
 		
 		Player Id = g.getPlayer(5);
 		Hashtable worldMapHash = Id.getPs().b.getWorldMap();
@@ -1032,6 +1033,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		}
 		
 		j.endArray();
+		out.println(j.toString());
+
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1040,16 +1043,16 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 	}
 	
 	
-	public boolean loadPlayer(HttpServletRequest req, PrintWriter out, boolean grabLeague) {
-		JSONWriter j = new JSONWriter(out);
+	public boolean loadPlayer(UberSocketPrintWriter out, boolean grabLeague) {
+		JSONStringer j = new JSONStringer();
 		UserQueueItem q;
-		if(!session(req,out,true)) return false;
+		if(!session(out,true)) return false;
 		try {
 			Player p; UserTown t; UserBuilding b;UserAttackUnit a;
 
 			// must be a player request.
-			if( req.getParameter("UN")!=null) {
-				 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+			if( out.getParameter("UN")!=null) {
+				 p = g.getPlayer((Integer) out.getAttribute("pid"));
 
 				if(p.getSupportstaff()) {
 					
@@ -1058,7 +1061,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 
 					while(x<players.size()) {
 						p = players.get(x);
-						if(p.getUsername().toLowerCase().equals(req.getParameter("UN"))) {
+						if(p.getUsername().toLowerCase().equals(out.getParameter("UN"))) {
 							found=true;
 							break;
 						}
@@ -1075,7 +1078,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 				}
 				// cna only do this as support staff.
 			} else
-				 p =g.getPlayer((Integer) req.getSession().getAttribute("pid"));			
+				 p =g.getPlayer((Integer) out.getAttribute("pid"));			
 			
 			Player originalPlayer=null;
 			if(grabLeague&&p.getLeague()!=null) {
@@ -1541,19 +1544,19 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			
 			j.endArray(); // end of town array
 	        j.endObject();// end of player
-			
+			out.println(j.toString());
 	} catch(NumberFormatException exc) {exc.printStackTrace(); } catch(JSONException exc) {exc.printStackTrace();} 
 	return true;
 	}
 	
-	public boolean session(HttpServletRequest req, PrintWriter out, boolean partial) {
+	public boolean session(UberSocketPrintWriter out, boolean partial) {
 		// if it is not a partial, then we do want to write valid out,
 		// which means it requested as directly from a view. If another controller requested it, then
 		// it's a partial!
 		// tests to see if it exists!
 		try {
 
-		HttpSession session = req.getSession(true);
+		HttpSession session = out.getSession(true);
 		
 		int pid = (Integer) session.getAttribute("pid");
 		String username = (String) session.getAttribute("username");
@@ -1571,14 +1574,14 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		return true;
 		
 	}
-	public boolean login(HttpServletRequest req, PrintWriter out) {
+	public boolean login(UberSocketPrintWriter out) {
 		try {
-		HttpSession session = req.getSession(true);
-		String username = req.getParameter("UN");
+		HttpSession session = out.getSession(true);
+		String username = out.getParameter("UN");
 		String password="";
 		Player p;
 		if(username==null) {
-			long fuid = Long.parseLong(req.getParameter("fuid"));
+			long fuid = Long.parseLong(out.getParameter("fuid"));
 			if(fuid==0) {
 				retry(out); return false;
 			}
@@ -1589,7 +1592,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			username = username.toLowerCase();
 			 p = g.getPlayer((Integer) g.getPlayerId((username).toLowerCase()));
 			
-			 password = org.apache.commons.codec.digest.DigestUtils.md5Hex(req.getParameter("Pass"));
+			 password = org.apache.commons.codec.digest.DigestUtils.md5Hex(out.getParameter("Pass"));
 			if(username==null||password==null) { retry(out); return false; }
 
 		}
@@ -1597,9 +1600,9 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 					 // shit, must've been killed somehow.
 					 Hashtable r; long fuid = 0;
 					 if(username!=null)
-					  r= (Hashtable) g.accounts.get(req.getParameter("UN"));
+					  r= (Hashtable) g.accounts.get(out.getParameter("UN"));
 					 else {
-						 fuid = Long.parseLong(req.getParameter("fuid"));
+						 fuid = Long.parseLong(out.getParameter("fuid"));
 						 r = (Hashtable) g.accounts.get(fuid);
 					 }
 					 
@@ -1654,9 +1657,9 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		retry(out);
 		return false;
 	}	
-	public boolean logout(HttpServletRequest req, PrintWriter out) {
+	public boolean logout(UberSocketPrintWriter out) {
 		try {
-			HttpSession session = req.getSession(true);
+			HttpSession session = out.getSession(true);
 			session.invalidate();
 		
 		} catch(NullPointerException exc) {
@@ -1666,10 +1669,10 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			retry(out);
 			return false;
 		}
-	public boolean growId(HttpServletRequest req, PrintWriter out) {
+	public boolean growId(UberSocketPrintWriter out) {
 		try {
-			HttpSession session = req.getSession(true);
-			Player p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));		
+			HttpSession session = out.getSession(true);
+			Player p = g.getPlayer((Integer) out.getAttribute("pid"));		
 			if(p.getSupportstaff()) {
 				p.God.growId();
 			} else {
@@ -1681,13 +1684,13 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		}
 			retry(out);
 			return false;
-	}	public boolean sendTestEmail(HttpServletRequest req, PrintWriter out) {
+	}	public boolean sendTestEmail(UberSocketPrintWriter out) {
 		try {
-			HttpSession session = req.getSession(true);
-			Player p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));		
+			HttpSession session = out.getSession(true);
+			Player p = g.getPlayer((Integer) out.getAttribute("pid"));		
 			if(p.getSupportstaff()) {
-				String email = req.getParameter("email");
-				String name = req.getParameter("name");
+				String email = out.getParameter("email");
+				String name = out.getParameter("name");
 				g.sendMail(email,name,"Account Deletion Notice","Account Deletion Notice","");
 			} else {
 				retry(out);
@@ -1699,17 +1702,17 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			retry(out);
 			return false;
 	}
-	public boolean returnPrizeName(HttpServletRequest req, PrintWriter out) {
-		if(!session(req,out,true)) return false;
+	public boolean returnPrizeName(UberSocketPrintWriter out) {
+		if(!session(out,true)) return false;
 		Player p;
 
 		// must be a player request.
 	
-			 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+			 p = g.getPlayer((Integer) out.getAttribute("pid"));
 
 			if(p.getSupportstaff()) {
 				//	public String returnPrizeName(int probTick, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
-				g.returnPrizeName((req.getParameter("probTick")),Integer.parseInt(req.getParameter("x")),(Integer.parseInt(req.getParameter("y"))),true,out,(Double.parseDouble(req.getParameter("presetRand"))),(String) req.getParameter("presetTile"));
+				g.returnPrizeName((out.getParameter("probTick")),Integer.parseInt(out.getParameter("x")),(Integer.parseInt(out.getParameter("y"))),true,out,(Double.parseDouble(out.getParameter("presetRand"))),(String) out.getParameter("presetTile"));
 				return true;
 				
 			}
@@ -1718,11 +1721,11 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		retry(out); return false;
 	
 	}
-	public boolean forgotPass(HttpServletRequest req, PrintWriter out) {
+	public boolean forgotPass(UberSocketPrintWriter out) {
 		try {
-			HttpSession session = req.getSession(true);
-			String username = req.getParameter("username");
-			String email = req.getParameter("email");
+			HttpSession session = out.getSession(true);
+			String username = out.getParameter("username");
+			String email = out.getParameter("email");
 			Player p=null;
 			if(username!=null)
 			 p = g.getPlayer(g.getPlayerId(username.toLowerCase()));		
@@ -1755,12 +1758,12 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			return false;
 		}
 	}
-	public boolean resetPass(HttpServletRequest req, PrintWriter out) {
+	public boolean resetPass(UberSocketPrintWriter out) {
 		try {
-			HttpSession session = req.getSession(true);
-			String username = req.getParameter("username");
-			String code = req.getParameter("code");
-			String newPass = req.getParameter("Pass");
+			HttpSession session = out.getSession(true);
+			String username = out.getParameter("username");
+			String code = out.getParameter("code");
+			String newPass = out.getParameter("Pass");
 			Player p=null;
 			if(username!=null)
 			 p = g.getPlayer(g.getPlayerId(username));		
@@ -1780,11 +1783,11 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			return false;
 		}
 	}
-	public boolean serverStatus(HttpServletRequest req, PrintWriter out) {
+	public boolean serverStatus(UberSocketPrintWriter out) {
 		try {
-			HttpSession session = req.getSession(true);
+			HttpSession session = out.getSession(true);
 
-			String newPass = req.getParameter("Pass");
+			String newPass = out.getParameter("Pass");
 	
 		//	out.println(p.getPassword() + " and yours is " + code + " and new pass is " + newPass);
 		
@@ -2049,10 +2052,10 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			return false;
 		}
 	}
-	public boolean growTileset(HttpServletRequest req, PrintWriter out) {
+	public boolean growTileset(UberSocketPrintWriter out) {
 		try {
-			HttpSession session = req.getSession(true);
-			Player p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+			HttpSession session = out.getSession(true);
+			Player p = g.getPlayer((Integer) out.getAttribute("pid"));
 			if(p.getSupportstaff()) {
 				p.God.growTileset();
 			} else {
@@ -2065,13 +2068,13 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			retry(out);
 			return false;
 	}
-	public boolean compileProgram(HttpServletRequest req, PrintWriter out) {
+	public boolean compileProgram(UberSocketPrintWriter out) {
 		try {
-			HttpSession session = req.getSession(true);
+			HttpSession session = out.getSession(true);
 
-			Player p; String username = req.getParameter("UN").toLowerCase();
-			String password = req.getParameter("Pass");
-			String thePass = req.getParameter("code");
+			Player p; String username = out.getParameter("UN").toLowerCase();
+			String password = out.getParameter("Pass");
+			String thePass = out.getParameter("code");
 			if(!thePass.equals("4p5v3sxQ")) { retry(out); return false; }
 
 			if(username==null||password==null) { retry(out); return false; }
@@ -2093,13 +2096,13 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			retry(out);
 			return false;
 	}
-	public boolean deleteOldPlayers(HttpServletRequest req, PrintWriter out) {
+	public boolean deleteOldPlayers(UberSocketPrintWriter out) {
 		
-		if(!session(req,out,true)) return false;
+		if(!session(out,true)) return false;
 			Player p;
 
 			// must be a player request.
-				 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+				 p = g.getPlayer((Integer) out.getAttribute("pid"));
 
 				if(p.getSupportstaff()) {
 					int i =0;
@@ -2112,127 +2115,127 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			
 			retry(out); return false;
 	}
-	public boolean deletePlayer(HttpServletRequest req, PrintWriter out) {
-		if(!session(req,out,true)) return false;
-		Boolean howTo = Boolean.parseBoolean(req.getParameter("playableAgain"));
-		Player p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+	public boolean deletePlayer(UberSocketPrintWriter out) {
+		if(!session(out,true)) return false;
+		Boolean howTo = Boolean.parseBoolean(out.getParameter("playableAgain"));
+		Player p = g.getPlayer((Integer) out.getAttribute("pid"));
 		p.God.deletePlayer(p,howTo);
 		 return true;
 	}
-	public boolean deleteAccount(HttpServletRequest req, PrintWriter out) {
-		if(!session(req,out,true)) return false;
-		Player p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+	public boolean deleteAccount(UberSocketPrintWriter out) {
+		if(!session(out,true)) return false;
+		Player p = g.getPlayer((Integer) out.getAttribute("pid"));
 		p.God.deleteAccount(p.getUsername());
 		 return true;
 	}
-	public boolean runTest(HttpServletRequest req, PrintWriter out) {
-		String test = (String) req.getParameter("type");
-		if(!session(req,out,true)) return false;
-			Player p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+	public boolean runTest(UberSocketPrintWriter out) {
+		String test = (String) out.getParameter("type");
+		if(!session(out,true)) return false;
+			Player p = g.getPlayer((Integer) out.getAttribute("pid"));
 
 			if(p.getSupportstaff()||!p.getSupportstaff()) {
 				if(test.equals("fbPost")) {
 					
-					g.fbPostTest(req,out,p);
+					g.fbPostTest(out,p);
 				} else if(test.equals("separatedPoints")) {
-					g.separatedPointsTest(req,out);
+					g.separatedPointsTest(out);
 				}else if(test.equals("giftWrapping")) {
-					g.giftWrappingTest(req,out);
+					g.giftWrappingTest(out);
 				}else if(test.equals("returnTerritory")) {
-					g.returnTerritoryTest(req,out,p);
+					g.returnTerritoryTest(out,p);
 				}else if(test.equals("basicTerritory")) {
-					g.basicTerritoryTest(req,out,p);
+					g.basicTerritoryTest(out,p);
 				}else if(test.equals("intermediateTerritory")) {
-					g.intermediateTerritoryTest(req,out,p);
+					g.intermediateTerritoryTest(out,p);
 				} else if(test.equals("advancedTerritory")) {
-					g.advancedTerritoryTest(req,out,p);
+					g.advancedTerritoryTest(out,p);
 				} else if(test.equals("basicVassalage")) {
-					g.basicVassalageTest(req,out,p);
+					g.basicVassalageTest(out,p);
 				} else if(test.equals("advancedVassalage")) {
-					g.advancedVassalageTest(req,out,p);
+					g.advancedVassalageTest(out,p);
 				} else if(test.equals("breakVassalage")) {
-					g.breakVassalageTest(req,out,p);
+					g.breakVassalageTest(out,p);
 				} else if(test.equals("lordvlord")) {
-					g.lordvlordTest(req,out,p);
+					g.lordvlordTest(out,p);
 				} else if(test.equals("vassalThatIsLord")) {
-					g.vassalThatIsLordTest(req,out,p);
+					g.vassalThatIsLordTest(out,p);
 				}else if(test.equals("deconstructBuilding")) {
-					g.deconstructBuildingTest(req,out,p);
+					g.deconstructBuildingTest(out,p);
 				}else if(test.equals("foodConsumption")) {
-					g.foodConsumptionTest(req,out,p);
+					g.foodConsumptionTest(out,p);
 				}else if(test.equals("basicRO")) {
-					g.basicROTest(req,out,p);
+					g.basicROTest(out,p);
 				}else if(test.equals("ROContested")) {
-					g.ROContestedTest(req,out,p,false);
+					g.ROContestedTest(out,p,false);
 				}else if(test.equals("ROInfluence")) {
-					g.ROInfluenceTest(req,out,p);
+					g.ROInfluenceTest(out,p);
 				}else if(test.equals("ROEngCap")) {
-					g.ROEngCapTest(req,out,p);
+					g.ROEngCapTest(out,p);
 				}else if(test.equals("ROCollapse")) {
-					g.ROCollapseTest(req,out,p,false);
+					g.ROCollapseTest(out,p,false);
 				}else if(test.equals("basicDig")) {
-					g.basicDigTest(req,out,p);
+					g.basicDigTest(out,p);
 				}else if(test.equals("digProbability")) {
-					g.digProbabilityTest(req,out);
+					g.digProbabilityTest(out);
 				}else if(test.equals("digContested")) {
-					g.ROContestedTest(req,out,p,true);
+					g.ROContestedTest(out,p,true);
 				}else if(test.equals("digCollapse")) {
-					g.ROCollapseTest(req,out,p,true);
+					g.ROCollapseTest(out,p,true);
 				}else if(test.equals("basicTradeCaravan")) {
-					g.basicTradeCaravanTest(req,out,p);
+					g.basicTradeCaravanTest(out,p);
 				}else if(test.equals("leagueCreate")) {
-					g.leagueCreateTest(req,out,p);
+					g.leagueCreateTest(out,p);
 				}else if(test.equals("allDig")) { 
-					g.basicDigTest(req,out,p);
-					g.digProbabilityTest(req,out);
-					g.ROContestedTest(req,out,p,true);
-					g.ROCollapseTest(req,out,p,true);
+					g.basicDigTest(out,p);
+					g.digProbabilityTest(out);
+					g.ROContestedTest(out,p,true);
+					g.ROCollapseTest(out,p,true);
 				}else if(test.equals("allRO")) {
-					g.basicROTest(req,out,p);
-					g.ROContestedTest(req,out,p,false);
-					g.ROInfluenceTest(req,out,p);
-					g.ROEngCapTest(req,out,p);
-					g.ROCollapseTest(req,out,p,false);
+					g.basicROTest(out,p);
+					g.ROContestedTest(out,p,false);
+					g.ROInfluenceTest(out,p);
+					g.ROEngCapTest(out,p);
+					g.ROCollapseTest(out,p,false);
 				}
 				else if(test.equals("allVassalAndTerritories")) {
-					g.fbPostTest(req,out,p);
-					g.separatedPointsTest(req,out);
-					g.giftWrappingTest(req,out);
-					g.returnTerritoryTest(req,out,p);
-					g.basicTerritoryTest(req,out,p);
-					g.intermediateTerritoryTest(req,out,p);
-					g.advancedTerritoryTest(req,out,p);
-					g.basicVassalageTest(req,out,p);
-					g.advancedVassalageTest(req,out,p);
-					g.breakVassalageTest(req,out,p);
-					g.lordvlordTest(req,out,p);
-					g.vassalThatIsLordTest(req,out,p);
+					g.fbPostTest(out,p);
+					g.separatedPointsTest(out);
+					g.giftWrappingTest(out);
+					g.returnTerritoryTest(out,p);
+					g.basicTerritoryTest(out,p);
+					g.intermediateTerritoryTest(out,p);
+					g.advancedTerritoryTest(out,p);
+					g.basicVassalageTest(out,p);
+					g.advancedVassalageTest(out,p);
+					g.breakVassalageTest(out,p);
+					g.lordvlordTest(out,p);
+					g.vassalThatIsLordTest(out,p);
 				}    else if(test.equals("all")) {
-					g.deconstructBuildingTest(req,out,p);
-					g.foodConsumptionTest(req,out,p);
-					g.basicROTest(req,out,p);
-					g.ROContestedTest(req,out,p,false);
-					g.ROInfluenceTest(req,out,p);
-					g.ROEngCapTest(req,out,p);
-					g.ROCollapseTest(req,out,p,false);
-					g.fbPostTest(req,out,p);
-					g.separatedPointsTest(req,out);
-					g.giftWrappingTest(req,out);
-					g.returnTerritoryTest(req,out,p);
-					g.basicTerritoryTest(req,out,p);
-					g.intermediateTerritoryTest(req,out,p);
-					g.advancedTerritoryTest(req,out,p);
-					g.basicVassalageTest(req,out,p);
-					g.advancedVassalageTest(req,out,p);
-					g.breakVassalageTest(req,out,p);
-					g.lordvlordTest(req,out,p);
-					g.vassalThatIsLordTest(req,out,p);
-					g.basicDigTest(req,out,p);
-					g.digProbabilityTest(req,out);
-					g.ROContestedTest(req,out,p,true);
-					g.ROCollapseTest(req,out,p,true);
-					g.basicTradeCaravanTest(req,out,p);
-					g.leagueCreateTest(req,out,p);
+					g.deconstructBuildingTest(out,p);
+					g.foodConsumptionTest(out,p);
+					g.basicROTest(out,p);
+					g.ROContestedTest(out,p,false);
+					g.ROInfluenceTest(out,p);
+					g.ROEngCapTest(out,p);
+					g.ROCollapseTest(out,p,false);
+					g.fbPostTest(out,p);
+					g.separatedPointsTest(out);
+					g.giftWrappingTest(out);
+					g.returnTerritoryTest(out,p);
+					g.basicTerritoryTest(out,p);
+					g.intermediateTerritoryTest(out,p);
+					g.advancedTerritoryTest(out,p);
+					g.basicVassalageTest(out,p);
+					g.advancedVassalageTest(out,p);
+					g.breakVassalageTest(out,p);
+					g.lordvlordTest(out,p);
+					g.vassalThatIsLordTest(out,p);
+					g.basicDigTest(out,p);
+					g.digProbabilityTest(out);
+					g.ROContestedTest(out,p,true);
+					g.ROCollapseTest(out,p,true);
+					g.basicTradeCaravanTest(out,p);
+					g.leagueCreateTest(out,p);
 
 				}
 				else{
@@ -2244,8 +2247,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		
 		return true;
 	}
-	public boolean restartServer(HttpServletRequest req, PrintWriter out) {
-		String pass = req.getParameter("Pass");
+	public boolean restartServer(UberSocketPrintWriter out) {
+		String pass = out.getParameter("Pass");
 		if(pass.equals("4p5v3sxQ1")) {
 			try {
 				Runtime.getRuntime().exec("mysqldump -u " + GodGenerator.user + " -p" + GodGenerator.pass + " bhdb > " + 
@@ -2260,28 +2263,28 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		 return true;
 	}
 	
-	public boolean createNewPlayer(HttpServletRequest req, PrintWriter out) {
+	public boolean createNewPlayer(UberSocketPrintWriter out) {
 		try {
-			HttpSession session = req.getSession(true);
-		/*	String code = req.getParameter("code");
+			HttpSession session = out.getSession(true);
+		/*	String code = out.getParameter("code");
 			if(code==null) { retry(out);
 			out.print(":invalid code!;"); return false; }
 			
 			if(g.checkCode(code)) {*/
 				
-				String UN = req.getParameter("UN");
-				String Pass = req.getParameter("Pass");
-				String email = req.getParameter("email");
+				String UN = out.getParameter("UN");
+				String Pass = out.getParameter("Pass");
+				String email = out.getParameter("email");
 				if(email!=null)email = email.toLowerCase();
-				String fuidString = req.getParameter("fuid");
+				String fuidString = out.getParameter("fuid");
 				long fuid=0;
 				if(fuidString!=null){
 					fuid = Long.parseLong(fuidString);
 					Pass = "none";
 				}
-				boolean skipMe =Boolean.parseBoolean(req.getParameter("skipMe"));
-				int chosenTileX = Integer.parseInt(req.getParameter("chosenTileX"));
-				int chosenTileY = Integer.parseInt(req.getParameter("chosenTileY"));
+				boolean skipMe =Boolean.parseBoolean(out.getParameter("skipMe"));
+				int chosenTileX = Integer.parseInt(out.getParameter("chosenTileX"));
+				int chosenTileY = Integer.parseInt(out.getParameter("chosenTileY"));
 
 
 				if(UN==null||(Pass==null&&fuid==0)) {
@@ -2317,7 +2320,7 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 				//g.destroyCode(code);
 				if(email==null) email = "nolinkedemail";
 				Player p = g.createNewPlayer(UN,Pass,0,-1,"0000", email,skipMe,chosenTileX,chosenTileY,true,fuid);
-				String masterpass = req.getParameter("master");
+				String masterpass = out.getParameter("master");
 				if(masterpass!=null&&masterpass.equals("4p5v3sxQ")) {
 					
 					p.setdigAPI(true);
@@ -2354,12 +2357,12 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			return false;
 		}
 	}
-	public boolean generateCodes(HttpServletRequest req, PrintWriter out) {
+	public boolean generateCodes( UberSocketPrintWriter out) {
 		try {
-			HttpSession session = req.getSession(true);
-			Player p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+			HttpSession session = out.getSession(true);
+			Player p = g.getPlayer((Integer) out.getAttribute("pid"));
 			if(p.getSupportstaff()) {
-				int num = Integer.parseInt(req.getParameter("num"));
+				int num = Integer.parseInt(out.getParameter("num"));
 				out.print(p.God.generateCodes(num));
 				return true;
 			} else {
@@ -2372,8 +2375,8 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			retry(out);
 			return false;
 	}
-	public boolean command(HttpServletRequest req, PrintWriter out) {
-		if(!session(req,out,true)) return false;
+	public boolean command(UberSocketPrintWriter out) {
+		if(!session(out,true)) return false;
 		boolean succ=false;
 		try {
 			Player p;
@@ -2381,9 +2384,9 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		if(g.getPlayers().size()>0) {
 			// must be a player request.
 			//error WOULD ALLOW YOU TO CONTROL PLAYERS ABOVE YOU SHOULD ONE GET DELETED!
-			 p = g.getPlayer((Integer) req.getSession().getAttribute("pid"));
+			 p = g.getPlayer((Integer) out.getAttribute("pid"));
 			 g.updateLastLogin(p.ID);
-			String output= ""+ p.getPs().parser(req.getParameter("command"));
+			String output= ""+ p.getPs().parser(out.getParameter("command"));
 			
 			out.println(output);
 			// if we put return true in here it may not always yield return true
@@ -2394,17 +2397,17 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 		return true;
 	}
 
-	public void cmdsucc(PrintWriter out) {
+	public void cmdsucc(UberSocketPrintWriter out) {
 		out.println("true");
 	}
 
-	public void cmdfail(PrintWriter out) {
+	public void cmdfail(UberSocketPrintWriter out) {
 		out.println("false");
 	}
-	public void retry(PrintWriter out) {
+	public void retry(UberSocketPrintWriter out) {
 		out.println("invalid");
 	}
-	public void success(PrintWriter out) {
+	public void success(UberSocketPrintWriter out) {
 		out.println("valid");
 	}
 	

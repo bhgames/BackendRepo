@@ -4533,7 +4533,7 @@ v. 01
 -Gameclock implemented.
 
  */
-public class GodGenerator extends WebSocketServlet implements Runnable {
+public class GodGenerator extends HttpServlet implements Runnable {
 	//BattlehardViewer bh;
 	int res1[] = new int[8]; // There is metal and number of bland military units for this alpha software.
 	// Metal is 0, timber is 1. Stealthtech is 2. Population is 3.
@@ -4776,7 +4776,9 @@ public class GodGenerator extends WebSocketServlet implements Runnable {
 	res.setContentType("text/html");
 
 	PrintWriter out = res.getWriter();
-	if(serverLoaded) 
+	doReqtypeSorting(new UberSocketPrintWriter(null, out,req,null));
+
+	/*if(serverLoaded) 
 	if(req.getParameter("reqtype").equals("command")) {
 		Router.command(req,out);
 	} else if(req.getParameter("reqtype").equals("saveProgram")) {
@@ -4821,7 +4823,7 @@ public class GodGenerator extends WebSocketServlet implements Runnable {
 		out.println(status);
 	}
 	else 
-		out.println(status);
+		out.println(status);*/
 
 
 	out.close();
@@ -4832,99 +4834,100 @@ public class GodGenerator extends WebSocketServlet implements Runnable {
 	
 	//res.setContentType("text/html");
 	res.setContentType("text/html");
-
 	PrintWriter out = res.getWriter();
-	if(serverLoaded||req.getParameter("reqtype").equals("restartServer")) 
-	if(req.getParameter("reqtype").equals("world_map")) {
-		Router.loadWorldMap(req,out);
-	} else if(req.getParameter("reqtype").equals("forgotPass")) {
-		Router.forgotPass(req,out);
-	}else if(req.getParameter("reqtype").equals("serverStatus")) {
-		Router.serverStatus(req,out);
-	}else if(req.getParameter("reqtype").equals("convert")) {
-		Router.convert(req,out);
-	}else if(req.getParameter("reqtype").equals("stopServer")) {
-		Router.stopServer(req,out);
-	}else if(req.getParameter("reqtype").equals("runTest")) {
-		Router.runTest(req,out);
-	}else if(req.getParameter("reqtype").equals("deleteOldPlayers")) {
-		Router.deleteOldPlayers(req,out);
-	}else if(req.getParameter("reqtype").equals("returnPrizeName")) {
-		Router.returnPrizeName(req,out);
-	}else if(req.getParameter("reqtype").equals("newsletter")) {
-		Router.newsletter(req,out);
-	}else if(req.getParameter("reqtype").equals("repairMap")) {
-		Router.repairMap(req,out);
-	}else if(req.getParameter("reqtype").equals("player")) {
-		Router.loadPlayer(req,out,false);
-	} else if(req.getParameter("reqtype").equals("league")) {
-		Router.loadPlayer(req,out,true);
-	}  else if(req.getParameter("reqtype").equals("login")) {
-		Router.login(req,out);
-	}  else if(req.getParameter("reqtype").equals("makePlayers")) {
-		Router.makePlayers(req,out);
-	} else if(req.getParameter("reqtype").equals("FBBlast")) {
-		Router.FBBlast(req,out);
-	}else if(req.getParameter("reqtype").equals("logout")) {
-		Router.logout(req,out);
-	}else if(req.getParameter("reqtype").equals("noFlick")) {
-		Router.noFlick(req,out);
-	}else if(req.getParameter("reqtype").equals("flickStatus")) {
-		Router.flickStatus(req,out);
-	}else if(req.getParameter("reqtype").equals("deleteAccount")) {
-		Router.deleteAccount(req,out);
-	}else if(req.getParameter("reqtype").equals("getTiles")) {
-		Router.getTiles(req,out);
-	} else if(req.getParameter("reqtype").equals("getZongScreen")) {
-		Router.getZongScreen(req,out);
-	} else if(req.getParameter("reqtype").equals("upgrade")) {
-		Router.upgrade(req,out);
-	}else if(req.getParameter("reqtype").equals("pausePlayer")) {
-		Router.pausePlayer(req,out);
-	} else if(req.getParameter("reqtype").equals("syncPlayer")) {
-		Router.syncPlayer(req,out);
-	}else if(req.getParameter("reqtype").equals("makePaypalReq")) {
-		Router.makePaypalReq(req,out);
-	} else if(req.getParameter("reqtype").equals("saveServer")) {
-		Router.saveServer(req,out);
-	}else if(req.getParameter("reqtype").equals("session")) {
-		Router.session(req,out,false);
-	} else if(req.getParameter("reqtype").equals("command")) {
-		Router.command(req,out);
-	} else if(req.getParameter("reqtype").equals("tileset")) {
-		Router.growTileset(req,out);
-	}else if(req.getParameter("reqtype").equals("username")) {
-		Router.username(req,out);
-	}else if(req.getParameter("reqtype").equals("growId")) {
-		Router.growId(req,out);
-	}else if(req.getParameter("reqtype").equals("createNewPlayer")) {
-		Router.createNewPlayer(req,out);
-	}else if(req.getParameter("reqtype").equals("generateCodes")) {
-		Router.generateCodes(req,out);
-	} else if(req.getParameter("reqtype").equals("deletePlayer")) {
-		Router.deletePlayer(req,out);
-	} else if(req.getParameter("reqtype").equals("restartServer")) {
-		Router.restartServer(req,out);
-	} else if(req.getParameter("reqtype").equals("sendTestEmail")) {
-		Router.sendTestEmail(req,out);
-	}  else	if(req.getParameter("reqtype").equals("compileProgram")) {
-		Router.compileProgram(req,out);
-	} 
-	else {
-		
-		out.println(status);
-	}
-	else 
-		out.println(status);
 
-	out.close();
+	doReqtypeSorting(new UberSocketPrintWriter(null, out,req,null));
+	
+	
 }
-	public WebSocket doWebSocketConnect(HttpServletRequest arg0, String arg1) {
-		// TODO Auto-generated method stub
-		System.out.println("Hey there I'm websocking");
-		return null;
-	}
+	
+	public void doReqtypeSorting(UberSocketPrintWriter out) {
+		if(serverLoaded||out.getParameter("reqtype").equals("restartServer")) 
+			if(out.getParameter("reqtype").equals("world_map")) {
+				Router.loadWorldMap(out);
+			} else if(out.getParameter("reqtype").equals("forgotPass")) {
+				Router.forgotPass(out);
+			}else if(out.getParameter("reqtype").equals("serverStatus")) {
+				Router.serverStatus(out);
+			}else if(out.getParameter("reqtype").equals("convert")) {
+				Router.convert(out);
+			}else if(out.getParameter("reqtype").equals("stopServer")) {
+				Router.stopServer(out);
+			}else if(out.getParameter("reqtype").equals("runTest")) {
+				Router.runTest(out);
+			}else if(out.getParameter("reqtype").equals("deleteOldPlayers")) {
+				Router.deleteOldPlayers(out);
+			}else if(out.getParameter("reqtype").equals("returnPrizeName")) {
+				Router.returnPrizeName(out);
+			}else if(out.getParameter("reqtype").equals("newsletter")) {
+				Router.newsletter(out);
+			}else if(out.getParameter("reqtype").equals("repairMap")) {
+				Router.repairMap(out);
+			}else if(out.getParameter("reqtype").equals("player")) {
+				Router.loadPlayer(out,false);
+			} else if(out.getParameter("reqtype").equals("league")) {
+				Router.loadPlayer(out,true);
+			}  else if(out.getParameter("reqtype").equals("login")) {
+				Router.login(out);
+			}  else if(out.getParameter("reqtype").equals("makePlayers")) {
+				Router.makePlayers(out);
+			} else if(out.getParameter("reqtype").equals("FBBlast")) {
+				Router.FBBlast(out);
+			}else if(out.getParameter("reqtype").equals("logout")) {
+				Router.logout(out);
+			}else if(out.getParameter("reqtype").equals("noFlick")) {
+				Router.noFlick(out);
+			}else if(out.getParameter("reqtype").equals("flickStatus")) {
+				Router.flickStatus(out);
+			}else if(out.getParameter("reqtype").equals("deleteAccount")) {
+				Router.deleteAccount(out);
+			}else if(out.getParameter("reqtype").equals("getTiles")) {
+				Router.getTiles(out);
+			} else if(out.getParameter("reqtype").equals("getZongScreen")) {
+				Router.getZongScreen(out);
+			} else if(out.getParameter("reqtype").equals("upgrade")) {
+				Router.upgrade(out);
+			}else if(out.getParameter("reqtype").equals("pausePlayer")) {
+				Router.pausePlayer(out);
+			} else if(out.getParameter("reqtype").equals("syncPlayer")) {
+				Router.syncPlayer(out);
+			}else if(out.getParameter("reqtype").equals("makePaypalReq")) {
+				Router.makePaypalReq(out);
+			} else if(out.getParameter("reqtype").equals("saveServer")) {
+				Router.saveServer(out);
+			}else if(out.getParameter("reqtype").equals("session")) {
+				Router.session(out,false);
+			} else if(out.getParameter("reqtype").equals("command")) {
+				Router.command(out);
+			} else if(out.getParameter("reqtype").equals("tileset")) {
+				Router.growTileset(out);
+			}else if(out.getParameter("reqtype").equals("username")) {
+				Router.username(out);
+			}else if(out.getParameter("reqtype").equals("growId")) {
+				Router.growId(out);
+			}else if(out.getParameter("reqtype").equals("createNewPlayer")) {
+				Router.createNewPlayer(out);
+			}else if(out.getParameter("reqtype").equals("generateCodes")) {
+				Router.generateCodes(out);
+			} else if(out.getParameter("reqtype").equals("deletePlayer")) {
+				Router.deletePlayer(out);
+			} else if(out.getParameter("reqtype").equals("restartServer")) {
+				Router.restartServer(out);
+			} else if(out.getParameter("reqtype").equals("sendTestEmail")) {
+				Router.sendTestEmail(out);
+			}  else	if(out.getParameter("reqtype").equals("compileProgram")) {
+				Router.compileProgram(out);
+			} 
+			else {
+				
+				out.println(status);
+			}
+			else 
+				out.println(status);
 
+			out.close();
+	}
+	
 	public void init() {
 		// called instead of constructor by tomcat, use it also when not being called by tomcat.
 		try {
@@ -4951,7 +4954,7 @@ public class GodGenerator extends WebSocketServlet implements Runnable {
 	        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 	        context.setContextPath("/AIWars/GodGenerator");
 	        serverInst.setHandler(context);
-	        context.addServlet(new ServletHolder(new TextDemo(Router)),"/*");
+	        context.addServlet(new ServletHolder(new UberWebSocketServlet(this)),"/*");
 	    
 	 
 	        try {
@@ -13800,7 +13803,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 	} 
 	}
 	
-	public String returnPrizeName(String rumor, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
+	public String returnPrizeName(String rumor, int x, int y, boolean test, UberSocketPrintWriter out, double presetRand, String presetTile) {
 		// presetRand sets the rand automatically for testing, presetTile presets the tile if not null. TO make presetRand not work, set it
 		// to -1. To make presetTIle not work, set it to null.
 		// if test is true, the out printwriter will be used to print stuff.
@@ -14199,7 +14202,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 		return -1;
 	}
-	public boolean leagueCreateTest(HttpServletRequest req, PrintWriter out, Player player) { 
+	public boolean leagueCreateTest(UberSocketPrintWriter out, Player player) { 
 		int numTowns[] = {2};
 		Player[] players = player.generateFakePlayers(1,numTowns,0,0);
 		try {
@@ -14237,7 +14240,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 		
 	}
-	public boolean basicTradeCaravanTest(HttpServletRequest req, PrintWriter out, Player player) {
+	public boolean basicTradeCaravanTest(UberSocketPrintWriter out, Player player) {
 		int numTowns[] = {1,1};
 		Player[] players = player.generateFakePlayers(2,numTowns,0,0);
 		try {
@@ -14372,7 +14375,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			return false;
 		}
 	}
-	public boolean digProbabilityTest(HttpServletRequest req, PrintWriter out) {
+	public boolean digProbabilityTest(UberSocketPrintWriter out) {
 	//	public String returnPrizeName(String rumor, int x, int y, boolean test, PrintWriter out, double presetRand, String presetTile) {
 		/*
 		 * 		 
@@ -14523,7 +14526,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		out.println("digProbability test successful.");
 		return false;
 	}
-	public boolean basicDigTest(HttpServletRequest req, PrintWriter out, Player player) {
+	public boolean basicDigTest(UberSocketPrintWriter out, Player player) {
 		/*
 		 * basicDigTest: Send a dig, have it finish, make sure that it doesn't come home after 24 hours,
 		 *  that when you accept, the rumor is reset, and the thing returns home. Test this for every prize type.
@@ -14701,7 +14704,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		
 	}
 
-	public boolean ROCollapseTest(HttpServletRequest req, PrintWriter out, Player player, boolean useDigInstead) {
+	public boolean ROCollapseTest(UberSocketPrintWriter out, Player player, boolean useDigInstead) {
 
 		
 
@@ -14876,7 +14879,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 	
 	
 	}
-	public boolean ROEngCapTest(HttpServletRequest req, PrintWriter out, Player player) {
+	public boolean ROEngCapTest(UberSocketPrintWriter out, Player player) {
 	
 
 		/*
@@ -15000,7 +15003,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 	
 	
 	}
-	public boolean ROInfluenceTest(HttpServletRequest req, PrintWriter out, Player player) {
+	public boolean ROInfluenceTest(UberSocketPrintWriter out, Player player) {
 
 		/*
 			ROInfluenceTest: Plant support on there and iterate it up till it has some serious territory. 
@@ -15157,7 +15160,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 	
 	}
-	public boolean ROContestedTest(HttpServletRequest req, PrintWriter out, Player player, boolean useDigInstead) {
+	public boolean ROContestedTest(UberSocketPrintWriter out, Player player, boolean useDigInstead) {
 
 		/*
 		 ROContestedTest: Send an excavation to an inhabited RO - is it attacked by support/excavation there? 
@@ -15519,7 +15522,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		}
 	
 	}
-	public boolean basicROTest(HttpServletRequest req, PrintWriter out, Player player) {
+	public boolean basicROTest(UberSocketPrintWriter out, Player player) {
 		/*
 		 * Send one excavation to an RO - do this by sending the raid, then setting it's ticker to 0, and running attackServerCheck. 
 		 * Make sure it lands safely, sets up lordhood,  territory, finishTime, and has the raid on the server just fine, 
@@ -15779,7 +15782,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			return false;
 		}
 	}
-	public boolean foodConsumptionTest(HttpServletRequest req, PrintWriter out, Player player) {
+	public boolean foodConsumptionTest(UberSocketPrintWriter out, Player player) {
 		int numTowns[] = {1};
 		Player[] players = player.generateFakePlayers(1,numTowns,0,0);
 		try {
@@ -15850,7 +15853,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			return false;
 		}
 	}
-	public boolean deconstructBuildingTest(HttpServletRequest req, PrintWriter out, Player player) {
+	public boolean deconstructBuildingTest(UberSocketPrintWriter out, Player player) {
 		int numTowns[] = {1};
 		Player[] players = player.generateFakePlayers(1,numTowns,0,0);
 		try {
@@ -15896,7 +15899,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 			return false;
 		}
 	}
-	public boolean vassalThatIsLordTest(HttpServletRequest req, PrintWriter out, Player player) {
+	public boolean vassalThatIsLordTest(UberSocketPrintWriter out, Player player) {
 		int numTowns[] = {5,3,1};
 		Player[] players = player.generateFakePlayers(3,numTowns,0,0);
 		Town t1 = players[0].towns().get(0);
@@ -16015,7 +16018,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		out.println("vassalThatIsLord test successful.");
 		return true;
 	}
-	public boolean lordvlordTest(HttpServletRequest req, PrintWriter out, Player player) {
+	public boolean lordvlordTest(UberSocketPrintWriter out, Player player) {
 		int numTowns[] = {2,3,1};
 		Player[] players = player.generateFakePlayers(3,numTowns,0,0);
 		Town t1 = players[0].towns().get(0);
@@ -16097,7 +16100,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		out.println("lordvlord test successful.");
 		return true;
 	}
-	public boolean breakVassalageTest(HttpServletRequest req, PrintWriter out, Player player) {
+	public boolean breakVassalageTest(UberSocketPrintWriter out, Player player) {
 		int numTowns[] = {2,3};
 		Player[] players = player.generateFakePlayers(2,numTowns,0,0);
 		Town t1 = players[0].towns().get(0);
@@ -16223,7 +16226,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		out.println("breakVassalage test successful.");
 		return true;
 	}
-	public boolean advancedVassalageTest(HttpServletRequest req, PrintWriter out, Player player) {
+	public boolean advancedVassalageTest(UberSocketPrintWriter out, Player player) {
 		/*
 		 * 
 	Basic Vassal Test:
@@ -16461,7 +16464,7 @@ Signature:	 AVlIy2Pm7vZ1mtvo8bYsVWiDC53rA4yNKXiRqPwn333Hcli5q6kXsLXs
 		out.println("advancedVassalage test successful.");
 		return true;
 	}
-public boolean basicVassalageTest(HttpServletRequest req, PrintWriter out, Player player) {
+public boolean basicVassalageTest(UberSocketPrintWriter out, Player player) {
 	/*
 	 * 
 Basic Vassal Test:
@@ -16579,7 +16582,7 @@ Speed up time to one week, two weeks, and make sure the rate maxes out properly.
 	out.println("basicVassalage test successful.");
 	return true;
 }
-public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Player player) { 
+public boolean advancedTerritoryTest(UberSocketPrintWriter out, Player player) { 
 		
 		int numTowns[] = {2,1,1};
 		Player[] players = player.generateFakePlayers(3,numTowns,0,0);
@@ -16627,7 +16630,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		out.println("advancedTerritory test successful.");
 		return true;
 	}
-	public boolean intermediateTerritoryTest(HttpServletRequest req, PrintWriter out, Player player) { 
+	public boolean intermediateTerritoryTest(UberSocketPrintWriter out, Player player) { 
 		
 		int numTowns[] = {1,1,1};
 		Player[] players = player.generateFakePlayers(3,numTowns,0,0);
@@ -16754,7 +16757,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		out.println("intermediateTerritory test successful.");
 		return true;
 	}
-	public boolean basicTerritoryTest(HttpServletRequest req, PrintWriter out, Player player) {
+	public boolean basicTerritoryTest(UberSocketPrintWriter out, Player player) {
 		/*
 		 * 
 				 	Basic test:
@@ -17008,7 +17011,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 			out.println("basicTerritoryTest successful.");
 			return true;
 	}
-	public boolean returnTerritoryTest(HttpServletRequest req, PrintWriter out, Player player) {
+	public boolean returnTerritoryTest(UberSocketPrintWriter out, Player player) {
 		ArrayList<Hashtable> points = new ArrayList<Hashtable>();
 		points.add(newPoint(0,0));
 		points.add(newPoint(1,0));
@@ -17102,7 +17105,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 				out.println("Start:"+ start[0]+","+start[1]);
 				out.println("Sides:");
 				for(int y:sides) {
-					out.println(y);
+					out.println(""+y);
 				}
 				return false;
 			}
@@ -17163,7 +17166,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 				out.println("Start:"+ start[0]+","+start[1]);
 				out.println("Sides:");
 				for(int y:sides) {
-					out.println(y);
+					out.println(""+y);
 				}
 				return false;
 			}
@@ -17222,7 +17225,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 				out.println("Start:"+ start[0]+","+start[1]);
 				out.println("Sides:");
 				for(int y:sides) {
-					out.println(y);
+					out.println(""+y);
 				}
 				return false;
 			}
@@ -17281,7 +17284,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 				out.println("Start:"+ start[0]+","+start[1]);
 				out.println("Sides:");
 				for(int y:sides) {
-					out.println(y);
+					out.println(""+y);
 				}
 				return false;
 			}
@@ -17338,7 +17341,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 				out.println("Start:"+ start[0]+","+start[1]);
 				out.println("Sides:");
 				for(int y:sides) {
-					out.println(y);
+					out.println(""+y);
 				}
 				return false;
 			}
@@ -17393,7 +17396,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 				out.println("Start:"+ start[0]+","+start[1]);
 				out.println("Sides:");
 				for(int y:sides) {
-					out.println(y);
+					out.println(""+y);
 				}
 				return false;
 			}
@@ -17401,7 +17404,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		out.println("returnTerritory test successful.");
 		return true;
 	}
-	public boolean giftWrappingTest(HttpServletRequest req, PrintWriter out) {
+	public boolean giftWrappingTest(UberSocketPrintWriter out) {
 	ArrayList<Hashtable> points = new ArrayList<Hashtable>();
 		
 		points.add(newPoint(0,0));
@@ -17683,7 +17686,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		out.println("giftWrapping test successful.");
 		return true;
 	}
-	public boolean separatedPointsTest(HttpServletRequest req, PrintWriter out) {
+	public boolean separatedPointsTest(UberSocketPrintWriter out) {
 		// let's make some separated points...
 		ArrayList<Hashtable> points = new ArrayList<Hashtable>();
 		
@@ -17805,7 +17808,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 			out.println("separatedPoints test successful.");
 		return true;
 	}
-	public void printPointSets(ArrayList<ArrayList<Hashtable>> separated, PrintWriter out) {
+	public void printPointSets(ArrayList<ArrayList<Hashtable>> separated, UberSocketPrintWriter out) {
 		out.println("in fact, there were " + separated.size() + " territory sets, and the points in them are:<br />");
 		 int x = 0;
 		for(ArrayList<Hashtable> pset:separated) {
@@ -17817,7 +17820,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 
 		}
 	}
-	public void printPointSet(ArrayList<Hashtable> pset, PrintWriter out) {
+	public void printPointSet(ArrayList<Hashtable> pset, UberSocketPrintWriter out) {
 	
 			for(Hashtable r: pset) {
 				out.println(((Integer) r.get("x")) + "," + ((Integer) r.get("y")) + "<br />");
@@ -17830,7 +17833,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		r.put("y",y);
 		return r;
 	}
-	public void fbPostTest(HttpServletRequest req, PrintWriter out, Player p) {
+	public void fbPostTest(UberSocketPrintWriter out, Player p) {
 		int i = 0;
 		if(p.getFuid()==0) out.println("Logged player does not have fuid to complete fbPost test with!");
 		//	 public int makeWallPost(String message,String name, String caption, String link, String description, String picture, String bottomlinkname, String bottomlink) {
