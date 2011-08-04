@@ -1557,11 +1557,16 @@ public boolean noFlick(UberSocketPrintWriter out) {
 		try {
 
 		HttpSession session = out.getSession(true);
-		
-		int pid = (Integer) session.getAttribute("pid");
-		String username = (String) session.getAttribute("username");
+		int pid; String username;
+		if(session!=null) {
+			 pid = (Integer) session.getAttribute("pid");
+			 username = (String) session.getAttribute("username");
+		} else {
+			pid = (Integer) out.getAttribute("pid");
+			 username = (String) out.getAttribute("username");
 
-		if(username==null||session.isNew()||!(this.g.getPlayer(pid)).getUsername().toLowerCase().equals(username)) { retry(out); return false; }
+		}
+		if(username==null||(session!=null&&session.isNew())||!(this.g.getPlayer(pid)).getUsername().toLowerCase().equals(username)) { retry(out); return false; }
 		} catch(NullPointerException exc) {
 			retry(out);
 			return false;

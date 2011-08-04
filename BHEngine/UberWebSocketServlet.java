@@ -33,6 +33,7 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
     boolean _verbose = true;
     ArrayList<UberWebSocket> sockets;
     GodGenerator God;
+    String username; int pid;
     public UberWebSocket(ArrayList<UberWebSocket> sockets, GodGenerator God) {
     	this.sockets=sockets;
     	this.God=God;
@@ -82,6 +83,9 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
         if (_verbose)
             System.err.printf("%s#onMessages     %s\n",this.getClass().getSimpleName(),data);
         	Hashtable r = splitStringIntoHashtable(data);
+        	r.put("pid",pid);
+        	r.put("username",username);
+        	
         	String id = (String) r.get("id");
         	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
         	JSONStringer j = new JSONStringer();
