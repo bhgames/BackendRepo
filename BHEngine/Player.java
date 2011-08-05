@@ -2076,7 +2076,8 @@ public class Player  {
 	
 	}
 	public void addUserSR(UserSR sr) {
-		
+		God.socketGod.sendMessage(ID,"type=status_reports&reqtype=command&command=bf.getUserSR();");
+
 		if(getUserSR().size()>100) {
 			System.out.println(getUsername() + " has gone over SR limit, deleting...");
 			int counter=0;
@@ -4186,6 +4187,8 @@ public class Player  {
 
 
 	public void addAchievement(Hashtable r) {
+		God.socketGod.sendMessage(ID,"type=achievements&reqtype=command&command=bf.getAchievements();");
+
 		getAchievements().add(r);
 		try {
 			UberPreparedStatement stmt = con.createStatement("insert into ap (pid,aid) values (?,?);");

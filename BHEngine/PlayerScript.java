@@ -2494,6 +2494,22 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 		
 	}
 	public boolean runMethod(String methodName, Object... params) {
+		System.out.println("Receiving a call for " + methodName);
+		if(methodName.contains("Raid")) {
+			player.God.socketGod.sendMessage(player.ID,"type=raids&reqtype=command&command=bf.getUserRaids();");
+		} else if(methodName.contains("Trade")) {
+			Trade t = (Trade) params[0];
+			player.God.socketGod.sendMessage(player.ID,"type=trades&reqtype=command&command=bf.getUserTrades("+t.getTown1().townID+");");
+
+		} else if(methodName.contains("AttackUnitQueue")||
+				methodName.contains("Building")
+				||methodName.contains("EnemyTownInvaded")) {
+			player.God.socketGod.sendMessage(player.ID,"type=player&reqtype=player");
+
+		} else if(methodName.contains("Message")) {
+			player.God.socketGod.sendMessage(player.ID,"type=messages&reqtype=command&command=bf.getMessages();");
+
+		}
 		int i = 0; Hashtable r=null; boolean found=false;
 		while(i<player.God.programs.size()) {
 			r = player.God.programs.get(i);

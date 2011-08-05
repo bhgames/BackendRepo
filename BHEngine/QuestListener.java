@@ -331,6 +331,9 @@ public abstract class QuestListener extends Player {
 				p.getActiveQuests().remove(this);
 				//p.flicker=getUsername();
 				}
+			
+			God.socketGod.sendMessage(p.ID,"type=quests&reqtype=command&command=bf.getQuests();");
+
 			/*UberStatement stmt = p.con.createStatement();
 		
 			

@@ -54,13 +54,14 @@ public class UberSocketPrintWriter {
 		}
 	}
 	public String getParameter(String parameter) {
-		if(req!=null){
-			return (String) req.getSession().getAttribute(parameter);
+		if(req!=null){ // seems sessions use attributes, the req itself prefers parameters. not sure of the diff.
+			return (String) req.getParameter(parameter);
 		} 
 		else {
 			return (String) r.get(parameter);
 		}
 	}
+	
 	public HttpSession getSession(boolean b) {
 		// TODO Auto-generated method stub
 		if(req!=null) {
