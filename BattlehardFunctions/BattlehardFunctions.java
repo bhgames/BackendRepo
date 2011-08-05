@@ -1880,13 +1880,16 @@ public class BattlehardFunctions {
 		}
 		// first find the cities.
 		boolean twoway=false;
-		int i = 0; Player pl; Town t1=g.findTown(tid1); Town t2=g.findTown(tid2); 
+		int i = 0; Town t1=g.findTown(tid1); Town t2=g.findTown(tid2); 
 	
 		if(t1.getPlayer().ID!=p.ID) {
 			setError("This is not your town!");
 			return false;
 		}
-		if(t2.getPlayer()==null) return false;
+		if(t2.getPlayer()==null) {
+			setError("Invalid target.");
+			return false;
+		}
 		
 		// okay now we have towns.
 		
@@ -1899,6 +1902,7 @@ public class BattlehardFunctions {
 		//make sure neather town is blockaded by a hostile force
 		if(t1.getBlockades().size()>0) {
 			for(Raid r : t1.getBlockades()) {
+				//first we check if the target player is allied to the blockading player
 				if(!r.getTown1().getPlayer().isAllied(t2.getPlayer())) {
 					setError("Your town is blockaded by a hostile force.");
 					return false;
@@ -1907,6 +1911,7 @@ public class BattlehardFunctions {
 		}
 		if(t2.getBlockades().size()>0) {
 			for(Raid r : t1.getBlockades()) {
+				//then we check if the the target player is blockaded by an ally of the origin player
 				if(!r.getTown1().getPlayer().isAllied(p)) {
 					setError("Target town is blockaded by a hostile force.");
 					return false;
@@ -12416,50 +12421,53 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		ArrayList<Raid> yourTBlock = yourT.getBlockades();
 		while(i<g.getTowns().size()) {
 			t = g.getTowns().get(i);
-			ArrayList<Raid> tBlock = t.getBlockades();
-			boolean canTrade = true;
-			if(yourTBlock.size()>0) { 	//if your town is blockaded, we have to check if the
-				canTrade = false;		//player you're trading to,or an ally, is blockading you
-				for(Raid r : yourTBlock) {
-					if(r.getTown1().getPlayer().isAllied(t.getPlayer())) {
-						canTrade = true;
-						break;
+			townTses = t.getPlayer().getPs().b.getUserTradeSchedules(t.townID);
+			//no need to do all this checking if the town has no trade schedules anyways
+			if(townTses.length>0) {
+				ArrayList<Raid> tBlock = t.getBlockades();
+				boolean canTrade = true;
+				if(yourTBlock.size()>0) { 	//if your town is blockaded, we have to check if the
+					canTrade = false;		//player you're trading to, or his ally, is blockading you
+					yourT.getPlayer().God.out.println("Checking blockades for your town.");
+					for(Raid r : yourTBlock) {
+						if(r.getTown1().getPlayer().isAllied(t.getPlayer())) {
+							canTrade = true;
+							break;
+						}
 					}
 				}
-			}
-			//but what if they're blockaded too!
-			if(tBlock.size()>0&&canTrade) {
-				canTrade = false;
-				for(Raid r : tBlock) {
-					if(r.getTown1().getPlayer().isAllied(p)) {
-						canTrade = true;
-						break;
+				//but what if they're blockaded too!
+				if(tBlock.size()>0&&canTrade) {
+					yourT.getPlayer().God.out.println("Checking blockades for the target town.");
+					canTrade = false;
+					for(Raid r : tBlock) {
+						if(r.getTown1().getPlayer().isAllied(p)) {
+							canTrade = true;
+							break;
+						}
 					}
 				}
-			}
-			if(canTrade) {
-				int j = 0;
-				townTses = t.getPlayer().getPs().b.getUserTradeSchedules(t.townID);
-				while(j<townTses.length) {
-					ts = townTses[j];
-					if(ts.getTID2()==0&&ts.getTID1()!=tidYouCalledFrom) {
-						ts.setDistance(Math.sqrt(Math.pow(t.getX()-yourT.getX(),2) + Math.pow(t.getY()-yourT.getY(),2)));
-						// THIS MEANS IT'S A TRADE THAT HAS NO PARDNER YET!
-						// now we need to see if it's TS is actually there. Just a check, really.
-						tses.add(ts);
-						
+				if(canTrade) {
+					int j = 0;
+					while(j<townTses.length) {
+						ts = townTses[j];
+						if(ts.getTID2()==0&&ts.getTID1()!=tidYouCalledFrom) {
+							ts.setDistance(Math.sqrt(Math.pow(t.getX()-yourT.getX(),2) + Math.pow(t.getY()-yourT.getY(),2)));
+							// THIS MEANS IT'S A TRADE THAT HAS NO PARDNER YET!
+							// now we need to see if it's TS is actually there. Just a check, really.
+							yourT.getPlayer().God.out.println("Adding schedule to the list.");
+							tses.add(ts);
+						}
+						j++;
 					}
-					j++;
 				}
 			}
 			i++;
 		}
 		
 		i = 0;
-		townTses = new UserTradeSchedule[tses.size()];
-		townTses = tses.toArray(townTses);
 		
-		return townTses;
+		return tses.toArray(new UserTradeSchedule[tses.size()]);
 	}
 	/**
 	 * UI Implemented.

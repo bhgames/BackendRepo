@@ -1417,15 +1417,15 @@ public boolean noFlick(HttpServletRequest req, PrintWriter out) {
 			   			// make users happy when their ticks keep going above their assumed "total!".
 			   			while(je<=b.getLvlUps()) {
 			   			
-			   			int y = 0; int totalTime = 0;
-			   			
-			   			while(y<=je) {
-			   			 totalTime += Building.getTicksForLevelingAtLevel(t.getTotalEngineers(),b.getLvl()+y,p.God.Maelstrom.getEngineerEffect(t.getX(),t.getY()),p.getArchitecture(),b.getType());
-			   			y++;
-			   			}
-			   			
-			   			j.value(totalTime);
-			   			je++;
+				   			int y = 0; int totalTime = 0;
+				   			
+				   			while(y<=je) {
+				   				totalTime += Building.getTicksForLevelingAtLevel(t.getTotalEngineers(),b.getLvl()+y,p.God.Maelstrom.getEngineerEffect(t.getX(),t.getY()),p.getArchitecture(),b.getType());
+				   				y++;
+				   			}
+				   			
+				   			j.value(totalTime);
+				   			je++;
 
 			   			}
 			   		

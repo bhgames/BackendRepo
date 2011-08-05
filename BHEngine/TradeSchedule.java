@@ -286,7 +286,10 @@ public class TradeSchedule {
 				      stmt.setLong(10,otherfood);
 				      stmt.setInt(11,timesToDo);
 				      stmt.setBoolean(12,twoway);
-				      stmt.setString(13,mateID.toString());
+				      if(mateID==null)
+				    	  stmt.setString(14,"none");
+				      else
+				    	  stmt.setString(14,mateID.toString());
 				      id = UUID.randomUUID();
 				      stmt.setString(14,id.toString());
 				      // let's add this raid and therefore get the rid out of it.

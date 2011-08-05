@@ -4884,6 +4884,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		holdGod = new Thread(this);
 		holdGod.start();
 	}
+	
 	public GodGenerator() {
 		if(!server)
 			init();
@@ -4906,7 +4907,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		holdGod.start();
 	}
 	public static void main(String args[]) throws IOException {
-		GodGenerator g = new GodGenerator();
+		new GodGenerator();
 		System.out.println("Maybe here?");
 	}
 	public void run() {
@@ -5145,10 +5146,6 @@ public class GodGenerator extends HttpServlet implements Runnable {
 		 
 		}
 		
-	 /*
-	  *
-
-	  */
 	/*
 	 * Here is where we deal with the problem of making a new God.
 	 */
@@ -18048,17 +18045,17 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 			ArrayList<AttackUnit> au = new ArrayList<AttackUnit>();
 			au.add(new AttackUnit("Pillager",0,0));
 			au.get(0).setSize(30);
+			tests[i].God.out = out;
 			tests[i].setAu(au);
 			towns[i].setAu(au);
 			towns[i].addBuilding("Command Center",5,20,0);
+			towns[i].addBuilding("Trade Center",0,20,0).setPeopleInside(20);
 			towns[i].setX(i);
 			towns[i].setY(10000);
 			towns[i].setDebris(new long[] {0,0,0,0});
-			out.println("Fake Player "+i+"'s ID is "+tests[i].ID+" and its Fake Town ID is"+towns[i].getTownID()+"<br/>");
 		}
 		
 		towns[1].setRes(new long[] {500,500,500,500});
-		towns[1].addBuilding("Trade Center",0,20,0).setPeopleInside(20);
 		
 		
 		tests[0].setLord(tests[4]);
@@ -18066,8 +18063,17 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		
 		tests[0].getPs().b.attack(towns[0].getTownID(), towns[1].getX(), towns[1].getY(), new int[] {10}, "blockade", new String[] {}, "", true);
 		
+		ArrayList<Raid> AS = towns[0].attackServer();
+		for(Raid r : AS) {
+			if(r.getSupport()==3)	{
+				r.setTicksToHit(0);
+				break;
+			}
+		}
+		attackServerCheck(towns[0],tests[0]);
+		
 		if(tests[1].getPs().b.setUpTradeSchedule(towns[1].getTownID(), towns[2].getTownID(), 100, 0, 0, 0, 60, 1)) {
-			out.println("Blockade trade test failed.  The blockaded town could trade to non-blockading players.  The error was "+tests[1].getPs().b.getError());
+			out.println("Blockade trade test failed.  The blockaded town could trade to non-blockading players.");
 			p.deleteFakePlayers(tests);
 			return false;
 		}
@@ -18092,8 +18098,10 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		
 		UserTradeSchedule[] TS = tests[0].getPs().b.getOpenTwoWays(towns[0].getTownID());
 		UserTradeSchedule uts = null;
+		
 		boolean found = false;
 		for(UserTradeSchedule ts : TS) {
+			out.println("Checking Trade Schedule: TID1 = "+ts.getTID1());
 			if(ts.getTID1()==towns[1].getTownID()){
 				found = true;
 				uts = ts;
@@ -18107,6 +18115,7 @@ public boolean advancedTerritoryTest(HttpServletRequest req, PrintWriter out, Pl
 		}
 		
 		TS = tests[2].getPs().b.getOpenTwoWays(towns[2].getTownID());
+
 		found = false;
 		for(UserTradeSchedule ts : TS) {
 			if(ts.getTID1()==towns[1].getTownID()){
