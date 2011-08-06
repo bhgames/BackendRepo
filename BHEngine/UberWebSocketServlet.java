@@ -18,7 +18,7 @@ public class UberWebSocketServlet extends WebSocketServlet {
 	GodGenerator God;
 	public WebSocket doWebSocketConnect(HttpServletRequest arg0, String arg1) {
 		// TODO Auto-generated method stub
-		UberWebSocket s = new UberWebSocket(sockets,God);
+		UberWebSocket s = new UberWebSocket(sockets,God,(Integer) arg0.getSession().getAttribute("pid"),(String) arg0.getSession().getAttribute("username"));
 		sockets.add(s);
 		return s;
 	}
@@ -41,9 +41,11 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
     ArrayList<UberWebSocket> sockets;
     GodGenerator God;
     String username; int pid=-1;
-    public UberWebSocket(ArrayList<UberWebSocket> sockets, GodGenerator God) {
+    public UberWebSocket(ArrayList<UberWebSocket> sockets, GodGenerator God, int pid, String username) {
     	this.sockets=sockets;
     	this.God=God;
+    	this.username=username;
+    	this.pid=pid;
     }
     public FrameConnection getConnection()
     {
@@ -92,7 +94,7 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
         
         if(God.serverLoaded) {
         	Hashtable r = splitStringIntoHashtable(data);
-        	if(r.get("reqtype")!=null&&((String) r.get("reqtype")).equals("login")) { // it's a websocket, logging in now.
+        /*	if(r.get("reqtype")!=null&&((String) r.get("reqtype")).equals("login")) { // it's a websocket, logging in now.
 	        	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
 	        	if(God.Router.login(out)) {
 	        		username=(String) r.get("UN");
@@ -103,7 +105,7 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
         		if(username==null||pid==-1) {
 		        	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
         			out.println("invalid"); // means this websocket isn't logged in.
-        		} else { // it's a logged in websocket.
+        		} else { */// it's a logged in websocket.
 	        		// we won't have pid and username stored in the hash unless it's a login.
 		        	r.put("pid",pid);
 		        	r.put("username",username);
@@ -114,8 +116,8 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
 					
 		        	God.doReqtypeSorting(out);
 		        	out.println("}");
-        		}
-        	}
+        		//}
+        	//}
         }
     }
     
