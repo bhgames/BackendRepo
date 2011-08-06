@@ -18,6 +18,7 @@ public class UberWebSocketServlet extends WebSocketServlet {
 	GodGenerator God;
 	public WebSocket doWebSocketConnect(HttpServletRequest arg0, String arg1) {
 		// TODO Auto-generated method stub
+
 		UberWebSocket s = new UberWebSocket(sockets,God,(Integer) arg0.getSession().getAttribute("pid"),(String) arg0.getSession().getAttribute("username"));
 		sockets.add(s);
 		return s;
@@ -27,7 +28,7 @@ public class UberWebSocketServlet extends WebSocketServlet {
 	}
 	public void sendMessage(int pid, String fakeURL) {
 		for(UberWebSocket s:sockets) {
-			if(s.pid==pid) {
+			if(s.player.ID==pid) {
 				s.sendMessage(fakeURL);
 			}
 		}
@@ -39,13 +40,11 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
     protected FrameConnection _connection;
     boolean _verbose = true;
     ArrayList<UberWebSocket> sockets;
-    GodGenerator God;
-    String username; int pid=-1;
-    public UberWebSocket(ArrayList<UberWebSocket> sockets, GodGenerator God, int pid, String username) {
+    Player player;
+    public UberWebSocket(ArrayList<UberWebSocket> sockets, Player player) {
     	this.sockets=sockets;
-    	this.God=God;
-    	this.username=username;
-    	this.pid=pid;
+    	this.player=player;
+    	
     }
     public FrameConnection getConnection()
     {
@@ -70,6 +69,7 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
         if (_verbose)
             System.err.printf("%s#onDisonnect %d %s\n",this.getClass().getSimpleName(),code,message);
         sockets.remove(this);
+        player.socket=new UberWebSocket(sockets,player);
         
     }
     
@@ -92,7 +92,7 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
         if (_verbose)
             System.err.printf("%s#onMessages     %s\n",this.getClass().getSimpleName(),data);
         
-        if(God.serverLoaded) {
+        if(player.God.serverLoaded) {
         	Hashtable r = splitStringIntoHashtable(data);
         /*	if(r.get("reqtype")!=null&&((String) r.get("reqtype")).equals("login")) { // it's a websocket, logging in now.
 	        	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
@@ -107,14 +107,14 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
         			out.println("invalid"); // means this websocket isn't logged in.
         		} else { */// it's a logged in websocket.
 	        		// we won't have pid and username stored in the hash unless it's a login.
-		        	r.put("pid",pid);
-		        	r.put("username",username);
+		        	r.put("pid",player.ID);
+		        	r.put("username",player.getUsername());
 		        	
 		        	String id = (String) r.get("id");
 		        	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
 					out.println("{\"id\":"+id + ",\"data\":");
 					
-		        	God.doReqtypeSorting(out);
+		        	player.God.doReqtypeSorting(out);
 		        	out.println("}");
         		//}
         	//}
@@ -122,15 +122,15 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
     }
     
     public void sendMessage(String fakeURL) {
-    	if(God.serverLoaded) {
+    	if(player.God.serverLoaded) {
 	    	Hashtable r = splitStringIntoHashtable(fakeURL);
-	    	r.put("pid",pid); r.put("username",username);
+	    	r.put("pid",player.ID); r.put("username",player.getUsername());
 	    	String type =(String) r.get("type");
 	    	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
 	
 	    	out.println("{\"type\":"+type + ",\"data\":");
 			
-        	God.doReqtypeSorting(out);
+        	player.God.doReqtypeSorting(out);
         	out.println("}");
     	}
     }

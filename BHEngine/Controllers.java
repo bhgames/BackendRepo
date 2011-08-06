@@ -1044,6 +1044,7 @@ public boolean noFlick(UberSocketPrintWriter out) {
 	
 	
 	public boolean loadPlayer(UberSocketPrintWriter out, boolean grabLeague) {
+		System.out.println("player is " + out.req.getSession());
 		JSONStringer j = new JSONStringer();
 		UserQueueItem q;
 		if(!session(out,true)) return false;

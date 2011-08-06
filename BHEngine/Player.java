@@ -32,6 +32,7 @@ public class Player  {
 	private boolean beingDeleted=false;
 	private String holdingIteratorID="-1";
 	protected PlayerScript ps;
+	public UberWebSocket socket;
 	private String pushLog="";
 	private long[] secondaryResBuff;
 	public int iterTicks = 0;
@@ -149,6 +150,7 @@ public class Player  {
 				}
 			   
 		   } else {
+			  socket = new UberWebSocket(God.socketGod.sockets,this);
 		   this.ID=ID;
 		   this.God=God;
 		   stmt.setInt(1,ID);
