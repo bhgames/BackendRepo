@@ -177,7 +177,7 @@ public class Town {
 		 getTownName();
 		if(getPlayer()!=null) { // sometimes when we build towns for Quests, they don't have a player yet on the list of iteratorPlayers.
 	
-				tradeServer(); tradeSchedules(); attackServer();
+			//	tradeServer(); tradeSchedules(); attackServer();
 				getRes(); getResBuff();  getResEffects();
 				getAu();
 				bldg(); 

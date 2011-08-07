@@ -1044,7 +1044,6 @@ public boolean noFlick(UberSocketPrintWriter out) {
 	
 	
 	public boolean loadPlayer(UberSocketPrintWriter out, boolean grabLeague) {
-		System.out.println("player is " + out.req.getSession());
 		JSONStringer j = new JSONStringer();
 		UserQueueItem q;
 		if(!session(out,true)) return false;
@@ -1645,6 +1644,10 @@ public boolean noFlick(UberSocketPrintWriter out) {
 					if(session!=null) {
 						session.setAttribute("pid",pid);
 						session.setAttribute("username", username);
+						String ipAddr = (String) out.req.getHeader("X-Forwarded-For");
+
+						System.out.println("ip addr is "+ ipAddr );
+						p.socket.ipAddr=ipAddr;
 						session.setMaxInactiveInterval(7200);
 					}
 					

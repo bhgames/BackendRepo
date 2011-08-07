@@ -18,10 +18,14 @@ public class UberWebSocketServlet extends WebSocketServlet {
 	GodGenerator God;
 	public WebSocket doWebSocketConnect(HttpServletRequest arg0, String arg1) {
 		// TODO Auto-generated method stub
+		String ipAddr = arg0.getRemoteAddr();
 
-		UberWebSocket s = new UberWebSocket(sockets,God,(Integer) arg0.getSession().getAttribute("pid"),(String) arg0.getSession().getAttribute("username"));
-		sockets.add(s);
-		return s;
+		for(Player p: God.getPlayers()) {
+			if(p.socket!=null&&p.socket.ipAddr!=null&&p.socket.ipAddr.equals(ipAddr)) {
+				return p.socket;
+			}
+		}
+		return null;
 	}
 	public UberWebSocketServlet(GodGenerator g) {
 		this.God=g;
@@ -41,6 +45,7 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
     boolean _verbose = true;
     ArrayList<UberWebSocket> sockets;
     Player player;
+    String ipAddr=null;
     public UberWebSocket(ArrayList<UberWebSocket> sockets, Player player) {
     	this.sockets=sockets;
     	this.player=player;
@@ -70,6 +75,7 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
             System.err.printf("%s#onDisonnect %d %s\n",this.getClass().getSimpleName(),code,message);
         sockets.remove(this);
         player.socket=new UberWebSocket(sockets,player);
+        player.socket.ipAddr=ipAddr;
         
     }
     
@@ -91,9 +97,13 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
     {
         if (_verbose)
             System.err.printf("%s#onMessages     %s\n",this.getClass().getSimpleName(),data);
-        
-        if(player.God.serverLoaded) {
-        	Hashtable r = splitStringIntoHashtable(data);
+    	Hashtable r = splitStringIntoHashtable(data);
+     	r.put("pid",player.ID);
+    	r.put("username",player.getUsername());
+    	
+    	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
+
+        if(player.God.serverLoaded&&ipAddr!=null) {
         /*	if(r.get("reqtype")!=null&&((String) r.get("reqtype")).equals("login")) { // it's a websocket, logging in now.
 	        	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
 	        	if(God.Router.login(out)) {
@@ -107,18 +117,15 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
         			out.println("invalid"); // means this websocket isn't logged in.
         		} else { */// it's a logged in websocket.
 	        		// we won't have pid and username stored in the hash unless it's a login.
-		        	r.put("pid",player.ID);
-		        	r.put("username",player.getUsername());
-		        	
+		   
 		        	String id = (String) r.get("id");
-		        	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
 					out.println("{\"id\":"+id + ",\"data\":");
 					
 		        	player.God.doReqtypeSorting(out);
 		        	out.println("}");
         		//}
         	//}
-        }
+        } else out.println("invalid");
     }
     
     public void sendMessage(String fakeURL) {

@@ -4947,8 +4947,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
                          zongurl,user, pass,this);
 
 
-	      holdGod = new Thread(this);
-	      holdGod.start();
+	    
 		 serverInst = new Server(8079);
 		 
 	        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -4957,7 +4956,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	        socketGod = new UberWebSocketServlet(this);
 	        context.addServlet(new ServletHolder(socketGod),"/*");
 	    
-	 
+	        holdGod = new Thread(this);
+		      holdGod.start();
 	        try {
 	        	serverInst.start();
            //  serverInst.stop();
