@@ -65,7 +65,7 @@ public class TradeSchedule {
 				Town town2Obj = God.findTown(rrs.getInt(2));
 
 				setTradeScheduleValues(id,town1,town2Obj,rrs.getLong(8),
-						 rrs.getLong(9),rrs.getLong(10),rrs.getLong(11),rrs.getLong(14), rrs.getLong(15), rrs.getLong(16), rrs.getLong(17), rrs.getInt(13),rrs.getInt(12),rrs.getBoolean(6),rrs.getBoolean(7),rrs.getInt(4),rrs.getInt(5),UUID.fromString(rrs.getString(19)),rrs.getBoolean(21)); // this one has no sql addition!
+						 rrs.getLong(9),rrs.getLong(10),rrs.getLong(11),rrs.getLong(14), rrs.getLong(15), rrs.getLong(16), rrs.getLong(17), rrs.getInt(13),rrs.getInt(12),rrs.getBoolean(6),rrs.getBoolean(7),rrs.getInt(4),rrs.getInt(5),id,rrs.getBoolean(21)); // this one has no sql addition!
 				
 		
 			}
@@ -131,6 +131,7 @@ public class TradeSchedule {
 			 stmt.setBoolean(17,finished);
 			 if(mateID!=null)
 			 stmt.setString(18,mateID.toString());
+			 else stmt.setString(18,"none");
 			 stmt.setBoolean(19,caravan);
 
 			 stmt.setString(20,id.toString());

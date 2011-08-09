@@ -1047,6 +1047,8 @@ public boolean noFlick(UberSocketPrintWriter out) {
 		JSONStringer j = new JSONStringer();
 		UserQueueItem q;
 		if(!session(out,true)) return false;
+		
+	
 		try {
 			Player p; UserTown t; UserBuilding b;UserAttackUnit a;
 
@@ -1087,7 +1089,9 @@ public boolean noFlick(UberSocketPrintWriter out) {
 			} else if(grabLeague&&p.getLeague()==null) {
 				grabLeague=false;
 			}
-			
+			String ipAddr = (String) out.req.getHeader("X-Forwarded-For");
+			p.socket.ipAddr=ipAddr; // just to make sure, it may be null,
+			// as in they logged in and a server restart occurred.
 			g.updateLastLogin(p.ID);
 
 			j.object()

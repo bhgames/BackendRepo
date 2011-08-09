@@ -1759,9 +1759,11 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 .value(raid.id().toString())
     			 .key("name")
     			 .value(raid.name())
-    			 .key("dockingFinished")
-    			 .value(raid.getDockingFinished().toString())
-    			 .key("header")
+    			 .key("dockingFinished");
+    			 if(raid.getDockingFinished()!=null)
+    				 str.value(raid.getDockingFinished().toString());
+    			 	else str.value("null");
+    			 str.key("header")
     			 .value(raid.toString())
     			 .key("raidType")
     			 .value(raid.raidType())
@@ -2495,20 +2497,32 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
 	}
 	public boolean runMethod(String methodName, Object... params) {
 		System.out.println("Receiving a call for " + methodName);
-		if(methodName.contains("Raid")) {
-			player.God.socketGod.sendMessage(player.ID,"type=raids&reqtype=command&command=bf.getUserRaids();");
-		} else if(methodName.contains("Trade")) {
-			Trade t = (Trade) params[0];
-			player.God.socketGod.sendMessage(player.ID,"type=trades&reqtype=command&command=bf.getUserTrades("+t.getTown1().townID+");");
-
-		} else if(methodName.contains("AttackUnitQueue")||
-				methodName.contains("Building")
-				||methodName.contains("EnemyTownInvaded")) {
-			player.God.socketGod.sendMessage(player.ID,"type=player&reqtype=player");
-
-		} else if(methodName.contains("Message")) {
-			player.God.socketGod.sendMessage(player.ID,"type=messages&reqtype=command&command=bf.getMessages();");
-
+		try {
+			if(methodName.contains("Raid")) {
+				System.out.println("Sending a message raid...");
+				player.God.socketGod.sendMessage(player.ID,"type=raids&reqtype=command&command=bf.getUserRaids();");
+			} else if(methodName.contains("Trade")) {
+				System.out.println("Sending a message trade...");
+	
+				UserTrade t = (UserTrade) params[0];
+				player.God.socketGod.sendMessage(player.ID,"type=trades&reqtype=command&command=bf.getUserTrades("+t.getTID1()+");");
+	
+			} else if(methodName.contains("AttackUnitQueue")||
+					methodName.contains("Building")
+					||methodName.contains("EnemyTownInvaded")) {
+				System.out.println("Sending a message auq/bldg/towninvaded...");
+	
+				player.God.socketGod.sendMessage(player.ID,"type=player&reqtype=player");
+	
+			} else if(methodName.contains("Message")) {
+				System.out.println("Sending a message message...");
+	
+				player.God.socketGod.sendMessage(player.ID,"type=messages&reqtype=command&command=bf.getMessages();");
+	
+			}
+		} catch(Exception exc) {
+			exc.printStackTrace();
+			System.out.println("Flow saved though.");
 		}
 		int i = 0; Hashtable r=null; boolean found=false;
 		while(i<player.God.programs.size()) {

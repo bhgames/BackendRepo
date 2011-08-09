@@ -10328,10 +10328,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 						k++;
 					}
+					Timestamp ts=null;
+					if(r.getDockingFinished()!=null) ts = new Timestamp(r.getDockingFinished().getTime());
+					
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
 					temp.add(new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),new Timestamp(r.getDockingFinished().getTime()),r.getReward()));
+							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),ts,r.getReward()));
 					}
 			} catch(Exception exc) { exc.printStackTrace(); System.out.println("Raids saved from " + r.getId().toString());}
 				
