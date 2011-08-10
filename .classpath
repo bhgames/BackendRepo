@@ -2,5 +2,60 @@
 <classpath>
 	<classpathentry kind="src" path=""/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/activation.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/annotations-api.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/catalina.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/catalina-ant.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/catalina-ha.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/catalina-tribes.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/commons-codec-1.4.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/commons-codec-1.4-javadoc.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/commons-codec-1.4-sources.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/commons-httpclient-3.1.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/commons-logging-1.1.1-javadoc.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/commons-logging-1.1.1-sources.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/commons-logging-adapters-1.1.1.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/commons-logging-api-1.1.1.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/commons-logging-tests.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/el-api.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/httpclient-4.0.1.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/httpcore-4.0.1.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/httpcore-nio-4.0.1.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/httpmime-4.0.1.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/jasper.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/jasper-el.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/jasper-jdt.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/jsp-api.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/mysql-connector-java-5.1.11-bin.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/servlet-api.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/terracotta-3.3.0-installer.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/tomcat-coyote.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/tomcat-dbcp.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/tomcat-i18n-es.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/tomcat-i18n-fr.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/God/src/tomcat-i18n-ja.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-ajp-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-annotations-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-client-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-continuation-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-deploy-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-http-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-io-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-jmx-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-jndi-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-overlay-deployer-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-plus-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-policy-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-rewrite-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-security-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-server-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-servlet-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-servlets-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-util-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-webapp-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-websocket-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-xml-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/servlet-api-2.5.jar"/>
 	<classpathentry kind="output" path=""/>
 </classpath>
