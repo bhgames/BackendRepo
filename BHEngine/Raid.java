@@ -108,7 +108,6 @@ public class Raid {
 		while(rrs.next()) {
 	
 
-			
 			// First, to seek out town 2, use a query!
 			
 			Town town1 = God.findTown(rrs.getInt(1));
@@ -121,11 +120,21 @@ public class Raid {
 			//	public Raid(int raidID, double distance, int ticksToHit, Town town1, Town town2, boolean Genocide,boolean allClear,
 			//int metal, int timber, int manmat, int food,boolean raidOver,ArrayList<AttackUnit> au, boolean Bomb) {
 			int y = 0;
-		
+			Timestamp ts=null;
+			String toUse = rrs.getString(32);
+			if(rrs.getString(32).contains("."))  toUse = rrs.getString(32).substring(0,rrs.getString(32).indexOf("."));
+			if(!toUse.equals("2011-01-01 00:00:01"))
+				try {
+				 ts = new Timestamp((new Date(toUse)).getTime());
+				} catch(IllegalArgumentException exc) {
+					exc.printStackTrace();
+					ts = new Timestamp(new Date().getTime());
+				}
+			else ts=null; // it should be null if it was saved as a default.
 			 setRaidValues(rrs.getInt(3),rrs.getDouble(4),rrs.getInt(5),town1,town2Obj,rrs.getBoolean(6),
-					rrs.getBoolean(8), rrs.getInt(9),rrs.getInt(10),rrs.getInt(11),rrs.getInt(12),rrs.getBoolean(7), rrs.getBoolean(19),rrs.getBoolean(23),rrs.getInt(25),rrs.getString(26),rrs.getInt(27),rrs.getBoolean(28),rrs.getInt(29),UUID.fromString(rrs.getString(31)),new Timestamp((new Date(rrs.getString(32))).getTime()),rrs.getString(33)); // this one has no sql addition!
+					rrs.getBoolean(8), rrs.getInt(9),rrs.getInt(10),rrs.getInt(11),rrs.getInt(12),rrs.getBoolean(7), rrs.getBoolean(19),rrs.getBoolean(23),rrs.getInt(25),rrs.getString(26),rrs.getInt(27),rrs.getBoolean(28),rrs.getInt(29),id,ts,rrs.getString(33)); // this one has no sql addition!
 			getAu();
-					
+
 			if(rrs.getBoolean(19)) bombTarget=PlayerScript.decodeStringIntoStringArray(rrs.getString(20));
 			else bombTarget = new String[0];
 			if(rrs.getInt(21)==1&&!rrs.getBoolean(7)) makeSupportRun();
@@ -134,7 +143,7 @@ public class Raid {
 			else if(rrs.getInt(22)==1&&!rrs.getBoolean(7)) makeScoutRun();
 			else if(rrs.getInt(22)==2&&!rrs.getBoolean(7)) makeDiscoveredScoutRun();
 			
-			if(rrs.getString(24)!=null&&!rrs.getBoolean(7)) setResupplyID(UUID.fromString(rrs.getString(24)));
+			if(!rrs.getString(24).equals("none")&&!rrs.getBoolean(7)) setResupplyID(UUID.fromString(rrs.getString(24)));
 	
 		}
 		

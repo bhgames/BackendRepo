@@ -18,17 +18,23 @@ public class UberWebSocketServlet extends WebSocketServlet {
 	GodGenerator God;
 	public WebSocket doWebSocketConnect(HttpServletRequest arg0, String arg1) {
 		// TODO Auto-generated method stub
+		String ipAddr = arg0.getRemoteAddr();
 
-		UberWebSocket s = new UberWebSocket(sockets,God,(Integer) arg0.getSession().getAttribute("pid"),(String) arg0.getSession().getAttribute("username"));
-		sockets.add(s);
-		return s;
+		for(Player p: God.getPlayers()) {
+			if(p.socket!=null&&p.socket.ipAddr!=null&&p.socket.ipAddr.equals(ipAddr)) {
+				return p.socket;
+			}
+		}
+		return null;
 	}
 	public UberWebSocketServlet(GodGenerator g) {
 		this.God=g;
 	}
 	public void sendMessage(int pid, String fakeURL) {
+		System.out.println(pid + " wants shit.");
 		for(UberWebSocket s:sockets) {
 			if(s.player.ID==pid) {
+				System.out.println("Delivering the shit.");
 				s.sendMessage(fakeURL);
 			}
 		}
@@ -41,9 +47,11 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
     boolean _verbose = true;
     ArrayList<UberWebSocket> sockets;
     Player player;
+    String ipAddr=null;
     public UberWebSocket(ArrayList<UberWebSocket> sockets, Player player) {
     	this.sockets=sockets;
     	this.player=player;
+    	sockets.add(this);
     	
     }
     public FrameConnection getConnection()
@@ -70,6 +78,7 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
             System.err.printf("%s#onDisonnect %d %s\n",this.getClass().getSimpleName(),code,message);
         sockets.remove(this);
         player.socket=new UberWebSocket(sockets,player);
+        player.socket.ipAddr=ipAddr;
         
     }
     
@@ -91,44 +100,33 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
     {
         if (_verbose)
             System.err.printf("%s#onMessages     %s\n",this.getClass().getSimpleName(),data);
-        
-        if(player.God.serverLoaded) {
-        	Hashtable r = splitStringIntoHashtable(data);
-        /*	if(r.get("reqtype")!=null&&((String) r.get("reqtype")).equals("login")) { // it's a websocket, logging in now.
-	        	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
-	        	if(God.Router.login(out)) {
-	        		username=(String) r.get("UN");
-	        		pid = God.getPlayerId(username);
-	        	}
-        		
-        	} else { 
-        		if(username==null||pid==-1) {
-		        	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
-        			out.println("invalid"); // means this websocket isn't logged in.
-        		} else { */// it's a logged in websocket.
-	        		// we won't have pid and username stored in the hash unless it's a login.
-		        	r.put("pid",player.ID);
-		        	r.put("username",player.getUsername());
-		        	
+    	Hashtable r = splitStringIntoHashtable(data);
+     	r.put("pid",player.ID);
+    	r.put("username",player.getUsername());
+    	
+    	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
+    	System.out.println("Got it ready...");
+        if(player.God.serverLoaded&&ipAddr!=null) {
+        	System.out.println("Sending!");
 		        	String id = (String) r.get("id");
-		        	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
-					out.println("{\"id\":"+id + ",\"data\":");
+		        	out.println("{'type':"+id + ",'data':");
 					
 		        	player.God.doReqtypeSorting(out);
 		        	out.println("}");
         		//}
         	//}
-        }
+        } else out.println("invalid");
     }
     
     public void sendMessage(String fakeURL) {
-    	if(player.God.serverLoaded) {
+    	if(player.God.serverLoaded&&ipAddr!=null) {
 	    	Hashtable r = splitStringIntoHashtable(fakeURL);
 	    	r.put("pid",player.ID); r.put("username",player.getUsername());
 	    	String type =(String) r.get("type");
+	    	System.out.println("type is " + type + " connection is " + _connection);
 	    	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
 	
-	    	out.println("{\"type\":"+type + ",\"data\":");
+	    	out.println("{'type':"+type + ",'data':");
 			
         	player.God.doReqtypeSorting(out);
         	out.println("}");
@@ -141,6 +139,7 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
     	if(!data.contains("&")) {
     		String name = data.substring(0,data.indexOf("="));
     		String fact = data.substring(data.indexOf("=")+1,data.length());
+    		System.out.println("Putting in " + name + "," + fact);
     		r.put(name,fact);
     		return r;
     	}
@@ -149,11 +148,14 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
 			String name = data.substring(0,data.indexOf("="));
     		String fact = data.substring(data.indexOf("=")+1,data.indexOf("&"));
     		r.put(name,fact);
+    		System.out.println("Putting in " + name + "," + fact);
     		data = data.substring(data.indexOf("&")+1,data.length());
 			
 		} // so when it runs out of &'s, that means only one field is left.
     	String name = data.substring(0,data.indexOf("="));
 		String fact = data.substring(data.indexOf("=")+1,data.length());
+		System.out.println("Putting in " + name + "," + fact);
+
 		r.put(name,fact);
 		
 		return r;

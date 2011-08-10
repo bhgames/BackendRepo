@@ -177,7 +177,7 @@ public class Town {
 		 getTownName();
 		if(getPlayer()!=null) { // sometimes when we build towns for Quests, they don't have a player yet on the list of iteratorPlayers.
 	
-				tradeServer(); tradeSchedules(); attackServer();
+			//	tradeServer(); tradeSchedules(); attackServer();
 				getRes(); getResBuff();  getResEffects();
 				getAu();
 				bldg(); 
@@ -3446,7 +3446,7 @@ public class Town {
 		// Then F = !(R!T) = !R + T;
 		while(rrs.next()) {
 	
-			tses.add(new TradeSchedule(UUID.fromString(rrs.getString(20)),getPlayer().God));
+			tses.add(new TradeSchedule(UUID.fromString(rrs.getString(1)),getPlayer().God));
 	
 		}
 				rrs.close();rus.close();
@@ -3461,14 +3461,14 @@ public class Town {
 		if(tradeServer==null) {
 		ArrayList<Trade> tres = new ArrayList<Trade>();
 		try {
-		UberPreparedStatement rus = getPlayer().con.createStatement("select trid from trade where tid1 = ? and (tradeOver = false or ticksToHit>=0)");
+		UberPreparedStatement rus = getPlayer().con.createStatement("select id from trade where tid1 = ? and (tradeOver = false or ticksToHit>=0)");
 			rus.setInt(1,townID);
 		ResultSet rrs = rus.executeQuery();
 		// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
 		// Then F = !(R!T) = !R + T;
 		while(rrs.next()) {
 	 
-			tres.add(new Trade(UUID.fromString(rrs.getString(15)),getPlayer().God));
+			tres.add(new Trade(UUID.fromString(rrs.getString(1)),getPlayer().God));
 	
 		}
 				rrs.close();rus.close();

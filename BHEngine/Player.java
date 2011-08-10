@@ -2078,7 +2078,6 @@ public class Player  {
 	
 	}
 	public void addUserSR(UserSR sr) {
-		God.socketGod.sendMessage(ID,"type=status_reports&reqtype=command&command=bf.getUserSR();");
 
 		if(getUserSR().size()>100) {
 			System.out.println(getUsername() + " has gone over SR limit, deleting...");
@@ -2090,6 +2089,8 @@ public class Player  {
 			System.out.println(getUsername() + " rid himself of " + counter + " SRs.");
 			
 		}
+		God.socketGod.sendMessage(ID,"type=status_reports&reqtype=command&command=bf.getUserSR();");
+
 	}
 	public boolean deleteUserSR(UUID id) {
 		try {

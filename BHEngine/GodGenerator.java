@@ -4947,8 +4947,7 @@ public class GodGenerator extends HttpServlet implements Runnable {
                          zongurl,user, pass,this);
 
 
-	      holdGod = new Thread(this);
-	      holdGod.start();
+	    
 		 serverInst = new Server(8079);
 		 
 	        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -4957,7 +4956,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 	        socketGod = new UberWebSocketServlet(this);
 	        context.addServlet(new ServletHolder(socketGod),"/*");
 	    
-	 
+	        holdGod = new Thread(this);
+		      holdGod.start();
 	        try {
 	        	serverInst.start();
            //  serverInst.stop();
@@ -11747,6 +11747,7 @@ public boolean checkForGenocides(Town t) {
 			  testDist = Math.sqrt(t.getX()*t.getX()+t.getY()*t.getY());
 			  else 
 				 testDist= Math.sqrt(Math.pow(t.getX()-chosenTileX,2)+Math.pow(t.getY()-chosenTileY,2));
+		//	  System.out.println("Checking " + t.getTownName() + " with distance of " + testDist + ", probtimer of " + t.getProbTimer() + " and dig amt of " + t.getDigAmt() + " with resincs of " + t.getResEffects()[0]);
 			 if(testDist<=(distance)&&t.getProbTimer()==0&&t.getDigAmt()==0) { // no dig sites.
 				 int k = 0; boolean foundNone=true;
 				 while(k<t.getResEffects().length) { // we only do normal towns, bitches.
@@ -11768,6 +11769,7 @@ public boolean checkForGenocides(Town t) {
 		 }
 	//	 Id.towns().remove(t);
 		 j = 0;
+		 System.out.println("Using " + t.getTownName());
 		 long res[] = t.getRes();
 		 synchronized(res) {
 		 while(j<res.length-1) {
@@ -11892,7 +11894,7 @@ public boolean checkForGenocides(Town t) {
 		 // Remember we just want zero-size copies because the actual au there
 		 // will soon ret
 	// System.out.println("Got here to give it.");
-		 if(type==2||(type==1&&tid!=-1)) // if type is 2, or 1 and tid isn't set, we already give it up there when we make it!
+		 if(type==0||type==2||(type==1&&tid!=-1)) // if type is 2, or 1 and tid isn't set, we already give it up there when we make it!
 		 t.giveTown(null,p);
 		
 		 return true;
