@@ -8,53 +8,73 @@ import java.util.ArrayList;
 import BattlehardFunctions.UserAttackUnit;
 
 public class AttackUnit {
-private	double armorType, armor, cargo, speed;
+	private	double 	armorType, 
+				 	armor, 
+				 	cargo, 
+				 	speed, 
+				 	attackDamage=0, 
+				 	hp = 0;
 	
-	// Weapons are hardcoded into attack unit data as double arrays to save
-	// processing time. There are a limited amount of weapons.
-
-
-
-private int attackType;
-private	double attackDamage=0;
-private int support=0;private int originalSlot, originalTID; // for support aus...do not confuse support w/ raid's support,
-//this let's us know this is a foreign unit.
-// say which town to put this in as a slot for!
-private boolean deleteMe=false; // these two booleans only used for template aus, which are more common than actual aus I bet.
-private boolean addMe=false; // deleteMe removes au and db entry, addMe adds an entry for a new template,
-private boolean editMe=false; // edit me makes it so the db entry isn't erased but the object is in place
-// of a new modified version, which'll take up updating the entry afterwards.
-
-private Player originalPlayer; // Reference to original player if in slot so that I can easily access it.
-private int expmod = 0;
-private double hp = 0;
-private int type;
-private	int weap[];
-volatile private	int size; // Optional, can be set if you want AttackUnit to store the number
-	// of this type in a raid/attack. This class can also be used to simply
-	// describe a general unit type also.
-private	String name; 
-private	int slot; // Which slot this unit is stored in.
-private	int lotNum=-1; // For the civilians.
-private	String civType = "None";
-private int lvl;
-public static int soldierHP=100,tankHP=500,juggerHP=1000,bomberHP=4000,civilianHP=75,
-soldierExpMod=1,tankExpMod=10,juggerExpMod=40,bomberExpMod=20,civilianExpMod=1, soldierPop=1,
-tankPop=5,juggerPop=10,bomberPop=20,civilianPop=1,soldierPoints=400,tankPoints=800,juggerPoints=1600,bomberPoints=200,
-tier1=100,tier2=200,tier3=400,tier4=100;
-
-
-public int getLvl() {
-	return lvl;
-}public void setLvl(int lvl) {
-	this.lvl=lvl;
-}
-/**
- * Returns the modifier to the damage dealt based on this unit's armor type and the other unit's damage type.
- * Returns 1.25, for instance, if you want 25% more damage.
- * @param a
- * @return
- */
+	private int originalSlot, 
+				originalTID, 
+				type, 
+				attackType, 
+				slot, 
+				lvl, 
+				expmod = 0,
+				support=0, 			// for support aus...do not confuse support w/ raid's support,
+									// this let's us know this is a foreign unit.
+									// say which town to put this in as a slot for!
+									// Which slot this unit is stored in.
+				lotNum=-1; 			// For the civilians.
+	private boolean deleteMe=false, // these two booleans only used for template aus, which are more common than actual aus I bet.
+					addMe=false, 	// deleteMe removes au and db entry, addMe adds an entry for a new template,
+					editMe=false; 	// edit me makes it so the db entry isn't erased but the object is in place
+									// of a new modified version, which'll take up updating the entry afterwards.
+	
+	private Player originalPlayer; 	// Reference to original player if in slot so that I can easily access it.
+	volatile private int size; 		// Optional, can be set if you want AttackUnit to store the number
+									// of this type in a raid/attack. This class can also be used to simply
+									// describe a general unit type also.
+	private	String 	name, 
+					civType = "None";
+	
+	public static int soldierHP=100,
+					  tankHP=500,
+					  juggerHP=1000,
+					  bomberHP=4000,
+					  civilianHP=75,
+					  soldierExpMod=1,
+					  tankExpMod=10,
+					  juggerExpMod=40,
+					  bomberExpMod=20,
+					  civilianExpMod=1, 
+					  soldierPop=1,
+					  tankPop=5,
+					  juggerPop=10,
+					  bomberPop=20,
+					  civilianPop=1,
+					  soldierPoints=400,
+					  tankPoints=800,
+					  juggerPoints=1600,
+					  bomberPoints=200,
+					  tier1=100,
+					  tier2=200,
+					  tier3=400,
+					  tier4=100;
+	
+	
+	public int getLvl() {
+		return lvl;
+	}public void setLvl(int lvl) {
+		this.lvl=lvl;
+	}
+	/**
+	 * Returns the modifier to the damage dealt based on this unit's armor type and the other unit's damage type.
+	 * Returns 1.25, for instance, if you want 25% more damage.
+	 * @param a
+	 * @return
+	 */
 	public double getArmorModifier(AttackUnit a, Player asP, Player myP) {
 		
 		/*
@@ -190,7 +210,7 @@ public int getLvl() {
 		
 	}
 	
-	public static String[] returnWeapDesc() {
+	/*public static String[] returnWeapDesc() {
 		String weapDesc[] = new String[21];
 
 		weapDesc[0]="The Pump-Action EMP Burster fires bursts of EMP pulses via a pump-action mechanism.";
@@ -234,7 +254,7 @@ public int getLvl() {
 		 " down. Every citizen caught in it's rush is immediately disintegrated. This weapon can only be equipped on bombers.";
 		return weapDesc;
 		
-	}
+	}*/
 	
 	
 	public double getArmorType() {
@@ -957,7 +977,7 @@ public int getLvl() {
 			attackDamage=0;
 			attackType=0; //none
 			//Armor : (1500*lvl*hardMod)+(1500*lvl*stabMod)
-			armor=1500*lvl*1;
+			armor=1500*lvl;
 			armorType=3; //building
 			speed=0;
 			cargo=0;
@@ -969,6 +989,7 @@ public int getLvl() {
 			hp = 1500*lvl;
 			attackDamage=0;
 			attackType=0; //none
+			//Armor : (1500*lvl*stabMod)
 			armor=0;
 			armorType=3; //building
 			speed=0;
@@ -1034,7 +1055,7 @@ public int getLvl() {
 	public int getSize() {
 		return size;
 	}
-	public void addWeapon(int weapnum) {
+	/*public void addWeapon(int weapnum) {
 		int newWeap[] = new int[getWeap().length+1];
 		int i = 0;
 		while(i<getWeap().length) {
@@ -1058,7 +1079,7 @@ public int getLvl() {
 			 * 3 4
 			 * so if index=3 then at the second that i gets to 3, it just needs
 			 * to be incremented again.
-			 */
+			 
 			j++;
 			i++;
 			if(i==index) i++;
@@ -1067,7 +1088,7 @@ public int getLvl() {
 		
 		setWeap(newWeap);
 		
-	}
+	}*/
 	public void makeSupportUnit(int originalSlot, Player p, int originalTID) {
 		this.setOriginalTID(originalTID);
 		this.setOriginalSlot(originalSlot);
@@ -1346,13 +1367,13 @@ public int getLvl() {
 		this.size = size;
 	}
 
-	public void setWeap(int weap[]) {
+	/*public void setWeap(int weap[]) {
 		this.weap = weap;
 	}
 
 	public int[] getWeap() {
 		return weap;
-	}
+	}*/
 
 	public void setName(String name) {
 		this.name = name;

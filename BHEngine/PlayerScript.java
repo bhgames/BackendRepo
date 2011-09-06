@@ -42,22 +42,21 @@ import BattlehardFunctions.UserWeapon;
 import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 public class PlayerScript implements Runnable {	
 	public Player player;
-	int timeshit = 0;
+	int timeshit = 0, timeshit2 = 0;
 	public Class<?> currRev;
 	public Object currRevInstance;
 	Object currInstInstance;
 	Class<?> currInst;
-	int timeshit2 = 0;
 	
 	Thread t; 
 	//private static String url = "jdbc:mysql://72.167.46.39:3306/bhdb";
-	private static String url = "jdbc:mysql://localhost:3306/bhdb";
+	private static String 	url = "jdbc:mysql://localhost:3306/bhdb",
 	//private static String pass = "D1einfuk";
-	private static String user = "root";
+							user = "root",
 //	private static String user = "bhdbuser";
-	private static String pass = "battlehard";
+							pass = "battlehard",
 	//private static String gigaIP = "184.106.231.186:8080";
-	private static String gigaIP= "localhost:8080";
+							gigaIP= "localhost:8080";
 	/*
 	 static String bhengsrcdirectory = "/users/arkavon/documents/apache-tomcat-6.0.26/webapps/AIWars/WEB-INF/src/";
 	 static String bhengbindirectory = "/users/arkavon/documents/apache-tomcat-6.0.26/webapps/AIWars/WEB-INF/classes/";
@@ -68,20 +67,19 @@ public class PlayerScript implements Runnable {
 	 */
 	//-cp lib/servlet-api.jar
 	 
-	 static String bhengbindirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/";
-	static String bhengsrcdirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/src/";
-	 static String srcdirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/RevelationsDirectory/src/";
-	 static String bindirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/RevelationsDirectory/bin/";
+	 static String 	bhengbindirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/",
+			 		bhengsrcdirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/src/",
+			 		srcdirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/RevelationsDirectory/src/",
+			 		bindirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/RevelationsDirectory/bin/",
 
 	// static String srcdirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/userscriptsrc/";
 	// static String bindirectory = "/usr/share/apache-tomcat-6.0.28/webapps/AIWars/WEB-INF/classes/userscriptbin/";	
-	 static String apachedirectory = "/usr/share/apache-tomcat-6.0.28/";
+			 		apachedirectory = "/usr/share/apache-tomcat-6.0.28/";
 
 	
 	UberStatement stmt;
     ResultSet hobojeebies;
-    public BattlehardFunctions b;
-    public BattlehardFunctions revb;
+    public BattlehardFunctions b, revb;
     public static String getCheck() {
     	return bhengbindirectory;
     }
@@ -819,72 +817,39 @@ public class PlayerScript implements Runnable {
     		 int numCommas = commaCount(holdPart);
     		 // generally they should have 6 commas + 0,0,0,0,0,0 (ausize-1) commas if they are naming,
     		 // and minus one that if not, so that's how we can identify old versions vs new ones.
-    		 try {
-    			 
-    			 int num1 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
-        		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
-        		 int int2 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
-        		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
-        		 int int3 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
-        		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
-        		  arrayString = holdPartUse.substring(0,holdPartUse.indexOf("],")+1);
-        		 int intArr4[] = decodeStringIntoIntArray(arrayString);
-        		
-     			holdPartUse=holdPartUse.substring(holdPartUse.indexOf("],")+2,holdPartUse.length());
-        		 String str5 = holdPartUse.substring(0,holdPartUse.indexOf(","));
-        		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
-        		 int int6=0; String str7=null;
-        		 
-        		// System.out.println(numCommas);
-        		 //System.out.println("I am in here.");
-        		 String str6[]=null;
-        		 if(numCommas<player.God.findTown(num1).getAu().size()+5)
-        		   str6 =  decodeStringIntoStringArray(holdPartUse);
-        		 else {
-        		//	 System.out.println("I got in here.");
-        		 str6 = decodeStringIntoStringArray(holdPartUse.substring(0,holdPartUse.indexOf("],")+1));
-        		str7 = holdPartUse.substring(holdPartUse.indexOf("],")+2,holdPartUse.length());
-        		 }
-        		 
-        		
-        		 if(holdCmd.equals("bf.attack"))
-        			 if(str7==null)
-        		 toRet+=""+b.attack(num1,int2,int3,intArr4,str5,str6,"noname");
-        			 else   toRet+=""+b.attack(num1,int2,int3,intArr4,str5,str6,str7);
-
-        		 else
-        			 if(str7==null)
-            	toRet+=""+b.canSendAttack(num1,int2,int3,intArr4,str5,str6,"noname");
-        			 else
-        				toRet+=""+b.canSendAttack(num1,int2,int3,intArr4,str5,str6,str7);
- 
-    		 } catch(Exception exc) {
-    			// exc.printStackTrace();
-    		 String str1 = holdPart.substring(0,holdPart.indexOf(","));
-    		 holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
-    		 int int2 = Integer.parseInt(holdPart.substring(0,holdPart.indexOf(",")));
-    		 holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
-    		 int int3 = Integer.parseInt(holdPart.substring(0,holdPart.indexOf(",")));
-    		 holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
-    		 int intArr4[] = decodeStringIntoIntArray(holdPart.substring(0,holdPart.indexOf("],")+1));
-    		/* int i = 0;
-    		 while(i<intArr4.length) {
-    			 System.out.println(intArr4[i]);
-    			 i++;
-    		 }*/
     		 
- 			holdPart=holdPart.substring(holdPart.indexOf("],")+2,holdPart.length());
-    		 String str5 = holdPart.substring(0,holdPart.indexOf(","));
-    		 holdPart = holdPart.substring(holdPart.indexOf(",")+1,holdPart.length());
-    		 String str6[] = decodeStringIntoStringArray(holdPart);
+    		 int num1 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
+    		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
+    		 int int2 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
+    		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
+    		 int int3 = Integer.parseInt(holdPartUse.substring(0,holdPartUse.indexOf(",")));
+    		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
+    		 arrayString = holdPartUse.substring(0,holdPartUse.indexOf("],")+1);
+    		 int intArr4[] = decodeStringIntoIntArray(arrayString);
+    		
+    		 holdPartUse=holdPartUse.substring(holdPartUse.indexOf("],")+2,holdPartUse.length());
+    		 String str5 = holdPartUse.substring(0,holdPartUse.indexOf(","));
+    		 holdPartUse = holdPartUse.substring(holdPartUse.indexOf(",")+1,holdPartUse.length());
+    		 int int6=0; 
+    		 String str7="noname";
+    		 
+    		// System.out.println(numCommas);
+    		 //System.out.println("I am in here.");
+    		 String str6[]=null;
+    		 if(numCommas<player.God.findTown(num1).getAu().size()+5)
+    			 str6 =  decodeStringIntoStringArray(holdPartUse);
+    		 else {
+    		//	 System.out.println("I got in here.");
+    			 str6 = decodeStringIntoStringArray(holdPartUse.substring(0,holdPartUse.indexOf("],")+1));
+    			 str7 = holdPartUse.substring(holdPartUse.indexOf("],")+2,holdPartUse.length());
+    		 }
+    		 
     		
     		 if(holdCmd.equals("bf.attack"))
-    		 toRet+=""+b.attack(str1,int2,int3,intArr4,str5,str6,"noname");
+    			 toRet+=""+b.attack(num1,int2,int3,intArr4,str5,str6,str7,true);
     		 else
-        	toRet+=""+b.canSendAttack(str1,int2,int3,intArr4,str5,str6,"noname");
-    		 }
-
-    		 
+    			 toRet+=""+b.attack(num1,int2,int3,intArr4,str5,str6,str7,false);
+ 
     	 }else if(holdCmd.equals("bf.sendMessage")) {
     		 
     		 //	public boolean attack(String yourTownName, int enemyx, int enemyy, int auAmts[], String attackType, int target) {

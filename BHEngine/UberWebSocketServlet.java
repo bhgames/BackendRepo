@@ -19,8 +19,10 @@ public class UberWebSocketServlet extends WebSocketServlet {
 	public WebSocket doWebSocketConnect(HttpServletRequest arg0, String arg1) {
 		// TODO Auto-generated method stub
 		String ipAddr = arg0.getRemoteAddr();
-
+		System.out.println(ipAddr + " is asking for a websocket.");
 		for(Player p: God.getPlayers()) {
+			System.out.println("Checking " + p.getUsername() + " who's websocket is " + p.socket);
+			if(p.socket!=null) System.out.println(" with ipaddr " + p.socket.ipAddr);
 			if(p.socket!=null&&p.socket.ipAddr!=null&&p.socket.ipAddr.equals(ipAddr)) {
 				return p.socket;
 			}

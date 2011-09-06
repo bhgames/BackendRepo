@@ -1,13 +1,14 @@
 package BHEngine;
 
-import java.io.BufferedReader;
+//import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+//import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.URL;
 import java.net.URLConnection;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -18,14 +19,15 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.json.JSONArray;
+//import org.apache.commons.httpclient.HttpClient;
+//import org.apache.commons.httpclient.HttpException;
+//import org.apache.commons.httpclient.methods.GetMethod;
+//import org.apache.commons.httpclient.methods.PostMethod;
+//import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
+
 import org.json.JSONWriter;
 
 import BattlehardFunctions.UserAttackUnit;
@@ -1338,7 +1340,7 @@ public boolean noFlick(UberSocketPrintWriter out) {
 			        .key("fuelCells")
 			        .value(t.getFuelCells())
 			        .key("fuelCellCap")
-			        .value((int) Math.round(Town.maxFuelCells*g.getAverageLevel(g.findTown(t.getTownID()))))
+			        .value((int) Math.round(Town.maxFuelCells*GodGenerator.getAverageLevel(g.findTown(t.getTownID()))))
 			        .key("movementTicks")
 			        .value(t.getTicksTillMove())
 			        .key("resEffects").array();
@@ -1463,15 +1465,15 @@ public boolean noFlick(UberSocketPrintWriter out) {
 			   			// make users happy when their ticks keep going above their assumed "total!".
 			   			while(je<=b.getLvlUps()) {
 			   			
-			   			int y = 0; int totalTime = 0;
-			   			
-			   			while(y<=je) {
-			   			 totalTime += Building.getTicksForLevelingAtLevel(t.getTotalEngineers(),b.getLvl()+y,p.God.Maelstrom.getEngineerEffect(t.getX(),t.getY()),p.getArchitecture(),b.getType());
-			   			y++;
-			   			}
-			   			
-			   			j.value(totalTime);
-			   			je++;
+				   			int y = 0; int totalTime = 0;
+				   			
+				   			while(y<=je) {
+				   				totalTime += Building.getTicksForLevelingAtLevel(t.getTotalEngineers(),b.getLvl()+y,p.God.Maelstrom.getEngineerEffect(t.getX(),t.getY()),p.getArchitecture(),b.getType());
+				   				y++;
+				   			}
+				   			
+				   			j.value(totalTime);
+				   			je++;
 
 			   			}
 			   		
@@ -2149,8 +2151,7 @@ public boolean noFlick(UberSocketPrintWriter out) {
 			Player p = g.getPlayer((Integer) out.getAttribute("pid"));
 
 			if(p.getSupportstaff()||!p.getSupportstaff()) {
-				if(test.equals("fbPost")) {
-					
+				if(test.equals("fbPost")) {					
 					g.fbPostTest(out,p);
 				} else if(test.equals("separatedPoints")) {
 					g.separatedPointsTest(out);
@@ -2200,6 +2201,16 @@ public boolean noFlick(UberSocketPrintWriter out) {
 					g.basicTradeCaravanTest(out,p);
 				}else if(test.equals("leagueCreate")) {
 					g.leagueCreateTest(out,p);
+				}else if(test.equals("blockadeMovement")) {
+					g.blockadeMovementTest(out.req, out.out, p);
+				}else if(test.equals("blockadeCombat")) {
+					g.blockadeCombatTest(out.req, out.out, p);
+				}else if(test.equals("blockadeTrade")) {
+					g.blockadeTradeTest(out.req, out.out, p);
+				}else if(test.equals("allBlockade")) {
+					g.blockadeMovementTest(out.req, out.out, p);
+					g.blockadeCombatTest(out.req, out.out, p);
+					g.blockadeTradeTest(out.req, out.out, p);
 				}else if(test.equals("allDig")) { 
 					g.basicDigTest(out,p);
 					g.digProbabilityTest(out);
@@ -2251,9 +2262,12 @@ public boolean noFlick(UberSocketPrintWriter out) {
 					g.ROCollapseTest(out,p,true);
 					g.basicTradeCaravanTest(out,p);
 					g.leagueCreateTest(out,p);
-
+					g.blockadeMovementTest(out.req, out.out, p);
+					g.blockadeCombatTest(out.req, out.out, p);
+					g.blockadeTradeTest(out.req, out.out, p);
 				}
 				else{
+
 
 					out.println("Illegal test.");
 				}
@@ -2282,6 +2296,7 @@ public boolean noFlick(UberSocketPrintWriter out) {
 		try {
 			HttpSession session = out.getSession(true);
 		/*	String code = out.getParameter("code");
+
 			if(code==null) { retry(out);
 			out.print(":invalid code!;"); return false; }
 			
@@ -2295,7 +2310,6 @@ public boolean noFlick(UberSocketPrintWriter out) {
 				long fuid=0;
 				if(fuidString!=null){
 					fuid = Long.parseLong(fuidString);
-					Pass = "none";
 				}
 				boolean skipMe =Boolean.parseBoolean(out.getParameter("skipMe"));
 				int chosenTileX = Integer.parseInt(out.getParameter("chosenTileX"));

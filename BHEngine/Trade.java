@@ -1,10 +1,10 @@
 package BHEngine;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
+//import java.sql.Connection;
+//import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+//import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -89,14 +89,13 @@ public class Trade {
 		if(ts.isStockMarketTrade()) {
 			distance=GodGenerator.tradeDistance;
 		} else {
-		 distance = (Math.sqrt((t1.getX()-t2.getX())*(t1.getX()-t2.getX()) + (t1.getY()-t2.getY())*(t1.getY()-t2.getY())));
-
+			distance = (Math.sqrt((t1.getX()-t2.getX())*(t1.getX()-t2.getX()) + (t1.getY()-t2.getY())*(t1.getY()-t2.getY())));
 		}
 		int ticksToHit=(town1.getPlayer().getPs().b.getTradeETA(t1.townID,t2.townID));
 		 
 		this.ts=ts;
 	
-		 this.town2=town2;this.town1 = town1; tradeOver=false;
+		this.town2=town2;this.town1 = town1; tradeOver=false;
 		this.totalTicks=ticksToHit;
 		metal=m;timber=t;manmat=mm;food=f;
 		this.traders=traders;
@@ -105,17 +104,16 @@ public class Trade {
 		
 		this.totalTicks=ticksToHit;
 		tradeOver=false;
-			UberPreparedStatement stmt;
+		UberPreparedStatement stmt;
 			
-			try {
-
+		try {
+			
+			stmt = t1.getPlayer().God.con.createStatement("insert into trade (tid1, tid2, distance, ticksToHit,m,t,mm,f,totalTicks,tsid,traders,id) values (?,?,?,?,?,?,?,?,?,?,?,?);");
 		      
-		      stmt = t1.getPlayer().God.con.createStatement("insert into trade (tid1, tid2, distance, ticksToHit,m,t,mm,f,totalTicks,tsid,traders,id) values (?,?,?,?,?,?,?,?,?,?,?,?);");
-		      
-		      // First things first. We update the player table.
-		      boolean transacted=false;
-		      while(!transacted) {
-		    	  try {
+		    // First things first. We update the player table.
+		    boolean transacted=false;
+		    while(!transacted) {
+		    	try {
 		      
 		      // let's add this raid and therefore get the rid out of it.
 		      if(town2!=null) {
@@ -136,16 +134,13 @@ public class Trade {
 		    	  stmt.executeUpdate();
 		    	  stmt.close();
 		      }
-		   
-		    
-		      
-		      stmt.close(); transacted=true;
-		      }
-		    	  catch(MySQLTransactionRollbackException exc) { } 
-		      }// need connection for attackunit adds! Not for trades though.
-			 } catch(SQLException exc) { exc.printStackTrace(); }
 
-		
+		   
+		    		stmt.close(); transacted=true;
+		    	}
+		    	catch(MySQLTransactionRollbackException exc) { } 
+		    }// need connection for attackunit adds! Not for trades though.
+		} catch(SQLException exc) { exc.printStackTrace(); }
 	}
 	
 	public Town getTown2() {
@@ -163,12 +158,6 @@ public class Trade {
 				return town1;	}
 
 	public void deleteMe() {
-
-		
-		  // Although raids are not removed from the sql server, their supporting au should be. They are merely placeholders
-		  // and will either survive or goto zero, besides, the statreports exist to tell the true story.
-		  // By placeholders I mean they are like extra au fields for the raid, the actual
-		  // data is held on the supportAU table.
 		   
 		   //stmt.executeUpdate("update trade set ticksToHit=-1 where trid = " + tradeID);
 		   setTicksToHit(-1);
