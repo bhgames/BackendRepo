@@ -6,9 +6,16 @@ import java.util.UUID;
 public class UserTrade {
 	private long metal, timber, manmat, food;
 	private double distance; 
-	private int ticksToHit; private int tid2 ; private int tid1; private boolean tradeOver; private UUID id; 
-	 UUID tradeScheduleID; private String originatingPlayer,originatingTown,destPlayer,destTown;
-	private int totalTicks=0; private int traders;
+	private int ticksToHit; 
+	private int tid2 ; 
+	private int tid1; 
+	private boolean tradeOver; 
+	private UUID id; 
+	UUID tradeScheduleID; 
+	private String originatingPlayer,originatingTown,destPlayer,destTown;
+	private int totalTicks=0; 
+	private int traders;
+	
 	public UserTrade(double distance, long food, long manmat, long metal,
 			int ticksToHit, long timber, int totalTicks, int tid1,
 			int tid2, UUID tradeID, boolean tradeOver, int traders,
@@ -27,8 +34,10 @@ public class UserTrade {
 		this.tradeOver = tradeOver;
 		this.traders = traders;
 		this.tradeScheduleID = tradeScheduleID;
-		this.setOriginatingPlayer(originatingPlayer); this.setOriginatingTown(originatingTown);
-		this.setDestPlayer(destPlayer); this.setDestTown(destTown);
+		this.setOriginatingPlayer(originatingPlayer); 
+		this.setOriginatingTown(originatingTown);
+		this.setDestPlayer(destPlayer); 
+		this.setDestTown(destTown);
 
 	}
 	

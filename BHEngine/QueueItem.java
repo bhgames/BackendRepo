@@ -1,54 +1,65 @@
 package BHEngine;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
+//import java.sql.Connection;
+//import java.sql.Statement;
+//import java.util.ArrayList;
 import java.util.UUID;
-
 import BattlehardFunctions.UserBuilding;
 
 public class QueueItem {
-private UUID id;
-private Building b;
- UUID bid;
-private int ticksPerUnit=0;
-private int AUNumber; // This is how many of them
-private int AUtoBuild;
-private int currTicks;
-private long cost[];
-private static int baseBuildTime=(int) Math.round(60*10.0/GodGenerator.gameClockFactor);
-private int townsAtTime,originalAUAmt,totalNumber;
-private GodGenerator God;
-private UberConnection con;
-public static int days = 5;
+	private UUID id;
+	private Building b;
+	private int ticksPerUnit=0;
+	private int AUNumber, // This is how many of them
+				AUtoBuild,
+				currTicks,
+				townsAtTime,
+				originalAUAmt,
+				totalNumber;
+	private long cost[];
+	private GodGenerator God;
+	private UberConnection con;
+	
+	private static int baseBuildTime=(int) Math.round(60*10.0/GodGenerator.gameClockFactor);
+	
+	UUID bid;
+	
+	public static int days = 5;
 
 // inherently, deleteMe is false and is used by player to detect that this queue item should
 // be deleted on the db as opposed to updated. If it's loaded in, it's clearly not over yet!
 
-	public void setQueueValues(int AUtoBuild, int AUNumber, int currTicks,int townsAtTime,int originalAUAmt,int totalNumber) {
-		this.AUNumber=AUNumber;this.AUtoBuild=AUtoBuild;this.currTicks=currTicks;this.townsAtTime=townsAtTime;this.originalAUAmt=originalAUAmt;
+	public void setQueueValues(int AUtoBuild,int AUNumber,int currTicks,int townsAtTime,int originalAUAmt,int totalNumber) {
+		this.AUNumber=AUNumber;
+		this.AUtoBuild=AUtoBuild;
+		this.currTicks=currTicks;
+		this.townsAtTime=townsAtTime;
+		this.originalAUAmt=originalAUAmt;
 		this.totalNumber=totalNumber;
 	}
 	public QueueItem(UUID id, Building b,GodGenerator God) {
-		this.id=id;this.bid=b.getId();this.b=b;
-		this.God=God;this.con=God.con;
+		this.id=id;
+		this.bid=b.getId();
+		this.b=b;
+		this.God=God;
+		this.con=God.con;
 		try {
-		UberPreparedStatement qus = con.createStatement("select * from queue where id = ?;");
-		qus.setString(1,id.toString());
-		 ResultSet qrs = qus.executeQuery();
-		// getting queries.
-		
-		 
-		 while(qrs.next()) {
-			 //	public QueueItem(int qid, int bid, int AUtoBuild, int AUNumber, int currTicks,Town t) {
+			UberPreparedStatement qus = con.createStatement("select * from queue where id = ?;");
+			qus.setString(1,id.toString());
+			ResultSet qrs = qus.executeQuery();
+			// getting queries.
 			
-			setQueueValues(qrs.getInt(3),qrs.getInt(4),qrs.getInt(5),qrs.getInt(10),qrs.getInt(11),qrs.getInt(12));
-			 // will go from earliest to latest in pushing queues onto the stack...
-		 }
-		  qrs.close();
-		 qus.close();
+			 
+			while(qrs.next()) {
+				//	public QueueItem(int qid, int bid, int AUtoBuild, int AUNumber, int currTicks,Town t) {
+				
+				setQueueValues(qrs.getInt(3),qrs.getInt(4),qrs.getInt(5),qrs.getInt(10),qrs.getInt(11),qrs.getInt(12));
+				// will go from earliest to latest in pushing queues onto the stack...
+			}
+			qrs.close();
+			qus.close();
 		} catch(SQLException exc) { exc.printStackTrace(); }
 		getCost();
 		 /*
@@ -107,7 +118,6 @@ public static int days = 5;
 	public void setB(Building b) {
 		this.b = b;
 	}
-
 
 
 	public int getAUNumber() {
@@ -188,7 +198,6 @@ public static int days = 5;
 	/**
 	 * The new unit tick getter.
 	 * @param howMany - how many troops you are building(tanks are worth 10, juggers are worth 40, and so on. It's their expmod.
-	 * @param totalEngineers
 	 * @param t
 	 * @return
 	 */
@@ -557,37 +566,6 @@ public static int days = 5;
 	public void setTicksPerUnit(int ticksPerUnit) {
 		this.ticksPerUnit = ticksPerUnit;
 	}
-
-/*
-	public void setMemTownsAtTime(int townsAtTime) {
-		setInt("townsAtTime",townsAtTime);
-	}
-
-
-	public int getMemTownsAtTime() {
-		return getInt("townsAtTime");
-	}
-
-
-	public void setMemOriginalAUAmt(int originalAUAmt) {
-		setInt("originalAUAmt",originalAUAmt);
-	}
-
-
-	public int getMemOriginalAUAmt() {
-		return getInt("originalAUAmt");
-	}
-
-
-	public void setMemTotalNumber(int totalNumber) {
-		setInt("totalNumber",totalNumber);
-	}
-
-
-	public int getMemTotalNumber() {
-		return getInt("totalNumber");
-	}
-*/
 
 	public void deleteMe() {
 		try {

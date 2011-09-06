@@ -5,25 +5,38 @@ import java.util.UUID;
 
 
 public class UserRaid {
-	private String town1; private int x1; private int y1; 
-	private String town2; private int x2; private int y2; private int auAmts[]; private String auNames[];
-	private String raidType;
-	private boolean raidOver; private double ticksToHit; private Timestamp dockingFinished;
-	private double distance; private long res[];
+	private String 	name, 
+					town1, 
+					town2,
+					raidType,
+					reward;
+	private String[] bombTargets, 
+					 auNames;
+	private int x1, y1, 
+				x2, y2, 
+				tid1, 
+				tid2, 
+				genoRounds=0, 
+				digAmt = 0, 
+				totalTicks=0;
+	private int[] auAmts;
+	private boolean raidOver, debris, bomb, allClear = false;
+	private Timestamp dockingFinished;
+	private double distance, ticksToHit; 
+	private long[] res;
 	private UUID id;
-	private String reward;
-	private int tid1,tid2;
-	private String[] bombTargets;
-	private boolean debris;
-	private int genoRounds=0;
-	private int digAmt = 0;
-	private String name;
-	private boolean bomb;
-	private boolean allClear = false;
-	private int totalTicks=0;
-	public UserRaid(UUID id, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, String[] bombTarget,
-			int tid1,int tid2,String name, int genoRounds, boolean bomb, boolean debris, int digAmt, Timestamp dockingFinished,String reward) {
-		this.town1=town1;this.town2=town2; this.x1=x1;this.y1=y1;
+	
+	public UserRaid(UUID id, double distance, boolean raidOver, double ticksToHit, 
+			String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], 
+			String auNames[], String raidType,long  m, long  t, long mm, long f,
+			boolean allClear, String[] bombTarget, int tid1,int tid2,String name, 
+			int genoRounds, boolean bomb, boolean debris, int digAmt, 
+			Timestamp dockingFinished, String reward) {
+		
+		this.town1=town1;
+		this.town2=town2;
+		this.x1=x1;
+		this.y1=y1;
 		this.genoRounds=genoRounds;
 		this.digAmt=digAmt;
 		this.dockingFinished=dockingFinished;

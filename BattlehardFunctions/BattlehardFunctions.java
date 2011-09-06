@@ -1,8 +1,14 @@
+/*
+	Development Notes: 
+		Blockade send logic at line 5366.
+		Commented out bomber check code, any unit can attack buildings
+*/
+
 package BattlehardFunctions;
 import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+//import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -13,7 +19,7 @@ import BHEngine.AttackUnit;
 import BHEngine.Building;
 import BHEngine.GodGenerator;
 import BHEngine.League;
-import BHEngine.NQ5;
+import BHEngine.BQ5;
 import BHEngine.Player;
 import BHEngine.PlayerScript;
 import BHEngine.QuestListener;
@@ -23,7 +29,7 @@ import BHEngine.Town;
 import BHEngine.Trade;
 import BHEngine.TradeSchedule;
 import BHEngine.UberPreparedStatement;
-import BHEngine.UberStatement;
+//import BHEngine.UberStatement;
 import BHEngine.doableBy;
 
 import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
@@ -74,10 +80,10 @@ public class BattlehardFunctions {
 
 	}
 	/**
-	 * Gets the command by Revelations, with 0 being
-	 * most recently, and going on up.
-	 * @param entry
-	 * @return
+	 * Gets a command by Revelations off the log stack.
+	 * 
+	 * @param entry - index of the entry you want.
+	 * @return Log entry at index entry.
 	 */
 	public String getLog(int entry) {
 		String log=p.getPushLog();
@@ -112,9 +118,9 @@ public class BattlehardFunctions {
 	}
 	/**
 	 * Gets the array of recent commands by Revelations last executed, with 0 being
-	 * most recently, and going on up.
-	 * @param entry
-	 * @return
+	 * most recent, and going on up.
+	 * 
+	 * @return String array of recent Revelation commands.
 	 */
 	public String[] getLog() {
 		String log=p.getPushLog();
@@ -207,22 +213,23 @@ public class BattlehardFunctions {
 		}
 	}	
 	/**
-	 * Used by the UI to receive error messages from the backend. Not recommended for
-	 * any other use.
+	 * Used by Revelation scripts to get details about errors.
+	 * @return The most resent error as a String.
 	 */
 	public String getError() {
 		if(error==null) error = "No error.";
 		return error;
 	}
-		/**
-		 * Reset the error register to "noerror."
-		 */
+	
+	/**
+	 * Reset the error register to "noerror."
+	 */
 	public void resetError() {
 
 		setError("noerror");
 	}
 		/**
-		 * Deprecated method for the original Battlehard Viewer.
+		 * @deprecated method for the original, Java based, Battlehard Viewer.
 		 */
 	public void notifyViewer() {
 
@@ -258,95 +265,96 @@ public class BattlehardFunctions {
 	/**
 	 * Returns a hash that contains array of hashtables representing all of the towns you can see, an array of hashtables
 	 *  of the Map Tiles you can see(these are the large backgrounds behind your cities), and the cloud base hashtable that you can see.
-	 *  
+	 *  <br/><br/>
 	 *   To grab the array of town hashtables, use the key "townHash".
 	 *   Each hashtable in the town hashtable array has keys "townName","owner","pid","SSL", "resEffects"(an array), "debris"(an array),
 	 *   "x", "y", "dig"(which returns true if a dig is present.),"taxRate"(a double which is zero if you cannot see it, or the actual
 	 *   tax rate if this is one of your towns or a town you have vassaled.)
-	 *   
+	 *   <br/><br/>
 	 *  To grab the maptile array of hashtables, use the key "tileHash". Each entry is a hashtable containing
 	 *  these keys: mid, an integer identifier for the tile, centerx, an integer that represents the at what spot
 	 *  the center of this map tile is in the x,y space of towns, centery, and finally mapName, the filename of the map tile being
 	 *  used.
-	 *  
+	 *  <br/><br/>
 	 *  To grab the array of territory hashtables, use the key "territoryArray"
-	 *  
-	 *  territory entry data key:
-	 *  [] means an array
-	 *  {} means a Hashtable
+	 *  <br/><br/>
+	 *  territory entry data key:<br/>
+	 *  [] means an array<br/>
+	 *  {} means a Hashtable<br/>
 	 *  "id"->object is a key-value pair
-	 *  
+	 *  <br/><br/>
 	 *  The entry data is exemplified by:
-	 *  
-	   [
-	   {
-	  		  "id"->UUID -- Unique ID used by the backend to help sort territories.
-	   		  		These ids are not saved across server restarts.
+	 *  <br/><br/><pre>
+[
+	{
+		"id"->UUID -- Unique ID used by the backend to help sort territories.
+   		  		These ids are not saved across server restarts.
 
-	 			(the corners hashtable is the only part used by the front end, so all info necessary for territorial identification by the WM goes in the corners block)
+ 		(the corners hashtable is the only part used by the front end, so all info necessary for territorial identification by the WM goes in the corners block)
 
-	  			"corners" -> {
-		  
-		  		"owner"->"SomeGuy"
-		  		"lord"->"yourLordsUsername"(if you are a Vassal) or "none"
-			   "corner"-> [1,1]
-			   "sides"-> [2,3,4]
-			   
-			   };
-			    (the points array is used by the backend for territory comparison, so it does not need or contain ownership info)
-			   "points"(an array of Hashtables) -> 
-			   [
-			   
-			   	{
-			   		x->1
-			   		y->1
-			   	},
-			   	{
-			   		x->3
-			   		y->1
-			   	},
-			   	{
-			   		x->3
-			   		y->4
-			   	},
-			   	{
-			   		x->7
-			   		y->4
-			  	}
-			   	
-			   	
-			   ]
-	   },
-	  {
-	   ...
-	   }
-	   ]
+  		"corners" -> {
+	  
+	  		"owner"->"SomeGuy"
+	  		"lord"->"yourLordsUsername"(if you are a Vassal) or "none"
+		   	"corner"-> [1,1]
+		   	"sides"-> [2,3,4]
+
+		};
+		   
+		    (the points array is used by the backend for territory comparison, so it does not need or contain ownership info)
+		    "points"(an array of Hashtables) -> 
+		[
+			{
+		   		x->1
+		   		y->1
+		   	},
+		   	{
+		   		x->3
+		   		y->1
+		   	},
+		   	{
+		   		x->3
+		   		y->4
+		   	},
+		   	{
+		   		x->7
+		   		y->4
+		  	}
+		]
+	},
+  	{
+   		...
+   	}
+]</pre>
 	 *  
 	 *   To grab the array of cloud hashtables, use the key "cloudHash".
-	 *   
+	 *   <br/><br/>
 	 *   Each hashtable entry in the array has the following keys: centerx, centery, incs,
 	 *   size, velocity, ticksToDeath, direction. All variables are integers except incs, which is a double array
 	 *   representing the cloud effects, and velocity, which is a double representing movement spaces/hr. Be aware that
 	 *   ticks in cloud space are hour long ticks, not GCF-long ticks like other timers in the game. Each entry in incs signifies:
-	 *   
+	 *   <br/><br/>
 	 * Combat incs:
-	 * 0 conc
-	 * 1 armor
-	 * 2 cargo
-	 * 3 speed
-	 * 4 firepower
-	 * 5 amm
-	 * 6 acc
-	 * 
+	 * <ol start="0">
+	 * <li>conc</li>
+	 * <li>armor</li>
+	 * <li>cargo</li>
+	 * <li>speed</li>
+	 * <li>firepower</li>
+	 * <li>amm</li>
+	 * <li>acc</li>
+	 * </ol>
 	 
 	 * ResIncs:
-	 * 7 is metal
-	 * 8 is timber
-	 * 9 is manmat
-	 * 10 is food
-	 * 11 is Engineer Effectiveness(Bldg times)
-	 * 12 is Trader Effectiveness(Better SM trades)
-	 * 13 is Scholar Effectiveness(Increased Knowledge Percentage)
+	 * <ol start="7">
+	 * <li>metal</li>
+	 * <li>timber</li>
+	 * <li>manmat</li>
+	 * <li>food</li>
+	 * <li>Engineer Effectiveness(Bldg times)</li>
+	 * <li>Trader Effectiveness(Better SM trades)</li>
+	 * <li>Scholar Effectiveness(Increased Knowledge Percentage)</li>
+	 * </ol>
 	 */
 	
 	public Hashtable getWorldMap() {
@@ -587,7 +595,7 @@ public class BattlehardFunctions {
 		//	stmt.close(); stmt2.close(); stmt3.close();
 			
 			int i = 0;
-			ArrayList<Hashtable> mapTiles = g.getMapTileHashes();
+			ArrayList<Hashtable<String, Object>> mapTiles = g.getMapTileHashes();
 			Hashtable v,c;
 			
 			while(i<mapTiles.size()) {
@@ -666,7 +674,13 @@ public class BattlehardFunctions {
 
 	/**
 	 * UI Implemented.
-	 * Send a message to yourself.
+	 * <br/><br/>
+	 * Send a message to yourself.  Far easier than using the other message send methods and useful for debugging scripts.
+	 * 
+	 * @param body		the body of the message
+	 * @param subject	the subject of the message
+	 * 
+	 * @return True, if the message was sent.  False otherwise.
 	 */
 	
 	public boolean sendYourself(String body, String subject) {
@@ -685,14 +699,18 @@ public class BattlehardFunctions {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
+	 * Sends a message to the array of player names specified in usernameTo. original_subject_id needs
+	 * to be 0 if this message is not in reply to another or if you do not wish it to be!
+	 *
+	 * @param usernameTo			an array of usernames to send this message to.  Invalid usernames will cause this message to be sent to Id.
+	 * @param body					the body of the message
+	 * @param subject				the subject of the message
+	 * @param original_message_id	The original message ID, 0 if none.  Used for chaining messages together.
 	 * 
-	 * @param usernameTo
-	 * @param body
-	 * @param subject
-	 * @param original_message_id
-	 * @return
+	 * @return True, if the message was sent.  False otherwise.
 	 */
-	public boolean sendMessage(String usernameTo[], String body, String subject, UUID original_subject_id) {
+	public boolean sendMessage(String[] usernameTo, String body, String subject, UUID original_subject_id) {
 		
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
@@ -708,13 +726,17 @@ public class BattlehardFunctions {
 		return sendMessage(pid_to,body,subject,original_subject_id);
 	}
 		/**
-		 * 
-		 *
 		 * Sends a message to the array of playerIDs specified in pid_to. original_subject_id needs
 		 * to be 0 if this message is not in reply to another or if you do not wish it to be!
 		 * 
+		 * @param pid_to				an array of Player IDs this message should be sent to.  Invalid ID's will cause this message to be sent to Id
+		 * @param body					the body of the message
+		 * @param subject				the subject of the message
+		 * @param original_subject_id	The original message ID, 0 if none.  Used for chaining messages together.
+		 * 
+		 * @return True, if the message was sent.  False otherwise.
 		 */
-	public boolean sendMessage(int pid_to[],String body, String subject, UUID original_subject_id) {
+	public boolean sendMessage(int[] pid_to,String body, String subject, UUID original_subject_id) {
 		int j = 0;
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
@@ -852,12 +874,16 @@ public class BattlehardFunctions {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
+	 * Sends a vassal invitation message.
+	 * msgtype will be 6 for vassal invitations.
 	 * 
-	 * @param usernameTo
-	 * @param body
-	 * @param subject
-	 * @param original_message_id
-	 * @return
+	 * @param usernameTo			an array of usernames this message should be sent to.  Invalid usernames will cause this message to be sent to Id.
+	 * @param body					the body of the message
+	 * @param subject				the subject of the message
+	 * @param original_message_id	The original message ID, 0 if none.  Used for chaining messages together.
+	 * 
+	 * @return True, if the message was sent.  False otherwise.
 	 */
 	public boolean sendVassalInvitationMessage(String usernameTo[], String body, String subject, UUID original_subject_id) {
 		
@@ -874,12 +900,18 @@ public class BattlehardFunctions {
 		}
 		return sendVassalInvitationMessage(pid_to,body,subject,original_subject_id);
 	}
+	
 	/**
-	 * 
 	 * Sends a vassal invitation message.
 	 * msgtype will be 6 for vassal invitations.
+	 * 
+	 * @param pid_to				an array of Player IDs this message should be sent to.  Invalid IDs will cause this message to be sent to Id.
+	 * @param body					the body of the message
+	 * @param subject				the subject of the message
+	 * @param original_subject_id	The original message ID, 0 if none.  Used for chaining messages together.
+	 * 
+	 * @return True, if the message was sent.  False otherwise.
 	 */
-	
 	public boolean sendVassalInvitationMessage(int pid_to[],String body, String subject, UUID original_subject_id) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
@@ -1001,11 +1033,17 @@ public class BattlehardFunctions {
 		}
 		return true;
 	}
-	/**
-	 * 
-	 * Sends a system message.
-	 */
 	
+	/**
+	 * Sends a system message.  System messages aren't sent down with other messages and 
+	 * are only viewable through AI's
+	 * 
+	 * @param pid_to				an array of player IDs this message shoud be sent to,  Invalid IDs will cause this message to be sent to Id.
+	 * @param body					the body of the message
+	 * @param subject				the subject of the message
+	 * @param original_subject_id	The original message ID, 0 if none.  Used for chaining messages together.
+	 * @return
+	 */
 	public boolean sendSystemMessage(int pid_to[],String body, String subject, UUID original_subject_id) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
@@ -1129,15 +1167,19 @@ public class BattlehardFunctions {
 	}
 	/**
 	 * UI Implemented.
-	 * @param usernameTo
-	 * @param body
-	 * @param subject
-	 * @param msg_type
-	 * @param league_pid
-	 * @param original_subject_id
-	 * @return
+	 * <br/><br/>
+	 * Sends a league message.  Used for league invitations only.
+	 * 
+	 * @param usernameTo			the names of the sending players (should be the league player)
+	 * @param body					the body of the message
+	 * @param subject				the subject of the message
+	 * @param msg_type				needs to be either 3 or 4, 3 is invitation, 4 is an acceptance
+	 * @param league_pid			the ID of the league player this message is for
+	 * @param original_subject_id	The original message ID, 0 if none.  Used for chaining messages together.
+	 * 
+	 * @return True, if the message was sent.  False otherwise.
 	 */
-	public boolean sendLeagueMessage(String usernameTo[],  String body, String subject, int msg_type, int league_pid, UUID original_subject_id) {
+	public boolean sendLeagueMessage(String[] usernameTo,  String body, String subject, int msg_type, int league_pid, UUID original_subject_id) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
 			return false;
@@ -1153,18 +1195,19 @@ public class BattlehardFunctions {
 
 	
 	/**
+	 * Sends a league message.  Used for league invitations only.
 	 * 
-	 * Sends a league message(either acceptance or invitation)
+	 * @param pid_to				the IDs of the sending players (should be the league player)
+	 * @param body					the body of the message
+	 * @param subject				the subject of the message
+	 * @param msg_type 				needs to be either 3 or 4, 3 is invitation, 4 is an acceptance
+	 * @param league_pid			the ID of the league player this league message is for
+	 * @param original_subject_id	The original message ID, 0 if none.  Used for chaining messages together.
 	 * 
-	 * @param pid_to - Recipient
-	 * @param body
-	 * @param subject
-	 * @param msg_type - needs to be either 3 or 4, 3 is invitation, 4 is an acceptance
-	 * @param original_subject_id - The original message ID, 0 if none
-	 * @return
+	 * @return True, if the message was sent.  False otherwise.
 	 */
 	
-	public boolean sendLeagueMessage(int pid_to[], String body, String subject, int msg_type, int league_pid, UUID original_subject_id) {
+	public boolean sendLeagueMessage(int[] pid_to, String body, String subject, int msg_type, int league_pid, UUID original_subject_id) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
 			return false;
@@ -1543,8 +1586,22 @@ public class BattlehardFunctions {
 
 		/**
 		 * UI Implemented.
+		 * <br/><br/>
 		 * Get a trade with the stock market AI, exchange rates will be calculated automatically
 		 * just before the trade is sent!
+		 * 
+		 * @param tid1		the ID of the town you're sending from
+		 * @param m			the amount of metal you're trading with
+		 * @param t			the amount of timber you're trading with
+		 * @param mm		the amount of crystal you're trading with
+		 * @param f			the amoung of food you're trading with
+		 * @param whichres	a number representing the type of resource you want in return. 
+		 * 					0 -> metal, 1 -> timber, 2 -> crystal, 3 -> food
+		 * 
+		 * @return True, if the trade was set up.  False otherwise.
+		 * 
+		 * @see UserTradeSchedule
+		 * @see UserTrade
 		 */
 	public boolean setUpStockMarketTrade(int tid1, int m, int t, int mm, int f, int whichresource) {
 		if(prog&&!p.isSmAPI()) {
@@ -1561,14 +1618,17 @@ public class BattlehardFunctions {
 		
 		int i = 0; Town t1=g.findTown(tid1);
 		
-		
-		
 		if(t1.getPlayer().ID!=p.ID) {
 			setError("This is not your town!");
 			return false;
 		}
 		// okay now we have towns.
 		
+		//make sure we're not blockaded
+		if(t1.getBlockades().size()>0) {
+			setError("Town blockaded.");
+			return false;
+		}
 		
 		// just checking numbers.
 		
@@ -1645,13 +1705,27 @@ public class BattlehardFunctions {
 	}
 	
 	
-		/**
-		 * UI Implemented.
-		 * Sets up a two way trade schedule and sends out the invite automatically to the other player. intervaltime is in seconds and
-		 * is how long the system will wait before making the next trad, timesToDo is how many
-		 * times you wish to have the trade executed, and tid1 and tid2 is your town ID and the player
-		 * you wish to trade with's town ID, respectively.
-		 */
+	/**
+	 * UI Implemented.
+	 * <br/><br/>
+	 * Sets up an open two way trade schedule. intervaltime is in seconds and
+	 * is how long the system will wait before making the next trade, timesToDo is how many
+	 * times you wish to have the trade executed, and tid1 is your town ID.
+	 * 
+	 * @param tid1			the ID of your town
+	 * @param m				the amount of metal you're offering
+	 * @param t				the amount of timber you're offering
+	 * @param mm			the amount of crystal you're offering
+	 * @param f				the amount of food you're offering
+	 * @param otherm		the amount of metal you want in return
+	 * @param othert		the amount of timber you want in return
+	 * @param othermm		the amount of crystal you want in return
+	 * @param otherf		the amount of food you want in return
+	 * @param intervaltime	the amount of time, in seconds, between each trade
+	 * @param timesToDo		the number of times this trade should be repeated
+	 * 
+	 * @return True, if the Trade Schedule was set up.  False otherwise.
+	 */
 	public boolean setUpTradeSchedule(int tid1, int m, int t, int mm, int f, long otherm,long othert, long othermm, long otherf, int intervaltime,int timesToDo) {
 	
 		if(prog&&!p.isTradingAPI()) {
@@ -1665,7 +1739,7 @@ public class BattlehardFunctions {
 		}
 		// first find the cities.
 		boolean twoway=true;
-		int i = 0; Player pl; Town t1=g.findTown(tid1); //Town t2=g.findTown(tid2);
+		int i = 0; /*Player pl;*/ Town t1=g.findTown(tid1); //Town t2=g.findTown(tid2);
 		
 		
 		if(t1.getPlayer().ID!=p.ID) {
@@ -1681,7 +1755,7 @@ public class BattlehardFunctions {
 			setError("Illegal interval time or timesToDo amount.");
 			return false;
 		}
-				
+
 		// just checking numbers.
 		
 		i = 0;
@@ -1723,6 +1797,7 @@ public class BattlehardFunctions {
 		//	public boolean sendMessage(int pid_to, int pid_from, String body, String subject, int msg_type) {
 		int toSend[] = new int[1];
 		TradeSchedule ts = new TradeSchedule(t1,  null,  m,  t,  mm,  f,  otherm, othert,  othermm,  otherf,  intervaltime, timesToDo,  twoway,null,false);
+
 	/*	 sendTradeMessage(t2.getPlayer().ID,"Do you accept this trading schedule request from " + t1.getPlayer().getUsername() + "" +
 				" of " + m + " metal " + t + " timber " + mm + " man. mat. " + f + " food in exchange for "
 				+ otherm + " metal " + othert + " timber " + othermm + " man. mat. " + otherf + " that will be completed " + 
@@ -1737,12 +1812,27 @@ public class BattlehardFunctions {
 	
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 *  Set up a one-way resource delivery trade schedule. intervaltime is in seconds and
 	 * is how long the system will wait before making the next trad, timesToDo is how many
 	 * times you wish to have the trade executed, and tid1 and tid2 is your town ID and the player
-	 * you wish to trade with's town ID, respectively.
+	 * you wish to trade with's town coordinates, respectively.
+	 * 	
+	 * @param tid1			the ID of your town
+	 * @param x				the x coordinate of the target town
+	 * @param y				the y coordinate of the target town
+	 * @param m				the amount of metal to send
+	 * @param t				the amount of timber to send
+	 * @param mm			the amount of crystla to send
+	 * @param f				the amount of food to send
+	 * @param intervaltime	the amount of time, in seconds, between each trade
+	 * @param timesToDo		the number of times this trade should be performed
+	 * 
+	 * @return True, if the Trade Schedule was set up.  False otherwise.
+	 * 
+	 * @see UserTradeSchedule
+	 * @see USerTrade
 	 */
-		
 	public boolean setUpTradeSchedule(int tid1, int x, int y, int m, int t, int mm, int f,int intervaltime,int timesToDo) {
 		if(prog&&!p.isTradingAPI()) {
 			setError("You do not have the Trading API!");
@@ -1757,13 +1847,27 @@ public class BattlehardFunctions {
 		
 		return setUpTradeSchedule(tid1,town.townID,m,t,mm,f,intervaltime,timesToDo);
 	}
+		
 	/**
-	 *  Set up a one-way resource delivery trade schedule. intervaltime is in seconds and
+	 * Set up a one-way resource delivery trade schedule. intervaltime is in seconds and
 	 * is how long the system will wait before making the next trad, timesToDo is how many
 	 * times you wish to have the trade executed, and tid1 and tid2 is your town ID and the player
 	 * you wish to trade with's town ID, respectively.
+	 * 
+	 * @param tid1			the ID of your town
+	 * @param tid2			the ID of the target town
+	 * @param m				the amount of metal to send
+	 * @param t				the amount of timber to send
+	 * @param mm			the amount of crystal to send
+	 * @param f				the amount of food to send
+	 * @param intervaltime	the amount of time between each trade, in seconds
+	 * @param timesToDo		the number of times to perform this trade
+	 * 
+	 * @return True, if the Trade Schedule is set up.  False otherwise.
+	 * 
+	 * @see UserTradeSchedule
+	 * @see UserTrade
 	 */
-		
 	public boolean setUpTradeSchedule(int tid1, int tid2, int m, int t, int mm, int f,int intervaltime,int timesToDo) {
 		if(prog&&!p.isTradingAPI()) {
 			setError("You do not have the Trading API!");
@@ -1777,14 +1881,16 @@ public class BattlehardFunctions {
 		}
 		// first find the cities.
 		boolean twoway=false;
-		int i = 0; Player pl; Town t1=g.findTown(tid1); Town t2=g.findTown(tid2); 
-	
+		int i = 0; Town t1=g.findTown(tid1); Town t2=g.findTown(tid2); 
 	
 		if(t1.getPlayer().ID!=p.ID) {
 			setError("This is not your town!");
 			return false;
 		}
-		if(t2.getPlayer()==null) return false;
+		if(t2.getPlayer()==null) {
+			setError("Invalid target.");
+			return false;
+		}
 		
 		// okay now we have towns.
 		
@@ -1793,28 +1899,36 @@ public class BattlehardFunctions {
 			setError("Illegal interval time or timesToDo amount.");
 			return false;
 		}
+
+		//make sure neather town is blockaded by a hostile force
+		if(t1.getBlockades().size()>0) {
+			for(Raid r : t1.getBlockades()) {
+				//first we check if the target player is allied to the blockading player
+				if(!r.getTown1().getPlayer().isAllied(t2.getPlayer())) {
+					setError("Your town is blockaded by a hostile force.");
+					return false;
+				}
+			}
+		}
+		if(t2.getBlockades().size()>0) {
+			for(Raid r : t1.getBlockades()) {
+				//then we check if the the target player is blockaded by an ally of the origin player
+				if(!r.getTown1().getPlayer().isAllied(p)) {
+					setError("Target town is blockaded by a hostile force.");
+					return false;
+				}
+			}
+		}
 		
 		// just checking numbers.
 		
 		i = 0;
 		int t1Slots=0;
 		// do they both have trade centers?
-	/*	try {
-			UberStatement stmt = g.con.createStatement();
-			ResultSet rs = stmt.executeQuery("select sum(lvl) from bldg where tid = " + tid1 + " and name = 'Trade Center';");
-			if(rs.next()) t1Slots=rs.getInt(1);
-			
-			rs.close();
-			rs = stmt.executeQuery("select count(*) from tradeschedule where tid1 = " + tid1 + " and finished = false;");
-			if(rs.next()) t1Slots -= rs.getInt(1);
-			rs.close();
-			stmt.close();
-		} catch(SQLException exc) { exc.printStackTrace(); } */
-		boolean keep=false;
-		if(prog) keep=true;
+		boolean keep=!!prog;
 		prog=false;
 		UserBuilding b[] = getUserBuildings(tid1,"Trade Center");
-		if(keep) prog=true;
+		prog=!!keep;
 		while(i<b.length) {
 			t1Slots+=b[i].getLvl();
 			i++;
@@ -1832,19 +1946,23 @@ public class BattlehardFunctions {
 		// it's a one way-er then it doesn't really matter so much!
 		//	public boolean sendMessage(int pid_to, int pid_from, String body, String subject, int msg_type) {
 
+
+		@SuppressWarnings("unused")
 		TradeSchedule ts = new TradeSchedule(t1,  t2,  m,  t,  mm,  f,  0, 0,  0,  0,  intervaltime, timesToDo,  twoway,null,false);
 	
-		
-		
 		return true;
 		
 		
 	}
 	/**
 	 * UI Implemented
+	 * <br/><br/>
 	 * Returns how many traders are required to carry a specific resource from a specific town.
-	 * @param resource
-	 * @return
+	 * 
+	 * @param resource	the amount of resources to carry
+	 * @param tid		the ID of the town you're sending from
+	 * 
+	 * @return the number of traders needed to carry resource resources.
 	 */
 	public int howManyTraders(long resource, int tid) {
 		// CONNECTED TO GOD'S SENDTRADEIFPOSSIBLE!
@@ -2149,10 +2267,6 @@ public class BattlehardFunctions {
 		// so moderators can't pull off admin actions.
 		if(checkLP()) {
 			return true;
-		}
-		if(!p.isLeague()){
-
-			return true; // If a normal player, always return true.
 		}
 		if(!((League) p).canMakeModChanges(pid)) {
 
@@ -2697,30 +2811,34 @@ public class BattlehardFunctions {
 		
 		}*/
 		/**
+		 * THIS METHOD IS NOT COMPLETE!
+		 * 
 		 * This is the combat sim. To use it, send in an array of names for the def and off. An example would be ["Pillager","Seeker"].
 		 * Then, make an integer array of the same size and send in the sizes of each unit. You can do the same with buildings in each town,
 		 * since buildings contribute to combat as well:
 		 * ["Command Center","Fortification", "Resource Cache", "Resource Cache"], and then you can send in the levels of each one.
-		 * 
+		 * <br/><br/>
 		 * The combat sim will spit out an SR into your SR box.
+		 * 
+		 * @param offAUNames 			an array containing the names of all the units to use on offense.
+		 * @param defAUNames 			an array containing the names of all the units to use on defense.
+		 * @param offAUSizes 			an array containing the sizes of all the units to use on offense.  Should be the same size as offAUNames.
+		 * @param defAUSizes 			an array containing the sizes of all the units to use on defense.  Should be the same size as defAUNames.
+		 * @param offTownBuildings		an array containing the names of buildings to be added to the offender's town.
+		 * @param defTownBuildings		an array containing the names of buildings to be added to the defender's town.
+		 * @param offTownBuildingLevels	an array containing the levels of the buildings in the offender's town.  Should be the same size as offTownBuildings.  
+		 * @param defTownBuildingLevels an array containing the levels of the buildings in the defender's town.  Should be the same size as defTownBuildings.
+		 * @param attackType			the type of attack to send.  See {@link attack(int yourTownID, int enemyx, int enemyy, int[] auAmts, String attackType, String[] target,String name, boolean send) attack} for a list of valid attack types.
+		 * @param target				the buildings to target if this is a bombing run.
+		 * 
+		 * @return False
 		 */
-		public boolean combatSimulator(String offAUNames[], String defAUNames[], int offAUSizes[], int defAUSizes[], String offTownBuildings[], String defTownBuildings[],
-				int offTownBuildingLevels[], int defTownBuildingLevels[], String attackType, String[] target) {
+		public boolean combatSimulator(String[] offAUNames, String[] defAUNames, int[] offAUSizes, 
+				int defAUSizes[], String[] offTownBuildings, String[] defTownBuildings,
+				int[] offTownBuildingLevels, int[] defTownBuildingLevels, String attackType,
+				String[] target) {
 			
-			Town t1 = new Town(0,g);
-			Town t2 = new Town(0,g);
-			t2.townID=2;
-			t1.townID=1;
 			
-			Player p1 = new Player(0,g);
-			Player p2 = new Player(0,g);
-
-			p1.ID=1;
-			p2.ID =2;
-			ArrayList<Town> t1towns = new ArrayList<Town>();
-			ArrayList<Town> t2towns = new ArrayList<Town>();
-			t1towns.add(t1);
-			t2towns.add(t2);
 			int counter=0;
 			if(offTownBuildingLevels.length!=offTownBuildings.length) {
 				setError("Invalid town building arrays!");
@@ -2738,19 +2856,24 @@ public class BattlehardFunctions {
 				setError("Invalid AU arrays!");
 				return false;
 			}
+			
+			Player[] tests = p.generateFakePlayers(2, 1, 0, 0);
+			Town[] towns = new Town[tests.length];
+			for(int i=0;i<towns.length;i++) {
+				towns[i] = tests[i].towns().get(0);
+			}
+			
 			for(String bldg:offTownBuildings) {
-				t1.addBuilding(bldg,counter+4,offTownBuildingLevels[counter],0);
+				towns[0].addBuilding(bldg,counter+4,offTownBuildingLevels[counter],0);
 				counter++;
 			}
 			counter=0;
 			for(String bldg:defTownBuildings) {
-				t1.addBuilding(bldg,counter+4,offTownBuildingLevels[counter],0);
+				towns[1].addBuilding(bldg,counter+4,offTownBuildingLevels[counter],0);
 				counter++;
 			}
 			
-			p1.setTowns(t1towns);
-			p2.setTowns(t2towns);
-			
+			p.deleteFakePlayers(tests);
 			return false;
 			
 		}
@@ -2794,8 +2917,14 @@ public class BattlehardFunctions {
 
 /**
  * UI Implemented.
+ * <br/><br/>
  * Returns the price in a long array for a level upgrade of the building in the lotNum
  * given in the town of the tid given.
+ * 
+ * @param lotNum	the lot number of the building you want the proces for
+ * @param tid		the ID of the town the building is in
+ * 
+ * @returns an array of type long that contains the level up cost of this building 
  */
 
 public long[] returnPrice(int lotNum, int tid) {
@@ -2811,8 +2940,13 @@ public long[] returnPrice(int lotNum, int tid) {
 /**
  * Returns a long array representing the net amount of resources to get to a certain level of building.
  * Great for guestimating.
- * @param lvl
- * @return
+ * 
+ * @param lvl			the level you want an estimate for
+ * @param buildingType	the type of building you want to check against.
+ * 
+ * @return an array containing the net amount of resources required to get from level 0 to lvl for a certain building.
+ * <br/>
+ * long[] {metal, timber, crystal, food}
  */
 	public long[] returnPriceToGetToLevel(int lvl, String buildingType) {
 		if(prog&&!p.isAdvancedBuildingAPI()) {
@@ -2821,7 +2955,7 @@ public long[] returnPrice(int lotNum, int tid) {
 		}
 		int i = 0;
 		// LINKED TO ALL BUILDING PRICES
-		double additive=0;
+		//double additive=0;
 		long[] cost=new long[4];
 		//	public Building(String type, int lotNum, int totalEngineers, double cloudFactor, int engTech) {
 		long[] basecost=Building.getCost(buildingType);
@@ -2845,8 +2979,10 @@ public long[] returnPrice(int lotNum, int tid) {
 /**
  * Returns a number representing the net amount of resources(all lumped) to get to a certain level of building.
  * Great for guestimating.
- * @param lvl
- * @return
+ * 
+ * @param lvl the level you want an estimate for
+ * 
+ * @return the net sum of all resources need to geta building from from level 0 to lvl.
  */
 	public long returnPriceToGetToLevel(int lvl) {
 		if(prog&&!p.isAdvancedBuildingAPI()) {
@@ -2873,10 +3009,15 @@ public long[] returnPrice(int lotNum, int tid) {
 	}
 	
 		/**
-		 * @deprecated
 		 * UI Implemented.
+		 * <br/><br/>
 		 * Returns the price in a long array for a level upgrade of the building in the lotNum
 		 * given in the town of the townName given.
+		 * 
+		 * @param townName	the name of the town the building is in
+		 * @param lotNum	the lot number of the building you want the prices for
+		 * 
+		 * @deprecated Use {@link #returnPrice(int lotNum, int tid)} instead.
 		 */
 	public long[] returnPrice(String townName, int lotNum) {
 		if(prog&&!p.isAdvancedBuildingAPI()) {
@@ -2933,8 +3074,19 @@ public long[] returnPrice(int lotNum, int tid) {
 	/**
 	 * 
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Returns the price in a long array for the number of unitType(may be civilian or military) 
 	 * in the town of the townID given.
+	 * <br/>
+	 * Use of {@link #returnPrice(String unitType, int number, int tid, boolean minus)} is encouraged over this method.
+	 * 
+	 * @param unitType	the type of unit to be purchased
+	 * @param number	the amount of that unit to be purchased
+	 * @param tid		the Id of the town they're to be built in
+	 * 
+	 * @return	an array of type long that contains the prices to purchase number unitType's
+	 * <br/>
+	 * long[] {metal, timber, manmat, food, expMod}
 	 */
 	public long[] returnPrice(String unitType, int number, int tid) {
 		if(prog&&!p.isAdvancedBuildingAPI()) {
@@ -2947,10 +3099,20 @@ public long[] returnPrice(int lotNum, int tid) {
 		
 	}
 		/**
-		 * @deprecated
 		 * UI Implemented.
+		 * <br/><br/>
 		 * Returns the price in a long array for the number of unitType(may be civilian or military) 
 		 * in the town of the townName given.
+		 * 
+		 * @param townName	the name of the town the units will be built in
+		 * @param unitType	the type of unit to be built
+		 * @param number	the amount of that unit to be built.
+		 * 
+		 * @return an array of type long that contains the prices to purchase number unitType's
+		 * <br/>
+		 * long[] {metal, timber, manmat, food, expMod}
+		 * 
+		 * @deprecated Use {@link #returnPrice(String unitType, int number, int tid)} instead.
 		 */
 	public long[] returnPrice(String townName, String unitType, int number) {
 		
@@ -2960,16 +3122,17 @@ public long[] returnPrice(int lotNum, int tid) {
 	/**
 	 * If minus is false, then it gets the price of the next number of soldiers.
 	 * If minus is true, it gets the price of the most recent number made. Example:
-	 * if Minus is false, and you have 100 soldiers, and you ask for the price of 5,
+	 * if minus is false, and you have 100 soldiers, and you ask for the price of 5,
 	 * it gives you the price of the 101st,102nd,103rd,104th,105th soldier summed.
 	 * If minus is true, and you have 100 soldiers, and you ask for the price of 5,
 	 * it gives you the price of the 96th,97th,98th,99th,100th soldier prices summed.
 	 * 
-	 * @param unitType
-	 * @param number
-	 * @param tid
-	 * @param minus
-	 * @return
+	 * @param unitType - String name of the unit
+	 * @param number - Number of units to build
+	 * @param tid - ID of the town they're being built in
+	 * @param minus - if true, gives the price of the last number of units, instead of the next
+	 * 
+	 * @return long[] {metal, timber, manmat, food, expMod}
 	 */
 	public long[] returnPrice(String unitType, int number, int tid, boolean minus) {
 
@@ -3041,12 +3204,12 @@ public long[] returnPrice(int lotNum, int tid) {
 					int totalnumber=number+allCalled;
 					
 					 double factor = totalnumber*(totalnumber+1)/2 - allCalled*(allCalled+1)/2;
-						 cost[0] = (long) Math.round(15*factor);
-				 cost[1] = (long) Math.round(23*factor);
-				 cost[2] = (long) Math.round(12*factor);
-				 cost[3] = Town.getCivvieFoodConsumption(number);
-				 cost[4] = -1; // These are citizens, add one to the population! This doesn't actually do anything the way I programmed it.
-				 return cost;
+					 cost[0] = (long) Math.round(15*factor);
+					 cost[1] = (long) Math.round(23*factor);
+					 cost[2] = (long) Math.round(12*factor);
+					 cost[3] = Town.getCivvieFoodConsumption(number);
+					 cost[4] = -1; // These are citizens, add one to the population! This doesn't actually do anything the way I programmed it.
+					 return cost;
 
 				 
 			} else if(unitType.equals("Scholar")) {
@@ -3173,6 +3336,11 @@ public long[] returnPrice(int lotNum, int tid) {
 	}
 	/**
 	 * Returns true if you have the building type in the town named.
+	 * 
+	 * @param type	the type of building we're checking for.  See {@link UserBuilding} for a list of types.
+	 * @param tid 	the ID of the town to check in
+	 * 
+	 * @return True, if a building of type exists in the town.  False otherwise.
 	 */
 	public boolean haveBldg(String type, int tid) {
 		if(prog&&!p.isAdvancedBuildingAPI()) {
@@ -3184,8 +3352,12 @@ public long[] returnPrice(int lotNum, int tid) {
 		return haveBldg(t.getTownName(),type);
 	}
 		/**
-		 * @deprecated
-		 * Returns true if you have the building type in the town named.
+		 * Returns true if you have the building type in the town townName.
+		 * 
+		 * @param townName	the name of the town to search in
+		 * @param type		the type of building to search for.  See {@link UserBuilding} for a list of types.
+		 * 
+		 * @deprecated Use {@link #haveBldg(String type, int tid)} instead.
 		 */
 	public  boolean haveBldg(String townName, String type) {
 	
@@ -3220,10 +3392,12 @@ public long[] returnPrice(int lotNum, int tid) {
 	}
 	/**
 	 * Returns true if there is a building of that type with that level or greater.
-	 * @param type
-	 * @param lvl
-	 * @param townID
-	 * @return
+	 * 
+	 * @param type		the type of building to look for.  See {@link UserBuilding} for a list of types.
+	 * @param lvl		the minimum level the building must be
+	 * @param townID	the Id of the town to look in
+	 *
+	 * @return True, if a building of type with a level of, at least, lvl is found.  False otherwise.
 	 */
 public  boolean haveBldg(String type, int lvl, int townID) {
 	
@@ -3259,10 +3433,17 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Cancel queue item identified by it's qid in an military production facility identified
 	 * by it's lotNum in a town specified by it's town id, tid.
+	 * 
+	 * @param qid the ID of the queue to cancel
+	 * @param lotNum the lot number the building with the queue is on
+	 * @param tid the ID of the town the building is in
+	 * 
+	 * @return True, if the queue was successfully canceled.  False otherwise.
 	 */
-	public boolean cancelQueueItem(UUID qid, int lotNum, int tid ) {
+	public boolean cancelQueueItem(UUID qid, int lotNum, int tid) {
 		if(prog&&!p.isBuildingAPI()) {
 			setError("You do not have the Advanced Building API!");
 			return false;
@@ -3273,10 +3454,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	
 		/**
-		 * @deprecated
 		 * UI Implemented.
-		 * Cancel queue item identified by it's qid in a military production facility identified
-		 * by it's lotNum in a town specified by it's townName.
+		 * @deprecated Use {@link #cancelQueueItem(UUID qid, int lotNum, int tid)} instead.
 		 */
 	public boolean cancelQueueItem(UUID qid, int lotNum,String townName) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -3399,9 +3578,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Cancel a building level up by naming the slot of the building and the town id.
+	 * 
+	 * @param lotNum the lot number of the building whose level up we're canceling
+	 * @param tid the ID of the town that building is in
+	 * 
+	 * @return True, if the cancelation was successful.  False otherwise.
 	 */
-	public boolean cancelQueueItem(int lotNum, int tid ) {
+	//Why is this method called "cancelQueueItem" anyways?
+	public boolean cancelQueueItem(int lotNum, int tid) {
 		if(prog&&!p.isBuildingAPI()) {
 			setError("You do not have the Advanced Building API!");
 			return false;
@@ -3412,9 +3598,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 
 		/**
-		 * @deprecated
 		 * UI Implemented.
-		 * Cancel a building level up by naming the slot of the building and the town name.
+		 * @deprecated Use {@link #cancelQueueItem(int lotNum, int tid)} instead.
 		 */
 	public boolean cancelQueueItem(int slotNum, String townName) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -3427,7 +3612,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		// if I just decrease lvlUps...if lvlUps is one, then the most recent tick thing has to be set to 0,
 		// otherwise, is okay. If is lvl 0, then we have to remove from server entirely.
 		Town holdT = g.findTown(townName,p);
-		boolean found=false;
+		//boolean found=false;
 		if(!checkMP(holdT.townID)) return false;
 
 		if(holdT.getPlayer().ID!=p.ID) {
@@ -3435,7 +3620,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 			
 		}
-		int bid = 0;
+		//int bid = 0;
 /*
 		try {
 			UberStatement stmt = g.con.createStatement();
@@ -3476,7 +3661,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				 synchronized(res) {
 				 do {
 			
-					 res[k]+=.9*b.getCost(b.getType())[k]*Math.pow(lvl+lvlUps+1,2+.03*(lvl+lvlUps+1));// NNOOOOOOOOO!!!!
+					 res[k]+=.9*Building.getCost(b.getType())[k]*Math.pow(lvl+lvlUps+1,2+.03*(lvl+lvlUps+1));// NNOOOOOOOOO!!!!
 					 k++; 
 				 } while(k<res.length);
 				 }
@@ -3593,8 +3778,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * Causes the current thread to stall and wait.
-	 * @param s
-	 * @return
+	 * 
+	 * @param s the amount of time, in seconds, the thread should wait.
+	 * 
+	 * @return True, if the thread is waiting.  False otherwise.
+	 * 
+	 * @deprecated Only used with older versions of the Revelations interface.
+	 * Please migrate to Revelations 2.0 if you have not already done so. 
 	 */
 	public boolean wait(int s) {
 		pushLog("wait(" + s + ");");
@@ -3622,9 +3812,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	/**
 	 * 
 	 * UI Implemented.
-	 * Fairly obvious. and not very friendly method.
+	 * <br/><br/>
+	 * Completely destructs the target building.
+	 * 
+	 * @param lotNum the lot number of the building to be demolished
+	 * @param tid	 the ID of the town the building is in
+	 * 
+	 * @return True, if the building has begun destructing.  False otherwise.
 	 */
-	public boolean demolish(int lotNum, int tid ) {
+	public boolean demolish(int lotNum, int tid) {
 		if(prog&&!p.isBuildingAPI()) {
 			setError("You do not have the Building API!");
 			return false;
@@ -3635,9 +3831,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 
 		/**
-		 * @deprecated
 		 * UI Implemented.
-		 * Fairly obvious. and not very friendly method.
+		 * @deprecated Use {@link #demolish(int lotNum, int tid)} instead.
 		 */
 	public boolean demolish(int lotNum, String townName) {
 
@@ -3727,8 +3922,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Returns true if you can buy the number of units(can be military or civilian) in the building
 	 * labeled by slotNum(or lotNum, if you prefer) in the town designated by the town id.
+	 * 
+	 * @param unitType the name of the unit to be built.  IE "Engineer"
+	 * @param number the amount of that unit to build
+	 * @param lotNum the lot number of the building they're to be built in
+	 * @param tid the ID of the town the building is in
+	 * 
+	 * @return True, if the units can be built.  False otherwise.
 	 */
 	public boolean canBuy(String unitType, int number, int lotNum, int tid) {
 		if(prog&&!p.isAdvancedBuildingAPI()) {
@@ -3741,11 +3944,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	}
 	
-		/**
-		 * @deprecated
+		/**s
 		 * UI Implemented.
-		 * Returns true if you can buy the number of units(can be military or civilian) in the building
-		 * labeled by slotNum(or lotNum, if you prefer) in the town designated by townName.
+		 * @deprecated Use {@link #canBuy(String unitType, int number, int lotNum, int tid)} instead.
 		 */
 	public boolean canBuy(String townName, String unit, int number, int slotNum) {
 		if(prog&&!p.isAdvancedBuildingAPI()) {
@@ -4031,8 +4232,17 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Returns true if at some building in the town designated by the town id,
 	 * you can build the number of units specified. Units can be military or civilian.
+	 * <br/><br/>
+	 * Use of {@link #canBuy(String unitType, int number, int lotNum, int tid)} is encouraged in place of this method.
+	 * 
+	 * @param unitType the name of the unit to be built.  IE "Engineer"
+	 * @param number the amount of that unit to build
+	 * @param tid the ID of the town to build them in
+	 * 
+	 * @return True, if they can be build.  False otherwise.
 	 */
 	public boolean canBuy(String unitType, int number, int tid) {
 		if(prog&&!p.isAdvancedBuildingAPI()) {
@@ -4046,10 +4256,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	
 		/**
-		 * @deprecated
 		 * UI Implemented.
-		 * Returns true if at some building in the town designated by townName,
-		 * you can build the number of units specified. Units can be military or civilian.
+		 * 
+		 * @deprecated Use {@link #canBuy(String unitType, int number, int tid)} instead.
 		 */
 	public boolean canBuy(String townName, String unit, int number) {
 		if(prog&&!p.isAdvancedBuildingAPI()) {
@@ -4139,8 +4348,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 }
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Builds the number of unit type specified(combat only) in the town designated by
 	 * the town id and in the military production facility designated by it's lotNum.
+	 * 
+	 * @param type 		the name of the unit you want to build
+	 * @param number 	the amount of units to build
+	 * @param lotnum 	the lot number of the building that will construct these units
+	 * @param tid 		the ID of the town you're building in
+	 * 
+	 * @return True, if construction has begun.  False otherwise.
 	 */	
 	public boolean buildCombatUnit(String type, int number, int lotNum, int tid) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -4154,10 +4371,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	}
 		/**
-		 * @deprecated
 		 * UI Implemented.
+		 * <br/><br/>
 		 * Builds the number of unit type specified(combat only) in the town designated by
 		 * townName and in the military production facility designated by it's lotNum.
+		 * 
+		 * @deprecated Use {@link #buildCombatUnit(String type, int number, int lotNum, int tid)} instead.
 		 */
 	public boolean buildCombatUnit(int lotNum, String townName, int number, String type) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -4348,9 +4567,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
-	 * Returns an array of UserTowns with minimal info other than name, place
+	 * <br/><br/>
+	 * Returns an array of UserTowns representing the towns where you've sent support.
+	 * These UserTownser have minimal info other than name, place
 	 * and support units attached.
-	 * @return
+	 * 
+	 * @param tid	the ID of the town where the support originated.
+	 * 
+	 * @return an array of {@link UserTown UserTowns} with the info about the support units you have there.
 	 */
 	public UserTown[] getUserTownsWithSupportAbroad(int tid) {
 		//[{tid : int, townName : string, AU : int, size : int}]
@@ -4393,9 +4617,6 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				
 				if(a.getSupport()>0&&a.getOriginalTID()==tid) {
 					
-						
-						int z = 0;
-						
 						//public UserAttackUnit(String name, int slot, int originalPlayerID, int originalSlot,
 					//	int originalTID,
 					//	int support, String originalPlayer) {
@@ -4480,17 +4701,20 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return r;
 	}
 	/**
-	 * UI Implemented. Kills the number of units of the type you specify
+	 * UI Implemented. 
+	 * <br/><br/>
+	 * Kills the number of units of the type you specify
 	 * in the townID you specify. Recommended that you see a psychiatrist first
 	 * before pursuing such drastic actions.
 	 * 
-	 * No, you do not get a refund. Can you get metal and timber back from a dead body? No. It's
-	 * a dead body. Sicko.
+	 * You do get some resources back from killed units based on the levels of your current
+	 * Recycling Yards.
 	 * 
-	 * @param type
-	 * @param number
-	 * @param tid
-	 * @return
+	 * @param type		the type of unit to kill
+	 * @param number	the amount of units to be killed
+	 * @param tid		the ID of the town the units are in
+	 * 
+	 * @return True, if the units were killed.  False otherwise.
 	 */
 	public boolean killMyself(String type, int number, int tid) {
 		if(prog&&!p.isAttackAPI()) {
@@ -4772,417 +4996,77 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	public double getGameClockFactor() {
 		return GodGenerator.gameClockFactor;
 	}
+	
 	/**
 	 * UI Implemented.
-	 * Returns true if you can send an attack with the auAmts specified, attackType chosen, and bomb target designated(ignored
-	 * if not a bombing run). auAmts is an array of integers of size six (or greater if you have support units, just
-	 * add the number of different support units there) and each entry represents the amount of that unit you wish sent.
+	 * <br/><br/>
+	 * Sends a mission, or checks if a mission could be sent with the auAmts specified, attackType chosen, and bomb target designated(ignored if not a bombing run).
+	 * <br/><br/>
+	 * Note: If you attack a city with an Airship above it and that city is an ID city, you will hit the Airship.
+	 * If you hit a player-owned city with an Airship above it, you will hit the city but can kill the Airship above it
+	 * if you wipe all of it's troops out.
+	 * <br/><br/>
+	 * If you aim at an Airship directly, you may not commit Sieges or Glassings on it.
+	 * <br/><br/>
+	 * valid attackTypes:
+	 * <ul>
+	 * <li>attack</li>
+	 * <li>siege</li>
+	 * <li>glass</li>
+	 * <li>strafe</li>
+	 * <li>invasion</li>
+	 * <li>scout</li>
+	 * <li>offsupport</li>
+	 * <li>support</li>
+	 * <li>debris</li>
+	 * <li>dig</li>
+	 * <li>excavation</li>
+	 * <li>blockade</li>
+	 * </ul>
+	 *
+	 * @param yourTownID  	ID of the town you're sending from.
+	 * @param enemyx  		The x coordinate of the target town.
+	 * @param enemyy 	 	The y coordinate of the target town.
+	 * @param auAmts  		The amount of units to send.  Should be of equal in length to your number of AU + any support units you wish to send.
+	 * @param attackType	The type of mission to send.  See above for valid types.
+	 * @param target  		An array of building names to target, if bombing.  Ex. {"Command Center","Trade Center"}
+	 * @param name  		The name of this mission.  This is purely cosmetic.
+	 * @param send  		If true, attack() tries to send the mission.  If false, attack() checks if this mission could be sent.
 	 * 
-	 * valid attacktypes:
-	 * attack
-	 * siege
-	 * glass
-	 * strafe
-	 * invasion
-	 * scout
-	 * offsupport
-	 * support
-	 * debris
-	 * dig(this type can only be sent if you also have the dig api!)
-
-		 For the target string array, just send in an array of building names, like {"Command Center", "Storage Yard"},
-		 and your bombing mission will focus on buildings of that type.
+	 * @return True, if the mission was, or could be sent.  False otherwise.
 	 */
-	public boolean canSendAttack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target, String name) {
-		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")&&!QuestListener.partOfQuest(p,"BQ8")) {
+	public boolean attack(int yourTownID, int enemyx, int enemyy, int[] auAmts, String attackType, String[] target,String name, boolean send) {
+		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")) {
 			setError("You do not have the Attack API!");
 			return false;
 		}
-		Town t = g.findTown(yourTownID);
-		if(t.getPlayer().ID!=p.ID) return false;
-		return canSendAttack(t.getTownName(),  enemyx,  enemyy,  auAmts,  attackType,  target,  name);
 		
-	}
-	
-		/**
-		 * @deprecated
-		 * UI Implemented.
-		 * Returns true if you can send an attack with the auAmts specified, attackType chosen, and bomb target designated(ignored
-		 * if not a bombing run). auAmts is an array of integers of size six (or greater if you have support units, just
-		 * add the number of different support units there) and each entry represents the amount of that unit you wish sent.
+		if(target==null) target = new String[0];
+		pushLog("attack(" +yourTownID+","+enemyx+","+  enemyy +","+  PlayerScript.toJSONString(auAmts) +","+  attackType+","+  PlayerScript.toJSONString(target)+","+ name+","+send+");" );
 		
-		 * valid attacktypes:
-		 * attack
-		 * siege
-		 * glass
-		 * strafe
-		 * invasion
-		 * scout
-		 * offsupport
-		 * support
-		 * debris
-		 * dig(this type can only be sent if you also have the dig api!)
-		 * 
-		 For the target string array, just send in an array of building names, like {"Command Center", "Storage Yard"},
-		 and your bombing mission will focus on buildings of that type.
-			 */
-	public boolean canSendAttack(String yourTownName, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
-		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")&&!QuestListener.partOfQuest(p,"BQ8")) {
-			setError("You do not have the Attack API!");
-			return false;
-		}
-		int holdNumbers[] = new int[auAmts.length]; // Should only have six types of unit, therefore
-		// attack method can be easily overloaded by making it so you can do
-		// attack(x,y,unit1,unit2) or add unit 3 on there...
-		int i = 0;
-		while(i<auAmts.length) {
-			holdNumbers[i]=auAmts[i];
-			i++;
-		}
-		// Gotta get the town first.
-		Town t1 = g.findTown(yourTownName,p);
-		if(!checkMP(t1.townID)) return false;
-
-		if(t1.getPlayer().ID!=p.ID) {
-			setError("Not your town!");
-			return false;
-		}
-		
-		if(!t1.slotsFree()) {
-			setError("No slots. Upgrade Command Center!");
-			return false; // no slots, no attacks, bitch.
-		}
-		
-		int x = enemyx;
-		
-		int y = enemyy;
-		int t1x = t1.getX();
-		int t1y = t1.getY();
-
-		int k = 0; // to make sure can only go up to six.
-				
-		 AttackUnit hau; int totalsize=0;
-		boolean zeroes = true; boolean negatives = false;
-		ArrayList<AttackUnit> t1au = t1.getAu(); int limit = holdNumbers.length;
-		if(attackType.equals("excavation")) limit--; // last guy is engineers number.
-		while(k<limit) {
-			
-
-			// Next we need to check if these numbers go over the max units in
-			// the town. If they do, send the max units instead.
-				  hau =t1au.get(k);
-				  if((attackType.equals("dig")||attackType.contains("support")||attackType.equals("excavation"))
-						  &&hau.getSupport()>0&&holdNumbers[k]>0) {
-					  setError("You cannot send other players' support units on supporting, dig, or excavation missions!");
-					  return false;
-				  }
-				if(hau.getSize()<holdNumbers[k]) holdNumbers[k]=hau.getSize();
-				 if(holdNumbers[k]>0) zeroes=false; // needs to be after the size-mod if overflowing.
-				if(holdNumbers[k]<0) negatives = true; // No less than zero crap..
-				 // Simple as cake.
-			//	holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getTrueSpeed(t1.getPlayer()));
-				totalsize+=holdNumbers[k]*hau.getExpmod();
-			
-			k++;
-		}
-	
-		if(zeroes&&((!attackType.equals("dig")&&!attackType.equals("excavation"))
-				||(holdNumbers[holdNumbers.length-1]==0&&(attackType.equals("dig")||attackType.equals("excavation"))))) {
-			setError("Can't send an empty raid.");
-			return false; // not sending a raid of nada.
-		}
-		
-		if(negatives) {
-			setError("No such thing as negative units.");
-			return false;
-		}
-		Town Town2 = g.findTown(x,y);
-
-		boolean Genocide = false; boolean Bomb = false; int support = 0; int scout = 0;
-		boolean invade = false;  boolean debris = false; boolean dig = false;
-		if(attackType.equals("invasion")&&t1.isZeppelin()) {
-			setError("You cannot invade with an Airship!");
-			return false;
-		}
-		if(attackType.equals("attack")) { } // alter if UberStatement for offsupporters down below to include
-		// invasion and scouting also!
-		else if(attackType.equals("genocide")||attackType.equals("siege")) Genocide = true; 
-		else if(attackType.equals("debris"))debris =true;
-		else if(attackType.equals("strafe")) { 
-			
-			/*
-				int z = 0; boolean foundBomber=false;
-				while(z<t1au.size()) {
-					hau = t1au.get(z);
-					if(hau.getType()==4&&holdNumbers.length>z&&holdNumbers[z]>0) {
-						foundBomber=true;
-						break;
-					}
-					z++;
-				}
-				if(!foundBomber) {
-					setError("You must send some bombers on a bombing mission type!");
-					return false;
-				}*/
-				Bomb = true; 
-
-		}
-		else if(attackType.equals("glass")) { 
-			int z = 0; boolean foundBomber=false;
-			while(z<t1au.size()) {
-				hau = t1au.get(z);
-				if(hau.getType()==4&&holdNumbers.length>z&&holdNumbers[z]>0) {
-					foundBomber=true;
-					break;
-				}
-				z++;
-			}
-			if(!foundBomber) {
-				setError("You must send some bombers on a bombing mission type!");
-				return false;
-			}
-			Genocide = true; Bomb = true; 
-			
-		}
-		else if(attackType.equals("support")) {support = 1;}
-		else if(attackType.equals("dig")||attackType.equals("excavation")) {support = 1; dig = true;
-			int z=0;
-			UserBuilding b[];
-			if(attackType.equals("excavation"))
-				b= getUserBuildings(t1.townID, "Command Center");
-			else
-			b= getUserBuildings(t1.townID, "Institute");
-			int totalScholars=0;
-			while(z<b.length) {
-				totalScholars+=b[z].getPeopleInside();
-				z++;
-			}
-			int req = GodGenerator.digScholarRequirement;
-			if(attackType.equals("excavation")) req = holdNumbers[holdNumbers.length-1];
-			if(totalScholars<req&&!(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian"))) {
-				if(attackType.equals("excavation"))
-					setError("You do not have enough Engineers!");
-				else
-				setError("You do not have enough Scholars!");
-				return false;
-			}
-			
-		}
-		else if(attackType.equals("offsupport")) { support=2;}
-		else if(attackType.equals("scout")) { scout = 1; }
-		else if(attackType.equals("invasion")&&(p.getTownTech()-p.towns().size())>0) {
-			if(Town2.isResourceOutcropping()) {
-				setError("You cannot invade a Resource Outcropping!");
-				return false;
-			}
-			 int z = 0; int aggregate=0; 
-			 /*
-				try {
-					UberStatement stmt = g.con.createStatement();
-					ResultSet rs = stmt.executeQuery("select sum(lvl) from bldg where tid = " + t1.townID + " and name = 'Command Center';");
-					if(rs.next()) aggregate = rs.getInt(1);
-					rs.close();
-					stmt.close();
-				} catch(SQLException exc) { exc.printStackTrace(); }*/
-
-			 ArrayList<Building> b = t1.bldg();
-							 while(z<b.size()) {
-								 if(b.get(z).getType().equals("Command Center"))
-								 aggregate+=b.get(z).getLvl();
-								 z++;
-							 }
-			 
-				aggregate+=2;
-			 double distance = Math.sqrt((x-t1x)*(x-t1x) + (y-t1y)*(y-t1y));
-			 if(distance>aggregate*3*(1)) {
-				 setError(" You can only invade " + ((aggregate*3)*(1)) + " spaces out. Level up your comms center.");
-
-				 return false;
-			 }
-			 
-			invade = true; }
-		// don't want players invading when townTech <= to town size!
-		else {
-			setError("Invalid attack type.");
-			return false; // if they don't get the code right, screw 'em.
-		}
-		
-		
-
-		if(Town2.townID==0) {
-			setError("Town doesn't exist!");
-			return false;
-		}
-		if(dig&&Town2.getPlayer().ID!=5){
-			setError("You must dig in an Id town!");
-			return false;
-		}
-		if(attackType.equals("excavation")&&!Town2.isResourceOutcropping()) {
-			
-			setError("You can only excavate in a Resource Outcropping!");
-			return false;
-		}
-		if(Town2.getX()==t1.getX()&&Town2.getY()==t1.getY()&&attackType.contains("support")) {
-			// This means zeppelin is directly overhead. 
-			Town possZepp = g.findZeppelin(x,y);
-			if(possZepp.townID!=0) {
-				// this means your zeppelin is just overhead.
-				Town2=possZepp; // You probably mean to support it!
-			}
-		}
-		if(Town2.isZeppelin()&&(attackType.equals("genocide")||attackType.equals("siege")||attackType.equals("strafe")||
-				attackType.equals("invasion")||attackType.equals("glass"))) {
-			setError("You can only attack, support, offsupport, or scout Airships!");
-			return false;
-			
-		}
-		
-		if(!t1.getPlayer().isQuest()&&(t1.getPlayer().getPlayedTicks())>(48*3600/GodGenerator.gameClockFactor)
-				&&(Town2.getPlayer().getPlayedTicks())<(48*3600.0/GodGenerator.gameClockFactor)&&
-				Town2.getPlayer().ID!=5&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=t1.getPlayer().ID&&!debris) {
-			// quests can attack any time...
-			setError("NOOB PROTECTION!");
-			return false;
-			
-		} else if((t1.getPlayer().getPlayedTicks())<(48*3600.0/GodGenerator.gameClockFactor)
-				&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=5&&!debris
-				&&(Town2.getPlayer().getPlayedTicks())>(48*3600/GodGenerator.gameClockFactor)) {
-			
-			// If you are under noob protection and you are attacking a player that is not a quest and not Id,
-			// then you lose your noob protection.
-			
-		//	t1.getPlayer().playedTicks=(int) Math.round(48*3600.0/GodGenerator.gameClockFactor);
-		}
-		if(Town2 == null) {
-			setError("Bad town.");
-			return false;
-		}
 		if(name.contains("'")) {
 			setError("God hates apostrophes.");
 			return false;
 		}
 		
-		k = 0;
-
-		ArrayList<AttackUnit> au = new ArrayList<AttackUnit>();
-		
-		k = 0; AttackUnit addThis; 
-		while(k<limit) { // making sure it satisfies  reqs here is all.
-			// if we combined this loop then units would be lost if later in the loop there was an
-			// error found. If the user only sends his own aus, he won't address supp aus in his array.
-			// so this loop is set up to either goto the holdnumbers max. If
-			// not, then index out of bounds on holdnumbers occurs.
-				 addThis = t1au.get(k).returnCopy();
-				
-				addThis.setSize(holdNumbers[k]);
-	
-				if(addThis.getSupport()>0&&addThis.getOriginalPlayer().ID!=p.ID&&support>0&&addThis.getSize()>0) return false; 
-				// You cannot send another player's unit to another location as
-				// support. See, since support is >0 this is a supporting run, and you can't move other player's supporting
-				// units(foreign aus identified by au.support>0) from their original destination protection place.
-				if(addThis.getSupport()==1&&addThis.getSize()>0){
-					setError("Not an offensive support unit.");
-					return false;
-				}
-				// If this is a support unit, but it's not an offensive one(i.e. support=2), then this
-				// user cannot send it anywhere.
-				if(scout==1&&addThis.getSize()>0&&addThis.getType()!=1) {
-					setError("Can't send non-soldiers on scouting missions.");
-					return false; 
-				}
-			
-			// if this happens to be a scouting mission, and you are sending some of this unit type,
-			// and it is NOT a soldier unit, then please, go away!
-			k++;
-		}
-		
-		return true;
-	}
-	/**
-	 * UI Implemented.
-	 * Sends an attack with the auAmts specified, attackType chosen, and bomb target designated(ignored
-	 * if not a bombing run). auAmts is an array of integers of size six (or greater if you have support units, just
-	 * add the number of different support units there) and each entry represents the amount of that unit you wish sent.
-	 * 
-	 * valid attacktypes:
-	 * attack
-	 * siege
-	 * glass
-	 * strafe
-	 * invasion
-	 * scout
-	 * offsupport
-	 * support
-	 * debris
-	 * dig
-	 * excavation
-	 *
-		 For the target string array, just send in an array of building names, like {"Command Center", "Storage Yard"},
-		 and your bombing mission will focus on buildings of that type.
-	 */
-	public boolean attack(int yourTownID, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
-		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")&&!QuestListener.partOfQuest(p,"BQ8")) {
-			setError("You do not have the Attack API!");
-			return false;
-		}
-		pushLog("attack(" +yourTownID+","+enemyx+","+  enemyy +","+  PlayerScript.toJSONString(auAmts) +","+  attackType+","+  PlayerScript.toJSONString(target)+","+ name+");" );
-		Town t = g.findTown(yourTownID);
-		if(t.getPlayer().ID!=p.ID) return false;
-		return attack(t.getTownName(),  enemyx,  enemyy,  auAmts,  attackType,  target,name);
-		
-	}
-		/**
-		 * @deprecated
-		 * UI Implemented.
-		 * Sends an attack with the auAmts specified, attackType chosen, and bomb target designated(ignored
-		 * if not a bombing run). auAmts is an array of integers of size six (or greater if you have support units, just
-		 * add the number of different support units there) and each entry represents the amount of that unit you wish sent.
-		 *
-		 *Note: If you attack a city with an Airship above it and that city is an ID city, you will hit the Airship.
-		 *If you hit a player-owned city with an Airship above it, you will hit the city but can kill the Airship above it
-		 *if you wipe all of it's troops out.
-		 *
-		 *If you aim at an Airship directly, you may not commit Sieges, Glassings, or Strafes on it.
-		 *
-		 *BLIMPIE DON'T TAKE NO PRISONERS!
-		 *
-		 * valid attacktypes:
-		 * attack
-		 * siege
-		 * glass
-		 * strafe
-		 * invasion
-		 * scout
-		 * offsupport
-		 * support
-		 * debris
-		 * dig
-		 * excavation
-		 * 
-		 * 
-		 For the target string array, just send in an array of building names, like {"Command Center", "Storage Yard"},
-		 and your bombing mission will focus on buildings of that type.
-		 * 	 */
-	public boolean attack(String yourTownName, int enemyx, int enemyy, int auAmts[], String attackType, String[] target,String name) {
-		// So if you are part of RQ3-5 or BQ8, you should get through no matter what.
-		// Get through = RQ3 + RQ4 + RQ5 + BQ8. Then not getting through is ! that,
-		// 
-		
-		if(target==null) target = new String[0];
-		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")&&!QuestListener.partOfQuest(p,"BQ8")) {
-			setError("You do not have the Attack API!");
-			return false;
-		}
-		pushLog("attack(" +yourTownName+","+enemyx+","+  enemyy +","+  PlayerScript.toJSONString(auAmts) +","+  attackType+","+  PlayerScript.toJSONString(target)+","+ name+");" );
-		int holdNumbers[] = auAmts; // Should only have six types of unit, therefore
-		// attack method can be easily overloaded by making it so you can do
-		// attack(x,y,unit1,unit2) or add unit 3 on there...
+		int holdNumbers[] = auAmts;
 		
 		// Gotta get the town first.
-		Town t1 = g.findTown(yourTownName,p);
-		if(!checkMP(t1.townID)) return false;
+		Town t1 = g.findTown(yourTownID);
+		Player t1p = t1.getPlayer();
+		PrintWriter out = t1p.God.out;
 
-		if(t1.getPlayer().ID!=p.ID) {
+		if(attackType.equals("invasion")&&t1.isZeppelin()) {
+			setError("You cannot invade with an Airship!");
+			return false;
+		}
+		
+		if(!checkMP(t1.townID)) {
+			setError("Insufficient permissions.");
+			return false;
+		}
+
+		if(t1p.ID!=p.ID) {
 			setError("Not your town!");
 			return false;
 		}
@@ -5199,25 +5083,25 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 		int k = 0; // to make sure can only go up to six.
 				
-		 AttackUnit hau; int totalsize=0;
-		boolean zeroes = true; boolean negatives = false;
-		ArrayList<AttackUnit> t1au = t1.getAu(); int limit = holdNumbers.length;
+		AttackUnit hau; int totalsize=0, limit = holdNumbers.length;
+		boolean zeroes = true, negatives = false;
+		ArrayList<AttackUnit> t1au = t1.getAu();
 		if(attackType.equals("excavation")) limit--;
 		while(k<limit) {
 			
-
 			// Next we need to check if these numbers go over the max units in
 			// the town. If they do, send the max units instead.
 			if(k<t1au.size()) {
 				  hau =t1au.get(k);
-				  if((attackType.equals("dig")||attackType.contains("support")||attackType.equals("excavation"))
+				  //System.out.println("Checking au support = "+hau.getSupport());
+				  if((attackType.equals("dig")||attackType.contains("support")||attackType.equals("excavation")||attackType.equals("blockade"))
 						  &&hau.getSupport()>0&&holdNumbers[k]>0) {
-					  setError("You cannot send other players' support units on supporting, dig, or excavation missions!");
+					  setError("You cannot send other players' support units on supporting, dig, excavation, or blockade missions!");
 					  return false;
 				  }
 				if(hau.getSize()<holdNumbers[k]) holdNumbers[k]=hau.getSize();
-				 if(holdNumbers[k]>0) zeroes=false; // needs to be after the size-mod if overflowing.
-				if(holdNumbers[k]<0) negatives = true; // No less than zero crap..
+				if(holdNumbers[k]>0) zeroes=false; // needs to be after the size-mod if overflowing.
+				if(holdNumbers[k]<0) holdNumbers[k]=0; // No less than zero crap..
 				 // Simple as cake.
 			//	holdLowSpeed+=(holdNumbers[k]*hau.getExpmod()*hau.getTrueSpeed(t1.getPlayer()));
 				totalsize+=holdNumbers[k]*hau.getExpmod();
@@ -5226,75 +5110,62 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			k++;
 		}
 		
-		if(zeroes&&((!attackType.equals("dig")&&!attackType.equals("excavation"))
-				||(holdNumbers[holdNumbers.length-1]==0&&(attackType.equals("dig")||attackType.equals("excavation"))))) {
+		if(zeroes&&(!(attackType.equals("dig")||attackType.equals("excavation"))||holdNumbers[holdNumbers.length-1]==0)) {
 			setError("Can't send an empty raid.");
 			return false; // not sending a raid of nada.
 		}
-		if(negatives) {
+		/*if(negatives) {
 			setError("No such thing as negative units.");
 			return false;
-		}
+		}*/
 		Town Town2 = g.findTown(x,y); // findTown auto detects the town at the x,y, not the Zeppelin, if there is one.
 
-		boolean Genocide = false; boolean Bomb = false; int support = 0; int scout = 0;
-		boolean invade = false;  boolean debris = false; boolean dig=false; int digAmt=0;
-		if(attackType.equals("invasion")&&t1.isZeppelin()) {
-			setError("You cannot invade with an Airship!");
+		if(Town2 == null) {
+			setError("Could not find the town!");
 			return false;
 		}
+		
+		boolean Genocide = false, Bomb = false, invade = false, debris = false, dig=false;
+		int support = 0, scout = 0, digAmt=0;
 		if(attackType.equals("attack")) { } // alter if UberStatement for offsupporters down below to include
 		// invasion and scouting also!
 		else if(attackType.equals("genocide")||attackType.equals("siege")) Genocide = true; 
 		else if(attackType.equals("debris")) debris = true;
-		else if(attackType.equals("strafe")) { 
-			
-			
-			/*	int z = 0; boolean foundBomber=false;
-				while(z<t1au.size()) {
-					hau = t1au.get(z);
-					if(hau.getType()==4&&holdNumbers.length>z&&holdNumbers[z]>0) {
-						foundBomber=true;
-						break;
-					}
-					z++;
-				}
-				if(!foundBomber) {
-					setError("You must send some bombers on a bombing mission type!");
-					return false;
-				}*/
-				Bomb = true; 
-
+		else if(attackType.equals("strafe")) {	
+			Bomb = true;
 		}
-		else if(attackType.equals("glass")) { 
-			int z = 0; boolean foundBomber=false;
-			while(z<t1au.size()) {
-				hau = t1au.get(z);
-				if(hau.getType()==4&&holdNumbers.length>z&&holdNumbers[z]>0) {
-					foundBomber=true;
-					break;
-				}
-				z++;
-			}
-			if(!foundBomber) {
-				setError("You must send some bombers on a bombing mission type!");
-				return false;
-			}
-			Genocide = true; Bomb = true; 
-			
+		else if(attackType.equals("glass")) {
+			Bomb = true;
+			Genocide = true;
 		}
 		else if(attackType.equals("support")) {support = 1;}
+		else if(attackType.equals("offsupport")) {support=2;}
+		else if(attackType.equals("blockade")) {support = 3;}
 		else if(attackType.equals("dig")||attackType.equals("excavation")) {
 			if(prog&&!p.isdigAPI()) {
 				setError("You need the Dig API in order to use this!");
 				return false;
 			}
+			if(t1.getBlockades().size()>0) {
+				boolean hasOff = false;
+				for(int i = 0;i<holdNumbers.length-1;i++) {
+					if(holdNumbers[i]>0) {
+						hasOff = true;
+						break;
+					}
+				}
+				if(!hasOff) {
+					setError("Town blockaded.");
+					return false;
+				}
+			}
+			
 			support = 1; dig=true;
 			int z=0;UserBuilding b[];
 			if(attackType.equals("excavation"))
-				b= getUserBuildings(t1.townID, "Command Center");
+				b = getUserBuildings(t1.townID, "Command Center");
 			else	
-			b= getUserBuildings(t1.townID, "Institute");
+				b = getUserBuildings(t1.townID, "Institute");
 			int totalScholars=0;
 			while(z<b.length) {
 				totalScholars+=b[z].getPeopleInside();
@@ -5306,7 +5177,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				if(attackType.equals("excavation"))
 					setError("You do not have enough Engineers!");
 				else
-				setError("You do not have enough Scholars!");
+					setError("You do not have enough Scholars!");
 				return false;
 			}
 			z=0; Building actb; UserBuilding bl;
@@ -5330,13 +5201,19 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			}
 			
 		}
-		else if(attackType.equals("offsupport")) { support=2;}
 		else if(attackType.equals("scout")) { scout = 1; }
-		else if(attackType.equals("invasion")&&(p.getTownTech()-p.towns().size())>0) {
+		else if(attackType.equals("invasion")) {
+		
+			if(p.getTownTech()<=p.towns().size()) { // don't want players invading when townTech <= town size!
+				setError("Too many towns.  Level your Town Tech");
+				return false;
+			}
+			
 			if(Town2.isResourceOutcropping()) {
 				setError("You cannot invade a Resource Outcropping!");
 				return false;
 			}
+			
 			int aggregate=0; int z = 0;
 			/*
 				try {
@@ -5349,40 +5226,53 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			*/
 			 ArrayList<Building> b = t1.bldg();
 			 while(z<b.size()) {
-				 if(b.get(z).getType().equals("Command Center"))
-				 aggregate+=b.get(z).getLvl();
+				 Building hb = b.get(z);
+				 if(hb.getType().equals("Command Center")) {
+					aggregate=(hb.getLvl()+2)*3;
+					break;
+				 }
 				 z++;
 			 }
-				aggregate+=2;
 				
 			 double distance = Math.sqrt((x-t1x)*(x-t1x) + (y-t1y)*(y-t1y));
-			 if(distance>aggregate*3*(1)) {
-				 setError(" You can only invade " + ((aggregate*3)*(1)) + " spaces out. Level up your comms center.");
+			 if(distance>aggregate) {
+				 setError(" You can only invade " + (aggregate) + " spaces out. Level up your Command Center.");
 
 				 return false;
 			 }
 			 
-			invade = true; }
-		// don't want players invading when townTech <= to town size!
+			invade = true;
+		
+		}
 		else {
 			setError("Invalid attack type.");
 			return false; // if they don't get the code right, screw 'em.
 		}
 		
 		
-		boolean keep=false;
-		if(prog) keep=true;
-		prog=false;
+		boolean keep=!!prog;//duplicate prog into keep
+		prog=false;			//set prog to false so we can call getAttackETA
 		int ticksToHit = getAttackETA(t1.townID, enemyx,enemyy,auAmts);
-		if(keep) prog = true;
+		prog = !!keep;		//set prog back
 		// The only two cases that matter: You find the town at the x,y, or you'll find a Zeppelin.
 		// If it's a zeppelin, it's easy to deal with, if it's a town, it's easy to deal with.
 		if(Town2.townID==0) {
 			setError("Town doesn't exist!");
 			return false;
 		}
-		if(dig&&Town2.getPlayer().ID!=5) {
+		
+		Player Town2p = Town2.getPlayer();
+		
+		if(dig&&Town2p.ID!=5) {
 			setError("You can only dig in an Id town!");
+			return false;
+		}
+		if(support==3&&Town2p.ID==5){
+			setError("You cannot blockade Id towns!");
+			return false;
+		}
+		if(support==3&&Town2p.isAllied(t1p)){
+			setError("You cannot blockade your allies!");
 			return false;
 		}
 		if(attackType.equals("excavation")&&!Town2.isResourceOutcropping()) {
@@ -5398,36 +5288,25 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			if(possZepp.townID!=0) {
 				// this means your zeppelin is just overhead.
 				Town2=possZepp; // You probably mean to support it!
+				Town2p = Town2.getPlayer();
 			}
 		}
-		if(Town2.isZeppelin()&&(attackType.equals("genocide")||attackType.equals("siege")||attackType.equals("strafe")||
-				attackType.equals("invasion")||attackType.equals("glass"))) {
-			setError("You can only attack, support, offsupport, or scout Airships!");
+		if(Town2.isZeppelin()&&!Genocide) {
+			setError("You cannot commit multi round attacks on Airships!");
 			return false;
 			
 		}
-		if(!t1.getPlayer().isQuest()&&(t1.getPlayer().getPlayedTicks())>(48*3600/GodGenerator.gameClockFactor)
-				&&(Town2.getPlayer().getPlayedTicks())<(48*3600.0/GodGenerator.gameClockFactor)
-				&&Town2.getPlayer().ID!=5&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=t1.getPlayer().ID&&!debris) {
+		if(!t1p.isQuest()&&!t1p.isNoob()&&Town2p.isNoob()&&Town2p.ID!=5&&!Town2p.isQuest()&&Town2p.ID!=t1p.ID&&!debris) {
 			// quests can attack any time...
 			setError("NOOB PROTECTION!");
 			return false;
 			
-		} else if(t1.getPlayer().getPlayedTicks()<(48*3600.0/GodGenerator.gameClockFactor)
-				&&!Town2.getPlayer().isQuest()&&Town2.getPlayer().ID!=5&&!debris&&(Town2.getPlayer().getPlayedTicks())>(48*3600/GodGenerator.gameClockFactor)) {
+		} else if(t1p.isNoob()&&!Town2p.isQuest()&&Town2p.ID!=5&&!debris&&!Town2p.isNoob()&&send) {
 			
 			// If you are under noob protection and you are attacking a player that is not a quest and not Id and not under noob protection
 			// then you lose your noob protection.
 			
-			t1.getPlayer().playedTicks=(int) Math.round(48*3600.0/GodGenerator.gameClockFactor);
-		}
-		if(Town2 == null) {
-			setError("Could not find the town!");
-			return false;
-		}
-		if(name.contains("'")) {
-			setError("God hates apostrophes.");
-			return false;
+			t1p.playedTicks=Player.noobDuration;
 		}
 		
 		k = 0;
@@ -5444,8 +5323,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			addThis.setSize(holdNumbers[k]);
 
-			if(addThis.getSupport()>0&&addThis.getOriginalPlayer().ID!=p.ID&&support>0&&addThis.getSize()>0){
-				setError("You cannot send another player's unit to another location as support.");
+			if(addThis.getSupport()>0&&addThis.getOriginalPlayer().ID!=p.ID&&(support>0||dig)&&addThis.getSize()>0){
+				setError("You cannot send another player's unit to another location as support or in a blockade.");
 				return false; 
 			}
 			// You cannot send another player's unit to another location as
@@ -5474,17 +5353,17 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			// that the attack lineup remains intact. AttackUnits that aren't
 			// mentioned will still send zeroes.
 
-			 addThis = t1au.get(k).returnCopy();
+			addThis = t1au.get(k).returnCopy();
 
-			if(g.findTown(x,y).getPlayer().ID!=t1.getPlayer().ID&&support==1) addThis.makeSupportUnit(addThis.getSlot(),t1.getPlayer(),t1.townID);
-			else if(g.findTown(x,y).getPlayer().ID!=t1.getPlayer().ID&&support==2) addThis.makeOffSupportUnit(addThis.getSlot(),t1.getPlayer(),t1.townID);
+			if(Town2p.ID!=t1p.ID&&support==1) addThis.makeSupportUnit(addThis.getSlot(),t1p,t1.townID);
+			else if(Town2p.ID!=t1p.ID&&support==2) addThis.makeOffSupportUnit(addThis.getSlot(),t1p,t1.townID);
 			// so if this is a supporting run, and you aren't sending to your own town, these units get
 			// marked as "foreign."
 			au.add(addThis);
 			if(k<limit) {
-			addThis.setSize(holdNumbers[k]);
-
-			t1.setSize(k,t1au.get(k).getSize() - holdNumbers[k]);
+				addThis.setSize(holdNumbers[k]);
+	
+				t1.setSize(k,t1au.get(k).getSize() - holdNumbers[k]);
 				
 			}
 			
@@ -5493,29 +5372,125 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			k++;
 		}
 
-		k=0;
-		Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, Town2, Genocide, Bomb,support,invade,name,debris,au,digAmt); // digAmt may not be the requirement,
-		// but it'll always be zero if dig isn't on!
-		
-		if(Bomb) holdAttack.setBombTarget(target);
-		else holdAttack.setBombTarget(new String[0]);
-		if(scout==1) holdAttack.makeScoutRun(); // never going to be a bomb+scout run.
-		
-		
-		
+		if(send) {
+			k=0;
+			Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, Town2, Genocide, Bomb,support,invade,name,debris,au,digAmt); // digAmt may not be the requirement,
+			// but it'll always be zero if dig isn't on!
+			
+			if(scout==1) holdAttack.makeScoutRun(); 
+			else {									// never going to be a bomb+scout run.
+				if(Bomb) holdAttack.setBombTarget(target);
+				else holdAttack.setBombTarget(new String[0]);
+			}
+			
+			ArrayList<Raid> blockades = t1.getBlockades();
+			if(blockades.size()>0) {
+				//if we have blockades, it means we have bad guys here
+				//we have to set up a fake town to hold these blockades so that they can be attacked
+				ArrayList<AttackUnit> AU = blockades.get(0).getAu(),
+									  AUafter;
+				for(int i = 1;i<blockades.size();i++) {
+					for(AttackUnit a : blockades.get(i).getAu()) {	//first, we have to tally up and
+						boolean found = false;						//colleate all the au so we have
+						for(AttackUnit bu : AU) {					//no copies
+							if(a.getName().equals(bu.getName())) {
+								found = true; 
+								bu.setSize(bu.getSize()+a.getSize());
+							}
+						}
+						if(!found) {
+							AU.add(a);
+						}
+					}
+				}
+				
+				Player[] fakes = t1p.generateFakePlayers(1, 1, 0, 0); fakes[0].setAu(AU);
+				Town town = fakes[0].towns().get(0); town.setTownName("Blockade surrounding your town");
+				town.setAu(AU);
+				fakes[0].setAu(AU);
+				boolean unitsLeft;
+				do {
+					Raid raid = new Raid(0,0,t1,town,false,false,0,false,"",false,holdAttack.getAu(),holdAttack.getDigAmt());
+					GodGenerator.combatLogicBlock(raid,"Your town is blockaded by a hostile force.");
+					holdAttack.setAu(raid.getAu());
+					holdAttack.setDigAmt(raid.getDigAmt());
+					raid.deleteMe();
+					unitsLeft = holdAttack.getDigAmt()>0;
+					if(!unitsLeft) {
+						for(AttackUnit a : holdAttack.getAu()) {
+							if(a.getSize()>0) {
+								unitsLeft = true;
+								break;
+							}
+						}
+					}
+					boolean breakOut = false;
+					if(unitsLeft) {
+						breakOut = true;
+						for(AttackUnit a : town.getAu()) {
+							if(a.getSize()>0) {
+								breakOut=false;
+								break;
+							}
+						}
+					}
+					if(breakOut) break;
+				} while(unitsLeft);
+				AUafter = town.getAu();
+				for(int i = 0; i<AUafter.size();i++) {
+					AttackUnit holdUnit = AUafter.get(i);
+					int holdOld = AU.get(i).getSize();
+					for(int j = 0; i<blockades.size();i++) {
+						Raid r = blockades.get(j);
+						for(int l = 0;l<r.getAu().size();l++) {
+							AttackUnit a = r.getAu().get(l);
+							if(a.getName().equals(holdUnit.getName())) {
+								//if holdOld is 0, then there aren't any in the blockade, so we shouldn't mess with them
+								//especially since dividing by 0 is awesome!
+								if(holdOld>0) a.setSize((int)Math.round(a.getSize()*(holdUnit.getSize()/holdOld)));
+							}
+						}
+					}
+				}
+				t1p.deleteFakePlayers(fakes);
+				t1.checkForDeadBlockades();
+				if(!unitsLeft) {
+					return true;
+				}
+			}
+			
 			//	public boolean runMethod(String methodName, Object... params) {
 			UserRaid theRaid =getUserRaid(holdAttack.getId());
 			holdAttack.getTown2().getPlayer().getPs().runMethod("onIncomingRaidDetectedCatch",theRaid);
 			ArrayList<QuestListener> list =  p.getEventListenerList("onRaidSent");
-			if(list!=null)
-			for(QuestListener q:list) {
-				q.onRaidSent(holdAttack,prog);
+			if(list!=null) {
+				for(QuestListener q:list) {
+					q.onRaidSent(holdAttack,prog);
+				}
 			}
-		//holdAttack.closeCon();
-		notifyViewer();
-
+		}
+		
 		return true;
 		
+	}
+		/**
+		 * @deprecated Use {@link #attack(int yourTownID, int enemyx, int enemyy, int[] auAmts, String attackType, String[] target,String name, boolean send)} instead
+		 */
+	public boolean attack(String yourTownName, int enemyx, int enemyy, int[] auAmts, String attackType, String[] target,String name) {
+		// So if you are part of RQ3-5 or BQ8, you should get through no matter what.
+		// Get through = RQ3 + RQ4 + RQ5 + BQ8. Then not getting through is ! that,
+		// 
+		
+		if(target==null) target = new String[0];
+		if(prog&&!p.isAttackAPI()&&!QuestListener.partOfQuest(p,"RQ3")&&!QuestListener.partOfQuest(p,"RQ4")&&!QuestListener.partOfQuest(p,"RQ5")&&!QuestListener.partOfQuest(p,"BQ8")) {
+			setError("You do not have the Attack API!");
+			return false;
+		}
+		
+		// Gotta get the town first.
+		Town t1 = g.findTown(yourTownName,p);
+		
+		return attack(t1.getTownID(), enemyx, enemyy, auAmts, attackType, target, name, true);
 	}
 	
 	
@@ -5523,7 +5498,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	/**
 	 * UI Implemented.
-	 * Renames the town in question.
+	 * <br/><br/>
+	 * Renames the town with ID tid, if it's yours.
+	 * 
+	 * @param tid	the ID of the town to be renamed
+	 * @param name	the new name to give the town
+	 * 
+	 * @return True, if the town was renamed.  False otherwise.
 	 */
 	
 	public boolean renameTown(int tid, String name) {
@@ -5559,8 +5540,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
-	 * 
+	 * <br/><br/>
 	 * Sets the Capital TID of your player. Can only be set when you have lost your capital city.
+	 * 
+	 * @param tid the ID of the new capital city
+	 * 
+	 * @return True, if the new capital was set.  False otherwise.
 	 */
 	
 	public boolean setCapitalCity(int tid) {
@@ -5652,10 +5637,17 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
+	 * Returns in ticks the ETA of an attack with the given parameters.
 	 * 
-	 * Returns in ticks the ETA of an attack.
+	 * @param yourTownID	the ID of the town you're sending from
+	 * @param enemyx		the x coordinate of the target town
+	 * @param enemyy		the y coordinate of the target town
+	 * @param holdNumbers	an array containing the number of each unit being sent
+	 * 
+	 * @return the number of ticks it will take for the attack to land.
 	 */
-	public int getAttackETA(int yourTownID, int enemyx, int enemyy, int holdNumbers[]) {
+	public int getAttackETA(int yourTownID, int enemyx, int enemyy, int[] holdNumbers) {
 		if(prog&&!p.isAdvancedAttackAPI()) {
 			setError("You do not have the Advanced Attack API!");
 			return -1;
@@ -5687,19 +5679,19 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 		/**
 		 * UI Implemented.
+		 * <br/><br/>
 		 * Allows you to change the bombing target of a Strafing or Glassing mission.
-		 * raidID is the identifier for your raid, and yourTownName the town of the raid's
-		 * origination, and is given to speed up
-		 * the search algorithm. newTarget is the new target designation, can be:
+		 * raidID is the identifier for your raid, and yourTownID the town of the raid's
+		 * origination, and is given to speed up the search algorithm. newTarget is the new
+		 * target designation.
+		 * <br/>
+		 * See {@link UserBuilding} for a list of valid building types.
 		 * 
-		 * 0: Bomb all targets(random decision).(This can get Fortifications.)
-		 * 1: Bomb warehouses
-		 * 2: Bomb Arms Factories
-		 * 3: Bomb Command Center
-		 * 4: Bomb Trade Centers
-		 * 5: Bomb Institutes.
-		 * 6: Bomb Communications Centers.
-		 * 7: Bomb Command Centers.
+		 * @param raidID 		the ID of the raid to be modified
+		 * @param newTarget		a String array of the building types to be targeted
+		 * @param yourTownID	the ID of the town you sent the raid from
+		 * 
+		 * @return True, if the bombing target was successfully changed.  False otherwise.
 		 */
 	public boolean changeBombTarget(UUID raidID, String newTarget[], int yourTownID) {
 		if(prog&&!p.isAttackAPI()) {
@@ -5737,14 +5729,20 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		else return false;
 	}
 	/**
-	 *
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Sends a resupply raid to a Siege or Glassing campaign designated
-	 * by the raidID and originating town of the raid, yourTownName. auAmts
-	 * is the amount of each unit you want to send, size is 6 + however many
-	 * support units you have.
+	 * by the raidID and originating town of the raid, yourTownID. auAmts
+	 * is the amount of each unit you want to send, size is equal to your number of
+	 * unlocked units + however many support units you have.
+	 * 
+	 * @param raidID		the ID of the raid to be resupplied
+	 * @param auAmts		the amounts of units to resupply this raid with.
+	 * @param yourTownID	the ID of the town the raid originated from.
+	 * 
+	 * @return True, if the resupply mission was sent.  False otherwise.
 	 */
-	public boolean resupply(UUID raidID, int auAmts[], int yourTownID) {
+	public boolean resupply(UUID raidID, int[] auAmts, int yourTownID) {
 		if(prog&&!p.isAttackAPI()) {
 			setError("You do not have the Attack API!");
 			return false;
@@ -5754,14 +5752,22 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return resupply(raidID,t.getTownName(),  auAmts);
 	}
 		/**
-		 * @deprecated
 		 * UI Implemented.
+		 * <br/><br/>
 		 * Sends a resupply raid to a Genocide or Glassing campaign designated
 		 * by the raidID and originating town of the raid, yourTownName. auAmts
 		 * is the amount of each unit you want to send, size is 6 + however many
 		 * support units you have.
+		 * 
+		 * @param raidID		the ID of the raid to resupply
+		 * @param yourTownName	the name of the town the raid originated from
+		 * @param auAmts		an amounts of units to resupply this raid with
+		 * 
+		 * @return True, if the resupply mission was sent.  False otherwise.
+		 * 
+		 * @deprecated Use {@link #resupply(UUID raidID, int[] auAmts, int yourTownID)} instead.
 		 */
-	public boolean resupply(UUID raidID,String yourTownName, int auAmts[]) {
+	public boolean resupply(UUID raidID,String yourTownName, int[] auAmts) {
 		if(prog&&!p.isAttackAPI()) {
 			setError("You do not have the Attack API!");
 			return false;
@@ -5891,7 +5897,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 		/**
 		 * UI Implemented.
+		 * <br/><br/>
 		 * Cancels the trade schedule designated by the tsid.
+		 * 
+		 * @param tsid the ID of the Trade Schedule to be canceled
+		 * 
+		 * @return True, if the Schedule was successfully canceled.  False otherwise.
 		 */
 	public boolean cancelTradeSchedule(UUID tsid) {
 		if(prog&&!p.isTradingAPI()) {
@@ -5911,7 +5922,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 		/**
 		 * UI Implemented.
-		 * Recalls the raid designated by this raidID.
+		 * <br/><br/>
+		 * Recalls the raid designated by this raidID.  This only works on raids that have not landed.
+		 * 
+		 * @param raidID the ID of the raid to recall
+		 * 
+		 * @return True, if the raid has been recalled.  False otherwise.
 		 */
 	public boolean recall(UUID raidID) {
 		if(prog&&!p.isAttackAPI()) {
@@ -5938,15 +5954,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 		Town t= rtokill.getTown1();
 		
-		if(t.getPlayer().ID!=p.ID) { setError("Not your raid!"); return false;}
-			if(!checkMP(t.townID)) return false;
-			if(rtokill.getDigAmt()>0) {
-				rtokill.getTown2().returnDigOrRO(false,false);
-				return true;
-			} else {
+		if(t.getPlayer().ID!=p.ID) { 
+			setError("Not your raid!"); return false;
+		}
+		if(!checkMP(t.townID)) return false;
+		if(rtokill.getDigAmt()>0) {
+			rtokill.getTown2().returnDigOrRO(false,false);
+			return true;
+		} else {
 				
-		
-		
 			//r to kill will not be null if found is true.
 			int c = 0;
 			double lowSpeed = 0;
@@ -5992,19 +6008,25 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				as = towns.get(k).attackServer();
 				int j = 0;
 				while(j<as.size()) {
-					if(as.get(j).getResupplyID().equals(rtokill.getId())) recall(as.get(j).getId());
+					if(as.get(j).getResupplyID().equals(rtokill.getId())) {
+						recall(as.get(j).getId());
+						break;
+					}
 					j++;
 				}
 				k++;
 			}
 			return true;
-			}
+		}
 		
 	}
 	
 		/**
 		 * UI Implemented.
+		 * <br/><br/>
 		 * Gets an array of all the raids a player has out, in order by town.
+		 * 
+		 * @return an array of {@link UserRaid UserRaids} or null, if an error occurred.
 		 */
 	public UserRaid[] getUserRaids() {
 		if(prog&&!p.isAdvancedAttackAPI()) {
@@ -6027,19 +6049,23 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			int j = 0;
 			 t = towns.get(i);
 
-				if(checkMP(t.townID)) {
+			if(checkMP(t.townID)) {
 			raids = getUserRaids(t.townID);
-			while(j<raids.length) {
-				int k = 0; boolean add=true;
-				while(k<temp.size()) {
-					if(temp.get(k).id().equals(raids[j].id())){  add=false; break;}
-					k++;
+				while(j<raids.length) {
+					int k = 0; boolean add=true;
+					while(k<temp.size()) {
+						if(temp.get(k).id().equals(raids[j].id())) {
+							add=false;
+							break;
+						}
+						k++;
+					}
+					if(add)
+						temp.add(raids[j]);
+					
+					j++;
 				}
-				if(add)
-				temp.add(raids[j]);
-				j++;
 			}
-				}
 			i++;
 		}
 
@@ -6058,12 +6084,19 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Sends some support home from a particular player given by the player ID in your town given
-	 * by the town id. THe town is your town, the pid is their pid. So you use your town to search
+	 * by the town id. The town is your town, the pid is their pid. So you use your town to search
 	 * for units and their PID to find them.
+	 * 
+	 * @param auAmts	the amounts of units to send home
+	 * @param tid		the ID of your town with foreign support
+	 * @param pid		the ID of the supporting Player
+	 * 
+	 * @return True, if the number of troops specified in auAmts is now returning home.  False otherwise.
 	 */
 	
-	public boolean sendHome(int auAmts[],int tid, int pid) {
+	public boolean sendHome(int[] auAmts,int tid, int pid) {
 		if(prog&&!p.isAttackAPI()) {
 			setError("You do not have the Attack API!");
 			return false;
@@ -6093,8 +6126,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Sends support home from a particular player given by the player ID in the town given
 	 * by the town id. The town is your town, the pid is their player ID.
+	 * 
+	 * @param tid	the ID of your town with foreign support
+	 * @param pid	the ID of the supporting player
+	 * 
+	 * @return True, if the supporting troops are now returning home.  False otherwise.
 	 */
 	
 	public boolean sendHome(int tid, int pid) {
@@ -6122,39 +6161,40 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * This recalls all support units from the town designated by town id, of the player
-	 * designated by pidOfRecallTime, to your town by the town id of destinationTown.
+	 * designated by pidOfRecallTown, to your town by the town id of destinationTown.
+	 * <br/>
+	 * This is a shortcut of {@link #recall(int[] auAmts, int townToRecallFromID, int pidOfRecallTown, int yourTownID)}
+	 * for when you want to recall all units.
+	 * 
+	 * @param townToRecallFromID	the ID of the town you're recalling from
+	 * @param pidOfRecallTown		the ID of the player that owns the town you're recalling from
+	 * @param yourTownID			the Id of the town you sent the support from
+	 * 
+	 * @return True, if the units are returning home.  False otherwise.
 	 */
 	public boolean recall(int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
-		if(prog&&!p.isAttackAPI()) {
-			setError("You do not have the Attack API!");
-			return false;
-		}
-		int i = 0; boolean found = false;
-		Town yourTown = g.findTown(yourTownID);
-		if(yourTown.getPlayer().ID!=p.ID) { setError("Not your town!"); return false; }
-		Town theirTown = g.findTown(townToRecallFromID);
-		if(theirTown.getPlayer().ID!=pidOfRecallTown) { setError("Not their town!"); return false; }
 		
-		 
-	
-		
-			int auAmts[] = new int[0];
-			return recall(auAmts,townToRecallFromID,pidOfRecallTown,  yourTownID);
+		int auAmts[] = new int[0];
+		return recall(auAmts,townToRecallFromID,pidOfRecallTown,  yourTownID);
 
 	}
 
 	/**
-	  * UI Implemented.
+	 * UI Implemented.
+	 * <br/><br/>
 	 * This recalls some support units from the town designated by town id, of the player
 	 * designated by pidOfRecallTown, to your town by the town id of destinationTown. 
-	 * @param auAmts
-	 * @param townToRecallFromID
-	 * @param pidOfRecallTown
-	 * @param yourTownID
-	 * @return
+	 * 
+	 * @param auAmts				an array containing the number of units to recall
+	 * @param townToRecallFromID	the ID of the town you're recalling from
+	 * @param pidOfRecallTown		the ID of the player that owns the town you're recalling from
+	 * @param yourTownID			the ID of the town you sent the units from
+	 * 
+	 * @return True, if the units are now returning.  False otherwise.
 	 */
-	public boolean recall(int auAmts[], int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
+	public boolean recall(int[] auAmts, int townToRecallFromID, int pidOfRecallTown, int yourTownID) {
 		if(prog&&!p.isAttackAPI()) {
 			setError("You do not have the Attack API!");
 			return false;
@@ -6178,187 +6218,226 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 * came from! :OOOO
 		 */
 		
-		 
+		Town myTown = g.findTown(yourTownID);
+		Town t = g.findTown(townToRecallFromID); 
+		if(myTown.getPlayer().ID!=p.ID) { setError("Not your town!"); return false; }
+		int g = 0;
+		if(!checkMP(myTown.townID)) return false;
+
+		Player otherP; ArrayList<AttackUnit> au;
+		if(t.getPlayer().ID!=pidOfRecallTown) {
+			setError("Not their town!"); 
+			return false; 
+		}
+		ArrayList<Raid> blockades = t.getBlockades();
+		Raid raid = null;
+		for(Raid r : blockades) {
+			if(r.getTown1().getTownID()==yourTownID) {
+				raid = r;
+				break;
+			}
+		}
 		
-		 Town myTown = g.findTown(yourTownID);
-		 Town t = g.findTown(townToRecallFromID); 
-		 if(myTown.getPlayer().ID!=p.ID) { setError("Not your town!"); return false; }
-		 int g = 0;
-			if(!checkMP(myTown.townID)) return false;
-
-		 Player otherP; ArrayList<AttackUnit> au;
-		 if(t.getPlayer().ID!=pidOfRecallTown) { setError("Not their town!"); }
-		 if(t.getDigAmt()>0) {
-			 t.returnDigOrRO(false,false);
-		 } else {
-		 AttackUnit hau; Raid holdAttack;
-		 AttackUnit a;
-		 ArrayList<Raid> t2as;
-		 ArrayList<AttackUnit> asau;
-		int i = 0; boolean found = false;
-			// better than missing one.
-					 g = 0;  au = new ArrayList<AttackUnit>();
-					
-					while(g<p.getAu().size()) { // get an array ready!
-						au.add(p.getAu().get(g).returnCopy());
-						g++;
-					}
-					
-					int k = 0;
-					ArrayList<AttackUnit> t1au = t.getAu();
-					while(k<t1au.size()) {
-					
-						 a = t1au.get(k);
+		if(t.getDigAmt()>0) {
+			t.returnDigOrRO(false,false);
+		} else if(raid!=null) {
+			//if we're recalling a blockade, this is much easier since the units aren't
+			//added to the base town
+			boolean totalRecall = true;
+			au = raid.getAu();
+			if(auAmts.length>0) {
+				for(int i=0;i<auAmts.length;i++) {
+					AttackUnit a = au.get(i);
+					a.setSize(Math.max(a.getSize()-auAmts[i], 0));
+					if(a.getSize()>0) 
+						totalRecall = false;
+				}
+			} else {
+				totalRecall = true;
+			}
+			if(totalRecall) {
+				t.attackServer().remove(raid);
+				raid.setTicksToHit(raid.getTotalTicks());
+				raid.setRaidOver(true);
+			} else {
+				ArrayList<AttackUnit> au2 = new ArrayList<AttackUnit>();
+				for(int i=0;i<au.size();i++) {
+					AttackUnit a = au.get(i).returnCopy();
+					au2.add(i, a);
+					au2.get(i).setSize(auAmts[i]);
+				}
+				Raid holdRaid = new Raid(raid.getDistance(), raid.getTotalTicks(), raid.getTown1(), 
+											raid.getTown2(), false, false, 0, false, raid.getName(), false,
+											au2, 0);
+				holdRaid.setRaidOver(true);
+				//and the rest is handled by the iterators.  :D
+			}
+		} else {
+			AttackUnit hau; Raid holdAttack;
+			AttackUnit a;
+			ArrayList<Raid> t2as;
+			ArrayList<AttackUnit> asau;
+			int i = 0; boolean found = false;
+			//better than missing one.
+			g = 0;  au = new ArrayList<AttackUnit>();
+			
+			while(g<p.getAu().size()) { // get an array ready!
+				au.add(p.getAu().get(g).returnCopy());
+				g++;
+			}
+			
+			int k = 0;
+			ArrayList<AttackUnit> t1au = t.getAu();
+			while(k<t1au.size()) {
+		
+				a = t1au.get(k);
+		
+				if(a.getSupport()>0&&a.getOriginalPlayer().ID==p.ID) {
 				
-						if(a.getSupport()>0&&a.getOriginalPlayer().ID==p.ID) {
-						
-							/*
-							 * Here I remove the units one at a time from the other player's
-							 * data structure, turn them into normal "AUs" and add them to
-							 * an au list to return...but we've got to use their original
-							 * lots and create a completely authentic raid...
-							 * 
-							 * And we remove them from the supportAU table.
-							 * 
-							 * Don't forget to set raidOver = true. This'll let the
-							 * attackServer know what to do.
-							 */
-							
-							
-							/*
-							 * WHY FOUND IS TRUE BELOW:
-							 * if it gets here, most likely, the unit has
-							 * some size to it(otherwise it was called one cycle before
-							 * a player could erase it) and that size must be on raids
-							 * somewhere then and
-							 * so we can set found=true because this means we found the support units
-							 * to return!
-							 */
-							
-							found=true;
-							 // we know that each city has a six au, locked,
-							 // empty, or whatever, no matter what. So it's original slot num
-							 // corresponds to the index of it's storage in the au array.
-							if(auAmts.length>0) {
-							if(auAmts[a.getOriginalSlot()]>a.getSize()) auAmts[a.getOriginalSlot()] = a.getSize();
-							
-							else if(auAmts[a.getOriginalSlot()]<0) auAmts[a.getOriginalSlot()]=0;
-							
-							au.get(a.getOriginalSlot()).setSize(auAmts[a.getOriginalSlot()]);
-							t.setSize(k,a.getSize()
-									- auAmts[a.getOriginalSlot()]);
-							}  else
-							 au.get(a.getOriginalSlot()).setSize(a.getSize());
+				 /*
+				  * Here I remove the units one at a time from the other player's
+				  * data structure, turn them into normal "AUs" and add them to
+				  * an au list to return...but we've got to use their original
+				  * lots and create a completely authentic raid...
+				  * 
+				  * And we remove them from the supportAU table.
+				  * 
+				  * Don't forget to set raidOver = true. This'll let the
+				  * attackServer know what to do.
+				  */
+					
+					
+				 /*
+				  * WHY FOUND IS TRUE BELOW:
+				  * if it gets here, most likely, the unit has
+				  * some size to it(otherwise it was called one cycle before
+				  * a player could erase it) and that size must be on raids
+				  * somewhere then and
+				  * so we can set found=true because this means we found the support units
+				  * to return!
+				  */
+					
+					found=true;
+					// it's original slot num corresponds to the index of it's storage in the au array.
+					if(auAmts.length>0) {
+						if(auAmts[a.getOriginalSlot()]>a.getSize()) auAmts[a.getOriginalSlot()] = a.getSize();
+					
+						else if(auAmts[a.getOriginalSlot()]<0) auAmts[a.getOriginalSlot()]=0;
+					
+						au.get(a.getOriginalSlot()).setSize(auAmts[a.getOriginalSlot()]);
+						t.setSize(k,a.getSize() - auAmts[a.getOriginalSlot()]);
+					} else
+						au.get(a.getOriginalSlot()).setSize(a.getSize());
 
-							 int y = 0;
-							 // go through each raid, find the au, return those units.
-							 // I know some may be far away but this is easiest for
-							 // the computer and for me.
-							 if(auAmts.length==0){ // >0 indicates only a partial recall. No need to do that for that.
-							/*	try {
-									UberStatement stmt = this.g.con.createStatement();
-									ResultSet rs = stmt.executeQuery("select size from raidSupportAU where tidslot = " + a.getSlot() + " and tid = " + t.townID +";");
-									while(rs.next()) {
-										au.get(a.getOriginalSlot()).setSize(au.get(a.getOriginalSlot()).getSize()+rs.getInt(1));
-										
-									}
-									rs.close();
-									stmt.executeUpdate("delete from raidSupportAU where tidslot = " + a.getSlot() + " and tid = " + t.townID +";");
-									stmt.close();
-								} catch(SQLException exc) { exc.printStackTrace(); }*/
-								 // size in this case being the size of all the support units out on raids.
-								 t2as = t.attackServer();
-								 while(y<t2as.size()) {
-									 asau = t2as.get(y).getAu();
-									 int j = 0;
-									 while(j<asau.size()) {
-										 if(asau.get(j).getSupport()>0&&asau.get(j).getOriginalPlayer().ID==p.ID&&asau.get(j).getOriginalSlot()==a.getOriginalSlot()) {
-												au.get(a.getOriginalSlot()).setSize(au.get(a.getOriginalSlot()).getSize()+asau.get(j).getSize());
-												asau.get(j).setSize(0);
-											 
-										 }
-										 j++;
-									 }
-									 y++;
-								 }
-								 
-								 
-							 }
+					int y = 0;
+					// go through each raid, find the au, return those units.
+					// I know some may be far away but this is easiest for
+					// the computer and for me.
+					if(auAmts.length==0){ // >0 indicates only a partial recall. No need to do that for that.
+					 /*	try {
+						UberStatement stmt = this.g.con.createStatement();
+						ResultSet rs = stmt.executeQuery("select size from raidSupportAU where tidslot = " + a.getSlot() + " and tid = " + t.townID +";");
+						while(rs.next()) {
+							au.get(a.getOriginalSlot()).setSize(au.get(a.getOriginalSlot()).getSize()+rs.getInt(1));
 							
-							// now to remove it from the supportAU and raidSupportAU table. Player
-							// has the ability to do this - it happens when the support AU
-							 // has zero size. So just set it that and save memory.
-							 // This will also remove the au from the attackunit array
-							 // of the town naturally via player.
-							 if(auAmts.length==0)
-							 t.setSize(k,0);
-
-
-							 
 						}
-						k++;
+						rs.close();
+						stmt.executeUpdate("delete from raidSupportAU where tidslot = " + a.getSlot() + " and tid = " + t.townID +";");
+						stmt.close();
+					} catch(SQLException exc) { exc.printStackTrace(); }*/
+					 //size in this case being the size of all the support units out on raids.
+						t2as = t.attackServer();
+						while(y<t2as.size()) {
+							asau = t2as.get(y).getAu();
+							int j = 0;
+							while(j<asau.size()) {
+								if(asau.get(j).getSupport()>0&&asau.get(j).getOriginalPlayer().ID==p.ID&&asau.get(j).getOriginalSlot()==a.getOriginalSlot()) {
+									au.get(a.getOriginalSlot()).setSize(au.get(a.getOriginalSlot()).getSize()+asau.get(j).getSize());
+									asau.get(j).setSize(0);
+								 
+								}
+								j++;
+							}
+							y++;
+						}
+					 
 					}
-					 // Now I create a "false" return raid for the town by making it and setting raidOver=true instantaneously so
-					// that attackServer thinks it's a return raid. Support=0 here, just to mention that - it's
-					// as if it were a normal attack.
-					 g = 0; double holdLowSpeed=0;
-					 int totalsize=0;
-					 while(g<au.size()) {
-						  hau = au.get(g);
-							//if(hau.speed < holdLowSpeed && hau.size>0)   holdLowSpeed = hau.speed;
-						  holdLowSpeed+=(hau.getSize()*hau.getExpmod()*hau.getTrueSpeed(t.getPlayer()));
-						  totalsize+=hau.getSize()*hau.getExpmod();
-						  g++; 
-					 }
-					 if(totalsize==0&&t.getDigCounter()>0) { // so digs with zero guys will send back at scholar speed.
-						 holdLowSpeed=GodGenerator.scholarSpeed;
-						 totalsize=1; 
-					 }
-					 holdLowSpeed/=totalsize;
-				
-					 if(holdLowSpeed>0) { 
-						 // if we have a good holdLowSpeed that means we can send a returnRaid.
-						 // if not that means found was never set to true and no support units were ever found
-						 // or they were found but with zero size and not removed yet.
-				
-						 int t1x = t.getX(); int t1y = t.getY(); int t2x = myTown.getX(); int t2y = myTown.getY();
-					 
-					 int ticksToHit = (int) Math.round(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2))*10/(holdLowSpeed*this.g.speedadjust)/GodGenerator.gameClockFactor);
-					 if(ticksToHit==0) ticksToHit=(int) Math.round(((double) 10/(holdLowSpeed*this.g.speedadjust))/GodGenerator.gameClockFactor);
-					/* 	int digAmt=0; No longer needed.
-					 if(pidOfRecallTown==5&&t.getDigCounter()>0&&auAmts.length==1) {
-						 digAmt=t.getDigAmt();
-//						 System.out.println("I am setting everything in " + t.getTownName());
+					
+					// now to remove it from the supportAU and raidSupportAU table. Player
+					// has the ability to do this - it happens when the support AU
+					// has zero size. So just set it that and save memory.
+					// This will also remove the au from the attackunit array
+					// of the town naturally via player.
+					if(auAmts.length==0)
+						t.setSize(k,0);
 
-						 t.resetDig(0,0,false,null);// because the second you set dig counter
-						 // to -1, the town becomes inactive!
-					//	 System.out.println("t's owed ticks are " + t.owedTicks + " and t is " +t.getTownName());
-					 }*/
-					 int digAmt=0;
-					 holdAttack=null;
-					try {
-						 holdAttack = new Raid(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2)), ticksToHit, myTown,t, false, false,0,false,"noname",false,au,digAmt);
-					} catch(Exception exc) { exc.printStackTrace(); System.out.println("Error happened with recall but we caught it."); }
-						 // myTown needs to be town1 because this is going to be the ghost destinator town - where the raid
-						// will "believe" this return raid came from.
-						g=0;
-						
-						holdAttack.endRaid(); // uses endRaid method to set raidOver=true;
-					
-					
-					 }
-		 }
-					 return true;
-					 
+				}
+				k++;
+			}
+			// Now I create a "false" return raid for the town by making it and setting raidOver=true instantaneously so
+			// that attackServer thinks it's a return raid. Support=0 here, just to mention that - it's
+			// as if it were a normal attack.
+			g = 0; double holdLowSpeed=0;
+			int totalsize=0;
+			while(g<au.size()) {
+				hau = au.get(g);
+				//if(hau.speed < holdLowSpeed && hau.size>0)   holdLowSpeed = hau.speed;
+				holdLowSpeed+=(hau.getSize()*hau.getExpmod()*hau.getTrueSpeed(t.getPlayer()));
+				totalsize+=hau.getSize()*hau.getExpmod();
+				g++; 
+			}
+			if(totalsize==0&&t.getDigCounter()>0) { // so digs with zero guys will send back at scholar speed.
+				holdLowSpeed=GodGenerator.scholarSpeed;
+				totalsize=1; 
+			}
+			holdLowSpeed/=totalsize;
 		
+			if(holdLowSpeed>0) { 
+				// if we have a good holdLowSpeed that means we can send a returnRaid.
+				// if not that means found was never set to true and no support units were ever found
+				// or they were found but with zero size and not removed yet.
+				
+				int t1x = t.getX(), t1y = t.getY(), t2x = myTown.getX(), t2y = myTown.getY();
+			 
+				int ticksToHit = (int) Math.round(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2))*10/(holdLowSpeed*this.g.speedadjust)/GodGenerator.gameClockFactor);
+				if(ticksToHit==0) ticksToHit=(int) Math.round(((double) 10/(holdLowSpeed*this.g.speedadjust))/GodGenerator.gameClockFactor);
+				/* 	int digAmt=0; No longer needed.
+				if(pidOfRecallTown==5&&t.getDigCounter()>0&&auAmts.length==1) {
+				digAmt=t.getDigAmt();
+				//System.out.println("I am setting everything in " + t.getTownName());
+
+				t.resetDig(0,0,false,null);	// because the second you set dig counter
+											// to -1, the town becomes inactive!
+				// System.out.println("t's owed ticks are " + t.owedTicks + " and t is " +t.getTownName());
+			}*/
+				int digAmt=0;
+				holdAttack=null;
+				try {
+					holdAttack = new Raid(Math.sqrt(Math.pow((t1x-t2x),2) + Math.pow((t1y-t2y),2)), ticksToHit, myTown,t, false, false,0,false,"noname",false,au,digAmt);
+				} catch(Exception exc) { exc.printStackTrace(); System.out.println("Error happened with recall but we caught it."); }
+				// myTown needs to be town1 because this is going to be the ghost destinator town - where the raid
+				// will "believe" this return raid came from.
+				g=0;
+				
+				holdAttack.endRaid(); // uses endRaid method to set raidOver=true;
+			
+			}
+		}
+		return true;
 	}
 	
 	
 	/**
-	 * 
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Builds a building of the type specified at the lotNum given in the town
 	 * specified by the town id if possible.
+	 * 
+	 * @param type the type of building to be constructed.  See {@link UserBuilding} for valid types.
+	 * @param lotNum the lot to build this building on
+	 * @param tid ID of the town to build this building in
+	 * 
+	 * @return True, if construction has begun.  False otherwise.
 	 */
 	public boolean build(String type, int lotNum, int tid) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -6370,10 +6449,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return build(type,lotNum,t.getTownName());
 	}
 		/**
-		 * @deprecated
+		 * @deprecated Use {@link #build(String type, int lotNum, int tid)} instead
 		 * UI Implemented.
-		 * Builds a building of the type specified at the lotNum given in the town
-		 * specified by the String town if possible.
 		 */
 	public boolean build(String type, int lotNum, String town) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -6412,28 +6489,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Returns true if you can build a building in the desired lotNum.(ie, if you have
 	 * the resources, open lot spot, and a few other requirements are met.)
 	 * 
-	 * @param type - Type of building, can be:
-	 * Command Center
-	 * Arms Factory
-	 * Institute
-	 * Trade Center
-	 * Fortification
-	 * Metal Warehouse/Lumber Yard/Crystal Repository/Granary
-	 * Airstrip
-	 * Manufacturing Plant
-	 * Recycling Center
-	 * Resource Cache
-	 * Sawmill
-	 * Foundry
-	 * Crystal Refinery
-	 * Hydroponics Bay
-	 * Storage Yard
-	 * Missile Silo
-	 * @param lotNum Desired lot number for the building to be placed on.
-	 * @param town Name of the desired town for placement.
+	 * @param type 		type of building to construct.  See {@link UserBuilding} for valid building types.
+	 * @param lotNum 	lot number for the building to be placed on.
+	 * @param tid 		Id of the town we're to build it in
 	 * @return
 	 */
 	public boolean canBuild(String type, int lotNum, int tid) {
@@ -6447,33 +6509,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	}
 	/**
-	 * @deprecated
 	 * UI Implemented.
-	 * Returns true if you can build a building in the desired lotNum.(ie, if you have
-	 * the resources, open lot spot, and a few other requirements are met.) If you put -1 as a lotNum,
-	 * it will tell you if you have the right to build that building anywhere.
 	 * 
-	 * @param type -  Type of building, can be:
-	 * Command Center
-	 * Arms Factory
-	 * Institute
-	 * Trade Center
-	 * Fortification
-	 * Metal Warehouse/Lumber Yard/Crystal Repository/Granary
-	 * Airstrip
-	 * Manufacturing Plant
-	 * Recycling Center
-	 * Resource Cache
-	 * Sawmill
-	 * Foundry
-	 * Crystal Refinery
-	 * Hydroponics Bay
-	 * Storage Yard
-	 * Missile Silo
-	 * 
-	 * @param lotNum Desired lot number for the building to be placed on.
-	 * @param town Name of the desired town for placement.
-	 * @return
+	 * @deprecated Use {@link #canBuild(String type, int lotNum, int tid)} instead.
 	 */
 	public boolean canBuild(String type,int lotNum, String town) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -6674,9 +6712,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Returns a list of buildings buildable in the town given by this tid.
-	 * @param tid
-	 * @return
+	 * 
+	 * @param tid ID of the town you want to check
+	 *  
+	 * @return a String array of building types that can be built.
 	 */
 	public String[] buildableBuildings(int tid) {
 		for(Town t: p.towns()) {
@@ -6706,8 +6747,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Levels up the building in the lot designated by lotNum in the town
 	 * designated by the town id.
+	 * 
+	 * @param lotNum the lot of the building you want to level up
+	 * @param tid ID of the town the building is in
+	 * 
+	 * @return True, if the level up is sucessful.  False otherwise.
 	 */
 	public boolean levelUp(int lotNum, int tid) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -6720,10 +6767,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	
 		/**
-		 * @deprecated
 		 * UI Implemented.
+		 * <br/><br/>
 		 * Levels up the building in the lot designated by lotNum in the town
 		 * designated by the String town.
+		 * 
+		 * @param lotNum	the lot number of the building to be upgraded
+		 * @param town		the name of the town the building is in
+		 * 
+		 * @deprecated Use {@link #levelUp(int lotNum, int tid)} instead.
 		 */
 	public boolean levelUp(int lotNum, String town) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -6856,9 +6908,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Returns true if you can upgrade the building located
 	 * in the lot designated by lotNum in the town designated by
-	 * the String town.
+	 * tid.
+	 * 
+	 * @param lotNum	the lot number of the building to be upgraded
+	 * @param tid		the ID of the town the building is in
+	 * 
+	 * @return True, if the building can be upgraded.  False otherwise.
 	 */
 	public boolean canUpgrade(int lotNum, int tid) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -6872,11 +6930,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	
 		/**
-		 * @deprecated
 		 * UI Implemented.
-		 * Returns true if you can upgrade the building located
-		 * in the lot designated by lotNum in the town designated by
-		 * the String town.
+		 * @deprecated Use {@link #canUpgrade(int lotNum, int tid)} instead.
 		 */
 	public boolean canUpgrade(int lotNum, String town) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -7102,8 +7157,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Build a number of engineers in the building who's lot is designated by slot,
 	 * in the town designated by the town id.
+	 * 
+	 * @param lotnum the lot your Command Center is on.  Should be 5.
+	 * @param number the amount of Engineers to build.
+	 * @param tid ID of the town we're to build them in
+	 * 
+	 * @return True, if contstruction has begun.  False otherwise.
 	 */
 	public boolean buildEng(int lotNum, int number, int tid) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -7116,16 +7178,17 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	
 	/**
-	 * @deprecated
-	 * 
-	 * THIS METHOD IS NO LONGER USED.
-	 * 
-	 * UI Implemented. Returns a string array that can be used to characterize
+	 * UI Implemented. 
+	 * <br/><br/>
+	 * Returns a string array that can be used to characterize
 	 * the effect of a single Command Center on build times in a city.
 	 * 
-	 * @param lotNum
-	 * @param tid
-	 * @return
+	 * @param lotNum the lot your Command Center is on.  Should be 5.
+	 * @param tid ID of the town we're checking.
+	 * 
+	 * @return a String array characterizing the effects of the Engineers in that building
+	 * 
+	 * @deprecated THIS METHOD IS NO LONGER USED.
 	 */
 	public String[] getEngineerReductionsAsStringArray(int lotNum, int tid) {
 	/*	String red[] = new String[34];
@@ -7173,16 +7236,23 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			i++;
 		}
 		return red;*/
-		String[] red = {"This method needs updating."};
-		return red;
+		return new String[] {"This method needs updating."};
 		
 		
 	}
 		/**
-		 * @deprecated
 		 * UI Implemented.
+		 * <br/><br/>
 		 * Build a number of engineers in the building who's lot is designated by slot,
 		 * in the town designated by townName.
+		 * 
+		 * @param slot the lot your Command Center is on.  Should be 5.
+		 * @param townName the name of the town we're to build them in
+		 * @param number the amount of Engineers to build.
+		 * 
+		 * @return True, if construction has begun.  False otherwise.
+		 * 
+		 * @deprecated Use {@link #buildEng(int lotNum, int number, int tid)} instead.
 		 */
 	public boolean buildEng(int slot, String townName,int number) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -7293,9 +7363,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 	}
 	/**
-	 *
 	 * Build a number of engineers in the town designated by the town id. Will automatically find the
 	 * best building in which to build them, if possible.
+	 * 
+	 * @deprecated This method has been commented out, it was not updated with the infrastructure switch.  Use will result in return false.
 	 */	
 	public boolean buildEng(int number, int tid) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -7307,12 +7378,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return buildEng(t.getTownName(),number);
 	}
 		/**
-		 * @deprecated
 		 * Build a number of engineers in the town designated by townName. Will automatically find the
 		 * best building in which to build them, if possible.
 		 * 
-		 * This method has been commented out, it was not updated with the infrastructure switch.
-		 * Use will result in return false.
+		 * @deprecated This method has been commented out, it was not updated with the infrastructure switch.  Use will result in return false.
 		 */
 	public boolean buildEng(String townName, int number) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -7388,9 +7457,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 */
 	}
 	/**
-	 *
 	 * Build a number of traders in the town designated by the town id. Will automatically find the
 	 * best building in which to build them, if possible.
+	 * 
+	 * @deprecated Use {@link #buildTrader(int lotNum, int number, int tid)} instead.
 	 */	
 	public boolean buildTrader(int number, int tid) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -7404,11 +7474,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Build a number of traders on the lotNum in the town of the town id tid.
-	 * @param lotNum
-	 * @param number
-	 * @param tid
-	 * @return
+	 * 
+	 * @param lotNum the lot our Trade Center is on
+	 * @param number the amount of Traders to build
+	 * @param tid the ID of the town we're building them in.
+	 * 
+	 * @return True, if construction has begun.  False otherwise.
 	 */
 	public boolean buildTrader(int lotNum, int number, int tid) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -7498,12 +7571,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	}
 		/**
-		 *@deprecated
 		 * Build a number of traders in the town designated by townName. Will automatically find the
 		 * best building in which to build them, if possible.
 		 * 
 		 * This method, while not commented out, is extremely LAGGY as it was never streamlined! Use at your
 		 * own risk!
+		 * 
+		 * @deprecated Use {@link #buildTrader(int lotNum, int number, int tid)} instead.
 		 */
 	public boolean buildTrader(String townName, int number) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -7637,9 +7711,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		 return false;
 	}
 	/**
-	 *UI Implemented.
-	 * Build a number of scholars in the town designated by the town id. Will automatically find the
-	 * best building in which to build them, if possible.
+	 * UI Implemented.
+	 * <br/><br/>
+	 * Build a number of scholars in the town designated by the town id in the institute 
+	 * designated by lotNum.
+	 * 
+	 * @param lotNum the lot our Institute is on
+	 * @param number the amount of Scholars to build
+	 * @param tid the ID of the town we're building them in
+	 * 
+	 * @return True, if construction has begun.  False otherwise.
 	 */	
 	public boolean buildSchol(int lotNum, int number, int tid) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -7651,8 +7732,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return buildSchol(t.getTownName(),number,lotNum);
 	}
 		/**
-		 * @deprecated
-		 * Build a number of scholars in the town designated by townName. 
+		 * @deprecated Use {@link #buildSchol(int lotNum, int number, int tid)} instead.
 		 */
 	public boolean buildSchol(String townName, int number, int lotNum) {
 		if(prog&&!p.isBuildingAPI()) {
@@ -7758,11 +7838,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
-	 * @param name
-	 * @param usernames
-	 * @return
+	 * <br/><br/>
+	 * Determines if a UserGroup can be created called name with the Player names in usernames
+	 * can be created.
+	 * 
+	 * @param name the name to give this UserGroup
+	 * @param usernames a list of names that will be in this Group
+	 * 
+	 * @return True, if the UserGroup can be created.  False otherwise.
 	 */
-	public boolean canCreateUserGroup(String name, String usernames[]) {
+	public boolean canCreateUserGroup(String name, String[] usernames) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
 			return false;
@@ -7776,11 +7861,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return canCreateUserGroup(name,pid);
 	}
 	/**
-	 * @param name
-	 * @param pid
-	 * @return
+	 * Determines if a UserGroup called name containing the player IDs in pid can be created. 
+	 * 
+	 * @param name the name to give this UserGroup
+	 * @param pid the IDs of all the players that will be in this Group
+	 * 
+	 * @return True, if the UserGroup can be created.  False otherwise.
 	 */
-	public boolean canCreateUserGroup(String name, int pid[]) {
+	public boolean canCreateUserGroup(String name, int[] pid) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
 			return false;
@@ -7830,11 +7918,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Creates a new user group for messaging of the name designated
 	 * by the String name with the player IDs identified in the pid array.
 	 * 
+	 * @param name the name to give the new UserGroup
+	 * @param usernames an array of Player names this Group
+	 * 
+	 * @return True, if the UserGroup was created.  False otherwise.
 	 */
-	public boolean createUserGroup(String name, String usernames[]) {
+	public boolean createUserGroup(String name, String[] usernames) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
 			return false;
@@ -7848,13 +7941,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return createUserGroup(name,pid);
 	}
 		/**
-		 *
 		 * Creates a new user group for messaging of the name designated
 		 * by the String name with the player IDs identified in the pid array.
 		 * 
+		 * @param name the name to give this new UserGroup
+		 * @param pid an array of Player ID that this Group references
+		 * 
+		 * @return True, if the UserGroup was created.  False otherwise.
 		 */
 	
-	public boolean createUserGroup(String name, int pid[]) {
+	public boolean createUserGroup(String name, int[] pid) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
 			return false;
@@ -7898,7 +7994,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 		/**
 		 * UI Implemented.
+		 * <br/><br/>
 		 * Returns an array of UserGroup objects representing the player's UserGroups.
+		 * 
+		 * @return an array of {@link UserGroup UserGroups}.
 		 */
 	public UserGroup[] getUserGroups() {
 		if(prog&&!p.isMessagingAPI()) {
@@ -7998,11 +8097,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
-	 * @param name
-	 * @param usernames
+	 * <br/><br/>
+	 * Determines if the UserGroup designated by name can be updated to contain the Player names in usernames
+	 * 
+	 * @param name 		the name of the UserGroup to be updated
+	 * @param usernames	the names of the Players to put in this UserGroup.  Overwrites the existing names.
 	 * @return
 	 */
-	public boolean canUpdateUserGroup(String name, String usernames[]) {
+	public boolean canUpdateUserGroup(String name, String[] usernames) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
 			return false;
@@ -8017,9 +8119,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	
 	/**
-	 * @param name
-	 * @param pid
-	 * @return
+	 * Determines if the UserGroup designated by name can be updated to contain the IDs in pid
+	 * 
+	 * @param name	the name of the UserGroup to update
+	 * @param pid	the IDs of the Players to put in the UserGroup.  Overwrites the existing IDs.
+	 * 
+	 * @return True, if the UserGroup can be updated.  False otherwise.
 	 */
 	public boolean canUpdateUserGroup(String name, int pid[]) {
 		if(prog&&!p.isMessagingAPI()) {
@@ -8071,15 +8176,18 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 		}
 	/**
-	
 	 * Updates a user group to add/remove new names. This completely erases the old user group, though,
 	 * so please be careful to include all the original names as well!
-	 * @param name
-	 * @param toAdd
-	 * @param del - If true, toAdd becomes "toRemove" and these pids are removed, if possible.
-	 * @return
+	 * 
+	 * @param name	the name of the UserGroup to update
+	 * @param toAdd	an array of Player names to add to the UserGroup
+	 * @param del 	If true, toAdd becomes "toRemove" and these names are removed, if possible.
+	 * 
+	 * @return True, if the UserGroup was updated.  False otherwise.
+	 * 
+	 * @see UserGroup
 	 */
-	public boolean updateUserGroup(String name, String toAdd[], boolean del) {
+	public boolean updateUserGroup(String name, String[] toAdd, boolean del) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
 			return false;
@@ -8093,15 +8201,18 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return updateUserGroup(name,pid,del);
 	}
 	/**
-	
 	 * Updates a user group to add/remove new names. This completely erases the old user group, though,
 	 * so please be careful to include all the original names as well!
-	 * @param name
-	 * @param toAdd
-	 * @param del - If true, toAdd becomes "toRemove" and these pids are removed, if possible.
-	 * @return
+	 * 
+	 * @param name	name of the UserGroup to update
+	 * @param toAdd	an array of Player IDs to add to the UserGroup
+	 * @param del 	If true, toAdd becomes "toRemove" and these pids are removed, if possible.
+	 * 
+	 * @return True, if the UserGroup was update.  False otherwise.
+	 * 
+	 * @see UserGroup
 	 */
-	public boolean updateUserGroup(String name, int toAdd[], boolean del) {
+	public boolean updateUserGroup(String name, int[] toAdd, boolean del) {
 		if(prog&&!p.isMessagingAPI()) {
 			setError("You do not have the Messaging API!");
 			return false;
@@ -8162,7 +8273,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 		/**
 		 * UI Implemented.
+		 * <br/><br/>
 		 * Deletes the UserGroup with the name designated by the String name.
+		 * 
+		 * @param name the name of the UserGroup to be deleted
+		 * 
+		 * @return True, if the UserGroup was deleted.  False otherwise.
 		 */
 	public boolean deleteUserGroup(String name) {
 		if(prog&&!p.isMessagingAPI()) {
@@ -8211,9 +8327,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Returns true if this user group exists.
-	 * @param name
-	 * @return
+	 * 
+	 * @param name the name of the UserGroup to check
+	 * 
+	 * @return True, if the UserGroup exists.  False otherwise.
+	 * 
+	 * @see UserGroup
 	 */
 	public boolean userGroupExists(String name) {
 		if(prog&&!p.isMessagingAPI()) {
@@ -8221,7 +8342,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 		}
 		if(name.equals("all")&&p.getSupportstaff()) return true;
-		else if(name.equals("all")&&p.getSupportstaff()) return false;
+		else if(name.equals("all")&&!p.getSupportstaff()) return false;
 		try {
 			UberPreparedStatement stmt = g.con.createStatement("select * from usergroups where name = ? and pid = ?;");
 			stmt.setString(1,name);
@@ -8264,8 +8385,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI implemented.
-	 * @param msgid
-	 * @return
+	 * <br/><br/>
+	 * Marks the message with ID msgid as read.
+	 * 
+	 * @param msgid the ID of the message you'd like to mark read.
+	 * 
+	 * @return True, if the message was marked read.  False otherwise.
 	 */
 	public boolean markReadMessage(UUID msgid) {
 		if(prog&&!p.isMessagingAPI()) {
@@ -8283,8 +8408,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI implemented.
-	 * @param msgid
-	 * @return
+	 * <br/><br/>
+	 * Marks the message with Id msgid not read.
+	 * 
+	 * @param msgid the IS of the message you'd like to mark not read
+	 * 
+	 * @return True, if the message is now marked unread.  False otherwise.
 	 */
 	public boolean markUnReadMessage(UUID msgid) {
 		if(prog&&!p.isMessagingAPI()) {
@@ -8300,10 +8429,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 		}
 	}
-	/** UI Implemented.
+	/** 
+	 * UI Implemented.
+	 * <br/><br/>
+	 * Deletes the message with the ID id.
 	 * 
-	 * @param msgid
-	 * @return
+	 * @param id the ID of the message to be deleted
+	 * 
+	 * @return True, if the message was deleted.  False otherwise.
 	 */
 	public boolean markDeletedMessage(UUID id) {
 		if(prog&&!p.isMessagingAPI()) {
@@ -8321,8 +8454,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 	}
 	/**
-	 * UI Implemented. For when you're done socializing.
-	 * @return
+	 * UI Implemented. 
+	 * <br/><br/>
+	 * For when you're done socializing.
+	 * 
+	 * @return True, if you've left your league.  False otherwise.
 	 */
 	public boolean leaveLeague() {
 		if(p.getLeague()==null) {
@@ -8330,20 +8466,23 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 		} else {
 
-			if( p.getLeague().deleteTPR(p.ID)) {p.setLeague(null); return true; }
+			if(p.getLeague().deleteTPR(p.ID)) {p.setLeague(null); return true; }
 			else return false;
 		}
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Create a new TPR. Must be done from a League player. taxRate is to be between 0-1, and
 	 * tids is an array of townIDs that you want this player to be able to administrate for you.
-	 * @param taxRate
-	 * @param pid
-	 * @param rank
-	 * @param type
-	 * @param tids
-	 * @return
+	 * 
+	 * @param taxRate 	the percentage of resources to deduct from the player with this rank (as a decimal).  IE .1 for 10%
+	 * @param pid		the ID of the player this rank will apply to
+	 * @param rank		the name to give this rank
+	 * @param type		the numerical level of access this player has.  0 for members, 1 for officers, 2 for administrators
+	 * @param tids		the IDs of all the league towns this player has access to.  Only applicable if the player is of type 1 or higher.
+	 * 
+	 * @return True, if the TPR was successfully created.  False otherwise.
 	 */
 	
 	public boolean createTPR(double taxRate, int pid, String rank, int type, int[] tids) {
@@ -8367,8 +8506,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	/**
 	 * UI Implemented.
-	 * @param pid
-	 * @return
+	 * <br/><br/>
+	 * Deletes the TPR for the player with ID pid.
+	 * 
+	 * @param pid the ID of the player whose TPR we're deleting.
+	 * 
+	 * @return True, if the TPR was deleted.  False otherwise.
 	 */
 	public boolean deleteTPR(int pid) {
 
@@ -8387,8 +8530,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Returns your TPR.
-	 * @return
+	 * 
+	 * @return the {@link UserTPR} attached to your player or null, if there is none.
 	 */
 	public UserTPR getUserTPR() {
 		if(p.getLeague()==null) {
@@ -8404,8 +8549,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Returns all the user tax-player-ranks you're allowed to see.
-	 * @return
+	 * 
+	 * @return an array of all the {@link UserTPR UserTPRs} you have permission to see.
 	 */
 	public UserTPR[] getUserTPRs() {
 		/*
@@ -8465,15 +8612,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
-	 * Create a new league if you are not in one.
+	 * <br/><br/>
+	 * Create a new league, if you are not in one.
 	 * 
-	 * @param tid - The TownID of the town you're giving up to become the first League-owned town. Unless you
-	 * specify otherwise, you will always be in control of all league towns.
-	 * @param name - League name
-	 * @param description - Description of the league
-	 * @param website - Website URL
-	 * @param letters - Initials of the League
-	 * @return
+	 * @param tid  			the ID of the town you're giving up to become the first League-owned town. Unless you specify otherwise, you will always be in control of all league towns.
+	 * @param name  		the name to give the new League
+	 * @param description 	the description to give the league
+	 * @param website		the URL of your League's website (good place for a forum)
+	 * @param letters  		the initials to give the League
+	 * 
+	 * @return True, if the league was successfully created.  False otherwise.
 	 */
 	 public boolean createLeague(String name, String description, String website, String letters) {
 		if(p.getLeague()!=null) {
@@ -8520,23 +8668,31 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	
 	/**
- 	*Returns true if you have the amount of metal specified by number in town
- 	*specified by town id.
-	 * @return
+ 	 * Returns true if you have the amount of metal specified by number in town
+ 	 * specified by town id.
+ 	 * 
+ 	 * @param number	the amount of resources to check for
+ 	 * @param tid		the ID of the town to check in
+ 	 * 
+	 * @return True, if the town has, at least, number Metal.  False otherwise.
 	 */
 	public boolean haveMetal(int number, int tid) {
 		pushLog("haveMetal("+number+","+tid+");");
 		Town t = g.findTown(tid);
-		if(t.getPlayer().ID!=p.ID) return false;
-		return haveMetal(number,t.getTownName());
+		if(t.getPlayer().ID!=p.ID) {setError("Not your town!"); return false;};
+		if(!checkMP(t.townID)) return false;
+		return t.getRes()[0]>=number;
 	}
 	/**
-	 * @deprecated
- 	*Returns true if you have the amount of metal identified by condResNum, in the town
-	* with the name specified by condName.
-	 * @param condResNum
-	 * @param condName
-	 * @return
+ 	 * Returns true if you have the amount of metal identified by condResNum, in the town
+	 * with the name specified by condName.
+	 * 
+	 * @param condResNum	the amount of resources to check for
+	 * @param condName		the name of the town to check in
+	 * 
+	 * @return True, if the town has, at least, number Metal.  False otherwise.
+	 * 
+	 * @deprecated Use {@link #haveMetal(int number, int tid)} instead.
 	 */
 	public boolean haveMetal(int condResNum, String condName) {
 		pushLog("haveMetal("+condResNum+","+condName+");");
@@ -8545,37 +8701,40 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		// Also, if town doesn't exist, should throw some sort of error. Need to make new exceptions
 		// and present them to the user during compilation of his/her script at some point.
 		
-	
-		
 		Town t = g.findTown(condName, p);
 		if(t.getPlayer().ID!=p.ID) { setError("Not your town!"); return false;}
 		if(!checkMP(t.townID)) return false;
 
 		//System.out.println("As I check, " + player.towns().get(holdI).res[0] + " and " + condRes);
-		if(t.getRes()[0]>=condResNum) {
-		//	System.out.println("As I check 2ndly, " + player.towns().get(holdI).res[0] + " and " + condRes);
-
-			return true;
-		} 	else{  		return false;
-		}
+		return t.getRes()[0]>=condResNum;
 		
 	}
 	/**
- 	*Returns true if you have the amount of timber specified by number in town
- 	*specified by town id.
-	 * @return
+ 	 * Returns true if you have the amount of timber specified by number in town
+ 	 * specified by town id.
+ 	 * 
+ 	 * @param number	the amount of resources to check for
+ 	 * @param tid		the ID of the town to check in
+ 	 * 
+	 * @return True, if the town has, at least, number Timber.  False otherwise.
 	 */
 	public boolean haveTimber(int number, int tid) {
 		pushLog("haveTimber("+number+","+tid+");");
 
 		Town t = g.findTown(tid);
 		if(t.getPlayer().ID!=p.ID) return false;
-		return haveTimber(number,t.getTownName());
+		return t.getRes()[1]>=number;
 	}
 		/**
-		 * @deprecated
 		 * Returns true if you have the amount of timber identified by condResNum, in the town
 		 * with the name specified by condName.
+		 * 
+		 * @param condResNum	the amount of resources to check for
+		 * @param condName		the name of the town to check in
+		 * 
+		 * @return True, if the town has, at least, condResNum Timber.  False otherwise.
+		 * 
+		 * @deprecated Use {@link #haveTimber(int number, int tid)} instead.
 		 */
 	public boolean haveTimber(int condResNum, String condName) {
 
@@ -8586,30 +8745,52 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		if(!checkMP(t.townID)) return false;
 
 		//System.out.println("As I check, " + player.towns().get(holdI).res[0] + " and " + condRes);
-		if(t.getRes()[1]>=condResNum) {
+		return t.getRes()[1]>=condResNum;
 		//	System.out.println("As I check 2ndly, " + player.towns().get(holdI).res[0] + " and " + condRes);
 
-			return true;
-		} 	else{  		return false;
-		}
+	}
+	
+	/**
+	 * 
+	 * @param number
+	 * @param tid
+	 * @return
+	 */
+	public boolean haveCrystal(int number, int tid) {
+		pushLog("haveCrystal("+number+","+tid+");");
+
+		Town t = g.findTown(tid);
+		if(t.getPlayer().ID!=p.ID) return false;
+		return t.getRes()[2]>=number;
 	}
 	/**
- 	*Returns true if you have the amount of manufactured materials specified by number in town
- 	*specified by town id.
-
-	 * @return
+ 	 * Returns true if you have the amount of crystal specified by number in town
+ 	 * specified by tid.
+ 	 * 
+ 	 * @param number	the amount of Crystal to check for
+ 	 * @param tid		the ID of the town to check in
+ 	 * 
+	 * @return True, if the town has, at least, number Crystal.  False otherwise.
+	 * 
+	 * @deprecated Use {@link #haveCrystal(int number, int tid)} instead.
 	 */
 	public boolean haveManMat(int number, int tid) {
 		pushLog("haveManMat("+number+","+tid+");");
 
 		Town t = g.findTown(tid);
 		if(t.getPlayer().ID!=p.ID) return false;
-		return haveManMat(number,t.getTownName());
+		return t.getRes()[2]>=number;
 	}
 		/**
-		 * @deprecated
-		 * Returns true if you have the amount of manufactured materials identified by condResNum, in the town
+		 * Returns true if you have the amount of crystal identified by condResNum, in the town
 		 * with the name specified by condName.
+		 * 
+		 * @param condResNum	the amount of Crystal to check for
+		 * @param condName		the name of the town to check in
+		 * 
+		 * @return True, if the town has, at least, condResNum crystal.  False otherwise.
+		 * 
+		 * @deprecated Use {@link #haveCrystal(int number, int tid)} instead.
 		 */
 	public boolean haveManMat(int condResNum, String condName) {
 		pushLog("haveManMat("+condResNum+","+condName+");");
@@ -8620,18 +8801,17 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		if(!checkMP(t.townID)) return false;
 
 		//System.out.println("As I check, " + player.towns().get(holdI).res[0] + " and " + condRes);
-		if(t.getRes()[2]>=condResNum) {
+		return t.getRes()[2]>=condResNum;
 		//	System.out.println("As I check 2ndly, " + player.towns().get(holdI).res[0] + " and " + condRes);
-
-			return true;
-		} 	else{  		return false;
-		}
 	}
 	/**
- 	*Returns true if you have the amount of food specified by number in town
- 	*specified by town id.
-
-	 * @return
+ 	 *Returns true if you have the amount of food specified by number in town
+ 	 *specified by town id.
+ 	 *
+ 	 * @param number	the amount of food to check for
+ 	 * @param tid		the ID of the town to check in
+ 	 *
+	 * @return True, if the town has at least number food.  False, otherwise.
 	 */
 	public boolean haveFood(int number, int tid) {
 		pushLog("haveFood("+number+","+tid+");");
@@ -8641,9 +8821,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return haveFood(number,t.getTownName());
 	}
 		/**
-		 * @deprecated
 		 * Returns true if you have the amount of food identified by condResNum, in the town
 		 * with the name specified by condName.
+		 * 
+		 * @param condResNum	the amount of food to check for
+		 * @param condName		the name of the town to search in
+		 * 
+		 * @deprecated Use {@link #haveFood(int number, int tid)} instead.
 		 */
 	public boolean haveFood(int condResNum, String condName) {
 
@@ -8658,24 +8842,29 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		//	System.out.println("As I check 2ndly, " + player.towns().get(holdI).res[0] + " and " + condRes);
 
 			return true;
-		} 	else{  		return false;
+		} else{
+			return false;
 		}
 	}
 	
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Returns true if you can research the list in the array, false with error if not. Used in completeResearches
 	 * to figure out of you can access those researches.
-	 * @param array
-	 * @return
+	 * 
+	 * @param array a String array of the names of the researches you would like to purchase
+	 * 
+	 * @return True, if you can purchase ALL the researches specified in array.  False otherwise.
 	 */
-	public boolean canCompleteResearches(String array[]) {
+	public boolean canCompleteResearches(String[] array) {
 		if(prog&&!p.isResearchAPI()) {
 			setError("You do not have the Research API!");
 			return false;
 		}
 		return canCompleteResearches(array,false);
 	}
+	
 	private boolean canCompleteResearches(String array[], boolean free) {
 	int i = 0; int hypoTotal=p.getKnowledge();
 	 i = 0;
@@ -9139,9 +9328,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	/**
 	 * UI Implemented.
-	 * Returns true if you can make the four researches listed in the array. 
+	 * <br/><br/>
+	 * Returns true if you can purchase the researches listed in array.
+	 * 
+	 * @param array a list of researches you wish to purchase
+	 * 
+	 * @return True, if the reseaches were purchased.  False otherwise.
 	 */
-	public boolean completeResearches(String array[]) {
+	public boolean completeResearches(String[] array) {
 		if(prog&&!p.isResearchAPI()) {
 			setError("You do not have the Research API!");
 			return false;
@@ -9150,232 +9344,217 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * Allows you to get free researches from private calls!
-	 * @param array
-	 * @param free
-	 * @return
 	 */
 	private boolean completeResearches(String array[], boolean free) {
 		int i = 0;
-		if(QuestListener.partOfQuest(p,"NQ5")) {
+		if(QuestListener.partOfQuest(p,"BQ5")) {
 			try {
-			((NQ5) g.getPlayer(g.getPlayerId("NQ5"))).callMeIfResearched(p.ID);
+				((BQ5) g.getPlayer(g.getPlayerId("BQ5"))).callMeIfResearched(p.ID);
 			} catch(Exception exc) { 
 				exc.printStackTrace();
-				System.out.println("System saved. Couldn't find NQ5 player for research.");
+				System.out.println("System saved. Couldn't find BQ5 player for research.");
 				
 			}
 		}
-		//23456...so at 11 we get 1.1 which we floor to 1 and then add 2 to get 3.
-		
-		// 2.2 floored to 2 + 2 = 4.
-		
-		// we do brkthrus-brkups because ups is how many they have not used yet.
-		// So if we're at brkthru 5 and you've got 4 that you haven't used in ups, then you're
-		// really on 5-4 = breakthrough 1.
-		
-	
-		
-		
-		//23456...so at 11 we get 1.1 which we floor to 1 and then add 2 to get 3.
-		
-		// 2.2 floored to 2 + 2 = 4.
-		
-		// we do brkthrus-brkups because ups is how many they have not used yet.
-		// So if we're at brkthru 5 and you've got 4 that you haven't used in ups, then you're
-		// really on 5-4 = breakthrough 1.
 	
 		Town t; Building b;
 		if(canCompleteResearches(array,free)) {// if it's free... then this'll return true depending.
-		while(i<array.length) {
 			
-
-			
-			
-			if(array[i].equals("infrastructureTech")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()- GodGenerator.infrastructureTechPrice*(Math.pow(2,(p.getInfrastructureTech()-8)/2))));
-				 p.setInfrastructureTech(p.getInfrastructureTech() + 1);
-			} else if(array[i].equals("scoutTech")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.scoutTechPrice*(Math.pow(2,p.getScoutTech()/2))));
-				 p.setScoutTech(p.getScoutTech() + 1);
-			}else if(array[i].equals("zeppelinTech")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.airshipTechPrice);
-				p.setAirshipTech(true);
-			}else if(array[i].equals("attackAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.attackAPITechPrice);
-				p.setAttackAPI(true);
-			}else if(array[i].equals("digAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.digAPITechPrice);
-				p.setdigAPI(true);
-			}else if(array[i].equals("advancedAttackAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedAttackAPITechPrice);
-				p.setAdvancedAttackAPI(true);
-			}else if(array[i].equals("tradingAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.tradingAPITechPrice);
-				p.setTradingAPI(true);
-			}else if(array[i].equals("advancedTradingAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedTradingAPITechPrice);
-				p.setAdvancedTradingAPI(true);
-			}else if(array[i].equals("smAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.smAPITechPrice);
-				p.setSmAPI(true);
-			}else if(array[i].equals("researchAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.researchAPITechPrice);
-				p.setResearchAPI(true);
-			}else if(array[i].equals("buildingAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.buildingAPITechPrice);
-				p.setBuildingAPI(true);
-			}else if(array[i].equals("advancedBuildingAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedBuildingAPITechPrice);
-				p.setAdvancedBuildingAPI(true);
-			}else if(array[i].equals("messagingAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.messagingAPITechPrice);
-				p.setMessagingAPI(true);
-			}else if(array[i].equals("zeppelinAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.zeppelinAPITechPrice);
-				p.setZeppelinAPI(true);
-			}else if(array[i].equals("completeAnalyticAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.completeAnalyticAPITechPrice);
-				p.setCompleteAnalyticAPI(true);
-			}else if(array[i].equals("nukeAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.nukeAPITechPrice);
-				p.setNukeAPI(true);
-			}else if(array[i].equals("worldMapAPI")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.worldMapAPITechPrice);
-				p.setWorldMapAPI(true);
-			}else if(array[i].equals("clockworkAugments")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.clockworkAugmentsPrice);
-				p.setClockworkAugments(true);
-			}else if(array[i].equals("advancedFortifications")) { 
-				if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedFortificationsPrice);
-				p.setAdvancedFortifications(true);
-			}
-			else if(array[i].equals("townTech")) {
-				if(!free) p.setKnowledge(p.getKnowledge()-(int) Math.round(GodGenerator.townTechPrice*Math.pow(2,(p.getTownTech()-1))));
-
-				p.setTownTech(p.getTownTech() + 1);
-			}else if(array[i].equals("architecture")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.civEfficiencyPrice*Math.pow(2,(p.getArchitecture()/2))));
-
-				 p.setArchitecture(p.getArchitecture() + 1);
-			}else if(array[i].equals("clockworkComputers")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.civEfficiencyPrice*Math.pow(2,(p.getClockworkComputers()/2))));
-
-				p.setClockworkComputers(p.getClockworkComputers() + 1);
-			}else if(array[i].equals("constructionResearch")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.constructionResearchPrice*Math.pow(2,(p.getConstructionResearch()/2))));
-
-				p.setConstructionResearch(p.getConstructionResearch() + 1);
-			}else if(array[i].equals("structuralIntegrity")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.structuralIntegrityPrice*Math.pow(2,(p.getStructuralIntegrity()/2))));
-
-				p.setStructuralIntegrity(p.getStructuralIntegrity() + 1);
-			}else if(array[i].equals("firearmResearch")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.firearmResearchPrice*Math.pow(2,(p.getFirearmResearch()/2))));
-
-				p.setFirearmResearch(p.getFirearmResearch() + 1);
-			}else if(array[i].equals("ordinanceResearch")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.ordinanceResearchPrice*Math.pow(2,(p.getOrdinanceResearch()/2))));
-
-				p.setOrdinanceResearch(p.getOrdinanceResearch() + 1);
-			}else if(array[i].equals("teslaTech")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.teslaTechPrice*Math.pow(2,(p.getTeslaTech()/2))));
-
-				p.setTeslaTech(p.getTeslaTech() + 1);
-			}else if(array[i].equals("bloodMetalPlating")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.bloodMetalPlatingPrice*Math.pow(2,(p.getBloodMetalPlating()/2))));
-
-				p.setBloodMetalPlating(p.getBloodMetalPlating() + 1);
-			}else if(array[i].equals("bodyArmor")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.bodyArmorPrice*Math.pow(2,(p.getBodyArmor()/2))));
-
-				p.setBodyArmor(p.getBodyArmor() + 1);
-			}else if(array[i].equals("bloodMetalArmor")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.bloodMetalArmorPrice));
-
-				p.setBloodMetalArmor(true);
-			}else if(array[i].equals("personalShields")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.personalShieldsPrice));
-
-				p.setPersonalShields(true);
-			}else if(array[i].equals("thrustVectoring")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.thrustVectoringPrice));
-
-				p.setThrustVectoring(true);
-			}else if(array[i].equals("hydraulicAssistors")) {
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.hydraulicAssistorsPrice));
-
-				p.setHydraulicAssistors(true);
-			}else if(array[i].equals("Panzerfaust")||array[i].equals("Pillager")||array[i].equals("Vanguard")) {
-				int k = 0;
-				for(AttackUnit a: p.getAu()) {
-					
-					if(a.getType()==1) k++;
-				}
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.soldierPrice*Math.pow(2,k)));
-
-				p.addAu(new AttackUnit(array[i],0,0));
-			}else if(array[i].equals("Seeker")||array[i].equals("Damascus")||array[i].equals("Wolverine")) {
-				int k = 0;
-				for(AttackUnit a: p.getAu()) {
-					
-					if(a.getType()==2) k++;
-				}
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.tankPrice*Math.pow(2,k)));
-
-				p.addAu(new AttackUnit(array[i],0,0));
-			}else if(array[i].equals("Punisher")||array[i].equals("Dreadnaught")||array[i].equals("Collossus")) {
-				int k = 0;
-				for(AttackUnit a: p.getAu()) {
-					
-					if(a.getType()==3) k++;
-				}
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.golemPrice*Math.pow(2,k)));
-
-				p.addAu(new AttackUnit(array[i],0,0));
-			}else if(array[i].equals("Gunship")||array[i].equals("Thunderbolt")||array[i].equals("Blastmaster")
-					) {
-				int k = 0;
-				for(AttackUnit a: p.getAu()) {
-					
-					if(a.getType()==4&&
-							(a.getName().equals("Gunship")||a.getName().equals("Blastmaster")||a.getName().equals("Thunderbolt"))) k++;
+			if(QuestListener.partOfQuest(p,"BQ5")) {
+				try {
+					((BQ5) g.getPlayer(g.getPlayerId("BQ5"))).callMeIfResearched(p.ID);
+				} catch(Exception exc) { 
+					exc.printStackTrace();
+					System.out.println("System saved. Couldn't find BQ5 player for research.");
 					
 				}
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.airPrice*Math.pow(2,k)));
-
-				p.addAu(new AttackUnit(array[i],0,0));
-			}else if(array[i].equals("Monolith")||array[i].equals("Halcyon")||array[i].equals("Hades")) {
-				int k = 0;
-				for(AttackUnit a: p.getAu()) {
-					
-					if(a.getType()==4&&
-							(a.getName().equals("Monolith")||a.getName().equals("Halcyon")||a.getName().equals("Hades"))) k++;
-					
-				}
-				if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.airPrice*Math.pow(2,k)));
-
-				p.addAu(new AttackUnit(array[i],0,0));
-			}else {
-				setError("Invalid research!");
-				return false;
 			}
 			
-			
-			
-		
-			
-			
-			i++;
-		}
-		//p.setBrkups(p.getBrkups() - 1); 
-		return true;
+			while(i<array.length) {
+				
+				if(array[i].equals("infrastructureTech")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()- GodGenerator.infrastructureTechPrice*(Math.pow(2,(p.getInfrastructureTech()-8)/2))));
+					 p.setInfrastructureTech(p.getInfrastructureTech() + 1);
+				} else if(array[i].equals("scoutTech")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.scoutTechPrice*(Math.pow(2,p.getScoutTech()/2))));
+					 p.setScoutTech(p.getScoutTech() + 1);
+				}else if(array[i].equals("zeppelinTech")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.airshipTechPrice);
+					p.setAirshipTech(true);
+				}else if(array[i].equals("attackAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.attackAPITechPrice);
+					p.setAttackAPI(true);
+				}else if(array[i].equals("digAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.digAPITechPrice);
+					p.setdigAPI(true);
+				}else if(array[i].equals("advancedAttackAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedAttackAPITechPrice);
+					p.setAdvancedAttackAPI(true);
+				}else if(array[i].equals("tradingAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.tradingAPITechPrice);
+					p.setTradingAPI(true);
+				}else if(array[i].equals("advancedTradingAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedTradingAPITechPrice);
+					p.setAdvancedTradingAPI(true);
+				}else if(array[i].equals("smAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.smAPITechPrice);
+					p.setSmAPI(true);
+				}else if(array[i].equals("researchAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.researchAPITechPrice);
+					p.setResearchAPI(true);
+				}else if(array[i].equals("buildingAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.buildingAPITechPrice);
+					p.setBuildingAPI(true);
+				}else if(array[i].equals("advancedBuildingAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedBuildingAPITechPrice);
+					p.setAdvancedBuildingAPI(true);
+				}else if(array[i].equals("messagingAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.messagingAPITechPrice);
+					p.setMessagingAPI(true);
+				}else if(array[i].equals("zeppelinAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.zeppelinAPITechPrice);
+					p.setZeppelinAPI(true);
+				}else if(array[i].equals("completeAnalyticAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.completeAnalyticAPITechPrice);
+					p.setCompleteAnalyticAPI(true);
+				}else if(array[i].equals("nukeAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.nukeAPITechPrice);
+					p.setNukeAPI(true);
+				}else if(array[i].equals("worldMapAPI")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.worldMapAPITechPrice);
+					p.setWorldMapAPI(true);
+				}else if(array[i].equals("clockworkAugments")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.clockworkAugmentsPrice);
+					p.setClockworkAugments(true);
+				}else if(array[i].equals("advancedFortifications")) { 
+					if(!free) p.setKnowledge(p.getKnowledge()-GodGenerator.advancedFortificationsPrice);
+					p.setAdvancedFortifications(true);
+				}else if(array[i].equals("townTech")) {
+					if(!free) p.setKnowledge(p.getKnowledge()-(int) Math.round(GodGenerator.townTechPrice*Math.pow(2,(p.getTownTech()-1))));
+	
+					p.setTownTech(p.getTownTech() + 1);
+				}else if(array[i].equals("architecture")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.civEfficiencyPrice*Math.pow(2,(p.getArchitecture()/2))));
+	
+					 p.setArchitecture(p.getArchitecture() + 1);
+				}else if(array[i].equals("clockworkComputers")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.civEfficiencyPrice*Math.pow(2,(p.getClockworkComputers()/2))));
+	
+					p.setClockworkComputers(p.getClockworkComputers() + 1);
+				}else if(array[i].equals("constructionResearch")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.constructionResearchPrice*Math.pow(2,(p.getConstructionResearch()/2))));
+	
+					p.setConstructionResearch(p.getConstructionResearch() + 1);
+				}else if(array[i].equals("structuralIntegrity")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.structuralIntegrityPrice*Math.pow(2,(p.getStructuralIntegrity()/2))));
+	
+					p.setStructuralIntegrity(p.getStructuralIntegrity() + 1);
+				}else if(array[i].equals("firearmResearch")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.firearmResearchPrice*Math.pow(2,(p.getFirearmResearch()/2))));
+	
+					p.setFirearmResearch(p.getFirearmResearch() + 1);
+				}else if(array[i].equals("ordinanceResearch")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.ordinanceResearchPrice*Math.pow(2,(p.getOrdinanceResearch()/2))));
+	
+					p.setOrdinanceResearch(p.getOrdinanceResearch() + 1);
+				}else if(array[i].equals("teslaTech")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.teslaTechPrice*Math.pow(2,(p.getTeslaTech()/2))));
+	
+					p.setTeslaTech(p.getTeslaTech() + 1);
+				}else if(array[i].equals("bloodMetalPlating")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.bloodMetalPlatingPrice*Math.pow(2,(p.getBloodMetalPlating()/2))));
+	
+					p.setBloodMetalPlating(p.getBloodMetalPlating() + 1);
+				}else if(array[i].equals("bodyArmor")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.bodyArmorPrice*Math.pow(2,(p.getBodyArmor()/2))));
+	
+					p.setBodyArmor(p.getBodyArmor() + 1);
+				}else if(array[i].equals("bloodMetalArmor")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.bloodMetalArmorPrice));
+	
+					p.setBloodMetalArmor(true);
+				}else if(array[i].equals("personalShields")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.personalShieldsPrice));
+	
+					p.setPersonalShields(true);
+				}else if(array[i].equals("thrustVectoring")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.thrustVectoringPrice));
+	
+					p.setThrustVectoring(true);
+				}else if(array[i].equals("hydraulicAssistors")) {
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.hydraulicAssistorsPrice));
+	
+					p.setHydraulicAssistors(true);
+				}else if(array[i].equals("Panzerfaust")||array[i].equals("Pillager")||array[i].equals("Vanguard")) {
+					int k = 0;
+					for(AttackUnit a: p.getAu()) {
+						
+						if(a.getType()==1) k++;
+					}
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.soldierPrice*Math.pow(2,k)));
+	
+					p.addAu(new AttackUnit(array[i],0,0));
+				}else if(array[i].equals("Seeker")||array[i].equals("Damascus")||array[i].equals("Wolverine")) {
+					int k = 0;
+					for(AttackUnit a: p.getAu()) {
+						
+						if(a.getType()==2) k++;
+					}
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.tankPrice*Math.pow(2,k)));
+	
+					p.addAu(new AttackUnit(array[i],0,0));
+				}else if(array[i].equals("Punisher")||array[i].equals("Dreadnaught")||array[i].equals("Collossus")) {
+					int k = 0;
+					for(AttackUnit a: p.getAu()) {
+						
+						if(a.getType()==3) k++;
+					}
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.golemPrice*Math.pow(2,k)));
+	
+					p.addAu(new AttackUnit(array[i],0,0));
+				}else if(array[i].equals("Gunship")||array[i].equals("Thunderbolt")||array[i].equals("Blastmaster")
+						) {
+					int k = 0;
+					for(AttackUnit a: p.getAu()) {
+						
+						if(a.getType()==4&&
+								(a.getName().equals("Gunship")||a.getName().equals("Blastmaster")||a.getName().equals("Thunderbolt"))) k++;
+						
+					}
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.airPrice*Math.pow(2,k)));
+	
+					p.addAu(new AttackUnit(array[i],0,0));
+				}else if(array[i].equals("Monolith")||array[i].equals("Halcyon")||array[i].equals("Hades")) {
+					int k = 0;
+					for(AttackUnit a: p.getAu()) {
+						
+						if(a.getType()==4&&
+								(a.getName().equals("Monolith")||a.getName().equals("Halcyon")||a.getName().equals("Hades"))) k++;
+						
+					}
+					if(!free) p.setKnowledge((int) (p.getKnowledge()-GodGenerator.airPrice*Math.pow(2,k)));
+	
+					p.addAu(new AttackUnit(array[i],0,0));
+				}else {
+					setError("Invalid research!");
+					return false;
+				}
+				
+				i++;
+			}
+			return true;
 		}
 		else return false;
 		
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * This method marks unread a userSR of the ID given if it belongs to the player.
+	 * 
+	 * @param sid the ID of the Status Report you'd like to mark not read
+	 * 
+	 * @return True, if the Status Report is now marked not read.  False otherwise.
 	 */
 	public boolean markUnReadUserSR(UUID sid) {
 		if(prog&&!p.isAdvancedAttackAPI()) {
@@ -9393,7 +9572,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * This method marks read a userSR of the ID given if it belongs to the player.
+	 * 
+	 * @param sid the ID of the Status Report you'd like to mark read.
+	 * 
+	 * @return True, if the Status Report was marked read.  False otherwise.
 	 */
 	public boolean markReadUserSR(UUID sid) {
 		if(prog&&!p.isAdvancedAttackAPI()) {
@@ -9411,7 +9595,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * This method deletes a userSR of the ID given if it belongs to the player.
+	 * 
+	 * @param sid the Id of the Status Report to be deleted
+	 * 
+	 * @return True, if the Status Report was deleted.  False otherwise.
 	 */
 	public boolean deleteUserSR(UUID sid) {
 		if(prog&&!p.isAdvancedAttackAPI()) {
@@ -9427,7 +9616,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * This method archives a userSR of the ID given if it belongs to the player.
+	 * 
+	 *  @param sid ID of the Status Report to be archived
+	 *  
+	 *  @return True, if the Status Report is archived.  False otherwise.
 	 */
 	public boolean archiveUserSR(UUID sid) {
 		if(prog&&!p.isAdvancedAttackAPI()) {
@@ -9445,7 +9639,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * This method unarchives a userSR of the ID given if it belongs to the player.
+	 * 
+	 * @param sid the ID of the Status Report to be unarchived
+	 * 
+	 * @return True, if the Status Report was unarchived.  False otherwise.
 	 */
 	public boolean unarchiveUserSR(UUID sid) {
 		if(prog&&!p.isAdvancedAttackAPI()) {
@@ -9464,7 +9663,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * This method returns an array of all UserSR objects for a player.
+	 * 
+	 * @return an array of {@link UserSR UserSRs} or null, if an error occurred.
 	 */
 	public UserSR[] getUserSR() {
 		if(prog&&!p.isAdvancedAttackAPI()) {
@@ -9488,14 +9690,18 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Lets you set up the amount of soldiers/tanks you want fortified by a fortification.
+	 * <br/>
+	 * Tanks can only be fortified after Advanced Fortifications has been researched. 
 	 * 
-	 * @param auNumbers - an array of integers representing the desired number of each of your unit types you wish to be protected by
-	 * this fortification
+	 * @param auNumbers an array of integers representing the desired number of each of 
+	 * your unit types you wish to be protected by this fortification
 	 * @param bid - the unique building id of the Fortification.
-	 * @return
+	 * 
+	 * @return True, if the units have been fortified.  False otherwise.
 	 */
-	public boolean setFortification(int auNumbers[], UUID bid) {
+	public boolean setFortification(int[] auNumbers, UUID bid) {
 		if(prog&&!p.isBuildingAPI()) {
 			setError("You do not have the Building API!");
 			return false;
@@ -9546,9 +9752,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
-	 * Returns an array of all the different building types in the game,
+	 * <br/><br/>
+	 * Returns an array of all the different building types in the game
 	 * with accompanying descriptions and base cost arrays.
-	 * @return
+	 * 
+	 * @return an array of UserBuildings with one entry for each type of building
 	 */
 	public UserBuilding[] getBuildings() {
 		if(prog&&!p.isAdvancedBuildingAPI()) {
@@ -9557,7 +9765,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 		return UserBuilding.getBuildings();
 	}
-	
+	/**
+	 * Get's the UserBuilding object for the building specified by bid.
+	 * 
+	 * @param bid the ID of the building you want the UserBuilding to represent
+	 *  
+	 * @return a {@link UserBuilding} object representing the building with the given ID
+	 */
 	public UserBuilding getUserBuilding(UUID bid) {
 		if(prog&&!p.isAdvancedBuildingAPI()) {
 			setError("You do not have the Advanced Building API!");
@@ -9640,22 +9854,24 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	
 	private UserBuilding[] getUserBuildings(int tid, String type, boolean free) {
-		boolean keep=false;
-		if(prog) keep=true;
+		boolean keep=!!prog;
 		prog=false;
 		UserBuilding[] b = getUserBuildings(tid,type);
-		if(keep)
-		prog=true;
+		prog=!!keep;
 		
 		return b;
 	}
 	/**
 	 * Returns an array of UserBuilding objects from the town id. This is different
 	 * from getBuildings which just returns the types!
-	 * 
+	 * <br/><br/>
 	 * Put in the type you want. Special types: "all" returns all buildings, and "CombatProduction" returns all 
 	 * military unit production buildings.
-	 * Returns null if invalid.
+	 * 
+	 * @param tid	the ID of the town to get the buildings from
+	 * @param type	the type of building to get
+	 * 
+	 * @return an array of {@link UserBuilding UserBuildings} or null, if an error occurred.
 	 */
 	
 	public UserBuilding[] getUserBuildings(int tid, String type) {
@@ -9670,31 +9886,40 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("Invalid town!");
 			return null;
 		}
-		if(t.getPlayer().ID!=p.ID) return null; Building actb;
+		if(t.getPlayer().ID!=p.ID) {
+			setError("Not your town!");
+			return null;
+		}
+		Building actb;
 		ArrayList<UserBuilding> tses = new ArrayList<UserBuilding>();
 		int totalEngineers = t.getTotalEngineers(); int x = t.getX(); int y = t.getY();
 		double engEffect = g.Maelstrom.getEngineerEffect(x,y);
 		ArrayList<Building> bldg = t.bldg();
-		if(!checkMP(t.townID)) return null;
+		if(!checkMP(t.townID)) {
+			setError("You don't have permission for that.");
+			return null;
+		}
 
 		while(i<bldg.size()) {
 			actb = bldg.get(i);
 			if(type.equals("all")||actb.getType().equals(type)||(type.equals("CombatProduction")
-					&&(type.equals("Arms Factory")||type.equals("Manufacturing Plant")||type.equals("Airstrip"))
-					)) {
-		boolean mineBldg=false;
+					&&(actb.getType().equals("Arms Factory")||actb.getType().equals("Manufacturing Plant")
+							||actb.getType().equals("Airstrip")))) {
+				
 		String name = actb.getType();
-		if(name.contains("Warehouse"))mineBldg=true;
+		boolean mineBldg = name.contains("Warehouse");
 		
 		int lvl = actb.getLvl();
 		int ppl = actb.getPeopleInside();
 		UUID  bid = actb.getId();
 
 		 tses.add(new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),Building.getCap(lvl,mineBldg),
-			Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,
-			actb.getLvlUps(),actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
-			Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
-			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),name,actb.getRefuelTicks(),actb.getFortArray()));
+				 Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,actb.getLvlUps(),
+				 actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
+				 Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
+				 actb.getTicksToFinish(),
+				 Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),
+				 name,actb.getRefuelTicks(),actb.getFortArray()));
 			}
 		 i++;
 		}
@@ -9739,10 +9964,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return toRet;
 	}
 	/**
-	 * Get only buildings that are on the building server. "all" returns all buildings, "CombatProduction" returns all combat unit production buildings.
-	 * @param tid
-	 * @param type
-	 * @return
+	 * Get only buildings that are on the building server. Buildings on the building server are currently being constructed, or destructed.
+	 * <br/>
+	 * "all" returns all buildings, "CombatProduction" returns all combat unit production buildings.
+	 * 
+	 * @param tid	the ID of the town to get the buildings from
+	 * @param type	the type of buildings to get
+	 * 
+	 * @return an array of {@link UserBuilding USerBuildings} or null, if type matched no buildings or an error occurred.
 	 */
 	public UserBuilding[] getUserBuildingServer(int tid, String type) {
 		if(prog&&!p.isAdvancedBuildingAPI()) {
@@ -9824,6 +10053,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	/**
 	 * Returns an array of UserQueueItem objects from the building id.
+	 * 
+	 * @param bid the building whose queue items we want
+	 * 
+	 * @return an array of {@link UserQueueItem UserQueueItems} or null, if an error occurred.
 	 */
 	
 	public UserQueueItem[] getUserQueueItems(UUID bid) {
@@ -9948,9 +10181,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						
 	}
 	/**
-	 * Return a UserRaid by the id mentioned.
-	 * @param rid
-	 * @return
+	 * Return a UserRaid reprsenting the Raid with an ID of id.
+	 * 
+	 * @param id the ID of the raid we want to represent
+	 * 
+	 * @return a {@link UserRaid} object or null, if an error occurred.
 	 */
 	public UserRaid getUserRaid(UUID id) {
 		
@@ -9960,9 +10195,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return null;
 		}
 		
-		
 		int i = 0;
-		UserRaid temp = null; 
 		AttackUnit a; String raidType="attack";
 		String auNames[]; int auAmts[];
 		ArrayList<AttackUnit> auset;
@@ -9994,6 +10227,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					else if(genocide&&bomb) raidType="glass";
 					if(support==1) raidType = "support";
 					if(support==2) raidType="offsupport";
+					if(support==3) raidType="blockade";
 					if(scout==1) raidType="scout";
 					if(invade) raidType="invasion";
 					if(resupplyID!=null) raidType="resupply";
@@ -10034,8 +10268,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					else dfin= new Timestamp(r.getDockingFinished().getTime());
 					//public UserRaid(int raidID, double distance, boolean raidOver, double ticksToHit, String town1, int x1, int y1, String town2, int x2, int y2, int auAmts[], String auNames[], String raidType,long  m, long  t, long mm, long f,boolean allClear, int bombTarget,
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
-					return new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
-							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),dfin,r.getReward());
+					return new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),
+							r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),
+							r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),
+							r.getFood(),r.isAllClear(),r.getBombTarget(),r.getTown1().townID,r.getTown2().townID,
+							r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),dfin,r.getReward());
 				}
 				j++;
 			}
@@ -10120,10 +10357,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		i = 0;
 		setError("noerror");
 
-		return temp;
+		return null;
 	}
 	/**
 	 * Returns an array of UserRaid objects from the town id.
+	 * 
+	 * @param tid the ID of the town whose raids we want
+	 * 
+	 * @return an array of {@link UserRaid UserRaids} or null, if an error occurred.
 	 */
 	
 	public UserRaid[] getUserRaids(int tid) {
@@ -10150,8 +10391,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		ArrayList<Town> towns = p.towns();
 		Town t = g.findTown(tid);
 		if(t.getPlayer()==null) {
-			UserRaid[] ret = new UserRaid[0];
-			return ret;
+			return new UserRaid[0];
 		}
 		if(t.getPlayer().ID!=p.ID) return null;
 		
@@ -10159,7 +10399,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			int j = 0;
 			while(j<attackServer.size()) {
 				r = attackServer.get(j);
-					try {
+				try {
 					boolean genocide = r.isGenocide();
 					boolean bomb = r.isBomb();
 					int support = r.getSupport();
@@ -10172,6 +10412,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					else if(genocide&&bomb) raidType="glass";
 					if(support==1) raidType = "support";
 					if(support==2) raidType="offsupport";
+					if(support==3) raidType="blockade";
 					if(scout==1) raidType="scout";
 					if(invade) raidType="invasion";
 					if(resupplyID!=null) raidType="resupply";
@@ -10208,7 +10449,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				//	int tid1,int tid2,String name, int genoRounds, boolean bomb) {
 					temp.add(new UserRaid(r.getId(),r.getDistance(),r.isRaidOver(),r.getTicksToHit(),r.getTown1().getTownName(),r.getTown1().getX(),r.getTown1().getY(),r.getTown2().getTownName(),r.getTown2().getX(),r.getTown2().getY(),auAmts,auNames,raidType,r.getMetal(),r.getTimber(),r.getManmat(),r.getFood(),r.isAllClear(),r.getBombTarget()
 							,r.getTown1().townID,r.getTown2().townID,r.getName(),r.getGenoRounds(),r.isBomb(),r.isDebris(),r.getDigAmt(),dfin,r.getReward()));
-					} catch(Exception exc) { exc.printStackTrace(); System.out.println("getUserRaids saved. The raid in question: " + r.getId().toString()); }
+				} catch(Exception exc) { exc.printStackTrace(); System.out.println("getUserRaids saved. The raid in question: " + r.getId().toString()); }
 				
 				j++;
 			}
@@ -10506,8 +10747,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 	/**
 	 * Returns one UserTrade given by trid.
-	 * @param trid
-	 * @return
+	 * 
+	 * @param trid the ID of the trade you want.
+	 * 
+	 * @return a {@link UserTrade} object representing the Trade with ID trid or null, if an error occurred.
 	 */
 	public UserTrade getUserTrade(UUID trid) {
 		if(prog&&!p.isAdvancedTradingAPI()) {
@@ -10568,7 +10811,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Returns an array of UserTrade objects from the town id.
+	 * 
+	 * @param tid the ID of the town we want to check for trades
+	 * 
+	 * @return an array of {@link UserTrade UserTrades} that reference this town or null, if an error occurred.
 	 */
 	
 	public UserTrade[] getUserTrades(int tid) {
@@ -10715,8 +10963,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * Returns a single UserTradeSchedule given by the tsid.
-	 * @param tsid
-	 * @return
+	 * 
+	 * @param tsid the ID of the Trade Schedule we want represented
+	 * 
+	 * @return a {@link UserTradeSchedule} object that represents the Trade Schedule with the ID tsid or null, if an error occurred.
 	 */
 	public UserTradeSchedule getUserTradeSchedule(UUID tsid) {
 		if(prog&&!p.isAdvancedTradingAPI()) {
@@ -10795,7 +11045,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Returns an array of UserTradeSchedule objects from the town id.
+	 * 
+	 * @param tid the ID of the town we want to check for trade schedules
+	 * 
+	 * @return an array of {@link UserTradeSchedule UserTradeSchedules} that reference this town or null, if an error occurred.
 	 */
 	
 	public UserTradeSchedule[] getUserTradeSchedules(int tid) {
@@ -10988,6 +11243,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	/**
 	 * Returns an array of the player's towns. They are the current state of the towns at the call.
+	 * 
+	 * @return an array of {@link UserTown UserTowns} representing the players towns or null, if an error occurred.
 	 */
 	
 	 public UserTown[] getUserTowns() {
@@ -11075,10 +11332,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return toRet2;
 	}
 	/**
-	 * @deprecated
 	 * Returns UserTowns just as getUserTowns does. This used to be a slimmer method for quicker load times, but with the switch
 	 * back to Memory from ORM, is no longer strictly necessary.
-	 * @return
+	 * @deprecated Use {@link #getUserTowns()} instead.
 	 */
 	public UserTown[] getUserTownsSlim() {
 		if(prog&&!p.isCompleteAnalyticAPI()) {
@@ -11135,6 +11391,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * Returns a UserPlayer object that represents the state of the player at the method call.
+	 * 
+	 * @return a {@link UserPlayer} object or null, if an error occurred.
 	 */
 	
 	public UserPlayer getUserPlayer() {
@@ -11215,13 +11473,27 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Joins a quest identified by this qid.
+	 * 
+	 * @param qid the ID of the quest to be joined
+	 * 
+	 * @return True, if the quest was joined.  False otherwise.
 	 */
 	
 	public boolean joinQuest(int qid) {
 		return	((QuestListener) g.getPlayer(qid)).addPlayer(p);
 
 	}
+	/**
+	 * Joins the quest identified by the name questname.
+	 * <br/>
+	 * Use of {@link #joinQuest(int qid)} is encouraged over this method.
+	 * 
+	 * @param questname the name of the quest to join.
+	 * 
+	 * @return True, if the quest was joined.  False otherwise.
+	 */
 	public boolean joinQuest(String questname) {
 		return	((QuestListener) g.getPlayer(g.getPlayerId(questname))).addPlayer(p);
 
@@ -11230,7 +11502,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Leaves a quest identified by this qid.
+	 * 
+	 * @param qid the ID of the quest you'd like to leave
+	 * 
+	 * @return True, if the quest was successfully left.  False otherwise.
 	 */
 	
 	public boolean leaveQuest(int qid) {
@@ -11267,45 +11544,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
-	 * Name your poison to use your BP on. Send in a string with the following:
-	 * "ub" Gets you 50% less build times for a week. 100BP.
-	 * "troopPush" Gets you a free troop push at full CSL. 1000BP.
-	 * "metal" Gets you 25% extra metal from your metal mines for a week. Same for the next three but corresponding to their resource. 50BP.
-	 * "timber"
-	 * "manmat"
-	 * "food"
-	 * "buildingFinish" Gets all of your buildings finished leveling instantly. 100BP.
-	 * "skin_researchName" Gets you a new unit skin tech. Use this to skip on research costs for skins. 100BP.
-	 * "ferocity" Gets your men an adrenaline boost that make them 10% stronger for a week. 500BP.
-	 * "instantSM_tid_res1_whichRes_whichExchangeRes" Produces an instant SM trade in the town denoted by townID, using the
-	 * resource amount of the type you specificy in whichRes(could be 0 metal 1 timber 2 mm 3 food) in exchange for the
-	 * resource type you specify in whichExchangeRes. 10BP.
-	 * "research_researchName" Gets you a free research. 1000BP. The researchNames you can use are:
-	 *  lotTech
-		stealthTech
-		scoutTech
-		unitLotTech
-		soldierTech
-		tankTech
-		juggerTech
-		bomberTech
-		troopPush
-		weap1 <--- Place whatever index number you want here instead of 1 for the weapon. The indexes go like weapons are listed in the Institute.
-		soldierPic1 <--- Same deal for the pic techs	
-		tankPic1 <--- Same deal for the pic techs	
-		juggerPic1 <--- Same deal for the pic techs	
-		bomberPic1 <--- Same deal for the pic techs	
-		supportTech
-		townTech
-		engineerTech
-		scholarTech
-		buildingSlotTech
-		buildingStabilityTech
-		bunkerTech
-		afTech
-		commsCenterTech
-		tradeTech
-
+	 * <br/><br/>
+	 * Name your poison to use your BP on.
+	 * 
+	 * @param type what you want to spend your BP on
+	 * 
+	 * @return True, if the transaction was successful.  False otherwise.
 	 *  
 	 */
 	
@@ -11610,9 +11854,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Returns a Hashtable ranking of BattlehardMode players based on their current BP count.
 	 * The fields in each Hash: username, BP.
-	 * @return
+	 * <br/>
+	 * Note: The entries are in no particular order and must be sorted manually.
+	 * 
+	 * @return A hashtable containing the current BattlehardMode rankings.
 	 */
 	public Hashtable[] getBattlehardRanking() {
 		ArrayList<Hashtable> hashie = new ArrayList<Hashtable>();
@@ -11722,7 +11970,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return toRet;
 	}
 	/**
-	 * UI Implemented. Runs the program.
+	 * UI Implemented. 
+	 * <br/><br/>
+	 * Runs the most recently saved version of your AI script.
+	 * 
+	 * @return True, if the script is now running.  False otherwise.
+	 * 
+	 * @see #editProgram()
+	 * @see #saveProgram(String)
+	 * @see #stopProgram()
 	 */
 	public boolean runProgram() {
 		int i = 0;
@@ -11809,20 +12065,32 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	/**
 	 * Returns the username of a player given by the pid. Returns Id if it
 	 * can't find one.
-	 * @param username
-	 * @return
+	 * 
+	 * @param pid the ID of the player who's name we want.
+	 * 
+	 * @return the name of the Player with the given ID or "Id", if no player matched the ID.
 	 */
 	public String getUsername(int pid) {
 		return g.getPlayer(pid).getUsername();
-	}/**
+	}
+	/**
 	 * Returns the pid of a player given by the username. Returns 5(Id's pid) if it
 	 * can't find one.
-	 * @param username
-	 * @return
+	 * 
+	 * @param username the username of the Player whose ID you want
+	 * 
+	 * @return the ID of the Player with name username or 5, if no such name was found.
 	 */
 	public int getPID(String username) {
 		return g.getPlayerId(username);
 	}
+	/**
+	 * Forces the quest with questname to update.
+	 * 
+	 * @param questname the name of the quest you'd like to update
+	 * 
+	 * @return True, if the quest was found and updated.  False otherwise.
+	 */
 	public boolean pingQuest(String questname) {
 	 int i =0;
 	 while(i<p.getActiveQuests().size()) {
@@ -11850,8 +12118,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return log;
 	}
 	/**
+	 * UI Implemented. 
+	 * <br/><br/>
+	 * Returns a String representation of your last saved AI script which can be edited.
 	 * 
-	 * UI Implemented. Returns a string you can edit representing the program.
+	 * @return a formatted String containing your last saved AI script 
+	 * 
+	 * @see #runProgram()
+	 * @see #saveProgram(String)
+	 * @see #stopProgram()
 	 */
 	
 	public String editProgram() {
@@ -11872,7 +12147,17 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * 
-	 * UI Implemented. Saves the program.
+	 * UI Implemented.
+	 * <br/><br/>
+	 * Saves the program string given in toSave.
+	 * 
+	 * @param toSave the string representation of your AI script.
+	 * 
+	 * @return True, if the script has been saved.  False otherwise.
+	 * 
+	 * @see #editProgram()
+	 * @see #runProgram()
+	 * @see #stopProgram()
 	 */
 	
 	public boolean saveProgram(String toSave) {
@@ -11889,8 +12174,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return false;
 	}
 	/**
+	 * UI Implemented. 
+	 * <br/><br/>
+	 * Stops your currently running SI script.
 	 * 
-	 * UI Implemented. Stops the program.
+	 * @return True, if the script was stopped.  False otherwise.
+	 * 
+	 * @see #editProgram()
+	 * @see #saveProgram(String)
+	 * @see #runProgram()
 	 */
 	
 	public boolean stopProgram() {
@@ -11976,8 +12268,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Returns a list of all achievements, including ones you haven't gotten yet.
-	 * @return
+	 * 
+	 * @return an ArrayList containing all the achievements in the game
 	 */
 	public ArrayList<Hashtable> getAchievements() {
 		
@@ -12001,9 +12295,12 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
-	 * If true, your Revelations A.I. will restart when the server does.
-	 * @param on
-	 * @return
+	 * <br/><br/>
+	 * Sets whether you want your AI yot to start automatically on server load.
+	 * 
+	 * @param on if true, your Revelations A.I. will restart when the server does.
+	 * 
+	 * @return True
 	 */
 	public boolean setAutoRun(boolean on) {
 		try {
@@ -12018,8 +12315,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
-	 * Returns AutoRun status.
-	 * @return
+	 * <br/><br/>
+	 * Returns whether your AI is set to automatically start on server load.
+	 * This is generally a good idea unless your AI requires some upkeep
+	 * 
+	 * @return True, if your AI is set to auto run.  False otherwise.
 	 */
 	public boolean getAutoRun() {
 		boolean auto = false;
@@ -12037,11 +12337,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
-	 * 
+	 * <br/><br/>
 	 * Accept a two way trade schedule offer from somebody else.
 	 * 
-	 * @param tsid
-	 * @return
+	 * @param tsid 		the ID of the trade to be accepted
+	 * @param yourTID 	the ID of the town you're accepting from
+	 * 
+	 * @return True if the trade is accepted.  False otherwise.
 	 */
 	
 	public boolean acceptTradeSchedule(UUID tsid, int yourTID) {
@@ -12049,26 +12351,56 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("You do not have the Trading API!");
 			return false;
 		}
-		int i = 0; TradeSchedule ts=null; Town t = g.findTown(yourTID);
+		int i = 0; TradeSchedule ts=null; Town t = g.findTown(yourTID), t2 = null;
+		ArrayList<Town> towns = g.getTowns();
 		if(!checkMP(yourTID)) return false;
 		if(t.getPlayer().ID!=p.ID) {
 			setError("Not your town!");
 			return false;
 		}
-		while(i<g.getTowns().size()) {
-			ts = g.getTowns().get(i).findTradeSchedule(tsid);
-			if(ts!=null) break;
+		while(i<towns.size()) {
+			Town town = towns.get(i);
+			ts = town.findTradeSchedule(tsid);
+			if(ts!=null) {
+				t2 = town;
+				break;
+			}
 			i++;
 		}
 		if(ts==null) {
 			setError("No such Trade Schedule exists!");
 			return false;
 		}
-		synchronized(ts) {
-			
-			if(ts.getTown2()==null) {
-				ts.completeTradeSetUp(t);
-				return true;
+		ArrayList<Raid> blockadeT = t.getBlockades(), blockadeT2 = t2.getBlockades();
+		boolean canTrade = true;
+		//here we check if the blockading players are allied to the current player
+		if(blockadeT2.size()>0) {
+			canTrade = false;
+			for(Raid r : blockadeT2) {
+				if(r.getTown1().getPlayer().isAllied(p)) {
+					canTrade = true;
+					break;
+				}
+			}
+		}
+		//here we check if the blockading players are allied to the target player
+		//ie the one with the open TS
+		if(blockadeT.size()>0&&canTrade) {
+			canTrade = false;
+			for(Raid r : blockadeT) {
+				if(r.getTown1().getPlayer().isAllied(t2.getPlayer())) {
+					canTrade = true;
+					break;
+				}
+			}
+		}
+		if(canTrade) {
+			synchronized(ts) {
+				
+				if(ts.getTown2()==null) {
+					ts.completeTradeSetUp(t);
+					return true;
+				}
 			}
 		}
 		return false;
@@ -12095,39 +12427,66 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		UserTradeSchedule ts;
 		TradeSchedule actts;
 		Town t;
+		ArrayList<Raid> yourTBlock = yourT.getBlockades();
 		while(i<g.getTowns().size()) {
 			t = g.getTowns().get(i);
-			int j = 0;
 			townTses = t.getPlayer().getPs().b.getUserTradeSchedules(t.townID);
-			while(j<townTses.length) {
-				ts = townTses[j];
-				if(ts.getTID2()==0) {
-					ts.setDistance(Math.sqrt(Math.pow(t.getX()-yourT.getX(),2) + Math.pow(t.getY()-yourT.getY(),2)));
-					// THIS MEANS IT'S A TRADE THAT HAS NO PARDNER YET!
-					// now we need to see if it's TS is actually there. Just a check, really.
-					 tses.add(ts);
-					
-					
+			//no need to do all this checking if the town has no trade schedules anyways
+			if(townTses.length>0) {
+				ArrayList<Raid> tBlock = t.getBlockades();
+				boolean canTrade = true;
+				if(yourTBlock.size()>0) { 	//if your town is blockaded, we have to check if the
+					canTrade = false;		//player you're trading to, or his ally, is blockading you
+					yourT.getPlayer().God.out.println("Checking blockades for your town.");
+					for(Raid r : yourTBlock) {
+						if(r.getTown1().getPlayer().isAllied(t.getPlayer())) {
+							canTrade = true;
+							break;
+						}
+					}
 				}
-				j++;
+				//but what if they're blockaded too!
+				if(tBlock.size()>0&&canTrade) {
+					yourT.getPlayer().God.out.println("Checking blockades for the target town.");
+					canTrade = false;
+					for(Raid r : tBlock) {
+						if(r.getTown1().getPlayer().isAllied(p)) {
+							canTrade = true;
+							break;
+						}
+					}
+				}
+				if(canTrade) {
+					int j = 0;
+					while(j<townTses.length) {
+						ts = townTses[j];
+						if(ts.getTID2()==0&&ts.getTID1()!=tidYouCalledFrom) {
+							ts.setDistance(Math.sqrt(Math.pow(t.getX()-yourT.getX(),2) + Math.pow(t.getY()-yourT.getY(),2)));
+							// THIS MEANS IT'S A TRADE THAT HAS NO PARDNER YET!
+							// now we need to see if it's TS is actually there. Just a check, really.
+							yourT.getPlayer().God.out.println("Adding schedule to the list.");
+							tses.add(ts);
+						}
+						j++;
+					}
+				}
 			}
 			i++;
 		}
 		
 		i = 0;
-		townTses = new UserTradeSchedule[tses.size()];
-		while(i<townTses.length) {
-			townTses[i]=tses.get(i);
-			i++;
-		}
 		
-		return townTses;
+		return tses.toArray(new UserTradeSchedule[tses.size()]);
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Creates an Airship using your Town Tech over the city of your choosing.
-	 * The Airship starts with no fuel and level 1 warehouses and an HQ.
-	 * @param townID
+	 * 
+	 * @param airshipName 	the name to give the new Airship
+	 * @param townID		the ID of the town to build it at (Must contain an Airstrip)
+	 * 
+	 * @return True, if the airship was created.  False otherwise.
 	 */
 	public boolean createAirship(String airshipName, int townID) {
 		if(prog&&!p.isZeppelinAPI()) {
@@ -12157,11 +12516,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * For those idiots who just can't figure out how to fly an airship on empty.
 	 * Returns your airship to your capital after losing all of it's resources.
 	 * If another airship is at your capital, you must move it first.
-	 * @param townID
-	 * @return
+	 * 
+	 * @param townID ID of the Airship to be moved.
+	 * 
+	 * @return True if the Airship is moved.  False, otherwise.
 	 */
 	public boolean abortAirship(int townID) {
 		if(prog&&!p.isZeppelinAPI()) {
@@ -12204,11 +12566,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Moves your Airship given by it's townID to the position given by the x and y.
-	 * Remember that Airships are basically Towns as far as AI Wars is concerned, hence the TownID.
+	 * Remember that Airships are basically Towns as far as SP Wars is concerned, hence the TownID.
+	 * 
 	 * @param x
 	 * @param y
-	 * @return
+	 * 
+	 * @return True, if the Airship has begun moving.  False otherwise.
 	 */
 	public boolean moveAirship(int x, int y, int townID) {
 		if(prog&&!p.isZeppelinAPI()) {
@@ -12271,7 +12636,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Add a week of Battlehard Mode onto your player and experience the burn.
+	 * 
+	 * @return True, if the time was successfully added.  False otherwise.
 	 */
 	public boolean goBHM() {
 		if(p.getPremiumTimer()<52*7*24*3600/GodGenerator.gameClockFactor) {
@@ -12282,6 +12650,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		
 	}
 	
+	/**
+	 * UI Implemented
+	 * <br/><br/>
+	 * Responds to a message sent by one of your Dig teams.
+	 * 
+	 * @param yes		True, if you want to accept the reward presented.
+	 * @param townID	the ID of the Id town your team is digging.
+	 * 
+	 * @return True, if your response was heard.  False otherwise.
+	 */
 	public boolean respondToDigMessage(boolean yes, int townID) {
 		if(prog&&!p.isdigAPI()) {
 			setError("You do not have the Dig API!");
@@ -12652,7 +13030,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	 * @return
 	 */
 	private String getRandomAPI() {
-		String random[] ={
+		String[] random ={
 				"digAPI",
 				"attackAPI",
 				"advancedAttackAPI",
@@ -12670,7 +13048,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				
 		};
 		int counter=0;
-		String toSend[] = {"null"};
+		String[] toSend = {"null"};
 	do 	 {
 			int rand = (int) Math.round(Math.random()*(random.length-1));
 			if(rand<0) rand = 0;
@@ -12799,11 +13177,17 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
-	 * 
-	 * Returns if it's possible to launch the nuke in the building ID given if possible at the TID if possible.
+	 * <br/><br/>
+	 * Returns if it's possible to launch the nuke in the building ID given at the coordinates given.
+	 * <br/>
 	 * False nukeMode is a ground nuke, true is a sky nuke.
-	 * @param bid, tidTarget
-	 * @return
+	 * 
+	 * @param bid 		the ID of the Missile Silo whose nuke you want to launch
+	 * @param x 		the x coordinate of the target town
+	 * @param y 		the y coordinate of the target town
+	 * @param nukeMode	If true, this nuke will detonate as an EMP, shutting down play AIs.  Otherwise, it will detonate on the ground and do damage.
+	 * 
+	 * @return True, if the nuke can be launched.  False otherwise.
 	 */
 	public boolean canLaunchNuke(int bid, int x, int y, boolean nukeMode) {
 		if(prog&&!p.isNukeAPI()) {
@@ -12854,12 +13238,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
-	 * The holy of holies, this launches the big one. If nukeMode is false, then this is a groundNuke,
-	 * an EMP one if otherwise. 
+	 * <br/><br/>
+	 * The holy of holies, this launches the big one. If nukeMode is false, then this is a groundNuke and will do building damage.
+	 * Otherwise, it's an EMP and will shut down AIs. 
 	 * 
-	 * @param bid
-	 * @param tidTarget
-	 * @return
+	 * @param bid		the Id of the Missile Silo you're launching from
+	 * @param x			the x coordinate of the target town
+	 * @param y			the y coordinate of the target town
+	 * @param nukeMode	if true, this nuke detonates as an EMP.  Otherwise, this nuke detonates on the gound.
+	 * 
+	 * @return True, if launch was successful.  False, otherwise.
 	 */
 	public boolean launchNuke(int bid, int x, int y, boolean nukeMode) {
 		if(prog&&!p.isNukeAPI()) {
@@ -12895,13 +13283,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * This will add Airships at will to your account at the x,y specified. 
-	 * @param x
-	 * @param y
-	 * @param resEffects
-	 * @param zeppelin
-	 * @return
+	 * 
+	 * @param x 			the x coordinate to place the Airship
+	 * @param y 			the y coordinate to place the Airship
+	 * @param resEffects	the modifiers to res income for this Airship
+	 * @param townName		the name to give this Airship
+	 * 
+	 * @return The town ID of the Airship
 	 */
-	private int addZeppelin(int x, int y, double resEffects[], String townName) {
+	private int addZeppelin(int x, int y, double[] resEffects, String townName) {
 
 		int tid=-1;
 
@@ -13007,10 +13397,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * The Airship with the townID given will offload resources to the town directly beneath
 	 * it, up to the caps obviously. It will keep the rest.
-	 * @param townID
-	 * @return
+	 * 
+	 * @param townID the ID of the Airship to unload
+	 * 
+	 * @return True, if offloading was successful.  False otherwise.
 	 */
 	public boolean offloadResources(int townID) {
 		if(prog&&!p.isZeppelinAPI()) {
@@ -13058,8 +13451,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Returns true if your program is currently running.
-	 * @return
+	 * 
+	 * @return True, if your program is running.  False otherwise.
 	 */
 	public boolean isAlive() {
 		Object currRevInstance= null; Hashtable r=null;
@@ -13083,20 +13478,41 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Returns the ticks in gameClockFactor since the last server restart.
+	 * 
+	 * @return The time, in ticks, since the last server restart.
 	 */
 	public int getServerTicks() {
 		return g.getGameClock();
 	}
 
+	/**
+	 * Sets the most recent error to the value passed.  This is usually used by BF methods
+	 * to report more detail about why a function failed to properly execute.  It is not
+	 * advisted to use this method yourself if you don't understand the consequences.
+	 * 
+	 * @param error the string to set the error to
+	 */
 	public void setError(String error) {
 		this.error = error;
 	}
-	
+	/**
+	 * @return a string representing the current UI version.  Should always return "original". 
+	 * 
+	 * @deprecated Was to be used with the UI switcher that never got implemented. 
+	 */
 	public String getVersion() {
 		
 		return p.getVersion();
 	}
+	/**
+	 * @param version the version of UI to use
+	 * 
+	 * @return False
+	 * 
+	 * @deprecated Was to be used with the UI switcher that never got implemented.
+	 */
 	public boolean setVersion(String version) {
 		
 		if(!version.equals("original")&&!version.equals("dark")&&!version.equals("light")) {
@@ -13109,13 +13525,16 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * If you are already a voluntary vassal of one Lord and wish to switch, then you can do that with the msgid of the
-	 * invite message.
+	 * invite message.<br/>
 	 * If you are not a vassal, and you have no sack, then you can swear fealty here too.
 	 * 
-	 * @param msgID
-	 * @return
+	 * @param msgID ID of the message sent to request vassalage.
+	 * 
+	 * @return True, if the vassalage request was accepted.  False otherwise.
 	 */
+	//Note: This description needs more clarification.  What is a sack?
 	public boolean acceptVassalage(UUID msgID) {
 		
 		
@@ -13157,11 +13576,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * If you are a lord and no longer want the vassal denoted by the Username, you can cancel it here. This will
 	 * also de-vassal any towns of theirs that you had at the town-level before player-vassalification.
+	 * <br/><br/>
 	 * 
-	 * @param msgID
-	 * @return
+	 * 
+	 * @param username the name of the player whose vassalage you no longer desire
+	 * 
+	 * @return True, if vassalage was canceled.  False otherwise.
 	 */
 	public boolean cancelVassalage(String username) {
 		return cancelVassalage(g.getPlayerId(username));
@@ -13169,8 +13592,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	/**
 	 * If you are a lord and no longer want the vassal denoted by the player ID, you can cancel it here.
 	 * 
-	 * @param msgID
-	 * @return
+	 * @param pid the ID of the player whose vassalage you no longer desire
+	 * 
+	 * @return True, if the vassalage was canceled.  False otherwise.
 	 */
 	public boolean cancelVassalage(int pid) {
 		
@@ -13242,10 +13666,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * Reset the tax rates on voluntary player-level vassals given by their usernames.
 	 * 
-	 * @param msgID
-	 * @return
+	 * @param username	the name of the vassal whose tax rate is to be adjusted
+	 * @param rate		the tax rate percentage for this vassal as a decimal (IE .1 for 10%).  Cannot be more than 0.5.
+	 * 
+	 * @return True, if the vassal's tax rate was adjusted.  False otherwise.
 	 */
 	public boolean resetVassalTax(String username, double rate) {
 		
@@ -13256,8 +13683,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	/**
 	 * Reset the tax rates on voluntary player-level vassals given by their PIDs.
 	 * 
-	 * @param msgID
-	 * @return
+	 * @param pid	the ID of the vassal whose tax rate is to be adjusted
+	 * @param rate	the tax rate percent for this vassal as a decimal(IE .1 for 10%).  Can not exceed 50%.
+	 * 
+	 * @return True, if the tax rate was set to the new value.  False otherwise.
 	 */
 	public boolean resetVassalTax(int pid, double rate) {
 		
@@ -13281,24 +13710,23 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	/**
 	 * UI Implemented.
+	 * <br/><br/>
 	 * If you are a voluntary player-level vassal, you can cancel player-level vassalage here. This also releases
 	 * all towns that you have that were previously vassaled to your player-level lord.
 	 * 
-	 * @param msgID
-	 * @return
+	 * @return True, if vassalage was canceled.  False otherwise.
 	 */
 	public boolean cancelVassalage() {
 		
-		
-		
 		if(p.getLord()!=null&&p.isVoluntaryVassal()) {
-				
-			
-			
 			 p.makeVassalOf(null,false);
 			 return true;
 		} else {
-			setError("You are either a forced vassal, or not a vassal at all.");
+			if(p.getLord()!=null) {
+				setError("You cannot cancel forced vassalage.");
+			} else {
+				setError("You are not a vassal.");
+			}
 			return false;
 		}
 	}
@@ -13347,3 +13775,4 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return true;
 	}
 	}
+

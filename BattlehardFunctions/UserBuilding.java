@@ -1,39 +1,69 @@
 package BattlehardFunctions;
 
 import java.util.UUID;
-
 import BHEngine.Building;
 
-
+/**
+ * Valid building types (alphabetical order):
+ * <ul>
+ * <li>Airstrip</li>
+ * <li>Arms Factory</li>
+ * <li>Command Center</li>
+ * <li>Crystal Refinery</li>
+ * <li>Crystal Repository</li>
+ * <li>Fortifications</li>
+ * <li>Foundry</li>
+ * <li>Granary</li>
+ * <li>Hydroponics Bay</li>
+ * <li>Institute</li>
+ * <li>Lumber Yard</li>
+ * <li>Manufacturing Plant</li>
+ * <li>Metal Warehouse</li>
+ * <li>Missile Silo</li>
+ * <li>Recycling Center</li>
+ * <li>Resource Cache</li>
+ * <li>Sawmill</li>
+ * <li>Storage Yard</li>
+ * <li>Trade Center</li>
+ * </ul>
+ */
 public class UserBuilding {
 
 	String type;
 	String desc;
-	  private int lvl; private long cap; private int lotNum; private long cost[] = new long[5];
-	private int ticksToFinish, ticksToFinishTotal; private int peopleInside; // used to determine time to level up/build.
-private UUID id;
-private int refuelTicks; private int fortArray[];
-//private	int ticksPerUnit[] = new int[6]; // for combat units ONLY.
-//private	int ticksLeftPerUnit[] = new int[6]; // for combat units ONLY.
-private UserQueueItem[] Queue;
+	
+	private int lvl,
+				ticksToFinish, 
+				ticksToFinishTotal,
+				peopleInside, // used to determine time to level up/build.
+				lotNum,
+				refuelTicks,
+				numLeftToBuild,
+				ticksPerPerson,
+				ticksLeft, // for people
+				lvlUps, // so if they call for one already on the server, it just ups this instead.
+				bunkerMode=0;
+	private int[] fortArray;
+	private long cap; 
+	private long[] cost = new long[5];
+	private boolean deconstruct, // needs to be false if nothing is happening, if it becomes true and is on bldgserver,
+					mineBldg=false;
+	private UUID id;
+	//private int ticksPerUnit[] = new int[6]; // for combat units ONLY.
+	//private int ticksLeftPerUnit[] = new int[6]; // for combat units ONLY.
+	private UserQueueItem[] Queue;
 
-private	int numLeftToBuild, ticksPerPerson, ticksLeft; // for people
-//private	int numUnitsLeftToBuild[] = new int[6];
-private int lvlUps; // so if they call for one already on the server, it just ups this instead.
-private boolean deconstruct; // needs to be false if nothing is happening, if it becomes true and is on bldgserver,
-private int bunkerMode=0;
-private boolean mineBldg=false;
-private static int resourceAmt = 600; // increase this to get an increase in
-// warehouse size per level, currently the amt of the building
-// but this roughly equals six hours of production at the mine level = warehouse lvl.
-// then level ups cannot happen anymore.
-private static int baseResourceAmt = 1000;
-
-	public UserBuilding(UserQueueItem[] queue, UUID id, int bunkerMode,
-		long cap, long[] cost, boolean deconstruct, int lotNum,
-		int lvl, int lvlUps, int numLeftToBuild,
-		int peopleInside, int ticksLeft, int ticksPerPerson,
-		int ticksToFinish, int ticksToFinishTotal, String type, int refuelTicks, int[] fortArray) {
+	//private int numUnitsLeftToBuild[] = new int[6];
+	private static int resourceAmt = 600; // increase this to get an increase in
+	// warehouse size per level, currently the amt of the building
+	// but this roughly equals six hours of production at the mine level = warehouse lvl.
+	// then level ups cannot happen anymore.
+	private static int baseResourceAmt = 1000;
+	
+	public UserBuilding(UserQueueItem[] queue, UUID id, int bunkerMode,long cap, long[] cost,
+			boolean deconstruct, int lotNum, int lvl, int lvlUps, int numLeftToBuild,
+			int peopleInside, int ticksLeft, int ticksPerPerson, int ticksToFinish, 
+			int ticksToFinishTotal, String type, int refuelTicks, int[] fortArray) {
 	
 	Queue = queue;
 	this.id = id;

@@ -7,30 +7,46 @@ import BHEngine.Town;
 
 
 public class UserTown {
-	 private long res[]; private UserAttackUnit[] au; private int townID; private String townName; String playerName;  private double resInc[] = new double[5]; private int x, y;
-	 private UserBuilding[] bldg; private UserBuilding[] bldgserver;
-	private int totalTraders=0;    int pid; // for use with bhviewer.
-	private int totalEngineers=0; private UserRaid[] attackServer; 
-	private UserTrade[] tradeServer;
-	private double[] resEffects;
-	private String rumor;
-	private int destX,destY,fuelCells,ticksTillMove;
-	private boolean zeppelin, resourceOutcropping;
-	private int foodConsumption;
-	private int lord=0;
+	private int CSL,
+				CS,
+				influence,
+				townID,
+				x, y,
+				destX,destY,
+				fuelCells,
+				ticksTillMove,
+				foodConsumption,
+				lord=0,
+				totalTraders=0,
+				totalEngineers=0; 
+	private long res[]; 
 	private double taxRate=0;
+	private double[] resEffects,
+					 resInc = new double[5]; 
+	private String 	townName,
+					rumor;
+	private UserAttackUnit[] au; 
+	private UserBuilding[] 	bldg,
+							bldgserver;
+	private UserRaid[] attackServer; 
+	private UserTrade[] tradeServer;
+	private UserTradeSchedule[] tradeSchedules;
+	private boolean zeppelin, resourceOutcropping;
 	private Timestamp vassalFrom;
-	private int CSL,CS,influence;
 
 	volatile long resCaps[] = new long[5];
-	private UserTradeSchedule[] tradeSchedules;
-	public UserTown(UserRaid[] attackServer, UserAttackUnit[] au,
-			UserBuilding[] bldg, 
-			int pid, String playerName, long[] res,
-			long[] resCaps, double[] resInc, double[] resEffects, int totalEngineers,
-			int totalTraders, int townID, String townName,
-			UserTradeSchedule[] tradeSchedules, UserTrade[] tradeServer, int x,
-			int y,int CSL, int CS, boolean zeppelin, int fuelCells, int destX,int destY, int ticksTillMove, int foodConsumption, double taxRate, int lord, Timestamp vassalFrom, int influence, boolean resourceOutcropping, String rumor) {
+	
+	int pid; // for use with bhviewer.
+	String playerName;  
+	
+	public UserTown(UserRaid[] attackServer, UserAttackUnit[] au, UserBuilding[] bldg, 
+			int pid, String playerName, long[] res, long[] resCaps, double[] resInc, 
+			double[] resEffects, int totalEngineers, int totalTraders, int townID, 
+			String townName, UserTradeSchedule[] tradeSchedules, UserTrade[] tradeServer, 
+			int x, int y,int CSL, int CS, boolean zeppelin, int fuelCells, int destX,
+			int destY, int ticksTillMove, int foodConsumption, double taxRate, int lord, 
+			Timestamp vassalFrom, int influence, boolean resourceOutcropping, String rumor) {
+		
 		this.attackServer = attackServer;
 		this.au = au;
 		this.bldg = bldg;

@@ -1,9 +1,9 @@
 package BHEngine;
-import java.sql.Connection;
-import java.sql.DriverManager;
+//import java.sql.Connection;
+//import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+//import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -26,7 +26,7 @@ public class TradeSchedule {
 		// and so to save space that is exported as an extra usable method. It is only necessary
 		// when creating raids.
 		// this constructor is for when a raid is being loaded into memory.
-		this.mateID = mateID; // if two way and not agreed, will be 0 until agreed, or else
+		this.mateID = mateTradeScheduleID; // if two way and not agreed, will be 0 until agreed, or else
 		// if not two way is 0 forever! (mysql autogen id starts at 1)
 		
 			this.twoway=twoway;
@@ -44,22 +44,17 @@ public class TradeSchedule {
 	
 	}
 	public TradeSchedule(UUID id,GodGenerator God) {
-			// This constructor does not use the support integer because it is rarely used compared to other things
-			// and so to save space that is exported as an extra usable method. It is only necessary
-			// when creating raids.
-			// this constructor is for when a raid is being loaded into memory.
 			
 			 this.id = id; 
 			 this.con=God.con; this.God=God;
 			 
 			try {	
-			UberPreparedStatement rus = con.createStatement("select * from tradeschedule where id = ?;");
-			rus.setString(1,id.toString());
-			ResultSet rrs = rus.executeQuery();
-			// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
-			// Then F = !(R!T) = !R + T;
+				UberPreparedStatement rus = con.createStatement("select * from tradeschedule where id = ?;");
+				rus.setString(1,id.toString());
+				ResultSet rrs = rus.executeQuery();
+
 			while(rrs.next()) {
-		
+				
 				
 				Town town1 = God.findTown(rrs.getInt(1));
 				Town town2Obj = God.findTown(rrs.getInt(2));
@@ -70,6 +65,7 @@ public class TradeSchedule {
 		
 			}
 					rrs.close();rus.close();
+
 			} catch(SQLException exc) { exc.printStackTrace(); }
 			 
 		
@@ -209,9 +205,9 @@ public class TradeSchedule {
 		 * 
 		 */
 		if(mate==null) {
-		int i = 0; TradeSchedule ts=null;
+		int i = 0; //TradeSchedule ts=null;
 		if(isStockMarketTrade()) return null;
-		 boolean found = true;
+		//boolean found = true;
 		 if(!isAgreed()||!isTwoway()) return null; // duh there won't be one.
 		 
 		 Town t2 = getTown2();
@@ -266,12 +262,14 @@ public class TradeSchedule {
 				 this.othermetal=othermetal;this.othertimber=othertimber;
 				 this.intervaltime=intervaltime;
 				 this.othermanmat=othermanmat;this.otherfood=otherfood;
+
 				 
 			UberPreparedStatement stmt;
 			try {
 
 		      
 		      stmt = con.createStatement("insert into tradeschedule (tid1, tid2,m,t,mm,f,otherm,othert,othermm,otherf,intervaltime,times,twoway,mate_tsid,id,caravan) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
+
 		      
 		      // First things first. We update the player table.
 		      boolean transacted=false;
@@ -314,8 +312,9 @@ public class TradeSchedule {
 		      }		     
 		      tradeScheduleID=a.get(a.size()-1).tradeScheduleID;*/
 		      stmt.close(); transacted=true;  }
+
 		    	  catch(MySQLTransactionRollbackException exc) { } 
-		      }// need connection for attackunit adds!
+		      }
 		 } catch(SQLException exc) { exc.printStackTrace(); }
 
 		
@@ -334,9 +333,10 @@ public class TradeSchedule {
 			if(theResource>300) theResource=300;
 			t = new Trade(getTown1(),getTown2(),theResource,theResource,theResource,0,this,traders);
 		}
+
 		// makes this bitch.
 		if(!second)
-		setCurrTicks(getIntervaltime());
+			setCurrTicks(getIntervaltime());
 		else setCurrTicks(getIntervaltime()+1); // because in this case,
 		// this is the second trade in a two-way and so it gets decreased by one
 		// in the same iteration as the first was sent but it gets hijacked before that.
