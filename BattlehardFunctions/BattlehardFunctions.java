@@ -5533,6 +5533,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("Error. You really tried to screw us? Kill yourself.");
 			return false;
 		}
+		if(name.equals("")) {
+			setError("No town name is no fun.");
+			return false;
+		}
+		if(name.length()>10) {
+			name = name.substring(0,10);
+		}
 		
 		t.setTownName(name);
 		return true;
