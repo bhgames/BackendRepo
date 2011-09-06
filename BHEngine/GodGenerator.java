@@ -6764,13 +6764,6 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 		return true;
 	}
 	
-	/*
-	 * TODO:
-	 * 		Write code that prevents the sending of civilian only misisons
-	 * 		- including trades
-	 * 		Write code that recalls trades and cancels schedules when a blockade starts
-	 */
-	
 	public static boolean blockadeLogicBlock(Raid r) {
 
 		int ie = 0, totalCheckedSize=0; 
