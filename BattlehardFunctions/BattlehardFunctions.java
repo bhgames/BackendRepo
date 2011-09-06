@@ -5499,7 +5499,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	/**
 	 * UI Implemented.
 	 * <br/><br/>
-	 * Renames the town with ID tid, if it's yours.
+	 * Renames the town with ID tid, if it's yours.  Town names can be no longer than 10 characters.
 	 * 
 	 * @param tid	the ID of the town to be renamed
 	 * @param name	the new name to give the town
