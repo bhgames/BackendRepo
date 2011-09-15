@@ -4933,19 +4933,15 @@ public class GodGenerator extends HttpServlet implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		 Router = new Controllers(this);
+		Router = new Controllers(this);
 			
 		  
-	       con =
-	                     new UberConnection(
-	                                 url,user, pass,this);
-	      zongCon =
-             new UberConnection(
-                         zongurl,user, pass,this);
+		con = new UberConnection(url,user, pass,this);
+		zongCon = new UberConnection(zongurl,user, pass,this);
 
 
 	    
-		 serverInst = new Server(8079);
+		serverInst = new Server(8079);
 		 
 	        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 	        context.setContextPath("/AIWars/GodGenerator");
@@ -11978,7 +11974,7 @@ public boolean checkForGenocides(Town t) {
 			  else 
 				 testDist= Math.sqrt(Math.pow(t.getX()-chosenTileX,2)+Math.pow(t.getY()-chosenTileY,2));
 		//	  System.out.println("Checking " + t.getTownName() + " with distance of " + testDist + ", probtimer of " + t.getProbTimer() + " and dig amt of " + t.getDigAmt() + " with resincs of " + t.getResEffects()[0]);
-			 if(testDist<=(distance)&&t.getProbTimer()==0&&t.getDigAmt()==0) { // no dig sites.
+			 if(testDist<=distance&&!t.getTownName().matches("Outcropping")&&t.getProbTimer()==0&&t.getDigAmt()==0) { // no dig sites.
 				 int k = 0; boolean foundNone=true;
 				 while(k<t.getResEffects().length) { // we only do normal towns, bitches.
 					 if(t.getResEffects()[k]!=0) foundNone=false;
