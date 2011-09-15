@@ -12146,19 +12146,19 @@ public boolean checkForGenocides(Town t) {
 		ArrayList<Building> bldgserver = holdTown.bldgserver();
 		int u = 0; Building b;
 		QueueItem q;
-			while(u<bldgserver.size()) {
+		while(u<bldgserver.size()) {
 				
-				 b = bldgserver.get(u);
+			b = bldgserver.get(u);
 			
 					 
-				 if(b.getTicksToFinishTotal()==0) b.modifyTicksLevel(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getX()),holdTown.getPlayer().getArchitecture());
-				 // if we just loaded, then ticksToFinishTotal isn't set and must be.
-				if(b.getTicksToFinish()<b.getTicksToFinishTotal()&&b.getTicksToFinish()!=-1) {
-					b.modifyTicksLevel(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getArchitecture()); b.setTicksToFinish(b.getTicksToFinish()+1); 
-					} 
-				else if(b.getTicksToFinish()>=b.getTicksToFinishTotal()&&b.getLvlUps()>0) {
-					//UserRaid theRaid =getUserRaid(holdAttack.getId());
-					//holdAttack.getTown2().getPlayer().getPs().runMethod("onIncomingRaidDetectedCatch",theRaid);
+			if(b.getTicksToFinishTotal()==0) b.modifyTicksLevel(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getX()),holdTown.getPlayer().getArchitecture());
+			// if we just loaded, then ticksToFinishTotal isn't set and must be.
+			if(b.getTicksToFinish()<b.getTicksToFinishTotal()&&b.getTicksToFinish()!=-1) {
+				b.modifyTicksLevel(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getArchitecture()); b.setTicksToFinish(b.getTicksToFinish()+1); 
+			} 
+			else if(b.getTicksToFinish()>=b.getTicksToFinishTotal()&&b.getLvlUps()>0) {
+				//UserRaid theRaid =getUserRaid(holdAttack.getId());
+				//holdAttack.getTown2().getPlayer().getPs().runMethod("onIncomingRaidDetectedCatch",theRaid);
 				b.setLvlUps(b.getLvlUps()-1);
 				
 			
@@ -12198,16 +12198,18 @@ public boolean checkForGenocides(Town t) {
 				}
 				
 				if(b.getNumLeftToBuild()>0) {
-					 if(b.getTicksPerPerson()==0) b.modifyPeopleTicks(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getArchitecture());
-					 // if we just loaded, then ticksPerPerson isn't set and must be.
+					// if we just loaded, then ticksPerPerson isn't set and must be.
+					if(b.getTicksPerPerson()==0) b.modifyPeopleTicks(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getArchitecture());
+					
 					if(b.getTicksLeft()>=b.getTicksPerPerson()) {
 						b.setNumLeftToBuild(b.getNumLeftToBuild()-1);
 						b.setPeopleInside(b.getPeopleInside()+1);
 						b.setTicksLeft(0);
-				
-					
-
-					} else {b.modifyPeopleTicks(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getArchitecture()); b.setTicksLeft(b.getTicksLeft()+1); }
+		
+					} else {
+						b.modifyPeopleTicks(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getY()),holdTown.getPlayer().getArchitecture()); 
+						b.setTicksLeft(b.getTicksLeft()+1);
+					}
 					
 				}
 				if(b.getType().equals("Arms Factory")||
@@ -12229,53 +12231,52 @@ public boolean checkForGenocides(Town t) {
 							}
 							o++;
 						}
-					 q = b.Queue().get(0);
+						q = b.Queue().get(0);
 
-					if(q.getAUNumber()>0) {
+						if(q.getAUNumber()>0) {
 						
-						// this sets ticksPerUnit on constructor setup.
-						if(q.getCurrTicks()>=q.getTicksPerUnit()) {
-					//		System.out.println("I am doing a unit.");
-							q.setAUNumber(q.getAUNumber()-1);
-							int g = 0; 
-							while(g<holdTown.getAu().size()) {
-								if(holdTown.getAu().get(g).getSlot()==q.getAUtoBuild()){
-									holdTown.getAu().get(g).setSize(holdTown.getAu().get(g).getSize()+1);
-									break;
+							// this sets ticksPerUnit on constructor setup.
+							if(q.getCurrTicks()>=q.getTicksPerUnit()) {
+							//		System.out.println("I am doing a unit.");
+								q.setAUNumber(q.getAUNumber()-1);
+								int g = 0; 
+								while(g<holdTown.getAu().size()) {
+									if(holdTown.getAu().get(g).getSlot()==q.getAUtoBuild()){
+										holdTown.getAu().get(g).setSize(holdTown.getAu().get(g).getSize()+1);
+										break;
+									}
+									g++;
 								}
-								g++;
+							
+								q.resetTicks();
+							
+						
+							} else {
+								int i = 0;
+								while(i<holdTown.getAu().size()) {
+									if(holdTown.getAu().get(i).getSlot()==q.getAUtoBuild()) {
+										q.modifyUnitTicksForItem(holdTown.getAu().get(i).getType(),holdTown); 
+										break;
+									}
+									i++;
+								}
+								q.incrTicks(); 
 							}
-							
-							q.resetTicks();
-							
 						
 						} else {
-							int i = 0;
-							while(i<holdTown.getAu().size()) {
-								if(holdTown.getAu().get(i).getSlot()==q.getAUtoBuild()) {
-									q.modifyUnitTicksForItem(holdTown.getAu().get(i).getType(),holdTown); 
-									break;
-								}
-								i++;
-							}
-							q.incrTicks(); }
-						
-					} else {
-						// this means that there is a queue item with 0 or less number left to build.
-						// it should be removed from the queue.
-						q.deleteMe();
-						if(b.Queue().size()<=0) {
+							// this means that there is a queue item with 0 or less number left to build.
+							// it should be removed from the queue.
+							q.deleteMe();
+							if(b.Queue().size()<=0) {
 							
-							holdTown.getPlayer().getPs().runMethod("onAttackUnitQueueEmptyCatch", holdTown.getPlayer().getPs().b.getUserBuilding(b.getId()));
-						}
+								holdTown.getPlayer().getPs().runMethod("onAttackUnitQueueEmptyCatch", holdTown.getPlayer().getPs().b.getUserBuilding(b.getId()));
+							}
 						
 						// then the next one will be used next time around!
 						
+						}
 					}
-					
-					} 
-					
-					 }
+				}
 				u++;
 			}
 /*
