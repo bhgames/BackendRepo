@@ -17,15 +17,16 @@ public class BQ3 extends QuestListener {
 
 	@Override
 	public String[] getCurrentQuestText(int pid) {
-		String additional[]  = { "15 Knowledge Points" };
+		String 	additional[]  = { "15 Knowledge Points" },
+				goals = "<div class='goalBox'>Goals:<ul><li>Queue 5 Pillagers</li><li>Train 1 Pillagers</li></ul></div><br/><br/>",
+				text = "<div class='descBox'>Very Good! These buildings are very important to the operation of both your town and empire.<br/><br/>"
+						+ "Now, we have to concern ourselves with the defense of your new town. Enter your Arms Factory now. From here, you can produce any soldier unit you've unlocked. Right now, you only have access to the 'Pillager' blueprints. Selecting a blueprint will display information about that unit type, such as it's damage type and and attack power as well as how many of that unit you have in your current town.<br/><br/>"
+						+ "For now, let's train 5 Pillagers. We'll need a soldier for your next assignment, so we'll have to wait until one is finished.<br/>"
+						+ "While you wait, You'll also want to train some scholars at your Institute, so you can start generating RP.</div>",
+				reward = "<div class='rewardBox'>"+getRewardBlock(1,pid,additional)+"</div>",
+				script = "";
 
-		String toRet[] = {"<div class='goalBox'>Goals:<ul><li>Queue 5 Pillagers</li><li>Train 1 Pillagers</li></ul></div><div class='descBox'>" +
-				"Very Good! These buildings are very important to the operation of both your town and empire.<br/><br/>" +
-				"Now, we have to concern ourselves with the defense of your new town. Enter your Arms Factory now. From here, you can produce any soldier unit you've unlocked. Right now, you only have access to the 'Pillager' blueprints. Selecting a blueprint will display information about that unit type, such as it's damage type and and attack power as well as how many of that unit you have in your current town.<br/><br/>" +
-				"For now, let's train 5 Pillagers. We'll need a soldier for your next assignment, so we'll have to wait until one is finished.<br/>" +
-				"While you wait, You'll also want to train some scholars so you can start generating RP.</div><div class='rewardBox'>"+getRewardBlock(1,pid,additional)+"</div>","No hint."};
-
-		return toRet;
+		return new String[] {goals+text+reward,script};
 	}
 
 	@Override

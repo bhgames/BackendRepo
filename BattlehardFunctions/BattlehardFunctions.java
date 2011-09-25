@@ -5347,32 +5347,32 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		//System.out.println("Got here1.");
 
 
-		k=0;
-		while(k<t1au.size()) {
-			// by using all au, not just the array of holdNumbers, we insure
-			// that the attack lineup remains intact. AttackUnits that aren't
-			// mentioned will still send zeroes.
-
-			addThis = t1au.get(k).returnCopy();
-
-			if(Town2p.ID!=t1p.ID&&support==1) addThis.makeSupportUnit(addThis.getSlot(),t1p,t1.townID);
-			else if(Town2p.ID!=t1p.ID&&support==2) addThis.makeOffSupportUnit(addThis.getSlot(),t1p,t1.townID);
-			// so if this is a supporting run, and you aren't sending to your own town, these units get
-			// marked as "foreign."
-			au.add(addThis);
-			if(k<limit) {
-				addThis.setSize(holdNumbers[k]);
-	
-				t1.setSize(k,t1au.get(k).getSize() - holdNumbers[k]);
-				
-			}
-			
-			else addThis.setSize(0);
-
-			k++;
-		}
-
 		if(send) {
+			k=0;
+			while(k<t1au.size()) {
+				// by using all au, not just the array of holdNumbers, we insure
+				// that the attack lineup remains intact. AttackUnits that aren't
+				// mentioned will still send zeroes.
+	
+				addThis = t1au.get(k).returnCopy();
+	
+				if(Town2p.ID!=t1p.ID&&support==1) addThis.makeSupportUnit(addThis.getSlot(),t1p,t1.townID);
+				else if(Town2p.ID!=t1p.ID&&support==2) addThis.makeOffSupportUnit(addThis.getSlot(),t1p,t1.townID);
+				// so if this is a supporting run, and you aren't sending to your own town, these units get
+				// marked as "foreign."
+				au.add(addThis);
+				if(k<limit) {
+					addThis.setSize(holdNumbers[k]);
+		
+					t1.setSize(k,t1au.get(k).getSize() - holdNumbers[k]);
+					
+				}
+				
+				else addThis.setSize(0);
+	
+				k++;
+			}
+
 			k=0;
 			Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, Town2, Genocide, Bomb,support,invade,name,debris,au,digAmt); // digAmt may not be the requirement,
 			// but it'll always be zero if dig isn't on!
