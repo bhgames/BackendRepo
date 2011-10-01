@@ -19,7 +19,7 @@ public class QueueItem {
 				originalAUAmt,
 				totalNumber;
 	private long cost[];
-	private GodGenerator God;
+	//private GodGenerator God;
 	private UberConnection con;
 	
 	private static int baseBuildTime=(int) Math.round(60*10.0/GodGenerator.gameClockFactor);
@@ -43,7 +43,7 @@ public class QueueItem {
 		this.id=id;
 		this.bid=b.getId();
 		this.b=b;
-		this.God=God;
+		//this.God=God;
 		this.con=God.con;
 		try {
 			UberPreparedStatement qus = con.createStatement("select * from queue where id = ?;");

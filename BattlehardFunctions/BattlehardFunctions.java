@@ -5348,29 +5348,32 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 		if(send) {
 
-		k=0;
-		while(k<t1au.size()) {
-			// by using all au, not just the array of holdNumbers, we insure
-			// that the attack lineup remains intact. AttackUnits that aren't
-			// mentioned will still send zeroes.
-
-			addThis = t1au.get(k).returnCopy();
-
-			if(Town2p.ID!=t1p.ID&&support==1) addThis.makeSupportUnit(addThis.getSlot(),t1p,t1.townID);
-			else if(Town2p.ID!=t1p.ID&&support==2) addThis.makeOffSupportUnit(addThis.getSlot(),t1p,t1.townID);
-			// so if this is a supporting run, and you aren't sending to your own town, these units get
-			// marked as "foreign."
-			au.add(addThis);
-			if(k<limit) {
-				addThis.setSize(holdNumbers[k]);
+		if(send) {
+			k=0;
+			while(k<t1au.size()) {
+				// by using all au, not just the array of holdNumbers, we insure
+				// that the attack lineup remains intact. AttackUnits that aren't
+				// mentioned will still send zeroes.
 	
-				t1.setSize(k,t1au.get(k).getSize() - holdNumbers[k]);
+				addThis = t1au.get(k).returnCopy();
+	
+				if(Town2p.ID!=t1p.ID&&support==1) addThis.makeSupportUnit(addThis.getSlot(),t1p,t1.townID);
+				else if(Town2p.ID!=t1p.ID&&support==2) addThis.makeOffSupportUnit(addThis.getSlot(),t1p,t1.townID);
+				// so if this is a supporting run, and you aren't sending to your own town, these units get
+				// marked as "foreign."
+				au.add(addThis);
+				if(k<limit) {
+					addThis.setSize(holdNumbers[k]);
+		
+					t1.setSize(k,t1au.get(k).getSize() - holdNumbers[k]);
+					
+				}
 				
+				else addThis.setSize(0);
+	
+				k++;
 			}
-			
-			else addThis.setSize(0);
 
-			k++;
 		}
 
 			k=0;
@@ -5499,7 +5502,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	/**
 	 * UI Implemented.
 	 * <br/><br/>
-	 * Renames the town with ID tid, if it's yours.
+	 * Renames the town with ID tid, if it's yours.  Town names can be no longer than 10 characters.
 	 * 
 	 * @param tid	the ID of the town to be renamed
 	 * @param name	the new name to give the town
@@ -5532,6 +5535,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		if(name.contains("DATA CORRUPT-ID")){
 			setError("Error. You really tried to screw us? Kill yourself.");
 			return false;
+		}
+		if(name.equals("")) {
+			setError("No town name is no fun.");
+			return false;
+		}
+		if(name.length()>10) {
+			name = name.substring(0,10);
 		}
 		
 		t.setTownName(name);

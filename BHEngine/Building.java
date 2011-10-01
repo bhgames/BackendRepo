@@ -530,14 +530,15 @@ public class Building {
 	
 	public void addCombatUnit(int index, int number, Town t, long cost[]) {
 		
-		int townsAtTime = t.getPlayer().towns().size();
-		   int i = 0;AttackUnit a=null;
-		   ArrayList<AttackUnit> au = t.getPlayer().getAu();
-		      while(i<au.size()) {
-		    	  a = au.get(i);
-		    	  if(a.getSlot()==index) break;
-		    	  i++;
-		      }
+		int townsAtTime = t.getPlayer().towns().size(), 
+			i = 0;
+		AttackUnit a=null;
+		ArrayList<AttackUnit> au = t.getPlayer().getAu();
+		while(i<au.size()) {
+			a = au.get(i);
+			if(a.getSlot()==index) break;
+			i++;
+		}
 		int originalAUAmt = GodGenerator.getTotalSize(a,t.getPlayer());
 		int totalNumber=number;
 		try {
@@ -552,10 +553,10 @@ public class Building {
 		      boolean transacted=false;
 		      while(!transacted) {
 		    	  
-		      try {
+		    	  try {
 		    	  
 			      
-				       stmt = t.getPlayer().con.createStatement("insert into queue (bid,AUtoBuild,AUNumber,m,t,mm,f,townsAtTime,originalAUAmt,totalNumber,id) values (?,?,?,?,?,?,?,?,?,?,?);");
+		    		  stmt = t.getPlayer().con.createStatement("insert into queue (bid,AUtoBuild,AUNumber,m,t,mm,f,townsAtTime,originalAUAmt,totalNumber,id) values (?,?,?,?,?,?,?,?,?,?,?);");
 
 		      // let's add this raid and therefore get the rid out of it.
 				       stmt.setString(1,this.id.toString());
@@ -571,26 +572,27 @@ public class Building {
 				       	stmt.setString(11,id.toString());
 
 				       stmt.execute();
+
 				     
 				       
 		     
-				       	stmt.close();  transacted=true;
-				        QueueItem q = new QueueItem(id,this,God);
-					      q.modifyUnitTicksForItem(a.getType(),t); 
-					      Queue().add(q);
+		    		  stmt.close();  transacted=true;
+		    		  QueueItem q = new QueueItem(id,this,God);
+		    		  q.modifyUnitTicksForItem(a.getType(),t); 
+		    		  Queue().add(q);
 					      
-		      } catch(MySQLTransactionRollbackException exc) { 		   } 
+		    	  } catch(MySQLTransactionRollbackException exc) { 		   } 
 		      }
-			 } catch(SQLException exc) { exc.printStackTrace(); 
+		} catch(SQLException exc) { exc.printStackTrace(); 
 			 	// if this is for a fake building, then the sql won't go through,
 			 // as we do not wish it to, and then we must set up values here, manually.
 			 //	public void setQueueValues(int qid, int AUtoBuild, int AUNumber, int currTicks,int townsAtTime,int originalAUAmt,int totalNumber) {
 
-			 	  QueueItem q = new QueueItem(id,this,God);
-			 	  q.setQueueValues(index,number,0,townsAtTime,originalAUAmt,totalNumber);
-			      q.modifyUnitTicksForItem(a.getType(),t); 
-			      Queue().add(q);
-			      }
+			QueueItem q = new QueueItem(id,this,God);
+			q.setQueueValues(index,number,0,townsAtTime,originalAUAmt,totalNumber);
+			q.modifyUnitTicksForItem(a.getType(),t); 
+			Queue().add(q);
+		}
 
 	}
 	public QueueItem findQueueItem(UUID qid) {
@@ -604,22 +606,19 @@ public class Building {
 	}
 	public ArrayList<QueueItem> Queue() {
 		if(Queue==null) {
-		ArrayList<QueueItem> queue= new ArrayList<QueueItem>();
-		try {
-		UberPreparedStatement qus = con.createStatement("select id from queue where bid = ? order by qid asc");
-		qus.setString(1,id.toString());
-		 ResultSet qrs = qus.executeQuery();
-		 while(qrs.next()) {
-			 //	public QueueItem(int qid, int bid, int AUtoBuild, int AUNumber, int currTicks,Town t) {
-			
-			 
-			 queue.add(new QueueItem(UUID.fromString(qrs.getString(1)),this,God));
-			 
-		 }
-		 qrs.close(); qus.close();
-		} catch(SQLException exc) { exc.printStackTrace(); }
+			ArrayList<QueueItem> queue= new ArrayList<QueueItem>();
+			try {
+				UberPreparedStatement qus = con.createStatement("select id from queue where bid = ? order by qid asc");
+				qus.setString(1,id.toString());
+				ResultSet qrs = qus.executeQuery();
+				while(qrs.next()) {
+					//public QueueItem(UUID id, Building b,GodGenerator God)
+					queue.add(new QueueItem(UUID.fromString(qrs.getString(1)),this,God));
+				}
+				qrs.close(); qus.close();
+			} catch(SQLException exc) { exc.printStackTrace(); }
 		
-		Queue= queue;
+			Queue= queue;
 		}
 		return Queue;
 	}

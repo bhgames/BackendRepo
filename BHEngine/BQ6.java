@@ -20,12 +20,15 @@ public class BQ6 extends QuestListener {
 
 	@Override
 	public String[] getCurrentQuestText(int pid) {
-		String additional[] = {"50 Knowledge Points"};
-		String toRet[] = {"<div class='goalBox'>Goals:<ul><li>Construct a Trade Center</li><li>Construct a Metal Warehouse</li><li>Construct a Crystal Repository</li><li>Construct a Lumber Yard</li><li>Construct a Granary</li></ul></div><div class='descBox'>" +
-				"Very good! As I said, technologies you research affect your entire empire.<br/><br/>" +
-				"For your last task, you need to round out your town with all the things it will need. Namely, you'll need to build one of each of the resource storage buildings (Metal Warehouse, Crystal Repository, Lumber Yard, and Granary) and a Trade Center. You may not meet the requirements to build the Trade Center. If you don't, check the Construction Interface to find out what you need to do to build it.<br/><br/>" +
-				"Once you finish this quest, you're free to continue as you see fit. If you need any additional assistance, you can ask on the Chatbox, via our feedback form, or via our forum. All of these can be accessed in game via the tabs on the left.</div><div class='rewardBox'>"+getRewardBlock(4,pid,additional)+"</div>","No hint."};
-		return toRet;
+		String 	additional[] = {"50 Knowledge Points"},
+				goals = "<div class='goalBox'>Goals:<ul><li>Construct a Trade Center</li><li>Construct a Metal Warehouse</li><li>Construct a Crystal Repository</li><li>Construct a Lumber Yard</li><li>Construct a Granary</li></ul></div>",
+				text = "<div class='descBox'>Very good! As I said, technologies you research affect your entire empire.<br/><br/>"
+						+ "For your last task, you need to round out your town with all the things it will need. Namely, you'll need to build one of each of the resource storage buildings (Metal Warehouse, Crystal Repository, Lumber Yard, and Granary) and a Trade Center. You may not meet the requirements to build the Trade Center. If you don't, check the Construction Interface to find out what you need to do to build it.<br/><br/>"
+						+ "Once you finish this quest, you're free to continue as you see fit. If you need any additional assistance, you can ask on the Chatbox, via our feedback form, or via our forum. All of these can be accessed in game via the tabs on the left.</div>",
+				reward = "<div class='rewardBox'>"+getRewardBlock(4,pid,additional)+"</div>",
+				script = "";
+		
+		return new String[] {goals+text+reward,script};
 	}
 
 	@Override

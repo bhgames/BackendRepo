@@ -112,7 +112,7 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
         if(player.God.serverLoaded&&ipAddr!=null) {
         	System.out.println("Sending!");
 		        	String id = (String) r.get("id");
-		        	out.println("{'type':"+id + ",'data':");
+		        	out.println("{'id':"+id + ",'data':");
 					
 		        	player.God.doReqtypeSorting(out);
 		        	out.println("}");

@@ -1084,16 +1084,16 @@ public void addAchievement(String achievementName, int pid) {
 
 public String getRewardBlock(int hourlyAmt, int pid, String additional[]) {
 	long reward[] = getRewardOneHour(pid);
-	String res = "<div style='font-family:BankGothic;'>Reward:&nbsp<br />" +
-			"<div style='display:inline-block;width:80px;'><img src='AIFrames/icons/MetalIcon.png' alt='' />"+ hourlyAmt*reward[0]+ "</div>"+
-		"<div style='display:inline-block;width:90px;'><img src='AIFrames/icons/TimberIcon.png' alt='' />"+ hourlyAmt*reward[1]+ "</div>"+
-		"<div style='display:inline-block;width:85px;'><img src='AIFrames/icons/PlasticIcon.png' alt='' />"+ hourlyAmt*reward[2]+ "</div>"+
-		"<div style='display:inline-block;width:80px;'><img src='AIFrames/icons/FoodIcon.png' alt='' />"+ hourlyAmt*reward[3]+ "</div>";
+	String res = "<div class='rewardBlock'>Reward:<br />" +
+				 "<div class='rewardMetal'>"+ hourlyAmt*reward[0]+ "</div>"+
+				 "<div class='rewardTimber'>"+ hourlyAmt*reward[1]+ "</div>"+
+				 "<div class='rewardCrystal'>"+ hourlyAmt*reward[2]+ "</div>"+
+				 "<div class='rewardFood'>"+ hourlyAmt*reward[3]+ "</div>";
 	
 		int i = 0;
 		if(additional!=null)
 			while(i<additional.length){
-				res+="<div style='display:inline-block;width:170px;'>"+additional[i]+"</div>";
+				res+="<div class='rewardAdd'>"+additional[i]+"</div>";
 				i++;
 			}
 		res+="</div>";
