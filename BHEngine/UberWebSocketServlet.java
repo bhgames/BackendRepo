@@ -21,9 +21,10 @@ public class UberWebSocketServlet extends WebSocketServlet {
 		String ipAddr = arg0.getRemoteAddr();
 		System.out.println(ipAddr + " is asking for a websocket.");
 		for(Player p: God.getPlayers()) {
-			System.out.println("Checking " + p.getUsername() + " who's websocket is " + p.socket);
-			if(p.socket!=null) System.out.println(" with ipaddr " + p.socket.ipAddr);
+		//	System.out.println("Checking " + p.getUsername() + " who's websocket is " + p.socket);
+			//if(p.socket!=null) System.out.println(" with ipaddr " + p.socket.ipAddr);
 			if(p.socket!=null&&p.socket.ipAddr!=null&&p.socket.ipAddr.equals(ipAddr)) {
+				System.out.println("returning " + p.getUsername());
 				return p.socket;
 			}
 		}
@@ -121,10 +122,12 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
     }
     
     public void sendMessage(String fakeURL) {
+    	String type=null;
+    	try {
     	if(player.God.serverLoaded&&ipAddr!=null) {
 	    	Hashtable r = splitStringIntoHashtable(fakeURL);
 	    	r.put("pid",player.ID); r.put("username",player.getUsername());
-	    	String type =(String) r.get("type");
+	    	type =(String) r.get("type");
 	    	System.out.println("type is " + type + " connection is " + _connection);
 	    	UberSocketPrintWriter out = new UberSocketPrintWriter(_connection,null,null,r);
 	
@@ -132,6 +135,13 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
 			
         	player.God.doReqtypeSorting(out);
         	out.println("}");
+    	}
+    	} catch(Exception exc) {
+    		exc.printStackTrace();
+    		System.out.println("Game flow saved. r values were type:"   );
+    		if(type==null) System.out.println("type was null");
+    		else System.out.println(type);
+    		
     	}
     }
 

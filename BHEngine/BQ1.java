@@ -39,7 +39,7 @@ public class BQ1 extends QuestListener {
 			}
 		}
 		
-		if(CC.getPeopleInside()+CC.getNumLeftToBuild()>=5) {
+		if(CC!=null&&CC.getPeopleInside()+CC.getNumLeftToBuild()>=5) {
 			reward(pid);
 			destroy(p);
 			ps.b.joinQuest(God.getPlayerId("BQ2"));

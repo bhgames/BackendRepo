@@ -836,6 +836,7 @@ public class PlayerScript implements Runnable {
     		// System.out.println(numCommas);
     		 //System.out.println("I am in here.");
     		 String str6[]=null;
+
     		 if(numCommas<player.God.findTown(num1).getAu().size()+5)
     			 str6 =  decodeStringIntoStringArray(holdPartUse);
     		 else {

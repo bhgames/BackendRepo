@@ -4851,6 +4851,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 				Router.stopServer(out);
 			}else if(out.getParameter("reqtype").equals("runTest")) {
 				Router.runTest(out);
+			}else if(out.getParameter("reqtype").equals("renameIdTowns")) {
+				Router.renameIdTowns(out);
 			}else if(out.getParameter("reqtype").equals("deleteOldPlayers")) {
 				Router.deleteOldPlayers(out);
 			}else if(out.getParameter("reqtype").equals("returnPrizeName")) {
@@ -6262,7 +6264,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				stmt = con.createStatement("insert into users(fuid,username,password,email) values (?,?,?,?);");
 				stmt.setLong(1,fuid);
 				stmt.setString(2,username);
-				stmt.setString(3,"md5(\""+password+"\")");
+				stmt.setString(3,org.apache.commons.codec.digest.DigestUtils.md5Hex(password));
 				stmt.setString(4,email);
 				stmt.execute();
 				stmt.close();
@@ -6299,7 +6301,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 					"values (?,?,0,0,0,0,2,0,0,1,8,0,?,?);");
 				stmt.setString(1,username);
 				if(okayToMakeNewAccount)
-					stmt.setString(2,"md5(\"" + password + "\")");
+					stmt.setString(2,org.apache.commons.codec.digest.DigestUtils.md5Hex(password));
 				else
 					stmt.setString(2,password);
 				
@@ -6408,8 +6410,8 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 					p.getPs().b.joinQuest("AQ"+k);
 					k++;
 				}
-				
-			//	p.getPs().b.joinQuest("BQ1"); JOIN NEW QUESTS
+				p.towns().get(0).addBuilding("Command Center",4,1,0);
+				p.getPs().b.joinQuest("BQ1");
 				p.setKnowledge(p.getKnowledge()+soldierPrice);
 				String toRes[] = {"Pillager"};
 				ps.b.completeResearches(toRes); // give them a default template.
@@ -11978,7 +11980,7 @@ public boolean checkForGenocides(Town t) {
 			  else 
 				 testDist= Math.sqrt(Math.pow(t.getX()-chosenTileX,2)+Math.pow(t.getY()-chosenTileY,2));
 		//	  System.out.println("Checking " + t.getTownName() + " with distance of " + testDist + ", probtimer of " + t.getProbTimer() + " and dig amt of " + t.getDigAmt() + " with resincs of " + t.getResEffects()[0]);
-			 if(testDist<=(distance)&&t.getProbTimer()==0&&t.getDigAmt()==0) { // no dig sites.
+			 if(testDist<=(distance)&&t.getProbTimer()==0&&t.getDigAmt()==0&&!t.isResourceOutcropping()) { // no dig sites.
 				 int k = 0; boolean foundNone=true;
 				 while(k<t.getResEffects().length) { // we only do normal towns, bitches.
 					 if(t.getResEffects()[k]!=0) foundNone=false;
@@ -11999,7 +12001,6 @@ public boolean checkForGenocides(Town t) {
 		 }
 	//	 Id.towns().remove(t);
 		 j = 0;
-		 System.out.println("Using " + t.getTownName());
 		 long res[] = t.getRes();
 		 synchronized(res) {
 		 while(j<res.length-1) {
@@ -12047,20 +12048,27 @@ public boolean checkForGenocides(Town t) {
 		    		   tid = rs.getInt(1);
 		    		  rs.close();
 		    		  stmt.close();
-		    		  stmt = con.createStatement("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode) values (?,?,3,-1,0,0,0,?,0,0,-1,0);");
-		    		  
+		    		  stmt = con.createStatement("insert into bldg (name,slot,lvl,lvling,ppl,pplbuild,pplticks,tid,lvlUp,deconstruct,pploutside,bunkerMode,id) values (?,?,3,-1,0,0,0,?,0,0,-1,0,?);");
+		    		  UUID bid = UUID.randomUUID();
 		    		  stmt.setString(1,"Metal Mine");
 		    		  stmt.setInt(2,0);
 		    		  stmt.setInt(3,tid);
+		    		  stmt.setString(4,bid.toString());
 		    		  stmt.execute();
+		    		  bid = UUID.randomUUID();
 		    		  stmt.setString(1,"Timber Field");
 		    		  stmt.setInt(2,1);
+		    		  stmt.setString(4,bid.toString());
 		    		  stmt.execute();
+		    		  bid = UUID.randomUUID();
 		    		  stmt.setString(1,"Crystal Mine");
 		    		  stmt.setInt(2,2);
+		    		  stmt.setString(4,bid.toString());
 		    		  stmt.execute();
+		    		  bid = UUID.randomUUID();
 		    		  stmt.setString(1,"Farm");
 		    		  stmt.setInt(2,3);
+		    		  stmt.setString(4,bid.toString());
 		    		  stmt.execute();
 
 		    		  t = new Town(tid,this);
@@ -12124,7 +12132,7 @@ public boolean checkForGenocides(Town t) {
 		 // Remember we just want zero-size copies because the actual au there
 		 // will soon ret
 	// System.out.println("Got here to give it.");
-		 if(type==0||type==2||(type==1&&tid!=-1)) // if type is 2, or 1 and tid isn't set, we already give it up there when we make it!
+		 if(type==0||((type==1)&&tid!=-1)) // if type is 2, or 1 and tid isn't set, we already give it up there when we make it!
 		 t.giveTown(null,p);
 		
 		 return true;
@@ -12145,11 +12153,14 @@ public boolean checkForGenocides(Town t) {
 		 */
 		ArrayList<Building> bldgserver = holdTown.bldgserver();
 		int u = 0; Building b;
+		for(Building bl:holdTown.bldg()) {
+			if(bl.getTicksToFinish()>0&&bl.getLvlUps()==0) bl.setTicksToFinish(-1);
+		}
+
 		QueueItem q;
 			while(u<bldgserver.size()) {
 				
 				 b = bldgserver.get(u);
-			
 					 
 				 if(b.getTicksToFinishTotal()==0) b.modifyTicksLevel(holdTown.getTotalEngineers(),holdTown.getPlayer().God.Maelstrom.getEngineerEffect(holdTown.getX(),holdTown.getX()),holdTown.getPlayer().getArchitecture());
 				 // if we just loaded, then ticksToFinishTotal isn't set and must be.
@@ -12160,7 +12171,6 @@ public boolean checkForGenocides(Town t) {
 					//UserRaid theRaid =getUserRaid(holdAttack.getId());
 					//holdAttack.getTown2().getPlayer().getPs().runMethod("onIncomingRaidDetectedCatch",theRaid);
 				b.setLvlUps(b.getLvlUps()-1);
-				
 			
 				// for mines!
 				
@@ -13040,14 +13050,15 @@ public boolean checkForGenocides(Town t) {
 
 	}
 	public String randomTownName(){
-		 String[] nameList1 = {"Jiggly","Flappy","Sagging","Running","Shooting","Exploding","Doucheing","Shit Eating", "Annoying", "Wiggly", "Angry", "Depressed", "Happy", "Jubilent"};
-		 String[] nameList2 = {"Vomit", "Testicles","Scotum","Vagina","Thundercunt","Tits","Nipples", "Boobies", "Penis","Errection","Ass Cheaks","Hair Ball", "Goblin", "Rodent", "Crabs", "Aids"};
-		 double random = Math.random()*(nameList1.length-1);
-		       int randomNum = (int) Math.round(random);
+	//	 String[] nameList1 = {"New", "Old", "Greater", "Lesser", "St." };
+		 String[] nameList2 = {"Cambria", "Fulton", "Fulham", "York", "Upton", "Effingham", "Teutopolis", "Paris", "Ganthram", "Alexandria", "Bangkok","Gotham"};
+	//	 double random = Math.random()*(nameList1.length-1);
+		      // int randomNum = (int) Math.round(random);
 		 double random2 = Math.random()*(nameList2.length-1);
 		       int randomNum2 = (int) Math.round(random2);
-		 return nameList1[randomNum] + " " + nameList2[randomNum2];
-		  
+		// return nameList1[randomNum] + " " + nameList2[randomNum2];
+		       return nameList2[randomNum2];
+
 		 }
 	public boolean makeCity(int x, int y, double[] currGaussian, boolean[] taken) throws SQLException {
 		
@@ -13728,7 +13739,6 @@ public boolean checkForGenocides(Town t) {
 		Date today = new Date();
 
 		getPlayer(pid).last_login =new Timestamp(today.getTime());
-		
 		getPlayer(pid).update(); // need to update you if you have any missing owedTicks.
 
 		return true;

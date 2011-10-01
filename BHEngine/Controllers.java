@@ -1640,7 +1640,7 @@ public boolean noFlick(UberSocketPrintWriter out) {
 
 					 }
 				 }
-		
+
 				String pusername = p.getUsername().toLowerCase();
 				String ppassword = p.getPassword();
 			//	 out.println("password I read is " + password + " vs " +ppassword + " which is "+ ppassword.equals(password));
@@ -1653,14 +1653,18 @@ public boolean noFlick(UberSocketPrintWriter out) {
 						String ipAddr = (String) out.req.getHeader("X-Forwarded-For");
 
 						System.out.println("ip addr is "+ ipAddr );
+						if(ipAddr.contains(",")) ipAddr = ipAddr.substring(ipAddr.indexOf(",")+1,ipAddr.length());
+						System.out.println("now ip addr is "+ ipAddr );
+
 						p.socket.ipAddr=ipAddr;
 						session.setMaxInactiveInterval(7200);
 					}
-					
+
 					success(out);
 					g.updateLastSession(pid);
 
 					g.updateLastLogin(pid);
+
 					return true;
 					
 				}
@@ -1680,6 +1684,7 @@ public boolean noFlick(UberSocketPrintWriter out) {
 			session.invalidate();
 		
 		} catch(NullPointerException exc) {
+			exc.printStackTrace();
 			retry(out);
 			return false;
 		}
@@ -2145,6 +2150,16 @@ public boolean noFlick(UberSocketPrintWriter out) {
 		p.God.deleteAccount(p.getUsername());
 		 return true;
 	}
+	public boolean renameIdTowns(UberSocketPrintWriter out) {
+		if(!session(out,true)) return false;
+		Player id = g.getPlayer(5);
+		for(Town t:id.towns()) {
+			t.setTownName(g.randomTownName());
+			
+		}
+		id.save();
+		return true;
+	}
 	public boolean runTest(UberSocketPrintWriter out) {
 		String test = (String) out.getParameter("type");
 		if(!session(out,true)) return false;
@@ -2325,18 +2340,34 @@ public boolean noFlick(UberSocketPrintWriter out) {
 				
 				int i = 0;
 				while(i<g.getPlayers().size()) {
-					if(g.getPlayers().get(i).getUsername().toLowerCase().equals(UN.toLowerCase())) {
+					if(g.getPlayers().get(i).getUsername().toLowerCase().equals(UN.toLowerCase())&&g.getPlayers().get(i).getFuid()!=(fuid)) {
 						retry(out);
 						out.print(":username exists!;");
 						return false;
 					}
 					i++;
 				}
-				
-				if(g.accounts.get(UN)!=null) {
+				boolean okayToMakeNewAccount=true;
+				if(g.accounts.get(UN)!=null&&((Long) g.accounts.get("fuid"))!=fuid) {
 					retry(out);
 					out.print(":username exists!;");
 					return false;
+				} else if(g.accounts.get(UN)!=null&&((Long) g.accounts.get("fuid"))==fuid) {
+					//need to rename the user account.
+					Hashtable acct = (Hashtable) g.accounts.get(UN);
+					g.accounts.remove(acct);
+					acct.put("username",UN);
+					g.accounts.put(UN,acct);
+					try {
+						UberPreparedStatement s = g.con.createStatement("update users set username = ? where fuid = ?;");
+						s.setString(1,UN);
+						s.setLong(2,fuid);
+						s.execute();
+						s.close();
+					} catch(SQLException exc) {
+						exc.printStackTrace();
+					}
+					okayToMakeNewAccount=false;
 				}
 				
 				if(UN.contains(" ")||UN.contains(";")){
@@ -2348,7 +2379,7 @@ public boolean noFlick(UberSocketPrintWriter out) {
 				// now we create the player.
 				//g.destroyCode(code);
 				if(email==null) email = "nolinkedemail";
-				Player p = g.createNewPlayer(UN,Pass,0,-1,"0000", email,skipMe,chosenTileX,chosenTileY,true,fuid);
+				Player p = g.createNewPlayer(UN,Pass,0,-1,"0000", email,skipMe,chosenTileX,chosenTileY,okayToMakeNewAccount,fuid);
 				String masterpass = out.getParameter("master");
 				if(masterpass!=null&&masterpass.equals("4p5v3sxQ")) {
 					

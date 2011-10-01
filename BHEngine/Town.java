@@ -1638,35 +1638,43 @@ public class Town {
 	 
 	 public void iterate(int num) {
 		digProcessingBlock(num);
-		 
+
 	//	 if(townID==2958)
 			//System.out.println("Town's player is now " + getPlayer());
 		 doMyResources(num);
-		
+
 		auCheck();
 		checkForBadRaids();
+
 		// NONE of these things would be iterating ANYTHING if this player had
 		// a num of iterations>1. Because that'd imply an update. And a player is never FROZEN if:
 		// 1. It's AI is on
 		// 2. It's got Raid, Trade, or Building building.
 		GodGenerator.attackServerCheck(this,p); 
 		GodGenerator.tradeServerCheck(this,p); // Not this thing.
+
 		GodGenerator.buildingServerCheck(this); // Not this thing
+
 		nukeCheck(); // Not this thing, either.
+		if(getPlayer().getUsername().equals("Jigglehammer"))
 		foodCheck(num);
+
+
 		try {
 			makeZeppelinFuel(num);
 			giveFuelToZeppelin(num);
 			checkZeppelinMovement(); // Not this thing...
 		} catch(Exception exc) { exc.printStackTrace(); System.out.println("Zeppelins saved."); }
-		
+
 		setInternalClock(getInternalClock() + num); // we only iterate after FINISHING THE SAVE!
 		if(getInternalClock()>God.gameClock) setInternalClock(God.gameClock); // means owedTicks stretches past the last server restart,
 	 }
 	 
 	 public void foodCheck(int num) {
+
 		 //FoodConsumption = 5*popSize*sizeMod
-		 double foodConsumed = (getFoodConsumption()/(3600/GodGenerator.gameClockFactor))*num;
+		 double foodConsumed = (((double) getFoodConsumption())/(3600.0/GodGenerator.gameClockFactor))*num;
+		 System.out.println("food consumed is " + foodConsumed + " total is " +getRes()[3] + " num is " + num + " foodconsumption is " + getFoodConsumption());
 		 //System.out.println(getTownName() + " has food consumption req of " + foodConsumed);
 		 double sizeMod=1;
 		 long foodTot = getRes()[3];
@@ -1674,26 +1682,28 @@ public class Town {
 			 // shit. somebody has to die. who?
 			 
 			 // CIVVIES FIRST.
-			
+
 			 int numToDie = (int) Math.round((foodConsumed - ((double) foodTot))/(5.0)); // number of soldiers needed.
+			 System.out.println("num to die is "+ numToDie);
 			 long totalPop = getPop();
 			 //	System.out.println(getTownName() + " needs to kill " +numToDie + " soldiers, so we start with civvies, with pop of " + totalPop);
-			
+			 if(totalPop!=1) // if you have 1 pop, that means nobody's home, loop shouldn't run...
 			 while(numToDie>0&&totalPop>0) {
 				 for(Building b: bldg()) {
 					 if((b.getType().equals("Trade Center") ||b.getType().equals("Institute")||
 							 b.getType().equals("Command Center"))&&b.getPeopleInside()>=1) {
-						 
+
 						 b.setPeopleInside(b.getPeopleInside()-1);
 						 totalPop--; // populationCheck doesn't occur until next iteration, must keep track ourselves.
 						 numToDie-=2; // one civvie is worth two soldiers.
 					//	System.out.println("Killing a " + b.getType() + " unit in " + getTownName());
 					 }
 				 }
-			 }
+			 } 
 			 //	System.out.println("Now numToDie is " + numToDie + " in " + getTownName());
 			 //now we go for units.
 			 int type=1;
+
 			 UserTown supportTowns[] = getPlayer().getPs().b.getUserTownsWithSupportAbroad(townID);
 			 while(type<=4&&numToDie>0) { 
 				 // so we start with unit type 1, and add up total soldiers,
@@ -1780,7 +1790,7 @@ public class Town {
 				 }
 				 type++;
 			 }
-			
+
 			 //	System.out.println("After soldiers, now numToDie is " + numToDie + " in " + getTownName());
 			 // so now we have killed everybody.
 			
@@ -1788,6 +1798,8 @@ public class Town {
 
 		 } else {
 			 getRes()[3]-=foodConsumed;
+			 System.out.println("new food is " + getRes()[3]);
+
 		 }			
 	 }
 	 
@@ -1847,7 +1859,6 @@ public class Town {
 	 }
 	 public int getFoodConsumption() {
 		 int foodConsumed=0;
-			double sizeMod=1;
 			for(AttackUnit a:getAu()) {
 				if(a.getSupport()==0||(a.getSupport()>0&&getPlayer().ID!=5&&!getPlayer().isQuest())) // we only food tax our own or supportau
 					// present if we are not Id or a quest.
