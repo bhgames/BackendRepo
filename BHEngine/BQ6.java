@@ -57,6 +57,8 @@ public class BQ6 extends QuestListener {
 		Player p = findPlayer(pid);
 		p.setKnowledge(p.getKnowledge()+50);
 	}
+	
+	@Override
 	public String getQuestDescription(int pid) {
 		return "Empire Building";
 

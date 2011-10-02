@@ -54,6 +54,8 @@ public class BQ2 extends QuestListener {
 		Player p = findPlayer(pid);
 		p.setKnowledge(p.getKnowledge()+10);
 	}
+	
+	@Override
 	public String getQuestDescription(int pid) {
 			//Player p =God.getPlayer(pid);
 			return "Building Up";

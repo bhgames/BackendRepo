@@ -63,6 +63,7 @@ public class BQ1 extends QuestListener {
 		p.setKnowledge(p.getKnowledge()+5);
 	}
 	
+	@Override
 	public String getQuestDescription(int pid) {
 		return "Getting Started";
 	}
