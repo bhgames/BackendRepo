@@ -5346,6 +5346,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 		//System.out.println("Got here1.");
 
+		if(send) {
 
 		if(send) {
 			k=0;
@@ -5372,6 +5373,8 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	
 				k++;
 			}
+
+		}
 
 			k=0;
 			Raid holdAttack = new Raid(Math.sqrt((t1x-x)*(t1x-x) + (t1y-y)*(t1y-y)), ticksToHit, t1, Town2, Genocide, Bomb,support,invade,name,debris,au,digAmt); // digAmt may not be the requirement,

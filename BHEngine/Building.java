@@ -559,19 +559,20 @@ public class Building {
 		    		  stmt = t.getPlayer().con.createStatement("insert into queue (bid,AUtoBuild,AUNumber,m,t,mm,f,townsAtTime,originalAUAmt,totalNumber,id) values (?,?,?,?,?,?,?,?,?,?,?);");
 
 		      // let's add this raid and therefore get the rid out of it.
-		    		  stmt.setString(1,id.toString());
-		    		  stmt.setInt(2,index);
-		    		  stmt.setInt(3,number);
-		    		  stmt.setLong(4,cost[0]);
-		    		  stmt.setLong(5,cost[1]);
-		    		  stmt.setLong(6,cost[2]);
-		    		  stmt.setLong(7,cost[3]);
-		    		  stmt.setInt(8,townsAtTime);
-		    		  stmt.setInt(9,originalAUAmt);
-		    		  stmt.setInt(10,totalNumber);
-		    		  stmt.setString(11,id.toString());
-		    		  
-		    		  stmt.execute();
+				       stmt.setString(1,this.id.toString());
+				       stmt.setInt(2,index);
+				       stmt.setInt(3,number);
+				       stmt.setLong(4,cost[0]);
+				       stmt.setLong(5,cost[1]);
+				       stmt.setLong(6,cost[2]);
+				       stmt.setLong(7,cost[3]);
+				       stmt.setInt(8,townsAtTime);
+				       stmt.setInt(9,originalAUAmt);
+				       stmt.setInt(10,totalNumber);
+				       	stmt.setString(11,id.toString());
+
+				       stmt.execute();
+
 				     
 				       
 		     

@@ -2410,6 +2410,7 @@ public class Player  {
 		else return playedTicks+(God.gameClock-owedTicks);
 	}
 	synchronized public void update() {
+
 		if(!isFake()) {
 			// This method brings the player up to standard time.
 			boolean saveTripped=false;
@@ -2419,21 +2420,25 @@ public class Player  {
 				saveTripped=true;
 			}
 			int i = 0; ArrayList<Town> towns = towns();
+
 			while(i<towns.size()) {
 				Town t = towns().get(i);
 				if(t.owedTicks>0) {
 					t.iterate(God.gameClock-towns().get(i).owedTicks);
+
 					t.owedTicks=0; // player towns and players normally will have around the same owedTicks...
 					// we only keep owedTicks on towns for Id's sake.
 					saveTripped=true;
 				}
 				i++;
 			}
+
 			if(saveTripped)
 				save(); // Got to save whenever update is called so we don't waste resources on a server restart
 						// reiterating them!
+
 		}
-		
+
 	}
 	public boolean stuffOut() {
 		int i = 0;
@@ -2878,8 +2883,9 @@ public class Player  {
 			      ResultSet rs = stmt.executeQuery();
 			      rs.next();
 			      //	       last_login=rs.getTimestamp(41);
-	
+
 			      if(rs.getInt(1)==0&&(rs.getTimestamp(2).getTime()!=last_login.getTime()||owedTicks==0||(owedTicks>0&&(God.gameClock-owedTicks)<God.saveWhenTicks))) {
+
 			    	//  System.out.println("Actually saving " + getUsername() + " and his owedTicks was " + owedTicks + " and gameClock diff is " + (God.gameClock-owedTicks) + " compared to " + God.saveWhenTicks + " and his last_login saved was " + rs.getTimestamp(2) + " and actual was " +last_login);
 			    	  // when do we save with owedTicks?
 			    	  // we know if owedTicks is less than saveWhenTicks, then
@@ -3063,6 +3069,7 @@ public class Player  {
 				}
 			      } else { // we use else statement to close this stuff if we can't iterate, since we close it up there
 			    	  // in the if statement to prevent that statement getting plucked away by UberConnection!
+
 			    	 if(rs.getInt(1)==0){
 			    		 stmt = con.createStatement("update player set owedTicks =  ? where pid = ?;");
 			    		 stmt.setInt(1,owedTicks);
@@ -3088,11 +3095,12 @@ public class Player  {
 		} else {
 			deleteFakePlayers(new Player[] {this});
 		}
+
 	}
 	      
 		
 	
-	
+
 	/*public boolean isLoggedIn() {
 		if()
 	}*/
