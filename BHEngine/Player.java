@@ -977,7 +977,7 @@ public class Player  {
 			 * overlaps yet. To grab the blocks adjacent to blocks you already possess, the farthest of which is at Y-1 distance,
 			 * you must have 
 			 * 
-			 * influence = 10(2.5y^2)
+			 * influence = 10(2.5y)^2
 			 * 
 			 * 
 			 *  Then, at spots where overlap occurs, ownership is calculated by finding the person who has the most influence on that tile,
@@ -1048,7 +1048,7 @@ public class Player  {
 				}
 					// now we calculate to see what the max block this guy should have is.
 					
-					double maxR =Math.sqrt(t.getInfluence()/10.0)/2.5;
+					double maxR =Math.sqrt(t.getInfluence()/62.5);
 				//	System.out.println("t " + t.getTownName() + " infl is " +t.getInfluence() + " maxR is " + maxR + " and ID is " + ID);
 					/*
 					 * 10(2.5r)^2
@@ -1216,18 +1216,17 @@ public class Player  {
 									//Sum(townInfluence/town_r^2)
 									double myInfluence=0;
 									for(Town t: towns()) {
-										if((Math.pow(t.getX()-ourX,2)+Math.pow(t.getY()-ourY,2))!=0)
-											myInfluence +=t.getInfluence()/(Math.pow(t.getX()-ourX,2)+Math.pow(t.getY()-ourY,2));
-										else myInfluence+=t.getInfluence();
+										double inf = Math.pow(t.getX()-ourX,2)+Math.pow(t.getY()-ourY,2);
+										myInfluence +=t.getInfluence()/(inf!=0 ? inf : 1);
 									}
 									
-									
+									//Because I know you'll ask, Jordan.  (inf!=0 ? inf : 1) is the tertiary operator
+									//it means (if condition ? then this : else this)
 									
 									double theirInfluence = 0;
 									for(Town t: owner.towns()) {
-										if((Math.pow(t.getX()-ourX,2)+Math.pow(t.getY()-ourY,2))!=0)
-											theirInfluence +=t.getInfluence()/(Math.pow(t.getX()-ourX,2)+Math.pow(t.getY()-ourY,2));
-										else theirInfluence+=t.getInfluence();
+										double inf = Math.pow(t.getX()-ourX,2)+Math.pow(t.getY()-ourY,2);
+										theirInfluence +=t.getInfluence()/(inf!=0 ? inf : 1);
 									}
 								//	System.out.println("My influence over " + ourX +"," + ourY + " is " + myInfluence + ", theirs is " + theirInfluence);
 									if(myInfluence>theirInfluence) {
@@ -1264,12 +1263,12 @@ public class Player  {
 					}
 					if(actualChanged) {
 						// what if the territory has been cut in half? How do we detect?
-						ArrayList<ArrayList<Hashtable>> separatedPoints = owner.separatePoints((ArrayList<Hashtable>) actualTerritory.get("points"));
+						ArrayList<ArrayList<Hashtable>> separatedPoints = separatePoints((ArrayList<Hashtable>) actualTerritory.get("points"));
 						
 							owner.getTerritories().remove(actualTerritory);
 							for(ArrayList<Hashtable> points:separatedPoints) {
 								if(points.size()>=1) // no zero-space territories.
-								owner.getTerritories().add(owner.returnTerritory(points,owner));
+								owner.getTerritories().add(returnTerritory(points,owner));
 							}
 						
 						// so in one fell swoop, we redo the corners.
@@ -1974,22 +1973,19 @@ public class Player  {
 		  }
 		  
 		  for( i = 0; i<sides.size()-1;i++) {
-			   if(sides.get(i+1)==0) {
-			    if(i<sides.size()-2) {
-			  if(sides.get(i)+sides.get(i+2) == 0) {
-			      i++;
-			  } else {
-			      sides.set(i,sides.get(i)+sides.get(i+2));
-			      sides.remove(i+1);
-			   sides.remove(i+1);
-			   i--;
+			  if(sides.get(i+1)==0) {
+				  if(i<sides.size()-2) {
+					  int diff = sides.get(i)+sides.get(i+2);
+					  sides.set(i,diff);
+					  sides.remove(i+1);
+					  sides.remove(i+1);
+					  i-= (diff==0 ? 2 : 1);
+				  } else {
+					  sides.remove(i+1);
+					  break;
+				  }  
 			  }
-			    } else {
-			     sides.remove(i+1);
-			     break;
-			    }  
-			   }
-			  }
+		  }
 		  UUID id = UUID.randomUUID();
 		  
 		  Hashtable newTerr = new Hashtable();
