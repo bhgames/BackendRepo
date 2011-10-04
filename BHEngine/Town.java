@@ -1656,7 +1656,6 @@ public class Town {
 		GodGenerator.buildingServerCheck(this); // Not this thing
 
 		nukeCheck(); // Not this thing, either.
-		if(getPlayer().getUsername().equals("Jigglehammer"))
 		foodCheck(num);
 
 
@@ -1673,18 +1672,21 @@ public class Town {
 	 public void foodCheck(int num) {
 
 		 //FoodConsumption = 5*popSize*sizeMod
+		 double foodResInc = getResInc()[3]*num;
 		 double foodConsumed = (((double) getFoodConsumption())/(3600.0/GodGenerator.gameClockFactor))*num;
-		 System.out.println("food consumed is " + foodConsumed + " total is " +getRes()[3] + " num is " + num + " foodconsumption is " + getFoodConsumption());
+		  foodConsumed=foodConsumed-foodResInc; // so we don't change older code. If foodConsumed-foodResInc>0, we've got food to consume.
+		// System.out.println("food consumed is " + foodConsumed + " total is " +getRes()[3] + " num is " + num + " foodconsumption is " + getFoodConsumption());
 		 //System.out.println(getTownName() + " has food consumption req of " + foodConsumed);
 		 double sizeMod=1;
 		 long foodTot = getRes()[3];
-		 if(foodConsumed>foodTot) {
+		 if(getRes()[3]<=0&&foodConsumed>0) {
 			 // shit. somebody has to die. who?
 			 
 			 // CIVVIES FIRST.
 
-			 int numToDie = (int) Math.round((foodConsumed - ((double) foodTot))/(5.0)); // number of soldiers needed.
-			 System.out.println("num to die is "+ numToDie);
+			 int numToDie = (int) Math.round((foodConsumed - ((double) foodTot))/(5.0)); // number of soldiers needed. foodtot will always
+			 // be zero now but we keep the older code in case a change is ever made.
+			// System.out.println("num to die is "+ numToDie);
 			 long totalPop = getPop();
 			 //	System.out.println(getTownName() + " needs to kill " +numToDie + " soldiers, so we start with civvies, with pop of " + totalPop);
 			 if(totalPop!=1) // if you have 1 pop, that means nobody's home, loop shouldn't run...
@@ -1796,11 +1798,7 @@ public class Town {
 			
 			 getRes()[3]=0;
 
-		 } else {
-			 getRes()[3]-=foodConsumed;
-			 System.out.println("new food is " + getRes()[3]);
-
-		 }			
+		 } 	
 	 }
 	 
 	 public static int getFoodConsumption(AttackUnit a) {
@@ -1873,7 +1871,7 @@ public class Town {
 					}
 				}
 			//	System.out.println("my pop is " + getPop());
-			foodConsumed+=getCivvieFoodConsumption((int) getPop());  // civilians!!!
+			foodConsumed+=getCivvieFoodConsumption((int) getPop()-1);  // civilians!!!
 			//System.out.println("With a pop of " + getPop() + ", we add another " +5*getPop()*sizeMod );
 			return foodConsumed;
 	 }
@@ -2167,10 +2165,14 @@ public class Town {
 			res = zepp.getRes();
 			resCaps = zepp.getResCaps(); // HOLY SHIT YOU JUST HIJACKED THAT SHIT!
 		 }
-		
+		 double foodConsumed = (((double) getFoodConsumption())/(3600.0/GodGenerator.gameClockFactor))*num;
+
 		 synchronized(resBuff) {
 			 do {
-				 resBuff[j]+=num*(newIncs[j]*(1-taxRate)*(resEffects[j]+1));
+				 if(j==4)
+					 resBuff[j]+=num*(newIncs[j]*(1-taxRate)*(resEffects[j]+1))-foodConsumed;
+				 else
+					 resBuff[j]+=num*(newIncs[j]*(1-taxRate)*(resEffects[j]+1));
 				 j++;
 			 } while(j<res.length);
 		 }
@@ -2181,7 +2183,7 @@ public class Town {
 					giveResourcesToRO(num);
 			 }
 			 while(j<res.length) {
-				 if(resBuff[j]>=1) {
+				 if(Math.abs(resBuff[j])>=1) {
 					 int toAdd = (int) Math.floor(resBuff[j]);
 				
 					 	//this automatically checks the new level of resources against the current maximum storage
@@ -2192,6 +2194,7 @@ public class Town {
 					 res[j] = Math.min(res[j]+toAdd , resCaps[j]+Building.baseResourceAmt); //	IF YOU CHANGE THIS, CHANGE GIVERESOURCESTORO AS WELL!
 					 	// works even if you lose the building and suddenly have a massive over the limit
 						// amount of resources! HAHA :D
+					 if(res[j]<0) res[j] = 0; // food may be hitting zero constantly.
 					 resBuff[j]-=toAdd;
 				
 				 
@@ -3919,10 +3922,13 @@ public class Town {
 
 			}else if(b.getType().equals("Farm")) {
 				resIncs[3]=((double) GodGenerator.gameClockFactor)*((double) Town.baseResourceGrowthRate)*Math.pow(b.getLvl()+1,2)/3600;
+				 
 				resIncs[3]*=(1+additions[3]);
 
 				if(getPlayer().getFTimer()>0) multiplier+=.25;
 				resIncs[3]*=multiplier;
+				
+
 				if(isResourceOutcropping()) resIncs[3]=0;
 			}
 			i++;

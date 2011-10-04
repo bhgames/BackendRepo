@@ -340,7 +340,6 @@ public class Maelstrom implements Runnable {
 		if(c==null) return resIncs;
 		while(i<4) {
 			effects[i]=resIncs[i]+c.incs[i+7]*resIncs[i];
-			effects[i]=resIncs[i]+.05*resIncs[i];
 			i++;
 		}
 		effects[4]=0;
