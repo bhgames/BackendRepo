@@ -2178,6 +2178,8 @@ public boolean noFlick(UberSocketPrintWriter out) {
 					g.basicTerritoryTest(out,p);
 				}else if(test.equals("intermediateTerritory")) {
 					g.intermediateTerritoryTest(out,p);
+				} else if(test.equals("territoryOverlap")) {
+					g.territoryOverlapTest(out,p);
 				} else if(test.equals("advancedTerritory")) {
 					g.advancedTerritoryTest(out,p);
 				} else if(test.equals("basicVassalage")) {
@@ -2237,21 +2239,29 @@ public boolean noFlick(UberSocketPrintWriter out) {
 					g.ROInfluenceTest(out,p);
 					g.ROEngCapTest(out,p);
 					g.ROCollapseTest(out,p,false);
-				}
-				else if(test.equals("allVassalAndTerritories")) {
+				} else if(test.equals("allTerritories")) {
+					g.separatedPointsTest(out);
+					g.giftWrappingTest(out);
+					g.returnTerritoryTest(out,p);
+					g.basicTerritoryTest(out,p);
+					g.intermediateTerritoryTest(out,p);
+					g.territoryOverlapTest(out, p);
+					g.advancedTerritoryTest(out,p);
+				} else if(test.equals("allVassalAndTerritories")) {
 					g.fbPostTest(out,p);
 					g.separatedPointsTest(out);
 					g.giftWrappingTest(out);
 					g.returnTerritoryTest(out,p);
 					g.basicTerritoryTest(out,p);
 					g.intermediateTerritoryTest(out,p);
+					g.territoryOverlapTest(out, p);
 					g.advancedTerritoryTest(out,p);
 					g.basicVassalageTest(out,p);
 					g.advancedVassalageTest(out,p);
 					g.breakVassalageTest(out,p);
 					g.lordvlordTest(out,p);
 					g.vassalThatIsLordTest(out,p);
-				}    else if(test.equals("all")) {
+				} else if(test.equals("all")) {
 					g.deconstructBuildingTest(out,p);
 					g.foodConsumptionTest(out,p);
 					g.basicROTest(out,p);
@@ -2265,6 +2275,7 @@ public boolean noFlick(UberSocketPrintWriter out) {
 					g.returnTerritoryTest(out,p);
 					g.basicTerritoryTest(out,p);
 					g.intermediateTerritoryTest(out,p);
+					g.territoryOverlapTest(out, p);
 					g.advancedTerritoryTest(out,p);
 					g.basicVassalageTest(out,p);
 					g.advancedVassalageTest(out,p);

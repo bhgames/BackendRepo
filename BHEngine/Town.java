@@ -1674,12 +1674,12 @@ public class Town {
 		 //FoodConsumption = 5*popSize*sizeMod
 		 double foodResInc = getResInc()[3]*num;
 		 double foodConsumed = (((double) getFoodConsumption())/(3600.0/GodGenerator.gameClockFactor))*num;
-		  foodConsumed=foodConsumed-foodResInc; // so we don't change older code. If foodConsumed-foodResInc>0, we've got food to consume.
+		  foodConsumed-=foodResInc; // so we don't change older code. If foodConsumed-foodResInc>0, food is being consumed faster than it can be made.
 		// System.out.println("food consumed is " + foodConsumed + " total is " +getRes()[3] + " num is " + num + " foodconsumption is " + getFoodConsumption());
 		 //System.out.println(getTownName() + " has food consumption req of " + foodConsumed);
 		 double sizeMod=1;
 		 long foodTot = getRes()[3];
-		 if(getRes()[3]<=0&&foodConsumed>0) {
+		 if(foodTot<=0&&foodConsumed>0) {
 			 // shit. somebody has to die. who?
 			 
 			 // CIVVIES FIRST.
@@ -1690,7 +1690,7 @@ public class Town {
 			 long totalPop = getPop();
 			 //	System.out.println(getTownName() + " needs to kill " +numToDie + " soldiers, so we start with civvies, with pop of " + totalPop);
 			 if(totalPop!=1) // if you have 1 pop, that means nobody's home, loop shouldn't run...
-			 while(numToDie>0&&totalPop>0) {
+			 while(numToDie>1&&totalPop>0) {
 				 for(Building b: bldg()) {
 					 if((b.getType().equals("Trade Center") ||b.getType().equals("Institute")||
 							 b.getType().equals("Command Center"))&&b.getPeopleInside()>=1) {
@@ -1699,6 +1699,7 @@ public class Town {
 						 totalPop--; // populationCheck doesn't occur until next iteration, must keep track ourselves.
 						 numToDie-=2; // one civvie is worth two soldiers.
 					//	System.out.println("Killing a " + b.getType() + " unit in " + getTownName());
+						 if(numToDie<2||totalPop<1) break;
 					 }
 				 }
 			 } 
@@ -1707,7 +1708,7 @@ public class Town {
 			 int type=1;
 
 			 UserTown supportTowns[] = getPlayer().getPs().b.getUserTownsWithSupportAbroad(townID);
-			 while(type<=4&&numToDie>0) { 
+			 while(type<=4&&numToDie>0) {
 				 // so we start with unit type 1, and add up total soldiers,
 				 // then go through each one and knock out units until we run out.
 				 // if we do, then we break out of the outer loop, if we don't,
@@ -1726,36 +1727,9 @@ public class Town {
 						 }
 				 }
 				 while(numToDie>0&&totalUnits>0) {
-					 for(AttackUnit a:getAu()) {
-						 if(a.getType()==type&&a.getSize()>0) {
-							 switch(type) {
-							 case 1:
-								 if(a.getArmorType()==4) {
-									// 4 is civvie armor
-									 sizeMod=2;
-								 }
-								 break;
-							 case 2:
-								 sizeMod=.75;
-								 break;
-							 case 3:
-								 sizeMod=.5;
-								 break;
-							 case 4:
-								 sizeMod=.5;
-								 break;
-							 case 5:
-								 sizeMod=0;
-								 break;
-							 }
-							 //	System.out.println("Eating some " + a.getType() + " of name " + a.getName() + " from " + getTownName());
-							 a.setSize(a.getSize()-1);
-							 numToDie-=a.getExpmod()*sizeMod; // killing off one unit.
-							 totalUnits--;
-						 }
-					 }
 
 					 for(UserTown t: supportTowns) {
+						 boolean breakOut = false;
 						 if(t.getPid()==5) {// we only do the food tax on supportau stationed on id towns.
 							 Town real = getPlayer().God.findTown(t.getTownID());
 							 for(AttackUnit a: real.getAu()) {
@@ -1784,11 +1758,45 @@ public class Town {
 									 a.setSize(a.getSize()-1);
 									 numToDie-=a.getExpmod()*sizeMod; // killing off one unit.
 									 totalUnits--;
+									 if(numToDie<1) {
+										 breakOut = true;
+										 break;
+									 }
 								 }									
 							 }
 						 }
+						 if(breakOut) break;
 					 }
-					
+					 
+					 for(AttackUnit a:getAu()) {
+						 if(a.getType()==type&&a.getSize()>0) {
+							 switch(type) {
+							 case 1:
+								 if(a.getArmorType()==4) {
+									// 4 is civvie armor
+									 sizeMod=2;
+								 }
+								 break;
+							 case 2:
+								 sizeMod=.75;
+								 break;
+							 case 3:
+								 sizeMod=.5;
+								 break;
+							 case 4:
+								 sizeMod=.5;
+								 break;
+							 case 5:
+								 sizeMod=0;
+								 break;
+							 }
+							 //	System.out.println("Eating some " + a.getType() + " of name " + a.getName() + " from " + getTownName());
+							 a.setSize(a.getSize()-1);
+							 numToDie-=a.getExpmod()*sizeMod; // killing off one unit.
+							 totalUnits--;
+							 break;
+						 }
+					 }
 				 }
 				 type++;
 			 }
