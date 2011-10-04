@@ -1048,7 +1048,7 @@ public class Player  {
 				}
 					// now we calculate to see what the max block this guy should have is.
 					
-					double maxR =Math.sqrt(t.getInfluence()/10.0)/2.5;
+					double maxR =Math.sqrt(t.getInfluence()/62.5);
 				//	System.out.println("t " + t.getTownName() + " infl is " +t.getInfluence() + " maxR is " + maxR + " and ID is " + ID);
 					/*
 					 * 10(2.5r)^2
