@@ -203,7 +203,6 @@ public class Raid {
 		 								// set manually.
 		// player1 hits player2's town2, only need town2 to access units.
 	    id = UUID.randomUUID();
-	    resupplyID = UUID.fromString("01234567-8901-2345-6789-012345678901");
 
 	    town1.attackServer().add(this); 			// even if this error happens, raid still works...
 	    	

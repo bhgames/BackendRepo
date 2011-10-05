@@ -6019,8 +6019,9 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 					as = towns.get(k).attackServer();
 					int j = 0;
 					while(j<as.size()) {
-						if(as.get(j).getResupplyID().equals(rtokill.getId())) {
-							recall(as.get(j).getId());
+						Raid r = as.get(j);
+						if(r.getResupplyID()!=null&&r.getResupplyID().equals(rtokill.getId())) {
+							recall(r.getId());
 							break;
 						}
 						j++;
