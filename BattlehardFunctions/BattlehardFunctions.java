@@ -6011,20 +6011,22 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				rs.close();
 				stmt.close();
 			} catch(SQLException exc) { exc.printStackTrace(); }*/
-			ArrayList<Town> towns = p.towns();
-			int k = 0;
-			ArrayList<Raid> as;
-			while(k<towns.size()) {
-				as = towns.get(k).attackServer();
-				int j = 0;
-				while(j<as.size()) {
-					if(as.get(j).getResupplyID().equals(rtokill.getId())) {
-						recall(as.get(j).getId());
-						break;
+			if(rtokill.isGenocide()) {
+				ArrayList<Town> towns = p.towns();
+				int k = 0;
+				ArrayList<Raid> as;
+				while(k<towns.size()) {
+					as = towns.get(k).attackServer();
+					int j = 0;
+					while(j<as.size()) {
+						if(as.get(j).getResupplyID().equals(rtokill.getId())) {
+							recall(as.get(j).getId());
+							break;
+						}
+						j++;
 					}
-					j++;
+					k++;
 				}
-				k++;
 			}
 			return true;
 		}
