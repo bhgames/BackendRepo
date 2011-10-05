@@ -1747,7 +1747,7 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 .value(raid.isDebris())
     			 .key("bombTargets")
     			 .array();
-    			 if(raid.bombTargets().length>0) {
+    			 if(raid.bombTargets() != null) {
 	    			 for(String bombs:raid.bombTargets()) {
 	    				 str.value(bombs);
 	    			 }
