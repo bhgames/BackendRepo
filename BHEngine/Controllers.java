@@ -300,38 +300,36 @@ public class Controllers  {
 	public boolean stopServer(UberSocketPrintWriter out) {
 
 		if(!session(out,true)) return false;
-			Player p;
-			// must be a player request.
-				 p = g.getPlayer((Integer) out.getAttribute("pid"));
-				 	//System.out.println("HEY2");
-				//if(p.getSupportstaff()) {
+		//if(!saveServer(out)) return false;
+		
+		Player p;
+		// must be a player request.
+		p = g.getPlayer((Integer) out.getAttribute("pid"));
+		//System.out.println("HEY2");
+		//if(p.getSupportstaff()) {
 					
-						try {
-						// 	System.out.println("HEY23");
+		try {
+			// 	System.out.println("HEY23");
+			
+			//      ServerSocket socket = new ServerSocket(8079, 1, InetAddress.getByName("127.0.0.1"));
 
-	        	      //      ServerSocket socket = new ServerSocket(8079, 1, InetAddress.getByName("127.0.0.1"));
-
-	        	                 System.out.println("*** stopping jetty embedded server");
-		        		        	g.killGod=true;
-		        		        	
-		        		        	g.serverInst.stop();
+			System.out.println("*** stopping jetty embedded server");
+			g.killGod=true;
+			
+			g.serverInst.stop();
 	        	                
 	        	 
-	        	            //     socket.close();
+			//     socket.close();
 	        	 
-	        	        	success(out);
-							return true;
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					
-				
-					
-			//	}
+			success(out);
+			return true;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 				
 			
-			retry(out); return false;
+		retry(out); return false;
 		
 	}
 	public boolean syncPlayer(UberSocketPrintWriter out) {
@@ -370,33 +368,35 @@ public class Controllers  {
 	public boolean saveServer(UberSocketPrintWriter out) {
 		
 		if(!session(out,true)) return false;
-			Player p;
+		Player p;
 
-			// must be a player request.
-				 p = g.getPlayer((Integer) out.getAttribute("pid"));
+		// must be a player request.
+		p = g.getPlayer((Integer) out.getAttribute("pid"));
 
-				if(p.getSupportstaff()) {
-					int i =0;
-					ArrayList<Player> players = g.getPlayers();
-					while(i<players.size()) {
-						try {
-						players.get(i).save();
-						} catch(Exception exc) {exc.printStackTrace(); }
-						out.println("Saving " + players.get(i).getUsername());
-						System.out.println("Save at " +i + " of " +players.size());
-						//System.out.println("Saving " + players.get(i).getUsername());
+		if(p.getSupportstaff()) {
+			int i =0;
+			ArrayList<Player> players = g.getPlayers();
+			while(i<players.size()) {
+				try {
+					players.get(i).save();
+				} catch(Exception exc) {exc.printStackTrace(); }
+				out.println("Saving " + players.get(i).getUsername());
+				System.out.println("Save at " +i + " of " +players.size());
+				//System.out.println("Saving " + players.get(i).getUsername());
 
-						i++;
-					}
-					System.out.println("Save completed.");
-					return true;
+				i++;
+			}
+			System.out.println("Save completed.");
+			return true;
 					
-				}
+		}
 				
 			
-			retry(out); return false;
+		retry(out); return false;
 		
-	}public boolean repairMap(UberSocketPrintWriter out) {
+	}
+	
+	public boolean repairMap(UberSocketPrintWriter out) {
 		
 		if(!session(out,true)) return false;
 			Player p;

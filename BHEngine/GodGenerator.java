@@ -17336,7 +17336,7 @@ public boolean territoryOverlapTest(UberSocketPrintWriter out, Player player) {
 		points.add(newPoint(0,-1));
 		points.add(newPoint(-1,-1));
 		points.add(newPoint(1,-1));
-		points.add(newPoint(-1,1)); // a cube.
+		points.add(newPoint(-1,1)); // a square.
 /*
  *  {
 							
@@ -17369,7 +17369,7 @@ public boolean territoryOverlapTest(UberSocketPrintWriter out, Player player) {
 				x++;
 			}
 			if(!foundPoint) {
-				out.println("returnTerritory test failed because the points in the territory was not correct for the cube. The point not part of the cube, that should have been, was " + px + "," + py);
+				out.println("returnTerritory test failed because the points in the territory was not correct for the square. The point not part of the square, that should have been, was " + px + "," + py);
 				printPointSet(pointsInHash,out);
 				return false;
 			}
@@ -17412,7 +17412,7 @@ public boolean territoryOverlapTest(UberSocketPrintWriter out, Player player) {
 				x++;
 			}
 			if(!foundPoint) {
-				out.println("returnTerritory test failed because the points in the territory representing the border, as depicted by Markus' gay sides thing, was not correct for the cube borders. The point not part of the real border, that should have been, was " + px + "," + py);
+				out.println("returnTerritory test failed because the points in the territory representing the border, as depicted by Markus' gay sides thing, was not correct for the square borders. The point not part of the real border, that should have been, was " + px + "," + py);
 				out.println("Rederived:");
 				printPointSet(rederivedPoints,out);
 				out.println("Actual:");
