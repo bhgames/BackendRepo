@@ -22,86 +22,21 @@ public class UserMessage {
 
 	 */
 	
-	UUID id;
-	public UUID getId() {
-		return id;
-	}
+	UUID id,
+		 originalSubjectID,
+		 subjectID;
+	int pidFrom,
+		msgType,
+		tsid=-1;
+	int[] pidTo;
+	String body,
+		   subject,
+		   creationDate,
+		   usernameFrom;
+	String[] usernameTo;
+	boolean readed,
+			deleted;
 
-	public int[] getPidTo() {
-		return pidTo;
-	}
-
-	public int getPidFrom() {
-		return pidFrom;
-	}
-
-	public String getBody() {
-		return body;
-	}
-
-	public String getSubject() {
-		return subject;
-	}
-/**
- * Not sure on these:
- * 0 is normal
- * 3 is league invite
- * 4 is league accept
- * 5 is system message(meaning only visible to AIs)
- * 6 is vassal invite
- * @return
- */
-	public int getMsgType() {
-		return msgType;
-	}
-
-	public boolean isReaded() {
-		return readed;
-	}
-
-	public int getTsid() {
-
-		return tsid;
-	}
-
-	public UUID getOriginalSubjectID() {
-		return originalSubjectID;
-	}
-
-	public UUID getSubjectID() {
-		return subjectID;
-	}
-	public String getCreationDate() {
-		return creationDate;
-	}
-	public String getUsernameFrom() {
-		return usernameFrom;
-	}public String[] getUsernameTo() {
-		return usernameTo;
-	}
-	public boolean getDeleted() { 
-		return deleted;
-	}
-	public void setReaded(boolean read) {
-		readed=read;
-	}
-	public void setDeleted(boolean deleted) {
-		this.deleted=deleted;
-	}
-	
-
-	int pidTo[];
-	int pidFrom;
-	String body;
-	String subject;
-	int msgType;
-	boolean readed;
-	boolean deleted;
-	int tsid=-1;
-	UUID originalSubjectID;
-	String creationDate;
-	String usernameFrom,usernameTo[];
-	UUID subjectID;
 	public UserMessage(UUID messageID,int pidTo[], int pidFrom,String usernameTo[], String usernameFrom, String body, String subject, int msgType, boolean readed, int tsid, UUID originalSubjectID, String creationDate, UUID subjectID,boolean deleted) {
 		this.id=messageID;this.pidTo=pidTo;this.pidFrom=pidFrom;this.body=body;this.subject=subject;this.msgType=msgType;
 		this.readed=readed;
@@ -112,6 +47,151 @@ public class UserMessage {
 		this.subjectID=subjectID;
 		this.usernameTo=usernameTo;this.usernameFrom=usernameFrom;
 	}
+	
+	/**
+	 * 
+	 * @return This message's UUID
+	 */
+	public UUID getId() {
+		return id;
+	}
+
+	/**
+	 * 
+	 * @return the IDs of the players this message is addressed to
+	 */
+	public int[] getPidTo() {
+		return pidTo;
+	}
+
+	/**
+	 * 
+	 * @return the Id of the player that sent this message
+	 */
+	public int getPidFrom() {
+		return pidFrom;
+	}
+
+	/**
+	 * 
+	 * @return the full body text of this message
+	 */
+	public String getBody() {
+		return body;
+	}
+
+	/**
+	 * 
+	 * @return the subject line of this message
+	 */
+	public String getSubject() {
+		return subject;
+	}
+	/**
+	 * Gets the integer representation of this message's type.
+	 * <br/>  
+	 * Valid types include:
+	 * <ol start='0'>
+	 * <li>normal</li>
+	 * <li>trade invite</li>
+	 * <li>trade accept</li>
+	 * <li>league invite</li>
+	 * <li>league accept</li>
+	 * <li>system message (meaning only visible to AIs)</li>
+	 * <li>vassal invite</li>
+	 * @return the integer representation of this message's type
+	 */
+	public int getMsgType() {
+		return msgType;
+	}
+
+	/**
+	 * 
+	 * @return true, if this message has been read.  False, otherwise.
+	 */
+	public boolean isReaded() {
+		return readed;
+	}
+
+	/**
+	 * Used with trade messages to keep track of the trade the message is for.
+	 * 
+	 * @return the ID of the trade this message was sent for
+	 */
+	public int getTsid() {
+
+		return tsid;
+	}
+
+	/**
+	 * The OriginalSubjectID is used to group messages together.  
+	 * Messages that are not replies to other messages have this set to 0.
+	 *  
+	 * @return the SubjectID of the message this is in reply to.
+	 */
+	public UUID getOriginalSubjectID() {
+		return originalSubjectID;
+	}
+
+	/**
+	 * SubjectIDs are used to group messages together.
+	 * All messages have a unique SubjectID.
+	 * 
+	 * @return this message's SubjectID
+	 */
+	public UUID getSubjectID() {
+		return subjectID;
+	}
+	
+	/**
+	 * 
+	 * @return the string representation of this messages creation date
+	 */
+	public String getCreationDate() {
+		return creationDate;
+	}
+	
+	/**
+	 * 
+	 * @return the username of the player that sent this message
+	 */
+	public String getUsernameFrom() {
+		return usernameFrom;
+	}
+	
+	/**
+	 * 
+	 * @return an array of usernames this message is addressed to
+	 */
+	public String[] getUsernameTo() {
+		return usernameTo;
+	}
+	
+	/**
+	 * 
+	 * @return true, if the message has been deleted.  False, otherwise.
+	 */
+	public boolean getDeleted() { 
+		return deleted;
+	}
+	
+	/**
+	 * Sets a message as being read or unread.
+	 * 
+	 * @param read the state to set this message's read status to
+	 */
+	public void setReaded(boolean read) {
+		readed=read;
+	}
+	
+	/**
+	 * 
+	 * @param deleted the state to set this message's deleted status to
+	 */
+	public void setDeleted(boolean deleted) {
+		this.deleted=deleted;
+	}
+	
 	/*
 	public void addPidTo(int toAdd) {
 		int newPid[] = new int[pidTo.length+1];

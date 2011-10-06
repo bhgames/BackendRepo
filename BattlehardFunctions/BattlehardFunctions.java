@@ -13778,13 +13778,19 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("Invalid tid!");
 			return false;
 		}
+		
+		if(t.townID==5) {
+			setError("Can't send Trade Caravans to Id towns.");
+			return false;
+		}
+		
 		if(t.isZeppelin()||myT.isZeppelin()) {
 			setError("Both towns must not be Airships for a trade caravan to work!");
 			return false;
 		}
 		int ticksToHit=(int) ((2*getTradeETA(myT.townID,t.townID)+2)*GodGenerator.gameClockFactor);
 		//intervaltime is always in s!
-		TradeSchedule ts = new TradeSchedule(myT,  t,(long)  0,(long)0,(long)0,(long)0, (long) 0,(long) 0, (long) 0,(long)  0,  ticksToHit+2, -1,  false,null,true);
+		new TradeSchedule(myT,  t,(long)  0,(long)0,(long)0,(long)0, (long) 0,(long) 0, (long) 0,(long)  0,  ticksToHit+2, -1,  false,null,true);
 		return true;
 	}
 	}

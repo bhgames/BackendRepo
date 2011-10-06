@@ -1831,6 +1831,8 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 .value(ts.getDestPlayer())
     			 .key("twoway")
     			 .value(ts.isTwoway())
+    			 .key("caravan")
+    			 .value(ts.isCaravan())
     			 .key("agreed")
     			 .value(ts.isAgreed())
     			 .key("finished")
