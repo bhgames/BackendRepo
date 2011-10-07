@@ -2818,7 +2818,7 @@ try {
   				return false;
   			}
   			 // so they compile and make in same place, easy.
-			//			 System.out.println("Writing " + oldRev);
+						 System.out.println("Writing " + oldRev);
   			 	fw.write(oldRev);
   				fw.close(); } catch(IOException exc) { exc.printStackTrace(); System.out.println("IO Exception occured in loadQuests. Please contact support");
   				return false;}
