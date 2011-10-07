@@ -1947,8 +1947,8 @@ public class BattlehardFunctions {
 		//	public boolean sendMessage(int pid_to, int pid_from, String body, String subject, int msg_type) {
 
 
-		@SuppressWarnings("unused")
-		TradeSchedule ts = new TradeSchedule(t1,  t2,  m,  t,  mm,  f,  0, 0,  0,  0,  intervaltime, timesToDo,  twoway,null,false);
+		
+		new TradeSchedule(t1,  t2,  m,  t,  mm,  f,  0, 0,  0,  0,  intervaltime, timesToDo,  twoway,null,false);
 	
 		return true;
 		
