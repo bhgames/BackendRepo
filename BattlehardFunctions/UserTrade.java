@@ -4,17 +4,24 @@ import java.util.UUID;
 
 
 public class UserTrade {
-	private long metal, timber, manmat, food;
+	private long metal, 
+				 timber, 
+				 manmat, 
+				 food;
 	private double distance; 
-	private int ticksToHit; 
-	private int tid2 ; 
-	private int tid1; 
-	private boolean tradeOver; 
+	private int ticksToHit,
+				tid2,
+				tid1,
+				traders,
+				totalTicks=0; 
+	private boolean tradeOver;
 	private UUID id; 
+	private String originatingPlayer,
+			originatingTown,
+			destPlayer,
+			destTown;
+	
 	UUID tradeScheduleID; 
-	private String originatingPlayer,originatingTown,destPlayer,destTown;
-	private int totalTicks=0; 
-	private int traders;
 	
 	public UserTrade(double distance, long food, long manmat, long metal,
 			int ticksToHit, long timber, int totalTicks, int tid1,

@@ -35,5 +35,9 @@
 	<classpathentry kind="lib" path="src/tomcat-i18n-fr.jar"/>
 	<classpathentry kind="lib" path="src/tomcat-i18n-ja.jar"/>
 	<classpathentry kind="lib" path="src/mysql-connector-java-5.1.11-bin.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-servlet-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-util-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-websocket-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="G:/My Stuff/Battlehard/Battlehard; AI Wars/jetty-distribution-7.4.5.v20110725/lib/jetty-server-7.4.5.v20110725.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

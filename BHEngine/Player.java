@@ -2021,19 +2021,18 @@ public class Player  {
 		 }
 	 static ArrayList<Hashtable> giftWrapping(ArrayList<Hashtable> points)
 	 	{
-				// random
-		 	if(points.size()<=4) return points; // degenerate cases.
-				int xoff=0;
-				int yoff=0;
-				int lowestX=0;
-				int lowestY=0;
-				for(Hashtable p:points) {
-					int px = (Integer) p.get("x");
-					int py = (Integer) p.get("y");
-					if(px<lowestX) lowestX=px;
-					if(py<lowestY) lowestY=py;
-	
-				}
+		 // random
+		 if(points.size()<=4) return points; // degenerate cases.
+		 int xoff=0;
+		 int yoff=0;
+		 int lowestX=0;
+		 int lowestY=0;
+		 for(Hashtable p:points) {
+			 int px = (Integer) p.get("x");
+			 int py = (Integer) p.get("y");
+			 if(px<lowestX) lowestX=px;
+			 if(py<lowestY) lowestY=py;
+		 }
 				xoff=lowestX-1; // so that 0,0 would be 1,1 if we did have 0,0 as the lowest point.
 				yoff =lowestY-1;
 				for(Hashtable p: points){

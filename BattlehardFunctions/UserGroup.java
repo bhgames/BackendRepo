@@ -23,15 +23,30 @@ public class UserGroup {
 		this.users = users;
 		this.pids=pids;
 	}
+	/**
+	 * @return The ID of this User Group
+	 */
 	public int getUserGroupID() {
 		return userGroupID;
 	}
+	/**
+	 * 
+	 * @return The Name assigned to this user group
+	 */
 	public String getName() {
 		return name;
 	}
+	/**
+	 * 
+	 * @return An arraylist of usernames that this User Group references
+	 */
 	public ArrayList<String> getUsers() {
 		return users;
 	}
+	/**
+	 * 
+	 * @return An arraylist of player ID's that this User Group references
+	 */
 	public ArrayList<Integer> getPIDs() {
 		return pids;
 	}

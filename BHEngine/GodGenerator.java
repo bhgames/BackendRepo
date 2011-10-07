@@ -29,13 +29,13 @@ import java.util.Hashtable;
 import java.util.UUID;
 
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+//import org.eclipse.jetty.server.Request;
+//import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.websocket.WebSocket;
+//import org.eclipse.jetty.websocket.WebSocket;
 import org.eclipse.jetty.websocket.WebSocketFactory;
-import org.eclipse.jetty.websocket.WebSocketServlet;
+//import org.eclipse.jetty.websocket.WebSocketServlet;
 
 
 import javax.servlet.ServletException;
@@ -16819,6 +16819,132 @@ public boolean advancedTerritoryTest(UberSocketPrintWriter out, Player player) {
 		out.println("advancedTerritory test successful.");
 		return true;
 	}
+public boolean territoryOverlapTest(UberSocketPrintWriter out, Player player) { 
+	
+	Player[] players = player.generateFakePlayers(3,1,0,0);
+	
+	Town t1 = players[0].towns().get(0);
+	t1.setInfluence(startingTownInfluence);
+	t1.setX(1111100);
+	t1.setY(1111100);
+
+	Town t2 = players[1].towns().get(0);
+
+	t2.setInfluence(startingTownInfluence);
+	t2.setX(1111103);// so it should be x = 1 where the limit is...we want
+	// this guy then centered on 3, and we give him enough to calculate into that shit.
+	t2.setY(1111100);
+	Town t3 = players[2].towns().get(0);
+
+	t3.setInfluence(startingTownInfluence);
+	t3.setX(1111102);
+	t3.setY(1111102);
+	
+	
+	players[0].territoryCalculator();
+	players[1].territoryCalculator(); // we should see no territorial overlap.
+	players[2].territoryCalculator();
+	
+	ArrayList<Hashtable> expectedTerritoryt1 = new ArrayList<Hashtable>();
+	expectedTerritoryt1.add(newPoint(1111100,1111100));
+	expectedTerritoryt1.add(newPoint(1111101,1111100));
+	expectedTerritoryt1.add(newPoint(1111099,1111100));
+	expectedTerritoryt1.add(newPoint(1111100,1111101));
+	expectedTerritoryt1.add(newPoint(1111101,1111101));
+	expectedTerritoryt1.add(newPoint(1111099,1111101));
+	expectedTerritoryt1.add(newPoint(1111100,1111099));
+	expectedTerritoryt1.add(newPoint(1111101,1111099));
+	expectedTerritoryt1.add(newPoint(1111099,1111099));
+	
+	ArrayList<Hashtable> expectedTerritoryt2 = new ArrayList<Hashtable>();
+	expectedTerritoryt2.add(newPoint(1111103,1111100));
+	expectedTerritoryt2.add(newPoint(1111104,1111100));
+	expectedTerritoryt2.add(newPoint(1111102,1111100));
+	expectedTerritoryt2.add(newPoint(1111103,1111101));
+	expectedTerritoryt2.add(newPoint(1111104,1111101));
+	expectedTerritoryt2.add(newPoint(1111103,1111099));
+	expectedTerritoryt2.add(newPoint(1111104,1111099));
+	expectedTerritoryt2.add(newPoint(1111102,1111099));
+	
+	ArrayList<Hashtable> expectedTerritoryt3 = new ArrayList<Hashtable>();
+	expectedTerritoryt3.add(newPoint(1111102,1111102));
+	expectedTerritoryt3.add(newPoint(1111103,1111102));
+	expectedTerritoryt3.add(newPoint(1111101,1111102));
+	expectedTerritoryt3.add(newPoint(1111102,1111103));
+	expectedTerritoryt3.add(newPoint(1111103,1111103));
+	expectedTerritoryt3.add(newPoint(1111102,1111101));
+
+	ArrayList<Hashtable> pointsT1 = (ArrayList<Hashtable>) players[0].getTerritories().get(0).get("points");
+	for(Hashtable p: pointsT1) {
+		int px = (Integer) p.get("x");
+		int py = (Integer) p.get("y");
+		boolean foundPoint=false;
+		int x = 0; 
+		while(x<expectedTerritoryt1.size()) {
+			if(px==((Integer) expectedTerritoryt1.get(x).get("x"))&&py==((Integer) expectedTerritoryt1.get(x).get("y"))) {
+				foundPoint=true;
+				break;
+			}
+			x++;
+		}
+		if(!foundPoint) {
+			out.println("territory overlap test failed because the points in the territory was not correct for the first town. The point part of the territory, that should not have been, was " + px + "," + py);
+			printPointSet(pointsT1,out);
+			out.println("Expected:");
+			printPointSet(expectedTerritoryt1,out);
+
+			player.deleteFakePlayers(players); return false;
+		}
+	}
+	ArrayList<Hashtable> pointsT2 = (ArrayList<Hashtable>) players[1].getTerritories().get(0).get("points");
+	for(Hashtable p: pointsT2) {
+		int px = (Integer) p.get("x");
+		int py = (Integer) p.get("y");
+		boolean foundPoint=false;
+		int x = 0; 
+		while(x<expectedTerritoryt2.size()) {
+			if(px==((Integer) expectedTerritoryt2.get(x).get("x"))&&py==((Integer) expectedTerritoryt2.get(x).get("y"))) {
+				foundPoint=true;
+				break;
+			}
+			x++;
+		}
+		if(!foundPoint) {
+			out.println("territory overlap test failed because the points in the territory was not correct for the second town. The point part of the territory, that should not have been, was " + px + "," + py);
+			printPointSet(pointsT2,out);
+			out.println("Expected:");
+			printPointSet(expectedTerritoryt2,out);
+
+			player.deleteFakePlayers(players); return false;
+		}
+	}
+	ArrayList<Hashtable> pointsT3 = (ArrayList<Hashtable>) players[2].getTerritories().get(0).get("points");
+	for(Hashtable p: pointsT3) {
+		int px = (Integer) p.get("x");
+		int py = (Integer) p.get("y");
+		boolean foundPoint=false;
+		int x = 0; 
+		while(x<expectedTerritoryt3.size()) {
+			if(px==((Integer) expectedTerritoryt3.get(x).get("x"))&&py==((Integer) expectedTerritoryt3.get(x).get("y"))) {
+				foundPoint=true;
+				break;
+			}
+			x++;
+		}
+		if(!foundPoint) {
+			out.println("territory overlap test failed because the points in the territory was not correct for the third town. The point part of the territory, that should not have been, was " + px + "," + py);
+			printPointSet(pointsT3,out);
+			out.println("Expected:");
+			printPointSet(expectedTerritoryt3,out);
+
+			player.deleteFakePlayers(players); return false;
+		}
+	}
+	player.deleteFakePlayers(players);
+
+	out.println("territory overlap test successful.");
+	return true;
+}
 	public boolean intermediateTerritoryTest(UberSocketPrintWriter out, Player player) { 
 		
 		int numTowns[] = {1,1,1};
@@ -17210,7 +17336,7 @@ public boolean advancedTerritoryTest(UberSocketPrintWriter out, Player player) {
 		points.add(newPoint(0,-1));
 		points.add(newPoint(-1,-1));
 		points.add(newPoint(1,-1));
-		points.add(newPoint(-1,1)); // a cube.
+		points.add(newPoint(-1,1)); // a square.
 /*
  *  {
 							
@@ -17243,7 +17369,7 @@ public boolean advancedTerritoryTest(UberSocketPrintWriter out, Player player) {
 				x++;
 			}
 			if(!foundPoint) {
-				out.println("returnTerritory test failed because the points in the territory was not correct for the cube. The point not part of the cube, that should have been, was " + px + "," + py);
+				out.println("returnTerritory test failed because the points in the territory was not correct for the square. The point not part of the square, that should have been, was " + px + "," + py);
 				printPointSet(pointsInHash,out);
 				return false;
 			}
@@ -17286,7 +17412,7 @@ public boolean advancedTerritoryTest(UberSocketPrintWriter out, Player player) {
 				x++;
 			}
 			if(!foundPoint) {
-				out.println("returnTerritory test failed because the points in the territory representing the border, as depicted by Markus' gay sides thing, was not correct for the cube borders. The point not part of the real border, that should have been, was " + px + "," + py);
+				out.println("returnTerritory test failed because the points in the territory representing the border, as depicted by Markus' gay sides thing, was not correct for the square borders. The point not part of the real border, that should have been, was " + px + "," + py);
 				out.println("Rederived:");
 				printPointSet(rederivedPoints,out);
 				out.println("Actual:");

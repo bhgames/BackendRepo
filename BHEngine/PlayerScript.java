@@ -1747,8 +1747,10 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 .value(raid.isDebris())
     			 .key("bombTargets")
     			 .array();
-    			 for(String bombs:raid.bombTargets()) {
-    				 str.value(bombs);
+    			 if(raid.bombTargets() != null) {
+	    			 for(String bombs:raid.bombTargets()) {
+	    				 str.value(bombs);
+	    			 }
     			 }
     			 str.endArray()
     			 .key("allClear")
@@ -1829,6 +1831,8 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 .value(ts.getDestPlayer())
     			 .key("twoway")
     			 .value(ts.isTwoway())
+    			 .key("caravan")
+    			 .value(ts.isCaravan())
     			 .key("agreed")
     			 .value(ts.isAgreed())
     			 .key("finished")

@@ -1947,8 +1947,8 @@ public class BattlehardFunctions {
 		//	public boolean sendMessage(int pid_to, int pid_from, String body, String subject, int msg_type) {
 
 
-		@SuppressWarnings("unused")
-		TradeSchedule ts = new TradeSchedule(t1,  t2,  m,  t,  mm,  f,  0, 0,  0,  0,  intervaltime, timesToDo,  twoway,null,false);
+		
+		new TradeSchedule(t1,  t2,  m,  t,  mm,  f,  0, 0,  0,  0,  intervaltime, timesToDo,  twoway,null,false);
 	
 		return true;
 		
@@ -6011,20 +6011,23 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 				rs.close();
 				stmt.close();
 			} catch(SQLException exc) { exc.printStackTrace(); }*/
-			ArrayList<Town> towns = p.towns();
-			int k = 0;
-			ArrayList<Raid> as;
-			while(k<towns.size()) {
-				as = towns.get(k).attackServer();
-				int j = 0;
-				while(j<as.size()) {
-					if(as.get(j).getResupplyID().equals(rtokill.getId())) {
-						recall(as.get(j).getId());
-						break;
+			if(rtokill.isGenocide()) {
+				ArrayList<Town> towns = p.towns();
+				int k = 0;
+				ArrayList<Raid> as;
+				while(k<towns.size()) {
+					as = towns.get(k).attackServer();
+					int j = 0;
+					while(j<as.size()) {
+						Raid r = as.get(j);
+						if(r.getResupplyID()!=null&&r.getResupplyID().equals(rtokill.getId())) {
+							recall(r.getId());
+							break;
+						}
+						j++;
 					}
-					j++;
+					k++;
 				}
-				k++;
 			}
 			return true;
 		}
@@ -13775,13 +13778,19 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("Invalid tid!");
 			return false;
 		}
+		
+		if(t.townID==5) {
+			setError("Can't send Trade Caravans to Id towns.");
+			return false;
+		}
+		
 		if(t.isZeppelin()||myT.isZeppelin()) {
 			setError("Both towns must not be Airships for a trade caravan to work!");
 			return false;
 		}
 		int ticksToHit=(int) ((2*getTradeETA(myT.townID,t.townID)+2)*GodGenerator.gameClockFactor);
 		//intervaltime is always in s!
-		TradeSchedule ts = new TradeSchedule(myT,  t,(long)  0,(long)0,(long)0,(long)0, (long) 0,(long) 0, (long) 0,(long)  0,  ticksToHit+2, -1,  false,null,true);
+		new TradeSchedule(myT,  t,(long)  0,(long)0,(long)0,(long)0, (long) 0,(long) 0, (long) 0,(long)  0,  ticksToHit+2, -1,  false,null,true);
 		return true;
 	}
 	}

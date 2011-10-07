@@ -11,47 +11,65 @@ import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 
 public class TradeSchedule {
 	public UUID id;
-	private long metal, timber, manmat, food,othermetal, othertimber, othermanmat, otherfood;
-	private Town town2; private Town town1;
-	private  boolean twoway=false;
-	private int currTicks = 0,timesDone=0,timesToDo=1;private  UUID mateID;
-	TradeSchedule mate;  public boolean threadSafe=true;
-	private int intervaltime=3600; private boolean agreed=false; private boolean finished =  false; private boolean stockMarketTrade=false;
-	private UberConnection con; private GodGenerator God; private boolean caravan=false;
+	public boolean threadSafe=true;
+	
+	TradeSchedule mate;  
+	
+	private long metal, 
+				 timber, 
+				 manmat, 
+				 food,
+				 othermetal, 
+				 othertimber, 
+				 othermanmat, 
+				 otherfood;
+	private Town town2,
+				 town1;
+	private boolean twoway=false,
+					agreed=false,
+					finished = false,
+					stockMarketTrade=false,
+					caravan=false;
+	private int currTicks = 0,
+				timesDone=0,
+				timesToDo=1,
+				intervaltime=3600; 
+	private UUID mateID;
+	private UberConnection con; 
+	private GodGenerator God; 
 	// they happen to be handled at the same time.
 	
-	public void setTradeScheduleValues(UUID id, Town town1, Town town2,
-			long metal, long timber, long manmat, long food, long othermetal,long othertimber, long othermanmat, long otherfood, int currTicks, int timesDone,boolean twoway,boolean agreed, int intervaltime, int timesToDo, UUID mateTradeScheduleID,boolean caravan) {
-		// This constructor does not use the support integer because it is rarely used compared to other things
-		// and so to save space that is exported as an extra usable method. It is only necessary
-		// when creating raids.
-		// this constructor is for when a raid is being loaded into memory.
-		this.mateID = mateTradeScheduleID; // if two way and not agreed, will be 0 until agreed, or else
-		// if not two way is 0 forever! (mysql autogen id starts at 1)
+	public void setTradeScheduleValues(UUID id, Town town1, Town town2, long metal, 
+			long timber, long manmat, long food, long othermetal,long othertimber, 
+			long othermanmat, long otherfood, int currTicks, int timesDone,boolean twoway,
+			boolean agreed, int intervaltime, int timesToDo, UUID mateTradeScheduleID,
+			boolean caravan) {
 		
-			this.twoway=twoway;
-			this.timesDone=timesDone;
-			this.agreed=agreed;this.intervaltime=intervaltime;this.timesToDo=timesToDo;
-		 this.town2=town2;this.town1 = town1;
-		 if(town2!=null&&town2.townID==town1.townID) stockMarketTrade=true; // so we know it's a sm trade!!!
-		 this.id = id; this.metal=metal;this.timber=timber;
-		 this.manmat=manmat;this.food=food;
-		 this.othermetal=othermetal;this.othertimber=othertimber;
-		 this.othermanmat=othermanmat;this.otherfood=otherfood;
+		this.mateID = mateTradeScheduleID; // if two way and not agreed, will be null until agreed, or else
+		// if not two way is null forever! (mysql autogen id starts at 1)
+		
+		this.twoway=twoway;
+		this.timesDone=timesDone;
+		this.agreed=agreed;this.intervaltime=intervaltime;this.timesToDo=timesToDo;
+		this.town2=town2;this.town1 = town1;
+		if(town2!=null&&town2.townID==town1.townID) stockMarketTrade=true; // so we know it's a sm trade!!!
+		this.id = id; this.metal=metal;this.timber=timber;
+		this.manmat=manmat;this.food=food;
+		this.othermetal=othermetal;this.othertimber=othertimber;
+		this.othermanmat=othermanmat;this.otherfood=otherfood;
 		this.currTicks=currTicks;
 		this.caravan=caravan;
 		
-	
 	}
 	public TradeSchedule(UUID id,GodGenerator God) {
 			
-			 this.id = id; 
-			 this.con=God.con; this.God=God;
+		this.id = id; 
+		this.con=God.con; this.God=God;
 			 
-			try {	
-				UberPreparedStatement rus = con.createStatement("select * from tradeschedule where id = ?;");
-				rus.setString(1,id.toString());
-				ResultSet rrs = rus.executeQuery();
+		try {	
+			UberPreparedStatement rus = con.createStatement("select * from tradeschedule where id = ?;");
+			rus.setString(1,id.toString());
+			ResultSet rrs = rus.executeQuery();
 
 			while(rrs.next()) {
 				
@@ -64,9 +82,9 @@ public class TradeSchedule {
 				
 		
 			}
-					rrs.close();rus.close();
-
-			} catch(SQLException exc) { exc.printStackTrace(); }
+			rrs.close();rus.close();
+					
+		} catch(SQLException exc) { exc.printStackTrace(); }
 			 
 		
 	}
@@ -76,8 +94,6 @@ public class TradeSchedule {
 		UberPreparedStatement rus = con.createStatement("select * from tradeschedule where tsid = ?;");
 		rus.setString(1,id.toString());
 		ResultSet rrs = rus.executeQuery();
-		// so we don't want it to load if raidOver is true and ticksToHit is 0. Assume 0 is not, 1 is on, for ttH. !F = R!T
-		// Then F = !(R!T) = !R + T;
 		while(rrs.next()) {
 	
 			
@@ -156,8 +172,9 @@ public class TradeSchedule {
 				t.setTradeOver(true);
 			i++;
 		}
-		if(isTwoway()&&isAgreed()&&getMate().getTimesDone()!=getMate().getTimesToDo()) { // last part is to make sure the first one
-			// who deletes, deletes the second, but then the second doesn't try to delete the first again, causing
+		if(isTwoway()&&isAgreed()&&getMate().getTimesDone()!=getMate().getTimesToDo()) { 
+			// last part is to make sure the first one who deletes, deletes the second, 
+			// but then the second doesn't try to delete the first again, causing
 			// a stack overflow error.
 			getMate().deleteMeInterrupt();
 		}
@@ -248,61 +265,71 @@ public class TradeSchedule {
 	public TradeSchedule(Town town1, Town town2, long m, long t, long mm, long f, long othermetal,long othertimber, long othermanmat, long otherfood, int intervaltime,int timesToDo, boolean twoway,UUID mateTradeScheduleID, boolean caravan) {
 		// Can't do an infinite number of arguments here so need to add manually.
 		// holds distance and ticksToHit in this object.
-		 this.con=town1.getPlayer().God.con; this.God=town1.getPlayer().God;
-			boolean smtrade=false;
-		 	if(town2!=null&&town2.townID==town1.townID) smtrade=true;
-			this.twoway=twoway;
-			intervaltime=(int) Math.round(intervaltime/GodGenerator.gameClockFactor);
-			 this.town2=town2;
-			 this.town1 = town1; currTicks=intervaltime;
-			 this.caravan=caravan;
-			 this.timesToDo=timesToDo;
-			 	metal=m;timber=t;manmat=mm;food=f;
-			 	if(town2!=null&&town2.townID==town1.townID) stockMarketTrade=true;
-				 this.othermetal=othermetal;this.othertimber=othertimber;
-				 this.intervaltime=intervaltime;
-				 this.othermanmat=othermanmat;this.otherfood=otherfood;
+		this.con=town1.getPlayer().God.con; 
+		this.God=town1.getPlayer().God;
+		/*
+		boolean smtrade=false;
+		if(town2!=null&&town2.townID==town1.townID) {
+			smtrade=true;
+		}
+		 */
+		this.twoway=twoway;
+		intervaltime=(int) Math.round(intervaltime/GodGenerator.gameClockFactor);
+		this.town2=town2;
+		this.town1 = town1; currTicks=intervaltime;
+		this.caravan=caravan;
+		this.timesToDo=timesToDo;
+		metal=m;timber=t;manmat=mm;food=f;
+		
+		if(town2!=null&&town2.townID==town1.townID) {
+			stockMarketTrade=true;
+		}
+		
+		this.othermetal=othermetal;
+		this.othertimber=othertimber;
+		this.intervaltime=intervaltime;
+		this.othermanmat=othermanmat;
+		this.otherfood=otherfood;
 
 				 
-			UberPreparedStatement stmt;
-			try {
+		UberPreparedStatement stmt;
+		try {
+  
+			stmt = con.createStatement("insert into tradeschedule (tid1, tid2,m,t,mm,f,otherm,othert,othermm,otherf,intervaltime,times,twoway,mate_tsid,id,caravan) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
 
 		      
-		      stmt = con.createStatement("insert into tradeschedule (tid1, tid2,m,t,mm,f,otherm,othert,othermm,otherf,intervaltime,times,twoway,mate_tsid,id,caravan) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
+			// First things first. We update the player table.
+			boolean transacted=false;
+			while(!transacted) {
+				try {
 
-		      
-		      // First things first. We update the player table.
-		      boolean transacted=false;
-		      while(!transacted) {
-		    	  try {
-
-		      int tid2 = 0; if(town2!=null) tid2=town2.townID;
-		      stmt.setInt(1,town1.townID);
-		      stmt.setInt(2,tid2);
-		      stmt.setLong(3,m);
-		      stmt.setLong(4,t);
-		      stmt.setLong(5,mm);
-		      stmt.setLong(6,f);
-		      stmt.setLong(7,othermetal);
-		      stmt.setLong(8,othertimber);
-		      stmt.setLong(9,othermanmat);
-		      stmt.setLong(10,otherfood);
-		      stmt.setInt(11,intervaltime);
-		      stmt.setInt(12,timesToDo);
-		      stmt.setBoolean(13,twoway);
-		      if(mateID==null)
-		    	  stmt.setString(14,"none");
-		      else
-		      stmt.setString(14,mateID.toString());
-		      id = UUID.randomUUID();
-		      stmt.setString(15,id.toString());
-		      stmt.setBoolean(16,caravan);
-		      town1.tradeSchedules().add(this); // before we execute, or else an exc may kill it and this could be a test.
-		      // let's add this raid and therefore get the rid out of it.
-		      stmt.executeUpdate();
+					int tid2 = 0; if(town2!=null) tid2=town2.townID;
+					stmt.setInt(1,town1.townID);
+					stmt.setInt(2,tid2);
+					stmt.setLong(3,m);
+					stmt.setLong(4,t);
+					stmt.setLong(5,mm);
+					stmt.setLong(6,f);
+					stmt.setLong(7,othermetal);
+					stmt.setLong(8,othertimber);
+					stmt.setLong(9,othermanmat);
+					stmt.setLong(10,otherfood);
+					stmt.setInt(11,intervaltime);
+					stmt.setInt(12,timesToDo);
+					stmt.setBoolean(13,twoway);
+					if(mateID==null)
+						stmt.setString(14,"none");
+					else
+						stmt.setString(14,mateID.toString());
+					id = UUID.randomUUID();
+					stmt.setString(15,id.toString());
+					stmt.setBoolean(16,caravan);
+					town1.tradeSchedules().add(this); // before we execute, or else an exc may kill it and this could be a test.
+					// let's add this raid and therefore get the rid out of it.
+					stmt.executeUpdate();
 		    
 
-		      /*
+			  /*
 		      ArrayList<TradeSchedule> a  = town1.tradeSchedules();
 		      while(a.size()<=0&&timesTried<10) {
 			  Thread.currentThread().sleep(10);
@@ -311,13 +338,11 @@ public class TradeSchedule {
 		      
 		      }		     
 		      tradeScheduleID=a.get(a.size()-1).tradeScheduleID;*/
-		      stmt.close(); transacted=true;  }
-
-		    	  catch(MySQLTransactionRollbackException exc) { } 
-		      }
-		 } catch(SQLException exc) { exc.printStackTrace(); }
-
-		
+					stmt.close(); transacted=true;  }
+				
+				catch(MySQLTransactionRollbackException exc) { } 
+			}
+		} catch(SQLException exc) { exc.printStackTrace(); }
 	}
 	
 	public void makeTrade(boolean second, int traders) {
@@ -325,13 +350,13 @@ public class TradeSchedule {
 		// don't need to worry about threadSafety here due to it being checked in sendTradeIfPossible method in God.
 		// Even nonsafe trade schedules can make trades, they just have to have their makeTrade method called by the safe one's
 		//getMate() return.
-		Trade t;
+		//Trade t;
 		if(!isCaravan()) 
-			t = new Trade(getTown1(),getTown2(),getMetal(),getTimber(),getManmat(),getFood(),this,traders);
+			new Trade(getTown1(),getTown2(),getMetal(),getTimber(),getManmat(),getFood(),this,traders);
 		else {
 			long theResource = 25+1*getTimesDone();
 			if(theResource>300) theResource=300;
-			t = new Trade(getTown1(),getTown2(),theResource,theResource,theResource,0,this,traders);
+			new Trade(getTown1(),getTown2(),theResource,theResource,theResource,0,this,traders);
 		}
 
 		// makes this bitch.
