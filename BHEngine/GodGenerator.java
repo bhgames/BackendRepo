@@ -4915,6 +4915,8 @@ public class GodGenerator extends HttpServlet implements Runnable {
 				Router.sendTestEmail(out);
 			}  else	if(out.getParameter("reqtype").equals("compileProgram")) {
 				Router.compileProgram(out);
+			}   else	if(out.getParameter("reqtype").equals("saveProgram")) {
+				Router.saveProgram(out);
 			} 
 			else {
 				
@@ -6411,6 +6413,20 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 				p.setKnowledge(p.getKnowledge()+soldierPrice);
 				String toRes[] = {"Pillager"};
 				ps.b.completeResearches(toRes); // give them a default template.
+				p.setdigAPI(true);
+				p.setAttackAPI(true);
+				p.setAdvancedAttackAPI(true);
+				p.setTradingAPI(true);
+				p.setAdvancedTradingAPI(true);
+				p.setSmAPI(true);
+				p.setResearchAPI(true);
+				p.setBuildingAPI(true);
+				p.setAdvancedBuildingAPI(true);
+				p.setMessagingAPI(true);
+				p.setZeppelinAPI(true);
+				p.setCompleteAnalyticAPI(true);
+				p.setNukeAPI(true);
+				p.setWorldMapAPI(true);
 			}
 
 			p.setInternalClock(gameClock);

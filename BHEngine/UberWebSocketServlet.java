@@ -23,10 +23,14 @@ public class UberWebSocketServlet extends WebSocketServlet {
 		for(Player p: God.getPlayers()) {
 		//	System.out.println("Checking " + p.getUsername() + " who's websocket is " + p.socket);
 			//if(p.socket!=null) System.out.println(" with ipaddr " + p.socket.ipAddr);
-			if(p.socket!=null&&p.socket.ipAddr!=null&&p.socket.ipAddr.equals(ipAddr)) {
-				System.out.println("returning " + p.getUsername());
-				return p.socket;
+			if(p.socket!=null&&p.socket.ipAddr!=null)
+			for(String r:p.socket.ipAddr) {
+				if(r.equals(ipAddr)) {
+					System.out.println("returning " + p.getUsername());
+					return p.socket;
+				}
 			}
+	
 		}
 		return null;
 	}
@@ -50,7 +54,7 @@ class UberWebSocket implements WebSocket, WebSocket.OnFrame, WebSocket.OnBinaryM
     boolean _verbose = true;
     ArrayList<UberWebSocket> sockets;
     Player player;
-    String ipAddr=null;
+    String[] ipAddr=null;
     public UberWebSocket(ArrayList<UberWebSocket> sockets, Player player) {
     	this.sockets=sockets;
     	this.player=player;

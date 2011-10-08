@@ -1092,7 +1092,7 @@ public boolean noFlick(UberSocketPrintWriter out) {
 				grabLeague=false;
 			}
 			String ipAddr = (String) out.req.getHeader("X-Forwarded-For");
-			p.socket.ipAddr=ipAddr; // just to make sure, it may be null,
+			p.socket.ipAddr=PlayerScript.decodeStringIntoStringArray("["+ipAddr+"]"); // just to make sure, it may be null,
 			// as in they logged in and a server restart occurred.
 			g.updateLastLogin(p.ID);
 
@@ -1651,12 +1651,12 @@ public boolean noFlick(UberSocketPrintWriter out) {
 						session.setAttribute("pid",pid);
 						session.setAttribute("username", username);
 						String ipAddr = (String) out.req.getHeader("X-Forwarded-For");
-
+						/*
 						System.out.println("ip addr is "+ ipAddr );
 						if(ipAddr.contains(",")) ipAddr = ipAddr.substring(ipAddr.indexOf(",")+1,ipAddr.length());
 						System.out.println("now ip addr is "+ ipAddr );
-
-						p.socket.ipAddr=ipAddr;
+							*/
+						p.socket.ipAddr=PlayerScript.decodeStringIntoStringArray("["+ipAddr+"]");
 						session.setMaxInactiveInterval(7200);
 					}
 
