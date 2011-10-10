@@ -2225,6 +2225,7 @@ public class Player  {
 			System.out.println(getUsername() + " rid himself of " + counter + " SRs.");
 			
 		}
+		getUserSR().add(sr);
 		God.socketGod.sendMessage(ID,"type=status_reports&reqtype=command&command=bf.getUserSR();");
 
 	}
