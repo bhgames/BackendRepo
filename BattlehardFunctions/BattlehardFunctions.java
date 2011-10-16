@@ -2893,17 +2893,13 @@ public class BattlehardFunctions {
 			prog=false;
 			UserBuilding[] bldg = getUserBuildings(townID,"all");
 			if(keep) prog = true;
-			int j = 0; UserBuilding currBldg;
+			int j = 0; //UserBuilding currBldg;
 			long resSize = 0;
 			while(j<bldg.length) {
-				currBldg = bldg[j];
-			//	if(currBldg.getLotNum()==lotNum) bunkerMode = currBldg.getBunkerMode();
+				//currBldg = bldg[j];
 			
-				if(currBldg.getType().equals("Resource Cache"))resSize+=(long) Math.round(.33*.05*((double) Building.resourceAmt)*Math.pow(currBldg.getLvl()+2,2));
-				if(currBldg.getType().equals("Storage Yard")&&currBldg.getLvl()>=5) resSize+=(long) Math.round(.33*.05*((double) Building.resourceAmt)*Math.pow(currBldg.getLvl()-4+2,2));
+				resSize+= bldg[j].getCacheCap();
 					
-				
-		
 				j++;
 			}
 			
@@ -9820,11 +9816,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		int ppl = actb.getPeopleInside();
 		 bid = actb.getId();
 
-		 b = new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),Building.getCap(lvl,mineBldg),
-			Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,
-			actb.getLvlUps(),actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
-			Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
-			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),name,actb.getRefuelTicks(),actb.getFortArray());
+		 b = new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),
+				 Building.getCap(lvl,mineBldg), Building.getCost(name),
+				 actb.isDeconstruct(),actb.getLotNum(),lvl, actb.getLvlUps(),
+				 actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
+				 Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
+				 actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),
+				 name,actb.getRefuelTicks(),actb.getFortArray(),actb.getCacheCap());
 		
 
 		/*
@@ -9875,10 +9873,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return b;
 	}
 	/**
-	 * Returns an array of UserBuilding objects from the town id. This is different
+	 * Returns an array of UserBuilding objects from the town with id tid. This is different
 	 * from getBuildings which just returns the types!
 	 * <br/><br/>
-	 * Put in the type you want. Special types: "all" returns all buildings, and "CombatProduction" returns all 
+	 * Special types: "all" returns all buildings, and "CombatProduction" returns all 
 	 * military unit production buildings.
 	 * 
 	 * @param tid	the ID of the town to get the buildings from
@@ -9915,66 +9913,30 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 		while(i<bldg.size()) {
 			actb = bldg.get(i);
-			if(type.equals("all")||actb.getType().equals(type)||(type.equals("CombatProduction")
-					&&(actb.getType().equals("Arms Factory")||actb.getType().equals("Manufacturing Plant")
-							||actb.getType().equals("Airstrip")))) {
-				
-		String name = actb.getType();
-		boolean mineBldg = name.contains("Warehouse");
+			String name = actb.getType();
+			if(type.equals("all")||
+			  name.equals(type)||
+			  (type.equals("CombatProduction") &&
+					(name.equals("Arms Factory")||
+					name.equals("Manufacturing Plant")||
+					name.equals("Airstrip")))) {
 		
-		int lvl = actb.getLvl();
-		int ppl = actb.getPeopleInside();
-		UUID  bid = actb.getId();
+				int lvl = actb.getLvl();
+				int ppl = actb.getPeopleInside();
+				UUID bid = actb.getId();
 
-		 tses.add(new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),Building.getCap(lvl,mineBldg),
-				 Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,actb.getLvlUps(),
-				 actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
-				 Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
-				 actb.getTicksToFinish(),
-				 Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),
-				 name,actb.getRefuelTicks(),actb.getFortArray()));
+				tses.add(new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),
+						Building.getCap(lvl,actb.isMineBldg()), Building.getCost(name),
+						actb.isDeconstruct(),actb.getLotNum(),lvl,actb.getLvlUps(),
+						actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(), Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
+						actb.getTicksToFinish(), Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),
+						name,actb.getRefuelTicks(),actb.getFortArray(),actb.getCacheCap()));
 			}
 		 i++;
 		}
-		/*
-		try {
-			UberStatement stmt = g.con.createStatement();
-			ResultSet rs;
-			if(type.equals("all"))
-			 rs = stmt.executeQuery("select bid,bunkerMode,name,deconstruct,slot,lvl,lvlUp,pplbuild,ppl,pplticks,lvling from " +
-					" bldg where tid = " + tid);
-			else 
-				 rs = stmt.executeQuery("select bid,bunkerMode,name,deconstruct,slot,lvl,lvlUp,pplbuild,ppl,pplticks,lvling from " +
-							" bldg where tid = " + tid + " and name = '" + type + "'");
-			while(rs.next()) {
-				boolean mineBldg=false;
-				String name = rs.getString(3);
-				if(name.contains("Warehouse"))mineBldg=true;
-				int lvl = rs.getInt(6);
-				int bid = rs.getInt(1);
-				int ppl = rs.getInt(9);
-			tses.add(new UserBuilding(getUserQueueItems(bid),bid,rs.getInt(2),Building.getCap(lvl,mineBldg),
-					Building.getCost(name),rs.getBoolean(4),rs.getInt(5),lvl,
-					rs.getInt(7),rs.getInt(8),rs.getInt(9),rs.getInt(10),
-					Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl),
-					rs.getInt(11),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture()),name));
 		
-			}
-			
-		
-					rs.close(); stmt.close();	
-				
-		} catch(SQLException exc) { exc.printStackTrace(); }
-			*/
-		int j = 0;
-		UserBuilding[] toRet = new UserBuilding[tses.size()];
-		while(j<tses.size()) {
-			toRet[j]=tses.get(j);
-			j++;
-		}
 		setError("noerror");
-
-		return toRet;
+		return tses.toArray(new UserBuilding[tses.size()]);
 	}
 	/**
 	 * Get only buildings that are on the building server. Buildings on the building server are currently being constructed, or destructed.
@@ -10010,11 +9972,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		int ppl = actb.getPeopleInside();
 		UUID  bid = actb.getId();
 
-		 tses.add(new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),Building.getCap(lvl,mineBldg),
-			Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,
-			actb.getLvlUps(),actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
-			Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
-			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),name,actb.getRefuelTicks(),actb.getFortArray()));
+		 tses.add(new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),
+				 		Building.getCap(lvl,mineBldg), Building.getCost(name),
+				 		actb.isDeconstruct(),actb.getLotNum(),lvl, actb.getLvlUps(),
+				 		actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
+				 		Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
+				 		actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),
+				 		name,actb.getRefuelTicks(),actb.getFortArray(),actb.getCacheCap()));
 			}
 		 i++;
 		}

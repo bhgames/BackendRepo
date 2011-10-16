@@ -141,21 +141,21 @@ public class PlayerScript implements Runnable {
 	public String parser(String oldRev) {
 		try {
 		JSONStringer str;
-		 UserWeapon[] u; UserWeapon holdW; 
+		 //UserWeapon[] u; UserWeapon holdW; 
 		 UserRaid[] raids; UserRaid raid;
 		 String auNames[]; String offNames[],defNames[];UserTPR tpr; UserTPR[] TPR;
 		 UserMessagePack[] mpacks; UserMessagePack mpack; UserMessage msg;
 		 ArrayList<Hashtable> ACH;
-		 UserSR[] SR; UserSR s; Town town;
+		 UserSR[] SR; UserSR s; //Town town;
 		 Hashtable[] R; Hashtable r;
-		 ArrayList<Town> towns;
+		 //ArrayList<Town> towns;
 		 UserTradeSchedule[] TS; UserTradeSchedule ts;
 		 UserGroup[] UG; UserGroup ug;
-		 UserTrade[] TR; UserTrade tr; Town t;
+		 UserTrade[] TR; UserTrade tr; //Town t;
 		 UserTown[] UT; UserTown ut;
 		 UserBuilding[] bldgs; UserBuilding bldg; String arrayString;
 		 float[][] smrates;
-		 UserQueueItem q[];
+		 //UserQueueItem q[];
 		 String holdPartUse; // created so that if we're testing overloaded methods using
 		 // numberFormatException, we don't start using the changed holdPart that we made
 		 // before we got the exception with the wrong argument feeds!

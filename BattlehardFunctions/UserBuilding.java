@@ -44,7 +44,8 @@ public class UserBuilding {
 				lvlUps, // so if they call for one already on the server, it just ups this instead.
 				bunkerMode=0;
 	private int[] fortArray;
-	private long cap; 
+	private long cap,
+				 cacheCap; 
 	private long[] cost = new long[5];
 	private boolean deconstruct, // needs to be false if nothing is happening, if it becomes true and is on bldgserver,
 					mineBldg=false;
@@ -63,34 +64,41 @@ public class UserBuilding {
 	public UserBuilding(UserQueueItem[] queue, UUID id, int bunkerMode,long cap, long[] cost,
 			boolean deconstruct, int lotNum, int lvl, int lvlUps, int numLeftToBuild,
 			int peopleInside, int ticksLeft, int ticksPerPerson, int ticksToFinish, 
-			int ticksToFinishTotal, String type, int refuelTicks, int[] fortArray) {
-	
-	Queue = queue;
-	this.id = id;
-	this.bunkerMode = bunkerMode;
-	this.cap = cap;
-	this.cost = cost;
-	this.deconstruct = deconstruct;
-	this.lotNum = lotNum;
-	this.fortArray=fortArray;
-	this.lvl = lvl;
-	this.lvlUps = lvlUps;
-	this.refuelTicks=refuelTicks;
-	this.numLeftToBuild = numLeftToBuild;
-	this.peopleInside = peopleInside;
-	this.ticksLeft = ticksLeft;
-	this.ticksPerPerson = ticksPerPerson;
-	this.ticksToFinish = ticksToFinish;
-	this.ticksToFinishTotal = ticksToFinishTotal;
-	this.type = type;
-	if(type.contains("Warehouse")) mineBldg=true;
-}
+			int ticksToFinishTotal, String type, int refuelTicks, int[] fortArray, long cacheCap) {
+		
+		Queue = queue;
+		this.id = id;
+		this.bunkerMode = bunkerMode;
+		this.cap = cap;
+		this.cacheCap = cacheCap;
+		this.cost = cost;
+		this.deconstruct = deconstruct;
+		this.lotNum = lotNum;
+		this.fortArray=fortArray;
+		this.lvl = lvl;
+		this.lvlUps = lvlUps;
+		this.refuelTicks=refuelTicks;
+		this.numLeftToBuild = numLeftToBuild;
+		this.peopleInside = peopleInside;
+		this.ticksLeft = ticksLeft;
+		this.ticksPerPerson = ticksPerPerson;
+		this.ticksToFinish = ticksToFinish;
+		this.ticksToFinishTotal = ticksToFinishTotal;
+		this.type = type;
+		if(type.equals("Metal Warehouse")||type.equals("Lumber Yard")
+				||type.equals("Crystal Repository")||type.equals("Granary")) mineBldg=true;
+		
+	}
 	public int getLvl() {
 		return lvl;
 	}
 
 	public long getCap() {
 		return cap;
+	}
+	
+	public long getCacheCap() {
+		return cacheCap;
 	}
 
 	public int getLotNum() {
