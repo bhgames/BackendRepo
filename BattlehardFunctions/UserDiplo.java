@@ -3,8 +3,22 @@ package BattlehardFunctions;
 import java.util.UUID;
 import java.sql.Timestamp;
 /**
+ *  User wrapper for the Diplo Class.
+ *  <br/><br/>
+ *  Contains all the relevant information on a user's Diplomatic arrangements.  These
+ *  arrangements can prevent users from taking certain actions depending on the arrangement
+ *  <br/><br/>
+ *  Valid types are:
+ *  <ul>
+ *  <li>Peace Treaty</li>
+ *  <li>Non-Aggression Pact (NAP)</li>
+ *  <li>Alliance</li>
+ *  <li>Voluntary Vassalage</li>
+ *  <li>Trade Embargo</li>
+ *  <li>War</li>
+ *  </ul>
  *  
- * @author Chris Hall
+ * @author Chris "Markus" Hall
  *
  */
 public class UserDiplo {
@@ -13,15 +27,19 @@ public class UserDiplo {
 					p2;
 	private Timestamp created;
 	private UUID ID;
-	private boolean accepted = false;
+	private boolean accepted = false,
+					p1Cancel = false,
+					p2Cancel = false;
 	
-	public UserDiplo(UUID ID, String type, String p1, String p2, Timestamp created, boolean accepted) {
+	public UserDiplo(UUID ID, String type, String p1, String p2, Timestamp created, boolean accepted, boolean p1Cancel, boolean p2Cancel) {
 		this.ID 		= ID;
 		this.type		= type;
 		this.p1			= p1;
 		this.p2			= p2;
 		this.created	= created;
 		this.accepted	= accepted;
+		this.p1Cancel	= p1Cancel;
+		this.p2Cancel	= p2Cancel;
 	}
 	/**
 	 * Gets the unique ID of this diplomatic arrangement.
@@ -73,5 +91,17 @@ public class UserDiplo {
 	 */
 	public Timestamp getCreated() {
 		return created;
+	}
+	
+	public boolean isAccepted() {
+		return accepted;
+	}
+	
+	public boolean p1Canceled() {
+		return p1Cancel;
+	}
+	
+	public boolean p2Canceled() {
+		return p2Cancel;
 	}
 }

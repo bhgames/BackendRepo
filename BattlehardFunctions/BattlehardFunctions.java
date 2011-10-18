@@ -17,6 +17,7 @@ import java.util.UUID;
 
 import BHEngine.AttackUnit;
 import BHEngine.Building;
+import BHEngine.Diplo;
 import BHEngine.GodGenerator;
 import BHEngine.League;
 import BHEngine.BQ5;
@@ -13757,5 +13758,165 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		new TradeSchedule(myT,  t,(long)  0,(long)0,(long)0,(long)0, (long) 0,(long) 0, (long) 0,(long)  0,  ticksToHit+2, -1,  false,null,true);
 		return true;
 	}
+	
+	/**
+	 * Returns an array of UserDiplo objects representing the player's current diplomatic
+	 * arrangments.
+	 * 
+	 * @return an array of UserDiplo objects.
+	 */
+	public UserDiplo[] getUserDiplo() {
+		ArrayList<Diplo> holdDip = p.getDiplo();
+		UserDiplo[] uDip = new UserDiplo[holdDip.size()];
+		
+		for(int i = 0;i<uDip.length;i++) {
+			Diplo d = holdDip.get(i);
+			
+			uDip[i] = new UserDiplo(d.getID(), d.getType().toString(), 
+									d.getP1().getUsername(), d.getP2().getUsername(), 
+									d.getCreated(), d.isAccepted(), d.p1Canceled(), 
+									d.p2Canceled());
+		}
+		
+		return uDip;
 	}
+	
+	/**
+	 * Returns a UserDiplo object representing the Diplomatic Arrangement with ID id.
+	 * 
+	 * @param id the ID of the Arrangement to return
+	 * 
+	 * @return a UserDiplo object representing the given arrangement or null, if none 
+	 * is found.
+	 */
+	public UserDiplo getUserDiplo(UUID id) {
+		for(Diplo d : p.getDiplo()) {
+			if(d.getID().equals(id)) {
+				return new UserDiplo(d.getID(), d.getType().toString(), 
+									d.getP1().getUsername(), d.getP2().getUsername(), 
+									d.getCreated(), d.isAccepted(), d.p1Canceled(), 
+									d.p2Canceled());
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Creates a diplomatic arrangement with the player specified of the type given.
+	 * <br/><br/>
+	 * Valid types:
+	 * <ul>
+	 * <li>PeaceTreaty</li>
+	 * <li>NAP</li>
+	 * <li>Alliance</li>
+	 * <li>TradeEmbargo</li>
+	 * <li>War</li>
+	 * <li>VoluntaryVassalage</li>
+	 * </ul>
+	 * 
+	 * @param username 	the Username of the player you're creating this arrangment with
+	 * @param type		a valid diplomatic type (see above)
+	 * 
+	 * @return True, if the arragement is created sucessfully.  False otherwise.
+	 */
+	public boolean createDiplo(String username, String type) {
+		
+		ArrayList<Player> players = p.God.getPlayers();
+		Player p2 = null;
+		Diplo.Type eType;
+		
+		for(int i = 0;i<players.size();i++) {
+			p2 = players.get(i);
+			if(p2.getUsername().equals(username)) {
+				break;
+			}
+			p2 = null;
+		}
+		
+		if(p2 == null) {
+			setError("Invalid Username");
+			return false;
+		}
+		
+		try {
+			eType = Diplo.Type.valueOf(type);
+			
+		} catch(IllegalArgumentException exp) {
+			setError("Invalid Type");
+			return false;
+		}
+		
+		Diplo holdDip = new Diplo(eType, p, p2, 2);
+
+		
+		boolean duplicate = false;
+		
+		for(Diplo d : p.getDiplo()) {
+			if(d.equals(holdDip)) {
+				duplicate = true;
+				break;
+			}
+		}
+		
+		if(!duplicate) {
+			for(Diplo d : p2.getDiplo()) {
+				if(d.equals(holdDip)) {
+					duplicate = true;
+					break;
+				}
+			}
+		}
+		
+		if(duplicate) {
+			holdDip.forceCancel();
+			
+			setError("Duplicate Arrangement");
+			return false;
+		}
+		
+		p.getDiplo().add(holdDip);
+		p2.getDiplo().add(holdDip);
+		
+		return true;
+	}
+	
+	/**
+	 * Cancels the Diplomatic Arrangement identified by ID dipid.
+	 * <br/><br/>
+	 * You can only cancel arrangments that were started directly with you.
+	 * Arrangements that have propagated from other players can only be canceled by
+	 * those players.
+	 * 
+	 * Further, some arrangments (eg War) must be canceled by both parties before
+	 * being removed.
+	 * 
+	 * @param dipid the ID of the Arrangement to be canceled.
+	 * @return
+	 */
+	public boolean cancelDiplo(UUID dipid) {
+		Diplo d = null;
+		
+		for(Diplo di : p.getDiplo()) {
+			if(di.getID().equals(dipid)) {
+				d = di;
+				break;
+			}
+		}
+		
+		if(d == null) {
+			setError("Invalid ID");
+			return false;
+		}
+		
+		if(d.getValue() != 2) {
+			setError("You can only cancel arrangements started directly with you.");
+			return false;
+		}
+		
+		d.cancel(p.ID);
+		
+		return true;
+	}
+}
 

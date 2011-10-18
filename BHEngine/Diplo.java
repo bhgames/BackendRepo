@@ -17,14 +17,14 @@ import java.sql.Timestamp;
  * one line, and still save it to a variable:
  * 		<ul>Diplo d = new Diplo(ID,Con).setCreated(newTimestamp(new Date().getTime()));</ul>
  * 
- * @author Chris Hall
+ * @author Chris "Markus" Hall
  *
  */
 public class Diplo {
 	/*
 	 * TODO list
 	 * 		Finish up all the methods needed by diplo.  This is mainly a holder class, so it doesn't need a lot of stuff
-	 * 		Most of the work is done on the player level via isAllied and calculateDiplo
+	 * 		Most of the work is done on the player level via isAllied and propagateDiplo
 	 * 		These methods both need to be finished to check for alliances and pull down diplomatic arrangements.
 	 * 		Write get and set methods for all player objects
 	 */
@@ -49,12 +49,14 @@ public class Diplo {
 	 * Higher value arrangements cancel out lower value arrangements.
 	 */
 	private int value = 0;
-	private boolean accepted = false;
+	private boolean accepted = false,
+					p1Cancel = false, //for arrangements that have to be canceled by both
+					p2Cancel = false; //parties.
 	private Type type;
 	private UUID ID;
 		//the two players this diplomatic arrangement is between
 	private Player 	p1, //this is the player that created this diplomatic arrangement 
-					p2; 
+					p2;
 	private UberConnection con;
 	private Timestamp created;
 							
@@ -81,7 +83,7 @@ public class Diplo {
 			stmt.setString(1, ID.toString());
 			ResultSet rs = stmt.executeQuery();
 			while(rs.next()) {
-				type = Enum.valueOf(Type.class, rs.getString(2));
+				type = Type.valueOf(rs.getString(2));
 				p1 = God.getPlayer(rs.getInt(3));
 				p2 = God.getPlayer(rs.getInt(4));
 				created = rs.getTimestamp(5);
@@ -95,14 +97,13 @@ public class Diplo {
 	/**
 	 * Creates a new diplomatic arrangement and stores it in the database.
 	 * 
-	 * @param ID	the ID of this diplomatic arrangement
 	 * @param type	the Type of arrangement
 	 * @param p1	the player creating this arrangement
 	 * @param p2	the second player this arrangement references
 	 * @param value	the value of this arrangement
 	 */
-	public Diplo(UUID ID, Type type, Player p1, Player p2, int value) {
-		this.ID 		= ID;
+	public Diplo(Type type, Player p1, Player p2, int value) {
+		this.ID 		= UUID.randomUUID();
 		this.type 		= type;
 		this.p1			= p1;
 		this.p2 		= p2;
@@ -110,9 +111,10 @@ public class Diplo {
 		created			= new Timestamp(new Date().getTime());
 		con 			= p1.getCon();
 		//both of these arrangements start out accepted
-		if(type==Type.TradeEmbargo||type==Type.War) {
+		if(type==Type.TradeEmbargo||type==Type.War||type==Type.VoluntaryVassalage) {
 			accepted = true;
 		}
+		
 		try {
 			UberPreparedStatement stmt = con.createStatement("insert into diplo(dipid,type,p1id,p2id,created,value,accepted) values (?,?,?,?,?,?,?)");
 			stmt.setString(1, ID.toString());
@@ -148,17 +150,41 @@ public class Diplo {
 	}
 	
 	/**
-	 * Cancels this diplomatic arrangement and removes it from the database
+	 * Cancels this diplomatic arrangement and removes it from the database.
+	 * <br/><br/>
+	 * For arrangements that require both sides to cancel (War and Embargos), this method
+	 * must be called by both players and passed in their PIDs.
+	 * <br/>
+	 * This is safe from player tampering because no player can ever modify their raw
+	 * diplo objects, only the provided UserDiplo objects.
 	 * 
-	 * @return The now canceled diplomatic arrangement 
+	 * @param pid the ID of the canceling player
 	 */
-	public void cancel() {
-		try {
-			UberPreparedStatement stmt = con.createStatement("delete from diplo where dipid=?");
-			stmt.setString(1, ID.toString());
-			p1.getDiplo().remove(this);
-			p2.getDiplo().remove(this);
-		} catch(SQLException exc) { exc.printStackTrace();}
+	public void cancel(int pid) {
+		//if this requires both players to cancel and one hasn't
+		if((type == Type.War||type == Type.TradeEmbargo)&&!(p1Cancel&&p2Cancel)) {
+			if(p1.ID==pid) p1Cancel = true;
+			if(p2.ID==pid) p2Cancel = true;
+		}
+		
+		if((p1Cancel&&p2Cancel)||!(type == Type.War||type == Type.TradeEmbargo)) {
+			try {
+				UberPreparedStatement stmt = con.createStatement("delete from diplo where dipid=?");
+				stmt.setString(1, ID.toString());
+				p1.getDiplo().remove(this);
+				p2.getDiplo().remove(this);
+			} catch(SQLException exc) { exc.printStackTrace();}
+		}	
+	}
+	
+	/**
+	 * Forces the arrangement to cancel.  Even if neither party has agreed to it.
+	 */
+	public void forceCancel() {
+		p1Cancel = true;
+		p2Cancel = true;
+		
+		cancel(0);
 	}
 	
 	public Type getType() {
@@ -188,8 +214,18 @@ public class Diplo {
 		return accepted;
 	}
 	
-	public boolean isSame(Diplo d) {
-		return (type==d.getType()&&(p2.getID()==d.getP2().getID()||p1.getID()==d.getP2().getID()));
+	public boolean p1Canceled() {
+		return p1Cancel;
+	}
+	
+	public boolean p2Canceled() {
+		return p2Cancel;
+	}
+	
+	public boolean equals(Diplo d) {
+		return (type==d.getType()
+				&&((p2.getID()==d.getP2().getID()&&p1.getID()==d.getP1().getID())||(p1.getID()==d.getP2().getID()&&p2.getID()==d.getP1().getID()))
+				&&value == d.getValue());
 	}
 	
 	public Diplo setType(Type newType) {

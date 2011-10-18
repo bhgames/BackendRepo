@@ -344,10 +344,10 @@ public class Player  {
 		 * 	is true if the players have an alliance with each other
 		 *	isDirectAlly wont be used until the diplomacy system is implemented 
 		 *
-		 *	ally[1] hasSameLeague
+		 *	ally[1] alliedLeague
 		 *	is true if the players have the same league or their leagues are allied
 		 *
-		 *	ally[2] hasSameLord
+		 *	ally[2] alliedLord
 		 *	is true if the players have the same lord or their lords are allied
 		 *
 		 *	The idea here is to determine the level of alliance.  If you just need to know if two players are allied
@@ -356,23 +356,38 @@ public class Player  {
 		Player pLord = p.getLord();
 		League pLeague = p.getLeague();
 		
-		if(pLord!=null)
-			ally[2] = pLord.isAllied(lord);
+		ally[0] = isDirectAlly(p);
 		
 		if(pLeague!=null)
 			ally[1] = pLeague.isAllied(league);
+		
+		if(pLord!=null)
+			ally[2] = pLord.isAllied(lord);
 		
 		return ally;
 	}
 	
 	public boolean isAllied(Player p) {
 		if(p==null) return false;
-		//add check for diplomatic alliance
 		Player pLord = p.getLord();
 		League pLeague = p.getLeague();
-		if(ID==p.ID) return true;
+		if(isDirectAlly(p)) return true;
 		if(pLord!=null&&pLord.isAllied(lord)) return true;
 		if(pLeague!=null&&pLeague.isAllied(league)) return true;
+		return false;
+	}
+	
+	public boolean isDirectAlly(Player p) {
+		if(p==null) return false;
+		
+		if(p.ID==ID) return true;
+		
+		for(Diplo d : diplo) {
+			if(d.getP2().ID==p.ID && d.getType() == Diplo.Type.Alliance) {
+				return true;
+			}
+		}
+		
 		return false;
 	}
 	
