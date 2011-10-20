@@ -161,10 +161,6 @@ public class PlayerScript implements Runnable {
 					.value(d.getType())
 					.key("accepted")
 					.value(d.isAccepted())
-					.key("p1Canceled")
-					.value(d.p1Canceled())
-					.key("p2Canceled")
-					.value(d.p2Canceled())
 					.endObject();
 			}
 			if(diplo.length>1) str.endArray();

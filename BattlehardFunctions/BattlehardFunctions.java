@@ -13760,6 +13760,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	
 	/**
+	 * UI Implemented
 	 * Returns an array of UserDiplo objects representing the player's current diplomatic
 	 * arrangments.
 	 * 
@@ -13774,14 +13775,14 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			
 			uDip[i] = new UserDiplo(d.getID(), d.getType().toString(), 
 									d.getP1().getUsername(), d.getP2().getUsername(), 
-									d.getCreated(), d.isAccepted(), d.p1Canceled(), 
-									d.p2Canceled());
+									d.getCreated(), d.isAccepted());
 		}
 		
 		return uDip;
 	}
 	
 	/**
+	 * UI Implemented
 	 * Returns a UserDiplo object representing the Diplomatic Arrangement with ID id.
 	 * 
 	 * @param id the ID of the Arrangement to return
@@ -13794,8 +13795,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			if(d.getID().equals(id)) {
 				return new UserDiplo(d.getID(), d.getType().toString(), 
 									d.getP1().getUsername(), d.getP2().getUsername(), 
-									d.getCreated(), d.isAccepted(), d.p1Canceled(), 
-									d.p2Canceled());
+									d.getCreated(), d.isAccepted());
 			}
 		}
 		
@@ -13803,6 +13803,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 	}
 	
 	/**
+	 * UI Implemented
 	 * Creates a diplomatic arrangement with the player specified of the type given.
 	 * <br/><br/>
 	 * Valid types:
@@ -13826,12 +13827,11 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		Player p2 = null;
 		Diplo.Type eType;
 		
-		for(int i = 0;i<players.size();i++) {
-			p2 = players.get(i);
-			if(p2.getUsername().equals(username)) {
+		for(Player p : players) {
+			if(p.getUsername().equals(username)) {
+				p2 = p;
 				break;
 			}
-			p2 = null;
 		}
 		
 		if(p2 == null) {
@@ -13847,9 +13847,23 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 		}
 		
+		if(eType == Diplo.Type.War || eType == Diplo.Type.TradeEmbargo) {
+			Diplo[] dip = p.getArrangement(p2);
+			for(Diplo d : dip) {
+				if(!(d.getType() == Diplo.Type.War || d.getType() == Diplo.Type.TradeEmbargo) && d.getValue() == 2) {
+					d.cancel(p.ID);
+					break;
+				}
+			}
+		}
+		//this is to prevent propagateDiplo getting called twice if this is a duplicate
+		Date tempLastProp1 = p.getLastPropagation(),
+			 tempLastProp2 = p2.getLastPropagation();
+		p.setLastPropagation(new Date());
+		p2.setLastPropagation(new Date());
+		
 		Diplo holdDip = new Diplo(eType, p, p2, 2);
 
-		
 		boolean duplicate = false;
 		
 		for(Diplo d : p.getDiplo()) {
@@ -13875,13 +13889,15 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false;
 		}
 		
-		p.getDiplo().add(holdDip);
-		p2.getDiplo().add(holdDip);
+		//well, it's not, so let's propagate that diplo (maybe)!
+		p.setLastPropagation(tempLastProp1).propagateDiplo();
+		p2.setLastPropagation(tempLastProp2).propagateDiplo();
 		
 		return true;
 	}
 	
 	/**
+	 * UI Implemented
 	 * Cancels the Diplomatic Arrangement identified by ID dipid.
 	 * <br/><br/>
 	 * You can only cancel arrangments that were started directly with you.

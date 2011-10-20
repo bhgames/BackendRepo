@@ -49,9 +49,7 @@ public class Diplo {
 	 * Higher value arrangements cancel out lower value arrangements.
 	 */
 	private int value = 0;
-	private boolean accepted = false,
-					p1Cancel = false, //for arrangements that have to be canceled by both
-					p2Cancel = false; //parties.
+	private boolean accepted = false; //parties.
 	private Type type;
 	private UUID ID;
 		//the two players this diplomatic arrangement is between
@@ -59,6 +57,14 @@ public class Diplo {
 					p2;
 	private UberConnection con;
 	private Timestamp created;
+	
+	public static boolean causesPropagation(Type type) {
+		
+		if(type == Type.Alliance || type == Type.War || type == Type.TradeEmbargo)
+			return true;
+		
+		return false;
+	}
 							
 	/**
 	 * Loads a diplomatic arrangement from the database.
@@ -110,9 +116,45 @@ public class Diplo {
 		this.value	 	= value;
 		created			= new Timestamp(new Date().getTime());
 		con 			= p1.getCon();
-		//both of these arrangements start out accepted
-		if(type==Type.TradeEmbargo||type==Type.War||type==Type.VoluntaryVassalage) {
+		//all of these arrangements start out accepted
+		if(type==Type.TradeEmbargo||type==Type.War||type==Type.VoluntaryVassalage||value != 2) {
 			accepted = true;
+		}
+		
+		p1.getDiplo().add(this);
+		p2.getDiplo().add(this);
+		
+		if(value ==2) {
+			String body = "Hello "+p2.getUsername() + ",\n\n";
+			switch(type) {
+			case PeaceTreaty:
+			case NAP:
+			case Alliance:
+				body += "You have a new Diplomatic Arrangement awaiting your approval.\n\nSincerly,\n";
+				break;
+				//body += "";
+				//break;
+			//	body += "";
+			//	break;
+			case VoluntaryVassalage:
+				body += "I have pledged my empire to be your vassal.\n\nYour Servant,\n";
+				break;
+			case TradeEmbargo:
+				body += "My empire no long has any desire to trade with your filth.\n\n";
+				break;
+			case War:
+				body += "I can no longer stand the site of your people.  Prepare to crumble beneath the might of my armies!\n\n";
+				break;
+			default:
+				body += "Err..... Why are we sending this again?\n\n";
+			}
+			
+			p1.getPs().b.sendMessage(new int[] {p2.ID}, body+p1.getUsername(), "Diplomatic Cable", null);
+			
+			if(accepted) {
+				p1.propagateDiplo();
+				p2.propagateDiplo();
+			}
 		}
 		
 		try {
@@ -161,18 +203,18 @@ public class Diplo {
 	 * @param pid the ID of the canceling player
 	 */
 	public void cancel(int pid) {
-		//if this requires both players to cancel and one hasn't
-		if((type == Type.War||type == Type.TradeEmbargo)&&!(p1Cancel&&p2Cancel)) {
-			if(p1.ID==pid) p1Cancel = true;
-			if(p2.ID==pid) p2Cancel = true;
-		}
-		
-		if((p1Cancel&&p2Cancel)||!(type == Type.War||type == Type.TradeEmbargo)) {
+		if((p1.ID == pid)||!(type == Type.War||type == Type.TradeEmbargo)) {
 			try {
 				UberPreparedStatement stmt = con.createStatement("delete from diplo where dipid=?");
 				stmt.setString(1, ID.toString());
+				stmt.execute();
+				stmt.close();
+				
 				p1.getDiplo().remove(this);
 				p2.getDiplo().remove(this);
+				p1.propagateDiplo();
+				p2.propagateDiplo();
+				
 			} catch(SQLException exc) { exc.printStackTrace();}
 		}	
 	}
@@ -181,10 +223,7 @@ public class Diplo {
 	 * Forces the arrangement to cancel.  Even if neither party has agreed to it.
 	 */
 	public void forceCancel() {
-		p1Cancel = true;
-		p2Cancel = true;
-		
-		cancel(0);
+		cancel(p1.ID);
 	}
 	
 	public Type getType() {
@@ -214,18 +253,33 @@ public class Diplo {
 		return accepted;
 	}
 	
-	public boolean p1Canceled() {
-		return p1Cancel;
-	}
-	
-	public boolean p2Canceled() {
-		return p2Cancel;
-	}
-	
+	/**
+	 * This method overrides the usual object.equals method to allow for better sameness
+	 * checks when creating Diplo objects.  You would use this method if you were 
+	 * checking to see if a similar arrangement exists between the two players already.
+	 * <br/>
+	 * This method will only return true if the arrangement was also started by one of the
+	 * two players with the other (value == 2).  To check for similarity, use {@link isSimilar}.
+	 * 
+	 * @param d the Arrangement to check against
+	 * @return True if the arrangements are similar enough as to be the same.  False otherwise
+	 */
 	public boolean equals(Diplo d) {
 		return (type==d.getType()
-				&&((p2.getID()==d.getP2().getID()&&p1.getID()==d.getP1().getID())||(p1.getID()==d.getP2().getID()&&p2.getID()==d.getP1().getID()))
-				&&value == d.getValue());
+				&& ((p2.getID()==d.getP2().getID()&&p1.getID()==d.getP1().getID())||(p1.getID()==d.getP2().getID()&&p2.getID()==d.getP1().getID()))
+				&& value == d.getValue());
+	}
+	
+	/**
+	 * Checks if this arrangement is similar enough to the one given as to be identical.
+	 * Unlike {@link equals}, this does not check who started the arrangement and can,
+	 * therefore, be used to test propagated arrangements against their originals.
+	 *   
+	 * @param d the Arrangement to check against
+	 * @return True if the arrangements are nearly identical. 
+	 */
+	public boolean isSimilar(Diplo d) {
+		return (type==d.getType() && p2.getID()==d.getP2().getID());
 	}
 	
 	public Diplo setType(Type newType) {
@@ -256,6 +310,8 @@ public class Diplo {
 	public Diplo setAccepted() {
 		if(!accepted) {
 			created = new Timestamp(new Date().getTime());
+			p1.propagateDiplo();
+			p2.propagateDiplo();
 		}
 		accepted = true;
 		return this;
