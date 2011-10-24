@@ -163,7 +163,7 @@ public class Raid {
 			else if(rrs.getInt(22)==1&&!rrs.getBoolean(7)) makeScoutRun();
 			else if(rrs.getInt(22)==2&&!rrs.getBoolean(7)) makeDiscoveredScoutRun();
 			
-			if(!rrs.getString(24).equals("none")&&!rrs.getBoolean(7)) setResupplyID(UUID.fromString(rrs.getString(24)));
+			if(rrs.getString(24)!=null&&!rrs.getString(24).equals("none")&&!rrs.getBoolean(7)) setResupplyID(UUID.fromString(rrs.getString(24)));
 	
 		}
 		

@@ -1651,8 +1651,12 @@ public class Town {
 		// 1. It's AI is on
 		// 2. It's got Raid, Trade, or Building building.
 		GodGenerator.attackServerCheck(this,p); 
+		try {
 		GodGenerator.tradeServerCheck(this,p); // Not this thing.
-
+		} catch(Exception exc) {
+			exc.printStackTrace();
+			System.out.println("User is " + getPlayer().getUsername() + " town is " + getTownName());
+		}
 		GodGenerator.buildingServerCheck(this); // Not this thing
 
 		nukeCheck(); // Not this thing, either.

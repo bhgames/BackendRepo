@@ -30,10 +30,13 @@ public class Trader implements Runnable {
 					rs.next();
 					if(rs.getInt(1)>100) {
 						rs.close();
-					rs = stmt.executeQuery();
+						stmt.close();
+						stmt = g.con.createStatement("select tsid from trade where made_at > CURRENT_TIMESTAMP-INTERVAL 1 WEEK;");
+
+						rs = stmt.executeQuery();
 					while(rs.next()) {
 					//	System.out.println("Found trades.");
-						stmt2.setInt(1,rs.getInt(13));
+						stmt2.setString(1,rs.getString(1));
 						rs2 = stmt2.executeQuery();
 						while(rs2.next()) {
 						//	System.out.println("Found tradeschedules.");
