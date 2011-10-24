@@ -17,6 +17,7 @@ import java.util.UUID;
 
 import BHEngine.AttackUnit;
 import BHEngine.Building;
+import BHEngine.Diplo;
 import BHEngine.GodGenerator;
 import BHEngine.League;
 import BHEngine.BQ5;
@@ -2893,17 +2894,13 @@ public class BattlehardFunctions {
 			prog=false;
 			UserBuilding[] bldg = getUserBuildings(townID,"all");
 			if(keep) prog = true;
-			int j = 0; UserBuilding currBldg;
+			int j = 0; //UserBuilding currBldg;
 			long resSize = 0;
 			while(j<bldg.length) {
-				currBldg = bldg[j];
-			//	if(currBldg.getLotNum()==lotNum) bunkerMode = currBldg.getBunkerMode();
+				//currBldg = bldg[j];
 			
-				if(currBldg.getType().equals("Resource Cache"))resSize+=(long) Math.round(.33*.05*((double) Building.resourceAmt)*Math.pow(currBldg.getLvl()+2,2));
-				if(currBldg.getType().equals("Storage Yard")&&currBldg.getLvl()>=5) resSize+=(long) Math.round(.33*.05*((double) Building.resourceAmt)*Math.pow(currBldg.getLvl()-4+2,2));
+				resSize+= bldg[j].getCacheCap();
 					
-				
-		
 				j++;
 			}
 			
@@ -9820,11 +9817,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		int ppl = actb.getPeopleInside();
 		 bid = actb.getId();
 
-		 b = new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),Building.getCap(lvl,mineBldg),
-			Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,
-			actb.getLvlUps(),actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
-			Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
-			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),name,actb.getRefuelTicks(),actb.getFortArray());
+		 b = new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),
+				 Building.getCap(lvl,mineBldg), Building.getCost(name),
+				 actb.isDeconstruct(),actb.getLotNum(),lvl, actb.getLvlUps(),
+				 actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
+				 Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
+				 actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),
+				 name,actb.getRefuelTicks(),actb.getFortArray(),actb.getCacheCap());
 		
 
 		/*
@@ -9875,10 +9874,10 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		return b;
 	}
 	/**
-	 * Returns an array of UserBuilding objects from the town id. This is different
+	 * Returns an array of UserBuilding objects from the town with id tid. This is different
 	 * from getBuildings which just returns the types!
 	 * <br/><br/>
-	 * Put in the type you want. Special types: "all" returns all buildings, and "CombatProduction" returns all 
+	 * Special types: "all" returns all buildings, and "CombatProduction" returns all 
 	 * military unit production buildings.
 	 * 
 	 * @param tid	the ID of the town to get the buildings from
@@ -9915,66 +9914,30 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 
 		while(i<bldg.size()) {
 			actb = bldg.get(i);
-			if(type.equals("all")||actb.getType().equals(type)||(type.equals("CombatProduction")
-					&&(actb.getType().equals("Arms Factory")||actb.getType().equals("Manufacturing Plant")
-							||actb.getType().equals("Airstrip")))) {
-				
-		String name = actb.getType();
-		boolean mineBldg = name.contains("Warehouse");
+			String name = actb.getType();
+			if(type.equals("all")||
+			  name.equals(type)||
+			  (type.equals("CombatProduction") &&
+					(name.equals("Arms Factory")||
+					name.equals("Manufacturing Plant")||
+					name.equals("Airstrip")))) {
 		
-		int lvl = actb.getLvl();
-		int ppl = actb.getPeopleInside();
-		UUID  bid = actb.getId();
+				int lvl = actb.getLvl();
+				int ppl = actb.getPeopleInside();
+				UUID bid = actb.getId();
 
-		 tses.add(new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),Building.getCap(lvl,mineBldg),
-				 Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,actb.getLvlUps(),
-				 actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
-				 Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
-				 actb.getTicksToFinish(),
-				 Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),
-				 name,actb.getRefuelTicks(),actb.getFortArray()));
+				tses.add(new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),
+						Building.getCap(lvl,actb.isMineBldg()), Building.getCost(name),
+						actb.isDeconstruct(),actb.getLotNum(),lvl,actb.getLvlUps(),
+						actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(), Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
+						actb.getTicksToFinish(), Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),
+						name,actb.getRefuelTicks(),actb.getFortArray(),actb.getCacheCap()));
 			}
 		 i++;
 		}
-		/*
-		try {
-			UberStatement stmt = g.con.createStatement();
-			ResultSet rs;
-			if(type.equals("all"))
-			 rs = stmt.executeQuery("select bid,bunkerMode,name,deconstruct,slot,lvl,lvlUp,pplbuild,ppl,pplticks,lvling from " +
-					" bldg where tid = " + tid);
-			else 
-				 rs = stmt.executeQuery("select bid,bunkerMode,name,deconstruct,slot,lvl,lvlUp,pplbuild,ppl,pplticks,lvling from " +
-							" bldg where tid = " + tid + " and name = '" + type + "'");
-			while(rs.next()) {
-				boolean mineBldg=false;
-				String name = rs.getString(3);
-				if(name.contains("Warehouse"))mineBldg=true;
-				int lvl = rs.getInt(6);
-				int bid = rs.getInt(1);
-				int ppl = rs.getInt(9);
-			tses.add(new UserBuilding(getUserQueueItems(bid),bid,rs.getInt(2),Building.getCap(lvl,mineBldg),
-					Building.getCost(name),rs.getBoolean(4),rs.getInt(5),lvl,
-					rs.getInt(7),rs.getInt(8),rs.getInt(9),rs.getInt(10),
-					Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl),
-					rs.getInt(11),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture()),name));
 		
-			}
-			
-		
-					rs.close(); stmt.close();	
-				
-		} catch(SQLException exc) { exc.printStackTrace(); }
-			*/
-		int j = 0;
-		UserBuilding[] toRet = new UserBuilding[tses.size()];
-		while(j<tses.size()) {
-			toRet[j]=tses.get(j);
-			j++;
-		}
 		setError("noerror");
-
-		return toRet;
+		return tses.toArray(new UserBuilding[tses.size()]);
 	}
 	/**
 	 * Get only buildings that are on the building server. Buildings on the building server are currently being constructed, or destructed.
@@ -10010,11 +9973,13 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		int ppl = actb.getPeopleInside();
 		UUID  bid = actb.getId();
 
-		 tses.add(new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),Building.getCap(lvl,mineBldg),
-			Building.getCost(name),actb.isDeconstruct(),actb.getLotNum(),lvl,
-			actb.getLvlUps(),actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
-			Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
-			actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),name,actb.getRefuelTicks(),actb.getFortArray()));
+		 tses.add(new UserBuilding(getUserQueueItems(bid),bid,actb.getBunkerMode(),
+				 		Building.getCap(lvl,mineBldg), Building.getCost(name),
+				 		actb.isDeconstruct(),actb.getLotNum(),lvl, actb.getLvlUps(),
+				 		actb.getNumLeftToBuild(),ppl,actb.getTicksLeft(),
+				 		Building.getTicksPerPerson(totalEngineers,engEffect,p.getArchitecture(),ppl,lvl,actb.getType()),
+				 		actb.getTicksToFinish(),Building.getTicksForLevelingAtLevel(totalEngineers,lvl,engEffect,p.getArchitecture(),actb.getType()),
+				 		name,actb.getRefuelTicks(),actb.getFortArray(),actb.getCacheCap()));
 			}
 		 i++;
 		}
@@ -13793,5 +13758,181 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		new TradeSchedule(myT,  t,(long)  0,(long)0,(long)0,(long)0, (long) 0,(long) 0, (long) 0,(long)  0,  ticksToHit+2, -1,  false,null,true);
 		return true;
 	}
+	
+	/**
+	 * UI Implemented
+	 * Returns an array of UserDiplo objects representing the player's current diplomatic
+	 * arrangments.
+	 * 
+	 * @return an array of UserDiplo objects.
+	 */
+	public UserDiplo[] getUserDiplo() {
+		ArrayList<Diplo> holdDip = p.getDiplo();
+		UserDiplo[] uDip = new UserDiplo[holdDip.size()];
+		
+		for(int i = 0;i<uDip.length;i++) {
+			Diplo d = holdDip.get(i);
+			
+			uDip[i] = new UserDiplo(d.getID(), d.getType().toString(), 
+									d.getP1().getUsername(), d.getP2().getUsername(), 
+									d.getCreated(), d.isAccepted());
+		}
+		
+		return uDip;
 	}
+	
+	/**
+	 * UI Implemented
+	 * Returns a UserDiplo object representing the Diplomatic Arrangement with ID id.
+	 * 
+	 * @param id the ID of the Arrangement to return
+	 * 
+	 * @return a UserDiplo object representing the given arrangement or null, if none 
+	 * is found.
+	 */
+	public UserDiplo getUserDiplo(UUID id) {
+		for(Diplo d : p.getDiplo()) {
+			if(d.getID().equals(id)) {
+				return new UserDiplo(d.getID(), d.getType().toString(), 
+									d.getP1().getUsername(), d.getP2().getUsername(), 
+									d.getCreated(), d.isAccepted());
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * UI Implemented
+	 * Creates a diplomatic arrangement with the player specified of the type given.
+	 * <br/><br/>
+	 * Valid types:
+	 * <ul>
+	 * <li>PeaceTreaty</li>
+	 * <li>NAP</li>
+	 * <li>Alliance</li>
+	 * <li>TradeEmbargo</li>
+	 * <li>War</li>
+	 * <li>VoluntaryVassalage</li>
+	 * </ul>
+	 * 
+	 * @param username 	the Username of the player you're creating this arrangment with
+	 * @param type		a valid diplomatic type (see above)
+	 * 
+	 * @return True, if the arragement is created sucessfully.  False otherwise.
+	 */
+	public boolean createDiplo(String username, String type) {
+		
+		ArrayList<Player> players = p.God.getPlayers();
+		Player p2 = null;
+		Diplo.Type eType;
+		
+		for(Player p : players) {
+			if(p.getUsername().equals(username)) {
+				p2 = p;
+				break;
+			}
+		}
+		
+		if(p2 == null) {
+			setError("Invalid Username");
+			return false;
+		}
+		
+		try {
+			eType = Diplo.Type.valueOf(type);
+			
+		} catch(IllegalArgumentException exp) {
+			setError("Invalid Type");
+			return false;
+		}
+		
+		if(eType == Diplo.Type.War || eType == Diplo.Type.TradeEmbargo) {
+			Diplo[] dip = p.getArrangement(p2);
+			for(Diplo d : dip) {
+				if(!(d.getType() == Diplo.Type.War || d.getType() == Diplo.Type.TradeEmbargo) && d.getValue() == 2) {
+					d.cancel(p.ID);
+					break;
+				}
+			}
+		}
+		//this is to prevent propagateDiplo getting called twice if this is a duplicate
+		Date tempLastProp1 = p.getLastPropagation(),
+			 tempLastProp2 = p2.getLastPropagation();
+		p.setLastPropagation(new Date());
+		p2.setLastPropagation(new Date());
+		
+		Diplo holdDip = new Diplo(eType, p, p2, 2);
+
+		boolean duplicate = false;
+		
+		for(Diplo d : p.getDiplo()) {
+			if(d.equals(holdDip)) {
+				duplicate = true;
+				break;
+			}
+		}
+		
+		if(!duplicate) {
+			for(Diplo d : p2.getDiplo()) {
+				if(d.equals(holdDip)) {
+					duplicate = true;
+					break;
+				}
+			}
+		}
+		
+		if(duplicate) {
+			holdDip.forceCancel();
+			
+			setError("Duplicate Arrangement");
+			return false;
+		}
+		
+		//well, it's not, so let's propagate that diplo (maybe)!
+		p.setLastPropagation(tempLastProp1).propagateDiplo();
+		p2.setLastPropagation(tempLastProp2).propagateDiplo();
+		
+		return true;
+	}
+	
+	/**
+	 * UI Implemented
+	 * Cancels the Diplomatic Arrangement identified by ID dipid.
+	 * <br/><br/>
+	 * You can only cancel arrangments that were started directly with you.
+	 * Arrangements that have propagated from other players can only be canceled by
+	 * those players.
+	 * 
+	 * Further, some arrangments (eg War) must be canceled by both parties before
+	 * being removed.
+	 * 
+	 * @param dipid the ID of the Arrangement to be canceled.
+	 * @return
+	 */
+	public boolean cancelDiplo(UUID dipid) {
+		Diplo d = null;
+		
+		for(Diplo di : p.getDiplo()) {
+			if(di.getID().equals(dipid)) {
+				d = di;
+				break;
+			}
+		}
+		
+		if(d == null) {
+			setError("Invalid ID");
+			return false;
+		}
+		
+		if(d.getValue() != 2) {
+			setError("You can only cancel arrangements started directly with you.");
+			return false;
+		}
+		
+		d.cancel(p.ID);
+		
+		return true;
+	}
+}
 

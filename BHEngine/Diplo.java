@@ -17,14 +17,14 @@ import java.sql.Timestamp;
  * one line, and still save it to a variable:
  * 		<ul>Diplo d = new Diplo(ID,Con).setCreated(newTimestamp(new Date().getTime()));</ul>
  * 
- * @author Chris Hall
+ * @author Chris "Markus" Hall
  *
  */
 public class Diplo {
 	/*
 	 * TODO list
 	 * 		Finish up all the methods needed by diplo.  This is mainly a holder class, so it doesn't need a lot of stuff
-	 * 		Most of the work is done on the player level via isAllied and calculateDiplo
+	 * 		Most of the work is done on the player level via isAllied and propagateDiplo
 	 * 		These methods both need to be finished to check for alliances and pull down diplomatic arrangements.
 	 * 		Write get and set methods for all player objects
 	 */
@@ -49,14 +49,22 @@ public class Diplo {
 	 * Higher value arrangements cancel out lower value arrangements.
 	 */
 	private int value = 0;
-	private boolean accepted = false;
+	private boolean accepted = false; //parties.
 	private Type type;
 	private UUID ID;
 		//the two players this diplomatic arrangement is between
 	private Player 	p1, //this is the player that created this diplomatic arrangement 
-					p2; 
+					p2;
 	private UberConnection con;
 	private Timestamp created;
+	
+	public static boolean causesPropagation(Type type) {
+		
+		if(type == Type.Alliance || type == Type.War || type == Type.TradeEmbargo)
+			return true;
+		
+		return false;
+	}
 							
 	/**
 	 * Loads a diplomatic arrangement from the database.
@@ -81,7 +89,7 @@ public class Diplo {
 			stmt.setString(1, ID.toString());
 			ResultSet rs = stmt.executeQuery();
 			while(rs.next()) {
-				type = Enum.valueOf(Type.class, rs.getString(2));
+				type = Type.valueOf(rs.getString(2));
 				p1 = God.getPlayer(rs.getInt(3));
 				p2 = God.getPlayer(rs.getInt(4));
 				created = rs.getTimestamp(5);
@@ -95,24 +103,60 @@ public class Diplo {
 	/**
 	 * Creates a new diplomatic arrangement and stores it in the database.
 	 * 
-	 * @param ID	the ID of this diplomatic arrangement
 	 * @param type	the Type of arrangement
 	 * @param p1	the player creating this arrangement
 	 * @param p2	the second player this arrangement references
 	 * @param value	the value of this arrangement
 	 */
-	public Diplo(UUID ID, Type type, Player p1, Player p2, int value) {
-		this.ID 		= ID;
+	public Diplo(Type type, Player p1, Player p2, int value) {
+		this.ID 		= UUID.randomUUID();
 		this.type 		= type;
 		this.p1			= p1;
 		this.p2 		= p2;
 		this.value	 	= value;
 		created			= new Timestamp(new Date().getTime());
 		con 			= p1.getCon();
-		//both of these arrangements start out accepted
-		if(type==Type.TradeEmbargo||type==Type.War) {
+		//all of these arrangements start out accepted
+		if(type==Type.TradeEmbargo||type==Type.War||type==Type.VoluntaryVassalage||value != 2) {
 			accepted = true;
 		}
+		
+		p1.getDiplo().add(this);
+		p2.getDiplo().add(this);
+		
+		if(value ==2) {
+			String body = "Hello "+p2.getUsername() + ",\n\n";
+			switch(type) {
+			case PeaceTreaty:
+			case NAP:
+			case Alliance:
+				body += "You have a new Diplomatic Arrangement awaiting your approval.\n\nSincerly,\n";
+				break;
+				//body += "";
+				//break;
+			//	body += "";
+			//	break;
+			case VoluntaryVassalage:
+				body += "I have pledged my empire to be your vassal.\n\nYour Servant,\n";
+				break;
+			case TradeEmbargo:
+				body += "My empire no long has any desire to trade with your filth.\n\n";
+				break;
+			case War:
+				body += "I can no longer stand the site of your people.  Prepare to crumble beneath the might of my armies!\n\n";
+				break;
+			default:
+				body += "Err..... Why are we sending this again?\n\n";
+			}
+			
+			p1.getPs().b.sendMessage(new int[] {p2.ID}, body+p1.getUsername(), "Diplomatic Cable", null);
+			
+			if(accepted) {
+				p1.propagateDiplo();
+				p2.propagateDiplo();
+			}
+		}
+		
 		try {
 			UberPreparedStatement stmt = con.createStatement("insert into diplo(dipid,type,p1id,p2id,created,value,accepted) values (?,?,?,?,?,?,?)");
 			stmt.setString(1, ID.toString());
@@ -148,17 +192,38 @@ public class Diplo {
 	}
 	
 	/**
-	 * Cancels this diplomatic arrangement and removes it from the database
+	 * Cancels this diplomatic arrangement and removes it from the database.
+	 * <br/><br/>
+	 * For arrangements that require both sides to cancel (War and Embargos), this method
+	 * must be called by both players and passed in their PIDs.
+	 * <br/>
+	 * This is safe from player tampering because no player can ever modify their raw
+	 * diplo objects, only the provided UserDiplo objects.
 	 * 
-	 * @return The now canceled diplomatic arrangement 
+	 * @param pid the ID of the canceling player
 	 */
-	public void cancel() {
-		try {
-			UberPreparedStatement stmt = con.createStatement("delete from diplo where dipid=?");
-			stmt.setString(1, ID.toString());
-			p1.getDiplo().remove(this);
-			p2.getDiplo().remove(this);
-		} catch(SQLException exc) { exc.printStackTrace();}
+	public void cancel(int pid) {
+		if((p1.ID == pid)||!(type == Type.War||type == Type.TradeEmbargo)) {
+			try {
+				UberPreparedStatement stmt = con.createStatement("delete from diplo where dipid=?");
+				stmt.setString(1, ID.toString());
+				stmt.execute();
+				stmt.close();
+				
+				p1.getDiplo().remove(this);
+				p2.getDiplo().remove(this);
+				p1.propagateDiplo();
+				p2.propagateDiplo();
+				
+			} catch(SQLException exc) { exc.printStackTrace();}
+		}	
+	}
+	
+	/**
+	 * Forces the arrangement to cancel.  Even if neither party has agreed to it.
+	 */
+	public void forceCancel() {
+		cancel(p1.ID);
 	}
 	
 	public Type getType() {
@@ -188,8 +253,33 @@ public class Diplo {
 		return accepted;
 	}
 	
-	public boolean isSame(Diplo d) {
-		return (type==d.getType()&&(p2.getID()==d.getP2().getID()||p1.getID()==d.getP2().getID()));
+	/**
+	 * This method overrides the usual object.equals method to allow for better sameness
+	 * checks when creating Diplo objects.  You would use this method if you were 
+	 * checking to see if a similar arrangement exists between the two players already.
+	 * <br/>
+	 * This method will only return true if the arrangement was also started by one of the
+	 * two players with the other (value == 2).  To check for similarity, use {@link isSimilar}.
+	 * 
+	 * @param d the Arrangement to check against
+	 * @return True if the arrangements are similar enough as to be the same.  False otherwise
+	 */
+	public boolean equals(Diplo d) {
+		return (type==d.getType()
+				&& ((p2.getID()==d.getP2().getID()&&p1.getID()==d.getP1().getID())||(p1.getID()==d.getP2().getID()&&p2.getID()==d.getP1().getID()))
+				&& value == d.getValue());
+	}
+	
+	/**
+	 * Checks if this arrangement is similar enough to the one given as to be identical.
+	 * Unlike {@link equals}, this does not check who started the arrangement and can,
+	 * therefore, be used to test propagated arrangements against their originals.
+	 *   
+	 * @param d the Arrangement to check against
+	 * @return True if the arrangements are nearly identical. 
+	 */
+	public boolean isSimilar(Diplo d) {
+		return (type==d.getType() && p2.getID()==d.getP2().getID());
 	}
 	
 	public Diplo setType(Type newType) {
@@ -220,6 +310,8 @@ public class Diplo {
 	public Diplo setAccepted() {
 		if(!accepted) {
 			created = new Timestamp(new Date().getTime());
+			p1.propagateDiplo();
+			p2.propagateDiplo();
 		}
 		accepted = true;
 		return this;

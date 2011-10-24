@@ -3,8 +3,42 @@ package BattlehardFunctions;
 import java.util.UUID;
 import java.sql.Timestamp;
 /**
+ *  User wrapper for the Diplo Class.
+ *  <br/><br/>
+ *  Contains all the relevant information on a user's Diplomatic arrangements.  These
+ *  arrangements can prevent users from taking certain actions depending on the arrangement
+ *  <br/><br/>
+ *  Valid types are:
+ *  <dl>
+ *  <dt>Peace Treaty</dt>
+ *  	<dd>Lasts 1 month, or until canceled.<br/>
+ *			Cancels War.
+ *			<br/><br/>
+ *			Players with a Peace Treaty cannot attack each other directly. This only affects the towns of the players with the arrangement. If encountered elsewhere, combat still takes place.
+ *		</dd>
+ *  <dt>Non-Aggression Pact (NAP)</dt>
+ *  	<dd>Lasts until canceled.<br/>
+ *			Cancels War.
+ *			<br/><br/>
+ *			Behaves exactly like a Peace Treaty.
+ *		</dd>
+ *  <dt>Alliance</dt>
+ *  	<dd>Lasts until canceled.<br/>
+ *			Cancels War.
+ *			<br/><br/>
+ *			Players with an Alliance cannot enter into combat with each other. The only 
+ *			exception is if one player is supporting a player the other doesn't have an 
+ *			Alliance with. If a member of an Alliance declares War or enacts a Trade 
+ *			Embargo, all other members of the Alliance do the same. If this arrangement is 
+ *			later canceled, all players in the alliance also cancel. These events can 
+ *			propagate through multiple alliances.
+ *		</dd>
+ *  <dt>Voluntary Vassalage</dt>
+ *  <dt>Trade Embargo</dt>
+ *  <dt>War</dt>
+ *  </dl>
  *  
- * @author Chris Hall
+ * @author Chris "Markus" Hall
  *
  */
 public class UserDiplo {
@@ -73,5 +107,9 @@ public class UserDiplo {
 	 */
 	public Timestamp getCreated() {
 		return created;
+	}
+	
+	public boolean isAccepted() {
+		return accepted;
 	}
 }

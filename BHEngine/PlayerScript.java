@@ -27,6 +27,7 @@ import org.json.JSONStringer;
 
 import BattlehardFunctions.BattlehardFunctions;
 import BattlehardFunctions.UserBuilding;
+import BattlehardFunctions.UserDiplo;
 import BattlehardFunctions.UserGroup;
 import BattlehardFunctions.UserMessage;
 import BattlehardFunctions.UserMessagePack;
@@ -137,25 +138,72 @@ public class PlayerScript implements Runnable {
 		//Insert here
 	}	
 	
+	private String parseDiplo(String holdPart) {
+		JSONStringer str = new JSONStringer();
+		UserDiplo[] diplo = new UserDiplo[1];
+		if(holdPart.isEmpty()) {
+			diplo = b.getUserDiplo();
+		} else {
+			diplo[0] = b.getUserDiplo(UUID.fromString(holdPart));
+		}
+		
+		try {
+			if(diplo.length>1) str.array();
+			for(UserDiplo d : diplo) {
+				str.object()
+					.key("ID")
+					.value(d.getID())
+					.key("P1")
+					.value(d.getP1())
+					.key("P2")
+					.value(d.getP2())
+					.key("type")
+					.value(d.getType())
+					.key("accepted")
+					.value(d.isAccepted())
+					.endObject();
+			}
+			if(diplo.length>1) str.endArray();
+		} catch(JSONException ex) {
+			ex.printStackTrace();
+			return "false";
+		}
+		
+		return str.toString();
+	}
+	
+	private boolean makeDiplo(String holdPart) {
+		String[] args = holdPart.split(",");
+		return b.createDiplo(args[0], args[1]);
+	}
+	
+	private boolean cancelDiplo(String holdPart) {
+		try {
+			return b.cancelDiplo(UUID.fromString(holdPart));
+		} catch(IllegalArgumentException ex) {
+			b.setError("Invalid ID");
+			return false;
+		}
+	}
 
 	public String parser(String oldRev) {
 		try {
 		JSONStringer str;
-		 UserWeapon[] u; UserWeapon holdW; 
+		 //UserWeapon[] u; UserWeapon holdW; 
 		 UserRaid[] raids; UserRaid raid;
 		 String auNames[]; String offNames[],defNames[];UserTPR tpr; UserTPR[] TPR;
 		 UserMessagePack[] mpacks; UserMessagePack mpack; UserMessage msg;
 		 ArrayList<Hashtable> ACH;
-		 UserSR[] SR; UserSR s; Town town;
+		 UserSR[] SR; UserSR s; //Town town;
 		 Hashtable[] R; Hashtable r;
-		 ArrayList<Town> towns;
+		 //ArrayList<Town> towns;
 		 UserTradeSchedule[] TS; UserTradeSchedule ts;
 		 UserGroup[] UG; UserGroup ug;
-		 UserTrade[] TR; UserTrade tr; Town t;
+		 UserTrade[] TR; UserTrade tr; //Town t;
 		 UserTown[] UT; UserTown ut;
 		 UserBuilding[] bldgs; UserBuilding bldg; String arrayString;
 		 float[][] smrates;
-		 UserQueueItem q[];
+		 //UserQueueItem q[];
 		 String holdPartUse; // created so that if we're testing overloaded methods using
 		 // numberFormatException, we don't start using the changed holdPart that we made
 		 // before we got the exception with the wrong argument feeds!
@@ -2158,6 +2206,12 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 toRet+=str.toString();
     		 }
     		 
+    	 } else if(holdCmd.equals("bf.getUserDiplo")) {
+    		 toRet+= ""+parseDiplo(holdPart);
+    	 } else if(holdCmd.equals("bf.createDiplo")) {
+    		 toRet+= ""+makeDiplo(holdPart);
+    	 } else if(holdCmd.equals("bf.cancelDiplo")) {
+    		 toRet+= ""+cancelDiplo(holdPart);
     	 }
     	 
     	 else toRet+="invalidcmd"; // if not hooked up yet or an invalid call.

@@ -112,6 +112,7 @@ public class Player  {
 					holdingLordIteratorID = "-1";
 	
 	private Timestamp vassalFrom;
+	private Date lastPropagation; // for diplo
 	private Hashtable<String, ArrayList<QuestListener>> eventListenerLists = new Hashtable<String, ArrayList<QuestListener>>();
 	private Player lord;
 	private ArrayList<Hashtable> achievements, 
@@ -120,6 +121,7 @@ public class Player  {
 	private ArrayList<AttackUnit> au;
 	private ArrayList<Town> towns;
 	private ArrayList<Diplo> diplo;		//holds diplo that directly targets you
+	private ArrayList<Player> allies; 	//holds a list of your allies.
 	private League league=null;
 
 		//Public Variables
@@ -308,6 +310,7 @@ public class Player  {
 				}
 				rs.close();
 				stmt.close();
+				calculateAllies();
 			} catch(SQLException exc) { exc.printStackTrace(); }
 		   
 		   }
@@ -344,10 +347,10 @@ public class Player  {
 		 * 	is true if the players have an alliance with each other
 		 *	isDirectAlly wont be used until the diplomacy system is implemented 
 		 *
-		 *	ally[1] hasSameLeague
+		 *	ally[1] alliedLeague
 		 *	is true if the players have the same league or their leagues are allied
 		 *
-		 *	ally[2] hasSameLord
+		 *	ally[2] alliedLord
 		 *	is true if the players have the same lord or their lords are allied
 		 *
 		 *	The idea here is to determine the level of alliance.  If you just need to know if two players are allied
@@ -356,28 +359,268 @@ public class Player  {
 		Player pLord = p.getLord();
 		League pLeague = p.getLeague();
 		
-		if(pLord!=null)
-			ally[2] = pLord.isAllied(lord);
+		ally[0] = isDirectAlly(p);
 		
 		if(pLeague!=null)
 			ally[1] = pLeague.isAllied(league);
+		
+		if(pLord!=null)
+			ally[2] = pLord.isAllied(lord);
 		
 		return ally;
 	}
 	
 	public boolean isAllied(Player p) {
 		if(p==null) return false;
-		//add check for diplomatic alliance
 		Player pLord = p.getLord();
 		League pLeague = p.getLeague();
-		if(ID==p.ID) return true;
+		if(isDirectAlly(p)) return true;
 		if(pLord!=null&&pLord.isAllied(lord)) return true;
 		if(pLeague!=null&&pLeague.isAllied(league)) return true;
 		return false;
 	}
 	
+	public boolean isDirectAlly(Player p) {
+		if(p==null) return false;
+		
+		if(p.ID==ID) return true;
+		
+		Diplo[] dip = getArrangement(p);
+		boolean active = false;
+		int value = 0;
+		
+		for(Diplo d : dip) {
+			int v = d.getValue();
+			if((d.getType() == Diplo.Type.Alliance || d.getType() == Diplo.Type.VoluntaryVassalage) && v > value && d.isAccepted()) {
+				active = true;
+				value = v;
+			} else if(v > value) {
+				active = false;
+				value = v;
+			}
+		}
+		
+		return active;
+	}
+	
+	public boolean atPeace(Player p) {
+		Diplo[] dip = getArrangement(p);
+		boolean active = false;
+		int value = 0;
+		for(Diplo d : dip) {
+			int v = d.getValue();
+			if(!(d.getType() == Diplo.Type.War || d.getType() == Diplo.Type.TradeEmbargo) && v > value && d.isAccepted()) {
+				active = true;
+				value = v;
+			} else if(v > value) {
+				active = false;
+				value = v;
+			}
+		}
+		return active;
+	}
+	
+	public boolean isAtWar(Player p) {
+		Diplo[] dip = getArrangement(p);
+		boolean active = false;
+		int value = 0;
+		for(Diplo d : dip) {
+			int v = d.getValue();
+			if(d.getType()==Diplo.Type.War && v > value) {
+				active = true;
+				value = v;
+			} else if(v > value) {
+				active = false;
+				value = v;
+			}
+		}
+		return active;
+	}
+	
+	public boolean isEmbargoed(Player p) {
+		Diplo[] dip = getArrangement(p);
+		boolean active = false;
+		int value = 0;
+		for(Diplo d : dip) {
+			int v = d.getValue();
+			if((d.getType()==Diplo.Type.TradeEmbargo || d.getType()==Diplo.Type.War) && v > value) {
+				active = true;
+				value = v;
+			} else if(v > value) {
+				active = false;
+				value = v;
+			}
+		}
+		return active;
+	}
+	
+	public Diplo[] getArrangement(Player p) {
+		ArrayList<Diplo> dip = new ArrayList<Diplo>();
+		for(Diplo d : diplo) {
+			if(d.getP2().ID==p.ID) {
+				dip.add(d);
+			}
+		}
+		return dip.toArray(new Diplo[dip.size()]);
+	}
+	
+	/**
+	 * This function checks the value of the arrangement so that League and Lord level
+	 * alliances can propagate down without causing duplication issues in propagateDiplo.
+	 * It also reduces the number of calls made to propagateDiplo by preventing players
+	 * from calling it on the allies of their lords/leagues (which would cause additional,
+	 * unnecessary propagateDiplo calls).
+	 */
+	public void calculateAllies() {
+		for(Diplo d : diplo) {
+			if(d.getType() == Diplo.Type.Alliance && d.getValue() == 2) {
+				allies.add(d.getP2());
+			}
+		}
+		
+		if(league!=null) {
+			for(Diplo d : league.getDiplo()) {
+				if((d.getType() == Diplo.Type.War || d.getType() == Diplo.Type.TradeEmbargo) && allies.contains(d.getP2())) {
+					allies.remove(d.getP2());
+				}
+			}
+		}
+		
+		if(lord!=null) {
+			for(Diplo d : lord.getDiplo()) {
+				if((d.getType() == Diplo.Type.War || d.getType() == Diplo.Type.TradeEmbargo) && allies.contains(d.getP2())) {
+					allies.remove(d.getP2());
+				}
+			}
+		}
+	}
+	
+	/**
+	 * 
+	 */
 	public void propagateDiplo() {
 		
+		//This is to prevent propagation happening too often and in a way that makes it
+		//easy to call.  Right now, this is set up to not do anything if propagateDiplo
+		//was called less than three ticks ago.
+		if(lastPropagation == null || new Date().getTime() - lastPropagation.getTime() >= 30000) {
+			calculateAllies();
+			ArrayList<Diplo> holdLordDip 	= new ArrayList<Diplo>(),
+							 holdLeagueDip 	= new ArrayList<Diplo>(),
+							 holdAllyDip	= new ArrayList<Diplo>();
+			for(int i = 0; i<diplo.size();i++) {
+				Diplo d = diplo.get(i);
+				int val = d.getValue();
+				switch(val) {
+				case 1:
+					holdAllyDip.add(d);
+					break;
+				case 3:
+					holdLeagueDip.add(d);
+					break;
+				case 4:
+					holdLordDip.add(d);
+					break;
+				}
+				if(val != 2) {
+					diplo.remove(d);
+					i--;
+				}
+			}
+			//diplo should now ONLY contain diplomacy from the player himself
+			//time to start adding stuff back in.
+			
+			//A player's lord and league have all their diplo pulled down
+			//allies have only war and embargoes pulled over
+			
+			if(lord!=null) {
+				for(Diplo d : lord.getDiplo()) {
+					boolean found = false;
+					for(int i = 0; i<holdLordDip.size();i++) {
+						if(d.isSimilar(holdLordDip.get(i))) {
+							diplo.add(holdLordDip.remove(i));
+							i--;
+							found = true;
+							break;
+						}
+					}
+					if(!found) { //make it
+						diplo.add(new Diplo(d.getType(), this, d.getP2(), 4));
+					}
+				}
+			}
+			//Anything left in here is no longer part of the lord's diplo
+			//either that, or you had a lord and now don't.  In which case all of these
+			//need to go anyways.
+			for(Diplo d : holdLordDip) {
+				d.forceCancel();
+			}
+			
+			if(league != null) {
+				for(Diplo d : league.getDiplo()) {
+					boolean found = false;
+					for(int i = 0; i<holdLeagueDip.size();i++) {
+						if(d.isSimilar(holdLeagueDip.get(i))) {
+							diplo.add(holdLeagueDip.remove(i));
+							i--;
+							found = true;
+							break;
+						}
+					}
+					if(!found) { //make it
+						diplo.add(new Diplo(d.getType(), this, d.getP2(), 3));
+					}
+				}
+			}
+			
+			//same deal as above.
+			for(Diplo d : holdLeagueDip) {
+				d.forceCancel();
+			}
+			
+			for(Player p : allies) {
+				//allies are a little different, though.  Only wars and trade embargoes
+				//are propagated through normal alliances.
+				for(Diplo d : p.getDiplo()) {
+					boolean found = false;
+					//so we check for that here
+					if(d.getType() == Diplo.Type.War || d.getType() == Diplo.Type.TradeEmbargo) {
+						//otherwise, it's exactly the same
+						for(int i = 0;i<holdAllyDip.size();i++) {
+							if(d.isSimilar(holdAllyDip.get(i))) {
+								diplo.add(holdAllyDip.remove(i));
+								i--;
+								found = true;
+								break;
+							}
+						}
+						
+						if(!found) { //make it
+							diplo.add(new Diplo(d.getType(), this, d.getP2(), 1));
+						}
+					}
+				}
+			}
+			//same deal, again.
+			for(Diplo d : holdAllyDip) {
+				d.forceCancel();
+			}
+			
+			//now we propagate our new diplo down to our allies
+			for(Player p : allies) {
+				p.propagateDiplo();
+			}
+		}
+	}
+	
+	public Date getLastPropagation() {
+		return lastPropagation;
+	}
+	
+	public Player setLastPropagation(Date d) {
+		lastPropagation = d;
+		
+		return this;
 	}
 	
 	public TradeSchedule findTradeSchedule(UUID trid) {
@@ -891,7 +1134,7 @@ public class Player  {
 		 
 		 
 		 ArrayList<Hashtable> vassals = new ArrayList<Hashtable>();
-		 Hashtable vassal; Hashtable[] towns;
+		 Hashtable vassal;
 		 ArrayList<Hashtable> tempTowns; Town t;
 		 Hashtable tempTown;
 		 for(Player p: God.getPlayers()) {
@@ -924,12 +1167,7 @@ public class Player  {
 					 i++;
 				 }
 				  i = 0;
-				 towns = new Hashtable[tempTowns.size()];
-				 while(i<towns.length) {
-					 towns[i]=tempTowns.get(i);
-					 i++;
-				 }
-				 vassal.put("towns",towns);
+				 vassal.put("towns",tempTowns.toArray(new Hashtable[tempTowns.size()]));
 				 if(p.getLord()!=null&&p.getLord().ID==ID) {
 					 vassal.put("vassal",true);
 
@@ -940,13 +1178,7 @@ public class Player  {
 			 
 		 }
 		 
-		 Hashtable[] toRet = new Hashtable[vassals.size()];
-		 int i = 0;
-		 while(i<toRet.length) {
-			 toRet[i]=vassals.get(i);
-			 i++;
-		 }
-		 return toRet;
+		 return vassals.toArray(new Hashtable[vassals.size()]);
 	 }
 	 public boolean isLord() {
 		 for(Player p:God.getPlayers()) {
@@ -2296,6 +2528,11 @@ public class Player  {
 				
 				iterate(number); // doesn't do anything unless you're Id.
 				
+				//force propagation to happen, at least, every 24 hours
+				//or now if it hasn't happened since the last server restart
+				if(lastPropagation == null||new Date().getTime()-lastPropagation.getTime() >= 86400000) {
+					propagateDiplo();
+				}
 				
 				ArrayList<Town> towns = towns();
 				
@@ -2367,11 +2604,11 @@ public class Player  {
 			
 				try {
 					while(i<activeQuests.size()) {
-				//	System.out.println(username + " is iterating quest " + activeQuests.get(i).ID);
-
-					activeQuests.get(i).iterateQuest(number,ID);
-					i++;
-				}
+					//	System.out.println(username + " is iterating quest " + activeQuests.get(i).ID);
+	
+						activeQuests.get(i).iterateQuest(number,ID);
+						i++;
+					}
 				} catch(Exception exc) { 
 					exc.printStackTrace(); System.out.println("Quest exception caught, player " + getUsername() + " moved forward.");
 					

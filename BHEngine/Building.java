@@ -662,6 +662,19 @@ public class Building {
 		return cap;
 	}
 	
+	public long getCacheCap() {
+		if(type.equals("Resource Cache")) {
+			return (long) Math.ceil(.1*resourceAmt*Math.pow(getLvl()+2,2));
+		} else if(type.equals("Storage Yard") && lvl>4) {
+			
+				//beginning at level 5, a Storage Cache protects an amount of resources
+				//equal to a Resource Cache 4 levels below it
+			return (long) Math.ceil(.1*resourceAmt*Math.pow(getLvl()-2,2));
+		}
+		
+		return 0;
+	}
+	
 	public long getQueueCap() {
 		// only for military production facilities.
 		int cap = getLvl()*2;

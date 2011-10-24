@@ -11488,9 +11488,7 @@ public boolean checkForGenocides(Town t) {
 		int i = 0;
 		long bunkerSize=0; Building b;
 		while(i<r.getTown2().bldg().size()) {
-			 b = r.getTown2().bldg().get(i);
-			if(b.getType().equals("Resource Cache"))  bunkerSize+=(long)Math.round(.33*.05*1*((double) Building.resourceAmt)*Math.pow((b.getLvl()+2),2));
-			if(b.getType().equals("Storage Yard")&&b.getLvl()>=5) bunkerSize+=(long)Math.round(.33*.05*1*((double) Building.resourceAmt)*Math.pow((b.getLvl()-4+2),2));
+			bunkerSize+= r.getTown2().bldg().get(i).getCacheCap();
 			i++;
 		}
 		
