@@ -16901,7 +16901,7 @@ public boolean bigTerritoryOverlapTest(UberSocketPrintWriter out, Player player)
 	
 	
 	players[0].territoryCalculator();
-	players[1].territoryCalculator(); 
+	players[1].territoryCalculator();
 	players[2].territoryCalculator();
 	
 
