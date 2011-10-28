@@ -2204,20 +2204,21 @@ public class Player  {
 		   i++;
 		  }
 		  
-		  for( i = 0; i<sides.size()-1;i++) {
-			  if(sides.get(i+1)==0) {
-				  if(i<sides.size()-2) {
-					  int diff = sides.get(i)+sides.get(i+2);
-					  sides.set(i,diff);
-					  sides.remove(i+1);
-					  sides.remove(i+1);
-					  i-= (diff==0 ? 2 : 1);
-				  } else {
-					  sides.remove(i+1);
-					  break;
-				  }  
-			  }
-		  }
+		   for( i = 0; i<sides.size()-1;i++) {
+			    if(sides.get(i+1)==0) {
+			     if(i<sides.size()-2) {
+			      int diff = sides.get(i)+sides.get(i+2);
+			      sides.set(i,diff);
+			      sides.remove(i+1);
+			      sides.remove(i+1);
+			      i-= (diff==0 ? 2 : 1);
+			     } else {
+			      sides.remove(i+1);
+			      break;
+			     }  
+			    }
+			    if(i==-2) break;
+			   }
 		  UUID id = UUID.randomUUID();
 		  
 		  Hashtable newTerr = new Hashtable();

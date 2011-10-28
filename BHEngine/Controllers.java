@@ -2216,6 +2216,8 @@ public boolean noFlick(UberSocketPrintWriter out) {
 					g.ROCollapseTest(out,p,true);
 				}else if(test.equals("basicTradeCaravan")) {
 					g.basicTradeCaravanTest(out,p);
+				}else if(test.equals("bigTerritoryOverlap")) {
+					g.bigTerritoryOverlapTest(out,p);
 				}else if(test.equals("leagueCreate")) {
 					g.leagueCreateTest(out,p);
 				}else if(test.equals("blockadeMovement")) {
@@ -2247,6 +2249,7 @@ public boolean noFlick(UberSocketPrintWriter out) {
 					g.intermediateTerritoryTest(out,p);
 					g.territoryOverlapTest(out, p);
 					g.advancedTerritoryTest(out,p);
+					g.bigTerritoryOverlapTest(out,p);
 				} else if(test.equals("allVassalAndTerritories")) {
 					g.fbPostTest(out,p);
 					g.separatedPointsTest(out);
@@ -2291,6 +2294,7 @@ public boolean noFlick(UberSocketPrintWriter out) {
 					g.blockadeMovementTest(out.req, out.out, p);
 					g.blockadeCombatTest(out.req, out.out, p);
 					g.blockadeTradeTest(out.req, out.out, p);
+					g.bigTerritoryOverlapTest(out,p);
 				}
 				else{
 

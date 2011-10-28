@@ -141,7 +141,7 @@ public class PlayerScript implements Runnable {
 	private String parseDiplo(String holdPart) {
 		JSONStringer str = new JSONStringer();
 		UserDiplo[] diplo = new UserDiplo[1];
-		if(holdPart.isEmpty()) {
+		if(holdPart.length()==0) {
 			diplo = b.getUserDiplo();
 		} else {
 			diplo[0] = b.getUserDiplo(UUID.fromString(holdPart));

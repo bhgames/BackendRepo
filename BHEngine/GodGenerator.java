@@ -16837,6 +16837,111 @@ public boolean advancedTerritoryTest(UberSocketPrintWriter out, Player player) {
 		out.println("advancedTerritory test successful.");
 		return true;
 	}
+public boolean bigTerritoryOverlapTest(UberSocketPrintWriter out, Player player) {
+ 
+	
+	Player[] players = player.generateFakePlayers(3,1,0,0);
+	
+	Town t1 = players[0].towns().get(0);
+	t1.setInfluence(1000);
+	t1.setX(1111100);
+	t1.setY(1111100);
+
+	Town t2 = players[1].towns().get(0);
+
+	t2.setInfluence(1000);
+	t2.setX(1111102);
+	t2.setY(1111100);
+	Town t3 = players[2].towns().get(0);
+
+	t3.setInfluence(1000);
+	t3.setX(1111104);
+	t3.setY(1111100);
+	
+	
+	players[0].territoryCalculator();
+	players[1].territoryCalculator(); 
+	players[2].territoryCalculator();
+	
+
+	
+	ArrayList<Hashtable> pointsT1 = (ArrayList<Hashtable>) players[0].getTerritories().get(0).get("points");
+	ArrayList<Hashtable> pointsT2 = (ArrayList<Hashtable>) players[1].getTerritories().get(0).get("points");
+	ArrayList<Hashtable> pointsT3 = (ArrayList<Hashtable>) players[2].getTerritories().get(0).get("points");
+
+	for(Hashtable p: pointsT1) {
+		int px = (Integer) p.get("x");
+		int py = (Integer) p.get("y");
+		boolean foundPoint=false;
+		for(Hashtable otherP: pointsT2) {
+			if(px==((Integer) otherP.get("x"))&&py==((Integer) otherP.get("y"))) {
+				foundPoint=true;
+				break;
+			}
+
+		}
+		if(foundPoint) {
+			out.println("big territory overlap test failed because first and second town shared a point. The point part of the territory, that should not have been, was " + px + "," + py);
+			out.println("T1 territory:");
+			printPointSet(pointsT1,out);
+			out.println("T2 territory:");
+			printPointSet(pointsT2,out);
+			out.println("T3 territory:");
+			printPointSet(pointsT3,out);
+			player.deleteFakePlayers(players); return false;
+
+		}
+		for(Hashtable otherP: pointsT3) {
+			if(px==((Integer) otherP.get("x"))&&py==((Integer) otherP.get("y"))) {
+				foundPoint=true;
+				break;
+			}
+
+		}
+		if(foundPoint) {
+			out.println("big territory overlap test failed because first and third town shared a point. The point part of the territory, that should not have been, was " + px + "," + py);
+			out.println("T1 territory:");
+			printPointSet(pointsT1,out);
+			out.println("T2 territory:");
+			printPointSet(pointsT2,out);
+			out.println("T3 territory:");
+			printPointSet(pointsT3,out);
+			player.deleteFakePlayers(players); return false;
+
+		}
+	
+	}
+	for(Hashtable p: pointsT2) {
+		int px = (Integer) p.get("x");
+		int py = (Integer) p.get("y");
+		boolean foundPoint=false;
+
+		for(Hashtable otherP: pointsT3) {
+			if(px==((Integer) otherP.get("x"))&&py==((Integer) otherP.get("y"))) {
+				foundPoint=true;
+				break;
+			}
+
+		}
+		if(foundPoint) {
+			out.println("big territory overlap test failed because second and third town shared a point. The point part of the territory, that should not have been, was " + px + "," + py);
+			out.println("T1 territory:");
+			printPointSet(pointsT1,out);
+			out.println("T2 territory:");
+			printPointSet(pointsT2,out);
+			out.println("T3 territory:");
+			printPointSet(pointsT3,out);
+			player.deleteFakePlayers(players); return false;
+
+		}
+	
+	}
+	player.deleteFakePlayers(players);
+
+	out.println("big territory overlap test successful.");
+	return true;
+
+}
 public boolean territoryOverlapTest(UberSocketPrintWriter out, Player player) { 
 	
 	Player[] players = player.generateFakePlayers(3,1,0,0);
@@ -16891,6 +16996,8 @@ public boolean territoryOverlapTest(UberSocketPrintWriter out, Player player) {
 	expectedTerritoryt3.add(newPoint(1111102,1111103));
 	expectedTerritoryt3.add(newPoint(1111103,1111103));
 	expectedTerritoryt3.add(newPoint(1111102,1111101));
+	expectedTerritoryt3.add(newPoint(1111102,1111101));
+	expectedTerritoryt3.add(newPoint(1111101,1111103));
 
 	ArrayList<Hashtable> pointsT1 = (ArrayList<Hashtable>) players[0].getTerritories().get(0).get("points");
 	for(Hashtable p: pointsT1) {
