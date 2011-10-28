@@ -6767,7 +6767,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			    	  
 			      try {
 					   UberPreparedStatement   stmt = t1p.God.con.createStatement("insert into statreports (defender,scout,m,t,mm,f,pid,tid1,tid2,auoffst,auofffi,audefst,audeffi,auoffnames,audefnames,combatHeader,offTownName,defTownName,ax,ay,dx,dy,id) values" +
-					      		"(false,1,?,?,?,?,?,?,?,?,?,?,\"\",?,?,?,?,?,id);");
+					      		"(false,1,?,?,?,?,?,?,?,?,?,?,\"\",?,?,?,?,?,?,?,?,?,?);");
 					   stmt.setLong(1,m);
 					   stmt.setLong(2,t);
 					   stmt.setLong(3,mm);
@@ -6803,12 +6803,15 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			   
 			      // send out reports to support units' players on offensive side, we're assuming
 			      // we weren't discovered so why should defense get one?
-			      int o = 6;
+			      int o = 0;
 			      ArrayList<Player> holdForP = new ArrayList<Player>();
 			      Player curr;
 			      while(o<t1au.size()) {
+					 if(t1au.get(o).getOriginalPlayer()!=null) {
+
 			    	   curr = t1au.get(o).getOriginalPlayer();
 			    	   c = 0;
+
 			    	  boolean found = false;
 			    	  while(c<holdForP.size()) {
 			    		  if(holdForP.get(c).ID==curr.ID) {found=true; break; }
@@ -6816,6 +6819,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 			    	  }
 			    	  
 			    	  if(!found) holdForP.add(curr);
+				     }
 			    	  
 			    	  o++;
 			      }
@@ -7843,7 +7847,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 	 the prospects check out, then the town needs to be removed from one player
 	 and put on another with the giveTown method.
 	 */
-		
+	
 	if(!holdAttack.isInvade()) return false;
 	Town t1 = holdAttack.getTown1(); Town t2 = holdAttack.getTown2();
 	ArrayList<AttackUnit> t1au = holdAttack.getAu(); ArrayList<AttackUnit> t2au = t2.getAu();
@@ -10075,7 +10079,7 @@ public boolean checkForGenocides(Town t) {
 						  //boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
 						  //	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage, boolean digend)
 						  offSR = new UserSR(id,offUnitsBefore,offUnitsAfter,defUnitsBefore,defUnitsAfter,offNames,defNames,t1.getTownName(),t2.getTownName(),genocide,false,bomb,false,(int) actattack.getMetal(),(int) actattack.getTimber(),(int) actattack.getManmat(),(int) actattack.getFood(),
-										  actattack.getScout(),invade,invsucc,0,false,combatHeader,today.toString(),actattack.getName(),offbp,premium,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),zeppText,(int) totalCost[0],(int) totalCost[1],(int) totalCost[2],(int) totalCost[3],false,false,false,offdig,defdig,digMessage,false);
+										  actattack.getScout(),invade,invsucc,-1,false,combatHeader,today.toString(),actattack.getName(),offbp,premium,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),zeppText,(int) totalCost[0],(int) totalCost[1],(int) totalCost[2],(int) totalCost[3],false,false,false,offdig,defdig,digMessage,false);
 		
 						  t1.getPlayer().addUserSR(offSR);
 					  } else {
@@ -10093,7 +10097,7 @@ public boolean checkForGenocides(Town t) {
 								//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage, boolean digend)
 									
 						  offSR = new UserSR(id,offUnitsBefore,offUnitsAfter,",0,0,0,0,0,0",",0,0,0,0,0,0",offNames,",???,???,???,???,???,???",t1.getTownName(),t2.getTownName(),genocide,false,bomb,false,(int) actattack.getMetal(),(int) actattack.getTimber(),(int) actattack.getManmat(),(int) actattack.getFood(),
-										  actattack.getScout(),invade,invsucc,0,false,combatHeader,today.toString(),actattack.getName(),offbp,premium,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),zeppText,0,0,0,0,false,false,false,offdig,defdig,digMessage,false);
+										  actattack.getScout(),invade,invsucc,-1,false,combatHeader,today.toString(),actattack.getName(),offbp,premium,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),zeppText,0,0,0,0,false,false,false,offdig,defdig,digMessage,false);
 						  t1.getPlayer().addUserSR(offSR);
 		
 					  }
@@ -10151,7 +10155,7 @@ public boolean checkForGenocides(Town t) {
 							//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage, boolean digend)
 					
 					  defSR = new UserSR(id,offUnitsBefore,offUnitsAfter,defUnitsBefore,defUnitsAfter,offNames,defNames,t1.getTownName(),t2.getTownName(),genocide,false,bomb,true,(int) actattack.getMetal(),(int) actattack.getTimber(),(int) actattack.getManmat(),(int) actattack.getFood(),
-							  actattack.getScout(),invade,invsucc,0,false,combatHeader,today.toString(),actattack.getName(),defbp,premium,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),zeppText,(int) totalCost[0],(int) totalCost[1],(int) totalCost[2],(int) totalCost[3],false,false,false,offdig,defdig,digMessage,false);
+							  actattack.getScout(),invade,invsucc,-1,false,combatHeader,today.toString(),actattack.getName(),defbp,premium,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),zeppText,(int) totalCost[0],(int) totalCost[1],(int) totalCost[2],(int) totalCost[3],false,false,false,offdig,defdig,digMessage,false);
 					  t2p.addUserSR(defSR);
 					  stmt.execute();
 
@@ -10404,7 +10408,7 @@ public boolean checkForGenocides(Town t) {
 					}
 					//	System.out.println("raidOver is currently " + holdAttack.raidOver);
 					// this else UberStatement is for the actual attack server to use, the above is the facsimile treatment.
-				if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("attack")||holdAttack.raidType().equals("siege")||holdAttack.raidType().equals("strafe")||holdAttack.raidType().equals("glass"))) { 
+				if(holdAttack.eta()<=0&&!holdAttack.raidOver()&&(holdAttack.raidType().equals("attack")||holdAttack.raidType().equals("invasion")||holdAttack.raidType().equals("siege")||holdAttack.raidType().equals("strafe")||holdAttack.raidType().equals("glass"))) { 
 					// support = 0 means not supporting run, and scout=0 means it's  not
 					// a scouting run.
 					if(r.getTown2().getDigCounter()>0) {
@@ -16874,6 +16878,111 @@ public boolean advancedTerritoryTest(UberSocketPrintWriter out, Player player) {
 		out.println("advancedTerritory test successful.");
 		return true;
 	}
+public boolean bigTerritoryOverlapTest(UberSocketPrintWriter out, Player player) {
+ 
+	
+	Player[] players = player.generateFakePlayers(3,1,0,0);
+	
+	Town t1 = players[0].towns().get(0);
+	t1.setInfluence(1000);
+	t1.setX(1111100);
+	t1.setY(1111100);
+
+	Town t2 = players[1].towns().get(0);
+
+	t2.setInfluence(1000);
+	t2.setX(1111102);
+	t2.setY(1111100);
+	Town t3 = players[2].towns().get(0);
+
+	t3.setInfluence(1000);
+	t3.setX(1111104);
+	t3.setY(1111100);
+	
+	
+	players[0].territoryCalculator();
+	players[1].territoryCalculator(); 
+	players[2].territoryCalculator();
+	
+
+	
+	ArrayList<Hashtable> pointsT1 = (ArrayList<Hashtable>) players[0].getTerritories().get(0).get("points");
+	ArrayList<Hashtable> pointsT2 = (ArrayList<Hashtable>) players[1].getTerritories().get(0).get("points");
+	ArrayList<Hashtable> pointsT3 = (ArrayList<Hashtable>) players[2].getTerritories().get(0).get("points");
+
+	for(Hashtable p: pointsT1) {
+		int px = (Integer) p.get("x");
+		int py = (Integer) p.get("y");
+		boolean foundPoint=false;
+		for(Hashtable otherP: pointsT2) {
+			if(px==((Integer) otherP.get("x"))&&py==((Integer) otherP.get("y"))) {
+				foundPoint=true;
+				break;
+			}
+
+		}
+		if(foundPoint) {
+			out.println("big territory overlap test failed because first and second town shared a point. The point part of the territory, that should not have been, was " + px + "," + py);
+			out.println("T1 territory:");
+			printPointSet(pointsT1,out);
+			out.println("T2 territory:");
+			printPointSet(pointsT2,out);
+			out.println("T3 territory:");
+			printPointSet(pointsT3,out);
+			player.deleteFakePlayers(players); return false;
+
+		}
+		for(Hashtable otherP: pointsT3) {
+			if(px==((Integer) otherP.get("x"))&&py==((Integer) otherP.get("y"))) {
+				foundPoint=true;
+				break;
+			}
+
+		}
+		if(foundPoint) {
+			out.println("big territory overlap test failed because first and third town shared a point. The point part of the territory, that should not have been, was " + px + "," + py);
+			out.println("T1 territory:");
+			printPointSet(pointsT1,out);
+			out.println("T2 territory:");
+			printPointSet(pointsT2,out);
+			out.println("T3 territory:");
+			printPointSet(pointsT3,out);
+			player.deleteFakePlayers(players); return false;
+
+		}
+	
+	}
+	for(Hashtable p: pointsT2) {
+		int px = (Integer) p.get("x");
+		int py = (Integer) p.get("y");
+		boolean foundPoint=false;
+
+		for(Hashtable otherP: pointsT3) {
+			if(px==((Integer) otherP.get("x"))&&py==((Integer) otherP.get("y"))) {
+				foundPoint=true;
+				break;
+			}
+
+		}
+		if(foundPoint) {
+			out.println("big territory overlap test failed because second and third town shared a point. The point part of the territory, that should not have been, was " + px + "," + py);
+			out.println("T1 territory:");
+			printPointSet(pointsT1,out);
+			out.println("T2 territory:");
+			printPointSet(pointsT2,out);
+			out.println("T3 territory:");
+			printPointSet(pointsT3,out);
+			player.deleteFakePlayers(players); return false;
+
+		}
+	
+	}
+	player.deleteFakePlayers(players);
+
+	out.println("big territory overlap test successful.");
+	return true;
+
+}
 public boolean territoryOverlapTest(UberSocketPrintWriter out, Player player) { 
 	
 	Player[] players = player.generateFakePlayers(3,1,0,0);
@@ -16928,6 +17037,8 @@ public boolean territoryOverlapTest(UberSocketPrintWriter out, Player player) {
 	expectedTerritoryt3.add(newPoint(1111102,1111103));
 	expectedTerritoryt3.add(newPoint(1111103,1111103));
 	expectedTerritoryt3.add(newPoint(1111102,1111101));
+	expectedTerritoryt3.add(newPoint(1111102,1111101));
+	expectedTerritoryt3.add(newPoint(1111101,1111103));
 
 	ArrayList<Hashtable> pointsT1 = (ArrayList<Hashtable>) players[0].getTerritories().get(0).get("points");
 	for(Hashtable p: pointsT1) {

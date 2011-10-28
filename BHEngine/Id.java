@@ -17,7 +17,7 @@ public class Id extends Player {
 		double hourlyLeft = (getPlayedTicks())/(3600/GodGenerator.gameClockFactor);
 		hourlyLeft-=Math.round(hourlyLeft);
 		if(hourlyLeft==0) {
-			deleteOldPlayers();
+			//deleteOldPlayers();
 		}
 		
 		double dailyLeft = (getPlayedTicks())/(24*3600/GodGenerator.gameClockFactor);

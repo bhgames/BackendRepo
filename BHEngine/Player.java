@@ -221,8 +221,9 @@ public class Player  {
 			eventListenerLists.put("onRaidSent",new ArrayList<QuestListener>());
 
 	       try {
-	       last_session=rs.getTimestamp(83);
+	    	   last_session=rs.getTimestamp(83);
 	       } catch(Exception exc) { last_session = new Timestamp((new Date()).getTime());}
+	       
 	       numLogins = rs.getInt(84);
 	       totalTimePlayed = rs.getLong(85);
 	       
@@ -476,6 +477,10 @@ public class Player  {
 	 * unnecessary propagateDiplo calls).
 	 */
 	public void calculateAllies() {
+		if(allies==null) {
+			allies = new ArrayList<Player>();
+		}
+		
 		for(Diplo d : diplo) {
 			if(d.getType() == Diplo.Type.Alliance && d.getValue() == 2) {
 				allies.add(d.getP2());
@@ -503,116 +508,120 @@ public class Player  {
 	 * 
 	 */
 	public void propagateDiplo() {
-		
-		//This is to prevent propagation happening too often and in a way that makes it
-		//easy to call.  Right now, this is set up to not do anything if propagateDiplo
-		//was called less than three ticks ago.
-		if(lastPropagation == null || new Date().getTime() - lastPropagation.getTime() >= 30000) {
-			calculateAllies();
-			ArrayList<Diplo> holdLordDip 	= new ArrayList<Diplo>(),
-							 holdLeagueDip 	= new ArrayList<Diplo>(),
-							 holdAllyDip	= new ArrayList<Diplo>();
-			for(int i = 0; i<diplo.size();i++) {
-				Diplo d = diplo.get(i);
-				int val = d.getValue();
-				switch(val) {
-				case 1:
-					holdAllyDip.add(d);
-					break;
-				case 3:
-					holdLeagueDip.add(d);
-					break;
-				case 4:
-					holdLordDip.add(d);
-					break;
-				}
-				if(val != 2) {
-					diplo.remove(d);
-					i--;
-				}
-			}
-			//diplo should now ONLY contain diplomacy from the player himself
-			//time to start adding stuff back in.
-			
-			//A player's lord and league have all their diplo pulled down
-			//allies have only war and embargoes pulled over
-			
-			if(lord!=null) {
-				for(Diplo d : lord.getDiplo()) {
-					boolean found = false;
-					for(int i = 0; i<holdLordDip.size();i++) {
-						if(d.isSimilar(holdLordDip.get(i))) {
-							diplo.add(holdLordDip.remove(i));
-							i--;
-							found = true;
-							break;
-						}
+		//first we should check that we have any diplo that needs propagating.
+		//if no one has any, why check?
+		if(diplo.size()>0 || (lord!=null&&lord.getDiplo().size()>0) || (league!=null&&league.getDiplo().size()>0)) {
+			//This is to prevent propagation happening too often and in a way that makes
+			//it easy to call.  Right now, this is set up to not do anything if
+			//propagateDiplo was called less than three ticks ago.
+			if(lastPropagation == null || new Date().getTime() - lastPropagation.getTime() >= 30000) {
+				
+				calculateAllies();
+				ArrayList<Diplo> holdLordDip 	= new ArrayList<Diplo>(),
+								 holdLeagueDip 	= new ArrayList<Diplo>(),
+								 holdAllyDip	= new ArrayList<Diplo>();
+				for(int i = 0; i<diplo.size();i++) {
+					Diplo d = diplo.get(i);
+					int val = d.getValue();
+					switch(val) {
+					case 1:
+						holdAllyDip.add(d);
+						break;
+					case 3:
+						holdLeagueDip.add(d);
+						break;
+					case 4:
+						holdLordDip.add(d);
+						break;
 					}
-					if(!found) { //make it
-						diplo.add(new Diplo(d.getType(), this, d.getP2(), 4));
+					if(val != 2) {
+						diplo.remove(d);
+						i--;
 					}
 				}
-			}
-			//Anything left in here is no longer part of the lord's diplo
-			//either that, or you had a lord and now don't.  In which case all of these
-			//need to go anyways.
-			for(Diplo d : holdLordDip) {
-				d.forceCancel();
-			}
-			
-			if(league != null) {
-				for(Diplo d : league.getDiplo()) {
-					boolean found = false;
-					for(int i = 0; i<holdLeagueDip.size();i++) {
-						if(d.isSimilar(holdLeagueDip.get(i))) {
-							diplo.add(holdLeagueDip.remove(i));
-							i--;
-							found = true;
-							break;
-						}
-					}
-					if(!found) { //make it
-						diplo.add(new Diplo(d.getType(), this, d.getP2(), 3));
-					}
-				}
-			}
-			
-			//same deal as above.
-			for(Diplo d : holdLeagueDip) {
-				d.forceCancel();
-			}
-			
-			for(Player p : allies) {
-				//allies are a little different, though.  Only wars and trade embargoes
-				//are propagated through normal alliances.
-				for(Diplo d : p.getDiplo()) {
-					boolean found = false;
-					//so we check for that here
-					if(d.getType() == Diplo.Type.War || d.getType() == Diplo.Type.TradeEmbargo) {
-						//otherwise, it's exactly the same
-						for(int i = 0;i<holdAllyDip.size();i++) {
-							if(d.isSimilar(holdAllyDip.get(i))) {
-								diplo.add(holdAllyDip.remove(i));
+				//diplo should now ONLY contain diplomacy from the player himself
+				//time to start adding stuff back in.
+				
+				//A player's lord and league have all their diplo pulled down
+				//allies have only war and embargoes pulled over
+				
+				if(lord!=null) {
+					for(Diplo d : lord.getDiplo()) {
+						boolean found = false;
+						for(int i = 0; i<holdLordDip.size();i++) {
+							if(d.isSimilar(holdLordDip.get(i))) {
+								diplo.add(holdLordDip.remove(i));
 								i--;
 								found = true;
 								break;
 							}
 						}
-						
 						if(!found) { //make it
-							diplo.add(new Diplo(d.getType(), this, d.getP2(), 1));
+							diplo.add(new Diplo(d.getType(), this, d.getP2(), 4));
 						}
 					}
 				}
-			}
-			//same deal, again.
-			for(Diplo d : holdAllyDip) {
-				d.forceCancel();
-			}
-			
-			//now we propagate our new diplo down to our allies
-			for(Player p : allies) {
-				p.propagateDiplo();
+				//Anything left in here is no longer part of the lord's diplo
+				//either that, or you had a lord and now don't.  In which case all of these
+				//need to go anyways.
+				for(Diplo d : holdLordDip) {
+					d.forceCancel();
+				}
+				
+				if(league != null) {
+					for(Diplo d : league.getDiplo()) {
+						boolean found = false;
+						for(int i = 0; i<holdLeagueDip.size();i++) {
+							if(d.isSimilar(holdLeagueDip.get(i))) {
+								diplo.add(holdLeagueDip.remove(i));
+								i--;
+								found = true;
+								break;
+							}
+						}
+						if(!found) { //make it
+							diplo.add(new Diplo(d.getType(), this, d.getP2(), 3));
+						}
+					}
+				}
+				
+				//same deal as above.
+				for(Diplo d : holdLeagueDip) {
+					d.forceCancel();
+				}
+				
+				for(Player p : allies) {
+					//allies are a little different, though.  Only wars and trade embargoes
+					//are propagated through normal alliances.
+					for(Diplo d : p.getDiplo()) {
+						boolean found = false;
+						//so we check for that here
+						if(d.getType() == Diplo.Type.War || d.getType() == Diplo.Type.TradeEmbargo) {
+							//otherwise, it's exactly the same
+							for(int i = 0;i<holdAllyDip.size();i++) {
+								if(d.isSimilar(holdAllyDip.get(i))) {
+									diplo.add(holdAllyDip.remove(i));
+									i--;
+									found = true;
+									break;
+								}
+							}
+							
+							if(!found) { //make it
+								diplo.add(new Diplo(d.getType(), this, d.getP2(), 1));
+							}
+						}
+					}
+				}
+				//same deal, again.
+				for(Diplo d : holdAllyDip) {
+					d.forceCancel();
+				}
+				
+				//now we propagate our new diplo down to our allies
+				for(Player p : allies) {
+					p.propagateDiplo();
+				}
 			}
 		}
 	}
@@ -1239,49 +1248,46 @@ public class Player  {
 			 */
 			if(!isQuest()&&ID!=5) { //  Quests do not have territories, nor can their towns be taken by others this way.
 
-			ArrayList<ArrayList<Hashtable>> townPointLists = new ArrayList<ArrayList<Hashtable>>(); // holds the points each town possesses before
-			// transformation into territory lists.
-			ArrayList<Town> towns = new ArrayList<Town>();
-			for(Town t: towns()) {
-				towns.add(t);
-			
-			}
-			Player Id = God.getPlayer(5);
-			for(Town t: Id.towns()) {
-				if(t.isResourceOutcropping()&&t.getLord()!=null&&t.getLord().ID==ID) towns.add(t);
-			}
-			// now we add any ROs we're at.
-			for(Town t: towns) {
-				// so first we add influence.
-				if(God.serverLoaded) { // this could be the loadup call, in which territory should not be incremented.
-					if(t.isResourceOutcropping()) {
-						if(t.getPlayer().getPs().b.getCS(t.townID)>0)
-							t.setInfluence(t.getInfluence()+t.getPlayer().getPs().b.getCS(t.townID)); // soldiers on it generate territory.
-						else {
-					//		System.out.println("Nobody at " + t.getTownName() + " so I am subtracting " + t.getInfluence());
-							t.setInfluence(t.getInfluence()-(int)Math.round(.5*t.getInfluence()));
-							if(t.getInfluence()<0||t.getInfluence()==1) t.setInfluence(0);
-							
-						}
-					}
-					else {
-						int influence = t.getInfluence()+t.getPlayer().getPs().b.getCSL(t.townID);
-						ArrayList<Raid> blockades = t.getBlockades();
-						if(blockades.size()>0){ //if the town is blockaded, we have to determine the number of days the 
-												//blockades have been there and how "big" of a presence they are
-							long now = new Timestamp(new Date().getTime()).getTime();
-							for(Raid r : blockades) {
-								ArrayList<AttackUnit> au = r.getAu();
-								for(AttackUnit a : au) {
-									influence -= a.getExpmod()* //the "pop size" of the unit times
-												 a.getSize()*	//the number of the unit in the blockade times
-												 Math.floor((r.getDockingFinished().getTime()-now)/(24*3600*1000));
-								}								//the amount of time the blockade has been there
-							}									//in days, rounded down.  :)
-						}
-						t.setInfluence(influence);
-					}
+				ArrayList<ArrayList<Hashtable>> townPointLists = new ArrayList<ArrayList<Hashtable>>(); // holds the points each town possesses before
+				// transformation into territory lists.
+				ArrayList<Town> towns = towns();
+				
+				Player Id = God.getPlayer(5);
+				for(Town t: Id.towns()) {
+					if(t.isResourceOutcropping()&&t.getLord()!=null&&t.getLord().ID==ID) towns.add(t);
 				}
+				// now we add any ROs we're at.
+				for(Town t: towns) {
+					// so first we add influence.
+					if(God.serverLoaded) { // this could be the loadup call, in which territory should not be incremented.
+						if(t.isResourceOutcropping()) {
+							if(t.getPlayer().getPs().b.getCS(t.townID)>0)
+								t.setInfluence(t.getInfluence()+t.getPlayer().getPs().b.getCS(t.townID)); // soldiers on it generate territory.
+							else {
+						//		System.out.println("Nobody at " + t.getTownName() + " so I am subtracting " + t.getInfluence());
+								t.setInfluence(t.getInfluence()-(int)Math.round(.5*t.getInfluence()));
+								if(t.getInfluence()<0||t.getInfluence()==1) t.setInfluence(0);
+								
+							}
+						}
+						else {
+							int influence = t.getInfluence()+t.getPlayer().getPs().b.getCSL(t.townID);
+							ArrayList<Raid> blockades = t.getBlockades();
+							if(blockades.size()>0){ //if the town is blockaded, we have to determine the number of days the 
+													//blockades have been there and how "big" of a presence they are
+								long now = new Timestamp(new Date().getTime()).getTime();
+								for(Raid r : blockades) {
+									ArrayList<AttackUnit> au = r.getAu();
+									for(AttackUnit a : au) {
+										influence -= a.getExpmod()* //the "pop size" of the unit times
+													 a.getSize()*	//the number of the unit in the blockade times
+													 Math.floor((r.getDockingFinished().getTime()-now)/(24*3600*1000));
+									}								//the amount of time the blockade has been there
+								}									//in days, rounded down.  :)
+							}
+							t.setInfluence(influence);
+						}
+					}
 					// now we calculate to see what the max block this guy should have is.
 					
 					double maxR =Math.sqrt(t.getInfluence()/62.5);
@@ -1318,8 +1324,6 @@ public class Player  {
 					}
 					
 					townPointLists.add(points);
-				
-				
 				
 			}
 			
@@ -2223,6 +2227,7 @@ public class Player  {
 			  }
 			  if(i==-2) break;
 		  }
+		  
 		  UUID id = UUID.randomUUID();
 		  
 		  Hashtable newTerr = new Hashtable();
