@@ -383,7 +383,11 @@ public class Player  {
 	public boolean isDirectAlly(Player p) {
 		if(p==null) return false;
 		
-		if(p.ID==ID) return true;
+		if(p.equals(this)) return true;
+		
+		if(lord!=null&&p.equals(lord)) {
+			return true;
+		}
 		
 		Diplo[] dip = getArrangement(p);
 		boolean active = false;
@@ -2217,6 +2221,7 @@ public class Player  {
 					  break;
 				  }  
 			  }
+			  if(i==-2) break;
 		  }
 		  UUID id = UUID.randomUUID();
 		  
@@ -4893,6 +4898,16 @@ public class Player  {
 	
 	public boolean isNoob() {
 		return getPlayedTicks()<Player.noobDuration;
+	}
+	
+	/**
+	 * Provides an abstract method for player equality
+	 * 
+	 * @param p the Player to check equality against
+	 * @return True, if the players are the same.  False otherwise.
+	 */
+	public boolean equals(Player p) {
+		return p.ID == ID;
 	}
 }
 
