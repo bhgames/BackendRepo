@@ -1895,9 +1895,9 @@ int lotNum; int oldlvl; String btype; boolean defender = false; int scout; int r
     			 .value(ts.getTimesDone())
     			 .key("timesToDo")
     			 .value(ts.getTimesToDo())
-    			 .key("mateID")
-    			 .value(ts.getMateID().toString());
-    			 str.key("res")
+    		//	 .key("mateID")
+    			// .value(ts.getMateID().toString());
+    			 .key("res")
     			 .array()
     			 .value(ts.getMetal())
     			 .value(ts.getTimber())

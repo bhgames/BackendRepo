@@ -101,7 +101,8 @@ public class Player  {
 					beingDeleted=false,
 					facsimile=false, 
 					synchronize = false, 
-					fake = false;
+					fake = false,
+					checkedDBForLord=false;
 	
 	private String 	version,
 					username,
@@ -2876,7 +2877,7 @@ public class Player  {
 		rs.next();
 	        ID = rs.getInt(1);
 	        
-
+	        setLord(null);
 	       setUsername(rs.getString(2));
 	       email = rs.getString(56);
 	       last_auto_blast = rs.getInt(59);
@@ -4760,16 +4761,18 @@ public class Player  {
 
 
 	public void setLord(Player lord) {
+		if(lord==null) checkedDBForLord=false;
 		this.lord = lord;
 	}
 
 
 	public Player getLord() {
-		if(lord==null) {
+		if(lord==null&&!checkedDBForLord) {
+			ResultSet rs = null;
 			try {
 				UberPreparedStatement stmt = con.createStatement("select lord from player where pid = ?;");
 				stmt.setInt(1,ID);
-				ResultSet rs = stmt.executeQuery();
+				rs = stmt.executeQuery();
 				if(rs.next()) {
 					
 					int lpid = rs.getInt(1);
@@ -4777,8 +4780,18 @@ public class Player  {
 						lord = God.getPlayer(lpid);
 					}
 				}
+				checkedDBForLord=true;
+				rs.close();
+				stmt.close();
 			} catch(SQLException exc) {
 				exc.printStackTrace();
+				if(rs!=null)
+					try {
+						rs.close();
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 			}
 			
 		}

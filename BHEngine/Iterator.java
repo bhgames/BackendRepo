@@ -54,7 +54,6 @@ public class Iterator implements Runnable {
 			dailyLeft-=Math.round(dailyLeft);
 			
 			if(p.ID<999999900&&p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock&&(p.owedTicks==0||p.ID==5||p.isQuest())) {
-	
 				synchronized(p){if(p.getHoldingIteratorID().equals("-1")) p.setHoldingIteratorID(iterateID); }
 				if(p.getHoldingIteratorID().equals(iterateID)) {
 			//		System.out.println(iterateID + " caught " + p.username + "'s focus and is iterating at " + internalClock);
@@ -63,7 +62,8 @@ public class Iterator implements Runnable {
 				//	System.out.println(iterateID + " is iterating " + p.username);
 						
 						if((p.last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||p.stuffOut()||p.ID==5||p.isQuest())){ 
-						//	 System.out.println(p.getUsername() + " is active and has " + p.owedTicks + " ticks owed.");
+							if(p.getUsername().equals("Jigglehammer")) 
+							 System.out.println(p.getUsername() + " is active and has " + p.owedTicks + " ticks owed.");
 							p.saveAndIterate(internalClock-p.getInternalClock());}
 						else {  
 						//	System.out.println(p.getUsername() + " is inactive and has " + p.owedTicks + " ticks owed and played for a total of "+ (p.last_login.getTime()-p.last_session.getTime()));
@@ -161,7 +161,8 @@ public class Iterator implements Runnable {
 			//		System.out.println(iterateID + " caught " + p.username + "'s focus and is iterating at " + internalClock);
 			
 					try {
-				//	System.out.println(iterateID + " is iterating " + p.username);
+						if(t.getPlayer().getUsername().equals("Jigglehammer")) 
+							System.out.println(iterateID + " is iterating " + t.getPlayer().getUsername());
 	
 						if(t.getPlayer().last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||t.stuffOut()) {
 						// System.out.println(p.getTownName() + ","+ p.getPlayer().getUsername() + " is active and has " + p.owedTicks + " ticks owed.");

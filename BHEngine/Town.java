@@ -58,7 +58,8 @@ public class Town {
 	 private ArrayList<Building> bldg;
 	 private boolean zeppelin, 
 	 				 msgSent, 
-	 				 resourceOutcropping;
+	 				 resourceOutcropping,
+	 				 checkedDBForLord=false;
 	 public boolean iterable =true;
 	 public boolean resIncsZeroed=false;
 	 private Hashtable<String, ArrayList<QuestListener>> eventListenerLists = new Hashtable<String, ArrayList<QuestListener>>();
@@ -244,6 +245,7 @@ public class Town {
 			p.towns().add(this);
 			oldP.towns().remove(this);
 		}
+		setLord(null);
 		res=null;resBuff=null;resEffects=null;
 		bldg=null;au=null;
 		townName=null;tradeServer=null;
@@ -266,7 +268,6 @@ public class Town {
 		owedTicks = getMemInt("owedTicks");
 		debris = getMemDebris();
 		zeppelin = getMemBoolean("zeppelin");
-		lord=null;
 		vassalFrom=null;
 		if(isZeppelin()) {
 		destX = getMemInt("destX");
@@ -4599,18 +4600,19 @@ public class Town {
 	}
 
 	public void setLord(Player lord) {
+		if(lord==null) checkedDBForLord=false;
 		this.lord = lord;
 	}
 
 	public Player getLord() {
-		if(lord==null) {
+		if(lord==null&&!checkedDBForLord) {
 			int lpid = getMemInt("lord");
 			if(lpid>0) { // remember, getMemInt returns -1 if this is a facsimile player, as there is no record.
 				// so when you change ids, you need to take this into account - WHAT IF THERE IS NO RECORD,
 				// what does getmemstring return?
 				lord=getPlayer().God.getPlayer(lpid);
 			}
-			
+			checkedDBForLord=true;
 		}
 		return lord;
 	}
