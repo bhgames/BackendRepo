@@ -7039,7 +7039,9 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 	
 	public static boolean digLogicBlock(Raid r) {
 		try {
-			Town t2 = r.getTown2(); GodGenerator God = r.getTown1().getPlayer().God;
+			Town t1 = r.getTown1(), t2 = r.getTown2(); 
+			Player t2p, t1p = t1.getPlayer();
+			GodGenerator God = t1p.God;
 			UberPreparedStatement stmt = null;
 			if(r.getDigAmt()>0) { // second check just in case.
 				if(t2.getDigCounter()>=0||(t2.isResourceOutcropping()&&t2.getLord()!=null)) {
@@ -7055,7 +7057,53 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 						}
 						i++;
 					}
-					if(foundSome) {
+					
+					t2p = God.getPlayer(theirID);
+					//if the player's are allies, they can't fight on outcroppings
+					//or dig sites
+					if(t1p.isAllied(t2p)) {
+						String msg = "";
+						if(r.getTown2().isResourceOutcropping()) {
+							msg = "The resource outcropping was inhabited by an allied force, so the excavation could not begin.";
+						} else {
+							msg = "The dig site was inhabited by an allied force, so the dig could not begin.";
+						}
+						stmt = God.con.createStatement("insert into statreports (pid,tid1,tid2,auoffst,auofffi,auoffnames,m,t,mm,f,offTownName,defTownName,digMessage,offdig,defdig,ax,ay,dx,dy,id) values" +
+						      		"(?,?,?,?,?,?,?,?,?,?,?,?,?,true,true,?,?,?,?,?);");
+						stmt.setInt(1,t1p.ID);
+						stmt.setInt(2,t1.townID);
+						stmt.setInt(3,t2.townID);
+						stmt.setString(4,"");
+						stmt.setString(5,"");
+						stmt.setString(6,"");
+						stmt.setLong(7,r.getMetal());
+						stmt.setLong(8,r.getTimber());
+						stmt.setLong(9,r.getManmat());
+						stmt.setLong(10,r.getFood());
+						stmt.setString(11,t1.getTownName());
+						stmt.setString(12,t2.getTownName());
+						stmt.setString(13,msg);
+						stmt.setInt(14,t1.getX());
+						stmt.setInt(15,t1.getY());
+						stmt.setInt(16,t2.getX());
+						stmt.setInt(17,t2.getY());
+
+						UUID id = UUID.randomUUID();
+						stmt.setString(18,id.toString());
+
+						 stmt.execute();
+						 stmt.close();
+						 Date today = new Date();
+						  	//public UserSR(UUID sid,String offst, String offfi,String defst, String deffi,String offNames,String defNames, String townOff, String townDef, boolean genocide, boolean read, boolean bomb, boolean defender,int m,int t,int mm, int f, int scout, boolean invade, 
+						 	//boolean invsucc, int resupplyID,boolean archived,String combatHeader,String createdAt, String name, int bp, boolean premium
+							//	,boolean blastable, int ax, int ay, int dx, int dy, String zeppText, int debm,int debt,int debmm,int debf, boolean debris,boolean nuke,boolean nukeSucc, boolean offdig, boolean defdig, String digMessage, boolean digEnd)
+							  t1.getPlayer().addUserSR(new UserSR(id,"","",null,null,"",null,t1.getTownName(),t2.getTownName(),false,false,false,false,(int) r.getMetal(),(int) r.getTimber(),(int) r.getManmat(),(int) r.getFood(),
+									  0,false,false,0,false,"No data on this yet.",today.toString(),r.getName(),0,false,false,t1.getX(),t1.getY(),t2.getX(),t2.getY(),"none",0,0,0,0,false,false,false,true,true,msg,false));
+				
+						r.setRaidOver(true);
+						r.setTicksToHit(r.getTotalTicks());
+						
+					} else if(foundSome) {
 						i = 0; boolean foundOff=false;
 						while(i<r.getAu().size()) {
 							if(r.getAu().get(i).getSize()>0) {
@@ -7064,47 +7112,42 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 							}
 							i++;
 						}
-
-					if(foundOff&&theirID!=r.getTown1().getPlayer().ID){
-							combatLogicBlock(r,"There was somebody armed already present here!");
-						
-					} else if(foundOff&&theirID==r.getTown1().getPlayer().ID&&r.getTown2().getDigAmt()>0) { // the collapse only happens
-						// if you have a DIG/RO previously present, NOT just support.
-						// we collapse it.
-						boolean done=false;
-						for(Town t: r.getTown1().getPlayer().towns()) {
-							for(Raid theR :t.attackServer()) {
-								if(theR.getDigAmt()>0&&theR.getTicksToHit()==0&&!theR.isRaidOver()&&theR.getDockingFinished()!=null&&theR.getTown2().townID==r.getTown2().townID) {
-									theR.collapseDigOrRO(r);
-									done=true;
-									break;
-								}
-							}
-							if(done) break;
-						}
-					}
-					else { // if incoming was undefended!
-
-						String unitStart=""; String unitNames="";String unitEnd="";
-						int k = 0;
-						Town otherT = t2.getPlayer().God.findTown(t2.getDigTownID());
-						Town t1 = r.getTown1();
-						Player t2p = otherT.getPlayer();
-						while(k<t2.getAu().size()) {
-							unitStart+=","+t2.getAu().get(k).getSize();
-							unitNames+=","+t2.getAu().get(k).getName();
-							unitEnd+=",0";
-
-							k++;
-						}
-	
-						if(foundOff){
+						if(foundOff&&!t1p.equals(t2p)){
 								combatLogicBlock(r,"There was somebody armed already present here!");
-						}
-						
+							
+						} else if(foundOff&&t1p.equals(t2p)&&t2.getDigAmt()>0) { // the collapse only happens
+							// if you have a DIG/RO previously present, NOT just support.
+							// we collapse it.
+							boolean done=false;
+							for(Town t: t1p.towns()) {
+								for(Raid theR :t.attackServer()) {
+									if(theR.getDigAmt()>0&&theR.getTicksToHit()==0&&!theR.isRaidOver()&&theR.getDockingFinished()!=null&&theR.getTown2().townID==r.getTown2().townID) {
+										theR.collapseDigOrRO(r);
+										done=true;
+										break;
+									}
+								}
+								if(done) break;
+							}
+						} else { // if incoming was undefended!
+
+							String unitStart=""; String unitNames="";String unitEnd="";
+							int k = 0;
+							while(k<t2.getAu().size()) {
+								unitStart+=","+t2.getAu().get(k).getSize();
+								unitNames+=","+t2.getAu().get(k).getName();
+								unitEnd+=",0";
+	
+								k++;
+							}
+		
+							if(foundOff){
+									combatLogicBlock(r,"There was somebody armed already present here!");
+							}
+							
 							unitStart+=","+t2.getDigAmt();
 							String msg = "";
-							if(r.getTown2().isResourceOutcropping()) {
+							if(t2.isResourceOutcropping()) {
 								msg = "The resource outcropping was inhabited by an armed force, so the excavation could not begin.";
 								unitNames+=",Engineer";
 							}
@@ -7155,7 +7198,7 @@ public ArrayList<Town> findZeppelins(int x, int y) { // returns all zeppelins at
 						t2.returnDigOrRO(true,false);
 							
 						
-						t2.resetDig(r.getTown1().townID,r.getDigAmt(),true,r);
+						t2.resetDig(t1.townID,r.getDigAmt(),true,r);
 						supportLogicBlock(r,true); // BUT NOW WE MUST KEEP THE RAID PRESENT!
 						
 					}
@@ -10041,9 +10084,7 @@ public boolean checkForGenocides(Town t) {
 						  t1.getPlayer().addUserSR(offSR);
 					  } else {
 						  stmt.setString(16,",???,???,???,???,???,???");
-						  //we should change this to "Your troops got roflstomped, so they couldn't report anything"
-						  //just a thought.  :P
-						  stmt.setString(19,"No data is available due to your being pwned.'");
+						  stmt.setString(19,"Your troops got roflstomped, so they couldn't report anything."); //No data is available due to your being pwned.
 						  stmt.setString(13, ",0,0,0,0,0,0");
 						  stmt.setString(14, ",0,0,0,0,0,0");
 						  stmt.setLong(29,0);
@@ -16867,7 +16908,7 @@ public boolean bigTerritoryOverlapTest(UberSocketPrintWriter out, Player player)
 	
 	
 	players[0].territoryCalculator();
-	players[1].territoryCalculator(); 
+	players[1].territoryCalculator();
 	players[2].territoryCalculator();
 	
 
@@ -18739,7 +18780,8 @@ public boolean territoryOverlapTest(UberSocketPrintWriter out, Player player) {
  * 	  [imp] = implimented, not tested
  *	[check] = implimented, tested
  *
- * 
- * 
- * 
+ * Need to write Diplo Tests:
+ * 		Basic - 		Check that Diplo is created properly
+ * 		Intermediate - 	Check that propagation works correctly
+ * 		Advanced - 		Check that Diplo has the correct effect on players
  */

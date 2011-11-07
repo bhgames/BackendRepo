@@ -1,9 +1,3 @@
-/*
-	Development Notes: 
-		Blockade send logic at line 5366.
-		Commented out bomber check code, any unit can attack buildings
-*/
-
 package BattlehardFunctions;
 import java.io.PrintWriter;
 import java.sql.ResultSet;
@@ -1796,8 +1790,8 @@ public class BattlehardFunctions {
 		// We don't check city two because they need to agree to it first or if
 		// it's a one way-er then it doesn't really matter so much!
 		//	public boolean sendMessage(int pid_to, int pid_from, String body, String subject, int msg_type) {
-		int toSend[] = new int[1];
-		TradeSchedule ts = new TradeSchedule(t1,  null,  m,  t,  mm,  f,  otherm, othert,  othermm,  otherf,  intervaltime, timesToDo,  twoway,null,false);
+		
+		new TradeSchedule(t1,  null,  m,  t,  mm,  f,  otherm, othert,  othermm,  otherf,  intervaltime, timesToDo,  twoway,null,false);
 
 	/*	 sendTradeMessage(t2.getPlayer().ID,"Do you accept this trading schedule request from " + t1.getPlayer().getUsername() + "" +
 				" of " + m + " metal " + t + " timber " + mm + " man. mat. " + f + " food in exchange for "
@@ -1884,7 +1878,7 @@ public class BattlehardFunctions {
 		boolean twoway=false;
 		int i = 0; Town t1=g.findTown(tid1); Town t2=g.findTown(tid2); 
 	
-		if(t1.getPlayer().ID!=p.ID) {
+		if(!t1.getPlayer().equals(p)) {
 			setError("This is not your town!");
 			return false;
 		}
@@ -1893,6 +1887,10 @@ public class BattlehardFunctions {
 			return false;
 		}
 		
+		if(t2.getPlayer().isEmbargoed(p)) {
+			setError("There is an active Trade Embargo between you.");
+			return false;
+		}
 		// okay now we have towns.
 		
 		if(intervaltime<1||(timesToDo<1&&timesToDo!=-1)) {
@@ -5073,10 +5071,22 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 		
 		int x = enemyx;
-		
 		int y = enemyy;
 		int t1x = t1.getX();
 		int t1y = t1.getY();
+		
+		Town Town2 = g.findTown(x,y); // findTown auto detects the town at the x,y, not the Zeppelin, if there is one.
+		Player Town2p = Town2.getPlayer();
+
+		if(Town2 == null) {
+			setError("Could not find the town!");
+			return false;
+		}
+
+		if(Town2.townID==0) {
+			setError("Town doesn't exist!");
+			return false;
+		}
 
 		int k = 0; // to make sure can only go up to six.
 				
@@ -5115,12 +5125,6 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("No such thing as negative units.");
 			return false;
 		}*/
-		Town Town2 = g.findTown(x,y); // findTown auto detects the town at the x,y, not the Zeppelin, if there is one.
-
-		if(Town2 == null) {
-			setError("Could not find the town!");
-			return false;
-		}
 		
 		boolean Genocide = false, Bomb = false, invade = false, debris = false, dig=false;
 		int support = 0, scout = 0, digAmt=0;
@@ -5247,20 +5251,6 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			return false; // if they don't get the code right, screw 'em.
 		}
 		
-		
-		boolean keep=!!prog;//duplicate prog into keep
-		prog=false;			//set prog to false so we can call getAttackETA
-		int ticksToHit = getAttackETA(t1.townID, enemyx,enemyy,auAmts);
-		prog = !!keep;		//set prog back
-		// The only two cases that matter: You find the town at the x,y, or you'll find a Zeppelin.
-		// If it's a zeppelin, it's easy to deal with, if it's a town, it's easy to deal with.
-		if(Town2.townID==0) {
-			setError("Town doesn't exist!");
-			return false;
-		}
-		
-		Player Town2p = Town2.getPlayer();
-		
 		if(dig&&Town2p.ID!=5) {
 			setError("You can only dig in an Id town!");
 			return false;
@@ -5269,15 +5259,22 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("You cannot blockade Id towns!");
 			return false;
 		}
-		if(support==3&&Town2p.isAllied(t1p)){
-			setError("You cannot blockade your allies!");
+		if(!(debris||support==1||support==2)&&p.atPeace(Town2p)){
+			setError("You cannot attack your allies!");
 			return false;
 		}
 		if(attackType.equals("excavation")&&!Town2.isResourceOutcropping()) {
 			
-			setError("You can only excavate in a Resource Outcropping!");
+			setError("You can only excavate a Resource Outcropping!");
 			return false;
 		}
+		
+		boolean keep=!!prog;//duplicate prog into keep
+		prog=false;			//set prog to false so we can call getAttackETA
+		int ticksToHit = getAttackETA(t1.townID, enemyx,enemyy,auAmts);
+		prog = !!keep;		//set prog back
+		// The only two cases that matter: You find the town at the x,y, or you'll find a Zeppelin.
+		// If it's a zeppelin, it's easy to deal with, if it's a town, it's easy to deal with.
 		
 
 		if(Town2.getX()==t1.getX()&&Town2.getY()==t1.getY()&&attackType.contains("support")) {
@@ -12397,7 +12394,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 		}
 		int i = 0;ArrayList<UserTradeSchedule> tses=new ArrayList<UserTradeSchedule>();
 		Town yourT = g.getTown(tidYouCalledFrom);
-		if(yourT.getPlayer().ID!=p.ID) {
+		if(!yourT.getPlayer().equals(p)) {
 			setError("This is not your town!");
 			return null;
 		}
@@ -12435,7 +12432,7 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 						}
 					}
 				}
-				if(canTrade) {
+				if(canTrade&&!t.getPlayer().isEmbargoed(p)) {
 					int j = 0;
 					while(j<townTses.length) {
 						ts = townTses[j];
