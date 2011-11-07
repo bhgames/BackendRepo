@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import BattlehardFunctions.BattlehardFunctions;
 import BattlehardFunctions.UserAttackUnit;
@@ -23,7 +25,8 @@ import com.mysql.jdbc.exceptions.MySQLTransactionRollbackException;
 
 
 public class Town {
-	
+    public final Lock lock = new ReentrantLock();
+
 	 public int townID, 
 	 			influence, 
 	 			probTimer, 
@@ -1680,8 +1683,9 @@ public class Town {
 		 double foodResInc = getResInc()[3]*num;
 		 double foodConsumed = (((double) getFoodConsumption())/(3600.0/GodGenerator.gameClockFactor))*num;
 		  foodConsumed-=foodResInc; // so we don't change older code. If foodConsumed-foodResInc>0, food is being consumed faster than it can be made.
-		// System.out.println("food consumed is " + foodConsumed + " total is " +getRes()[3] + " num is " + num + " foodconsumption is " + getFoodConsumption());
-		 //System.out.println(getTownName() + " has food consumption req of " + foodConsumed);
+	//	 if(getTownName().equals("Imperia"))
+		//  System.out.println("food consumed is " + foodConsumed + " total is " +getRes()[3] + " num is " + num + " foodconsumption is " + getFoodConsumption());
+		// System.out.println(getTownName() + " has food consumption req of " + foodConsumed); 
 		 double sizeMod=1;
 		 long foodTot = getRes()[3];
 		 if(foodTot<=0&&foodConsumed>0) {
@@ -1874,7 +1878,16 @@ public class Town {
 				if(a.getSupport()==0||(a.getSupport()>0&&getPlayer().ID!=5&&!getPlayer().isQuest())) // we only food tax our own or supportau
 					// present if we are not Id or a quest.
 				foodConsumed+=getFoodConsumption(a);
-			//	System.out.println("Adding for " + a.getName() + " which has expmod of " + a.getExpmod() + " and sizeMod of " + sizeMod + " so total addition of " + 5*a.getSize()*a.getExpmod()*sizeMod);
+				if(getTownName().equals("Imperia"))
+				System.out.println("Adding for " + a.getName() + " a food of " + getFoodConsumption(a));
+			}
+			for(Raid r: attackServer()) {
+				for(AttackUnit a:r.getAu()) {
+					if(a.getSupport()==0||(a.getSupport()>0&&getPlayer().ID!=5&&!getPlayer().isQuest())) // we only food tax our own or supportau
+						// present if we are not Id or a quest.
+					foodConsumed+=getFoodConsumption(a);
+				//	System.out.println("Adding for " + a.getName() + " which has expmod of " + a.getExpmod() + " and sizeMod of " + sizeMod + " so total addition of " + 5*a.getSize()*a.getExpmod()*sizeMod);
+				}
 			}
 				UserTown supportTowns[] = getPlayer().getPs().b.getUserTownsWithSupportAbroad(townID);
 				for(UserTown t: supportTowns) {
@@ -1884,7 +1897,9 @@ public class Town {
 					}
 				}
 			//	System.out.println("my pop is " + getPop());
-			foodConsumed+=getCivvieFoodConsumption((int) getPop()-1);  // civilians!!!
+			//	if(getTownName().equals("Imperia"))
+				//	System.out.println("Adding for civvies a food of " + getCivvieFoodConsumption((int) getPop()) + " which is due to civvie pop of " + getPop()) ;
+			foodConsumed+=getCivvieFoodConsumption((int) getPop());  // civilians!!!
 			//System.out.println("With a pop of " + getPop() + ", we add another " +5*getPop()*sizeMod );
 			return foodConsumed;
 	 }
@@ -2182,7 +2197,11 @@ public class Town {
 
 		 synchronized(resBuff) {
 			 do {
-				 if(j==4)
+			//	 if(getTownName().equals("Imperia")&&j==3)
+				//	 System.out.println("About to add " + (num*(newIncs[j]*(1-taxRate)*(resEffects[j]+1))-foodConsumed) + " foodConsumed is " + foodConsumed 
+					//		 + " num is " + num + " newIncs is " + newIncs[j] + " taxrate is " + taxRate + " reseffects is " + resEffects[j] + " resInc is " + resInc[j]);
+					 
+				 if(j==3)
 					 resBuff[j]+=num*(newIncs[j]*(1-taxRate)*(resEffects[j]+1))-foodConsumed;
 				 else
 					 resBuff[j]+=num*(newIncs[j]*(1-taxRate)*(resEffects[j]+1));
@@ -3410,7 +3429,7 @@ public class Town {
 					stmt.setInt(1,townID);
 					stmt.execute();
 					stmt.close();
-					stmt = getPlayer().con.createStatement("delete from invadable where tid1 = ?;");
+					stmt = getPlayer().con.createStatement("delete from invadable where tid = ?;");
 					stmt.setInt(1,townID);
 					stmt.execute();
 					stmt.close();

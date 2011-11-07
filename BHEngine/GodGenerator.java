@@ -10789,10 +10789,14 @@ public boolean checkForGenocides(Town t) {
 					//tradeDearth+=(b.getCap()-b.getPeopleInside());
 					if((b.getCap()-b.getPeopleInside()) >t.getTraders()-tradeDearth) {
 						actb.setPeopleInside(actb.getPeopleInside()+(t.getTraders()-tradeDearth));
+						if(t1.getPlayer().getUsername().equals("Jigglehammer"))
+							System.out.println("Adding "+(t.getTraders()-tradeDearth) + " to a tc from first if.");
 						tradeDearth=t.getTraders();
 						break;
 					} else {
 						tradeDearth+=(b.getCap()-b.getPeopleInside());
+						if(t1.getPlayer().getUsername().equals("Jigglehammer"))
+						System.out.println("Adding "+(b.getCap()-b.getPeopleInside()) + " to a tc from second if.");
 						actb.setPeopleInside((int)b.getCap());
 						
 					}
@@ -11074,10 +11078,13 @@ public boolean checkForGenocides(Town t) {
 				 
 					if(actb.getPeopleInside()>t1Required-totalT1TravTraders) {
 						actb.setPeopleInside(actb.getPeopleInside()-(t1Required-totalT1TravTraders));
+						if(t1.getPlayer().getUsername().equals("Jigglehammer"))
+							System.out.println("Adding "+(t1Required-totalT1TravTraders) + " to the trade first stmt.");
 						totalT1TravTraders+=(t1Required-totalT1TravTraders);
 					} else {
 						totalT1TravTraders+=actb.getPeopleInside();
-
+						if(t1.getPlayer().getUsername().equals("Jigglehammer"))
+							System.out.println("Adding "+(actb.getPeopleInside()) + " to the trade second stm.");
 						actb.setPeopleInside(0);
 					}
 					 if(totalT1TravTraders>=t1Required) break;

@@ -15,8 +15,8 @@ public class RQ1 extends QuestListener {
 		// TODO Auto-generated method stub
 	//	if(completedQuest(p,"BQBranchToRQ")) return true;
 	//	else
-	//	return false;
-		return true;
+		return false;
+	//	return true;
 	}
 
 	@Override

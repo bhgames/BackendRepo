@@ -5182,21 +5182,22 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			if(QuestListener.partOfQuest(p,"NQ4")&&p.getVersion().equals("civilian")) {
 				digToTake=1;
 			}
-			while(z<b.length) {
-				bl = b[z];
-				 actb = t1.findBuilding(bl.getId());
-				if(actb.getPeopleInside()>digToTake-digAmt) {
-					actb.setPeopleInside(actb.getPeopleInside()-(digToTake-digAmt));
-					digAmt+=(digToTake-digAmt);
-				} else {
-					digAmt+=actb.getPeopleInside();
-
-					actb.setPeopleInside(0);
+			if(send) {
+				while(z<b.length) {
+					bl = b[z];
+					 actb = t1.findBuilding(bl.getId());
+					if(actb.getPeopleInside()>digToTake-digAmt) {
+						actb.setPeopleInside(actb.getPeopleInside()-(digToTake-digAmt));
+						digAmt+=(digToTake-digAmt);
+					} else {
+						digAmt+=actb.getPeopleInside();
+	
+						actb.setPeopleInside(0);
+					}
+					 if(digAmt>=digToTake) break;
+					z++;
 				}
-				 if(digAmt>=digToTake) break;
-				z++;
 			}
-			
 		}
 		else if(attackType.equals("scout")) { scout = 1; }
 		else if(attackType.equals("invasion")) {
@@ -13753,10 +13754,22 @@ public  boolean haveBldg(String type, int lvl, int townID) {
 			setError("Both towns must not be Airships for a trade caravan to work!");
 			return false;
 		}
+		boolean doable=true;
+		for(Trade tr:myT.tradeServer()) {
+			if(tr.getTown1().getTownID()==yourTownID&&tr.getTown2().getTownID()==t.getTownID()) {
+				doable=false;
+				break;
+			}
+		}
 		int ticksToHit=(int) ((2*getTradeETA(myT.townID,t.townID)+2)*GodGenerator.gameClockFactor);
 		//intervaltime is always in s!
-		new TradeSchedule(myT,  t,(long)  0,(long)0,(long)0,(long)0, (long) 0,(long) 0, (long) 0,(long)  0,  ticksToHit+2, -1,  false,null,true);
-		return true;
+		if(doable) {
+			new TradeSchedule(myT,  t,(long)  0,(long)0,(long)0,(long)0, (long) 0,(long) 0, (long) 0,(long)  0,  ticksToHit+2, -1,  false,null,true);
+			return true;
+		} else {
+			setError("You cannot have more than one caravan between any two cities!");
+			return false;
+		}
 	}
 	
 	/**

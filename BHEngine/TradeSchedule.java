@@ -112,6 +112,7 @@ public class TradeSchedule {
 	public void deleteMe() {
 		// if you want to keep finished trades,
 		// remove the deleteMe for later. Depends on what you're tryin' to do.
+		System.out.println("I," + id + " am being deleted.");
 		setFinished(true);
 		save();
 		getTown1().tradeSchedules().remove(this);
@@ -120,7 +121,7 @@ public class TradeSchedule {
 	
 	synchronized public void save() {
 		try {
-		UberPreparedStatement stmt = con.createStatement("update tradeschedule set  m = ?, t = ?, mm = ?, f = ?, tid1 = ?, tid2 = ?, intervaltime = ?, times = ?, twoway = ?, agreed = ?, timesdone = ?, currticks = ?, otherm = ?, othert = ?, othermm = ?, otherf = ?, finished =  ?, mate_tsid = ?,caravan = ? where tsid = ?;");
+		UberPreparedStatement stmt = con.createStatement("update tradeschedule set  m = ?, t = ?, mm = ?, f = ?, tid1 = ?, tid2 = ?, intervaltime = ?, times = ?, twoway = ?, agreed = ?, timesdone = ?, currticks = ?, otherm = ?, othert = ?, othermm = ?, otherf = ?, finished =  ?, mate_tsid = ?,caravan = ? where id = ?;");
 			int tid2 = 0;
 			  if(getTown2()!=null) tid2 = getTown2().townID;
 

@@ -13,8 +13,9 @@ public class RQ5 extends QuestListener {
 	@Override
 	public boolean checkPlayer(Player p) {
 		// TODO Auto-generated method stub
-		if(completedQuest(p,"RQ4")) return true;
-		else return false;
+		//if(completedQuest(p,"RQ4")) return true;
+	//	else return false;
+		return false;
 		}
 
 	@Override

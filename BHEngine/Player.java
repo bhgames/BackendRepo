@@ -10,6 +10,8 @@ import java.sql.SQLException;
 //import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
@@ -126,6 +128,8 @@ public class Player  {
 	private League league=null;
 
 		//Public Variables
+    public final Lock lock = new ReentrantLock();
+
 	public int 	ID, 
 				last_auto_blast, 
 				iterTicks = 0, 
@@ -1235,7 +1239,7 @@ public class Player  {
 				
 			 
 			 */
-			if(!isQuest()&&ID!=5) { //  Quests do not have territories, nor can their towns be taken by others this way.
+			if(false&&!isQuest()&&ID!=5) { //  Quests do not have territories, nor can their towns be taken by others this way.
 
 			ArrayList<ArrayList<Hashtable>> townPointLists = new ArrayList<ArrayList<Hashtable>>(); // holds the points each town possesses before
 			// transformation into territory lists.
@@ -1300,7 +1304,7 @@ public class Player  {
 						//	System.out.println("Looking into " + startX+ "," + startY);
 	
 							double dist = Math.sqrt(Math.pow((t.getX()-startX),2)+Math.pow((t.getY()-startY),2));
-							if(getUsername().toLowerCase().equals("pixlepix"))
+						//	if(getUsername().toLowerCase().equals("pixlepix"))
 
 							System.out.println("Trying " + startX + "," + startY + ", who's dist is " + dist + " tx is " + t.getX() + " ty is " + t.getY() 
 									+ " diff in x is " + (t.getX()-startX)+" diff in y is " + (t.getY()-startY) + " pow in x is " + Math.pow((t.getX()-startX),2) + 
@@ -1309,7 +1313,7 @@ public class Player  {
 								pt = new Hashtable();
 								pt.put("x",(int)startX);
 								pt.put("y",(int) startY);
-								if(getUsername().toLowerCase().equals("pixlepix"))
+							//	if(getUsername().toLowerCase().equals("pixlepix"))
 								System.out.println("Adding "+ startX+","+startY + " to " + getUsername());
 								points.add(pt);
 							}
@@ -1448,7 +1452,7 @@ public class Player  {
 								int ourX = (Integer) ourPoint.get("x");
 								int ourY = (Integer) ourPoint.get("y");
 								if(ourX==theirX&&ourY==theirY) {
-									if(getUsername().toLowerCase().equals("pixlepix"))
+								//	if(getUsername().toLowerCase().equals("pixlepix"))
 									System.out.println("I may lose " + ourX +"," + ourY + " to " + owner.getUsername());
 									// CHECK IT OUT!
 									//Sum(townInfluence/town_r^2)
@@ -1466,11 +1470,11 @@ public class Player  {
 										double inf = Math.pow(t.getX()-ourX,2)+Math.pow(t.getY()-ourY,2);
 										theirInfluence +=t.getInfluence()/(inf!=0 ? inf : 1);
 									}
-									if(getUsername().toLowerCase().equals("pixlepix"))
+								//	if(getUsername().toLowerCase().equals("pixlepix"))
 									System.out.println("My influence over " + ourX +"," + ourY + " is " + myInfluence + ", theirs is " + theirInfluence);
 									if(myInfluence>theirInfluence) {
 										// they lose the point.
-										if(getUsername().toLowerCase().equals("pixlepix"))
+								//		if(getUsername().toLowerCase().equals("pixlepix"))
 										System.out.println("I got the point");
 											// each territory has a "corners" version and a "points" version.
 											ArrayList<Hashtable> points = (ArrayList<Hashtable>) actualTerritory.get("points");
@@ -1491,7 +1495,7 @@ public class Player  {
 											actualChanged=true;
 										
 									} else {
-										if(getUsername().toLowerCase().equals("pixlepix"))
+									//	if(getUsername().toLowerCase().equals("pixlepix"))
 											System.out.println("I lost the point");
 										// I lose the point.
 										ourPoints.remove(i);

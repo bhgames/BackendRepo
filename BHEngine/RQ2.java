@@ -12,8 +12,8 @@ public class RQ2 extends QuestListener {
 
 	@Override
 	public boolean checkPlayer(Player p) {
-		if(completedQuest(p,"RQ1")) return true;
-		else
+	//	if(completedQuest(p,"RQ1")) return true;
+	//	else
 		return false;
 	}
 

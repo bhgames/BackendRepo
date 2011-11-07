@@ -54,38 +54,48 @@ public class Iterator implements Runnable {
 			dailyLeft-=Math.round(dailyLeft);
 			
 			if(p.ID<999999900&&p.getHoldingIteratorID().equals("-1")&&p.getInternalClock()<internalClock&&(p.owedTicks==0||p.ID==5||p.isQuest())) {
-				synchronized(p){if(p.getHoldingIteratorID().equals("-1")) p.setHoldingIteratorID(iterateID); }
-				if(p.getHoldingIteratorID().equals(iterateID)) {
-			//		System.out.println(iterateID + " caught " + p.username + "'s focus and is iterating at " + internalClock);
-				while(p.getInternalClock()<internalClock) {
-					try {
-				//	System.out.println(iterateID + " is iterating " + p.username);
-						
-						if((p.last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||p.stuffOut()||p.ID==5||p.isQuest())){ 
-							if(p.getUsername().equals("Jigglehammer")) 
-							 System.out.println(p.getUsername() + " is active and has " + p.owedTicks + " ticks owed.");
-							p.saveAndIterate(internalClock-p.getInternalClock());}
-						else {  
-						//	System.out.println(p.getUsername() + " is inactive and has " + p.owedTicks + " ticks owed and played for a total of "+ (p.last_login.getTime()-p.last_session.getTime()));
-							// we know last_login - last_session is the time they played this time.
-							if(p.totalTimePlayed<0) p.totalTimePlayed=0;
-							if(p.numLogins<=0) p.numLogins=1;
-							p.totalTimePlayed+=(p.last_login.getTime()-p.last_session.getTime());
-							p.save(); // save right before we go inactive to get the totalTimePlayed and stuff saved properly.
-							p.owedTicks=(God.gameClock); 
+				boolean locked = false;
+				try {
+					locked= p.lock.tryLock();
+				} finally {
+				//	System.out.println(iterateID + " tried to lock " + p.getUsername() + " and was " + locked + ", moving on or doing it.");
+
+				}
+				if(locked) {
+					if(p.getHoldingIteratorID().equals("-1")) p.setHoldingIteratorID(iterateID); 
+					if(p.getHoldingIteratorID().equals(iterateID)) {
+				//		System.out.println(iterateID + " caught " + p.username + "'s focus and is iterating at " + internalClock);
+					while(p.getInternalClock()<internalClock) {
+						try {
+					//	System.out.println(iterateID + " is iterating " + p.username);
+							
+							if((p.last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||p.stuffOut()||p.ID==5||p.isQuest())){ 
+						//		if(p.getUsername().equals("Jigglehammer")) 
+							//	 System.out.println(p.getUsername() + " is active and has " + p.owedTicks + " ticks owed.");
+								p.saveAndIterate(internalClock-p.getInternalClock());}
+							else {  
+							//	System.out.println(p.getUsername() + " is inactive and has " + p.owedTicks + " ticks owed and played for a total of "+ (p.last_login.getTime()-p.last_session.getTime()));
+								// we know last_login - last_session is the time they played this time.
+								if(p.totalTimePlayed<0) p.totalTimePlayed=0;
+								if(p.numLogins<=0) p.numLogins=1;
+								p.totalTimePlayed+=(p.last_login.getTime()-p.last_session.getTime());
+								p.save(); // save right before we go inactive to get the totalTimePlayed and stuff saved properly.
+								p.owedTicks=(God.gameClock); 
+		
+								p.setInternalClock(internalClock); } 
+						} catch(Exception exc) { exc.printStackTrace(); } 
+					}
+					
+					if(God.saveCounter==God.saveWhenTicks) {
+					//System.out.println("Saving " + p.getUsername());
+						p.save();
+					}
 	
-							p.setInternalClock(internalClock); } 
-					} catch(Exception exc) { exc.printStackTrace(); } 
-				}
-				
-				if(God.saveCounter==God.saveWhenTicks) {
-				//System.out.println("Saving " + p.getUsername());
-					p.save();
-				}
-
-	//		System.out.println(iterateID + " 2");
-
-				p.setHoldingIteratorID("-1");
+		//		System.out.println(iterateID + " 2");
+	
+					p.setHoldingIteratorID("-1");
+					}
+					p.lock.unlock();
 				}
 			} 
 			
@@ -96,18 +106,28 @@ public class Iterator implements Runnable {
 				// or you did have it recalced awhile ago, but not this very instant. We can't use lastterritoryclock to time
 				// daily recalculations, as a server restart MAY have happened 6 hours ago, and you hit your 24 hour mark now,
 				// so it'd have made it six hours ago and it would need to make it now.
-				synchronized(p){if(p.getHoldingIteratorID().equals("-1")) p.setHoldingIteratorID(iterateID); }
-				if(p.getHoldingIteratorID().equals(iterateID)) {
-					if(p.lastTerritoryClock!=internalClock) { // recalculation bitch.
-						p.territoryCalculator();
-						p.saveInfluence();// it'll save twice if somebody just became a lord,
-						// otherwise it'll just save once to get towninfluence. NBD.
-						p.lastTerritoryClock=internalClock;
-						if(p.owedTicks>0) System.out.println(p.getUsername() + " is inactive and I am still doing his territories.");
-						else System.out.println(p.getUsername() + " is active and I am doing his territories.");
-					}
-					p.setHoldingIteratorID("-1");
+				boolean locked = false;
+				try {
+					locked= p.lock.tryLock();
+				} finally {
+				//	System.out.println(iterateID + " tried to lock " + p.getUsername() + " and was " + locked + ", moving on or doing it for territories.");
 
+				}
+				if(locked) {
+					if(p.getHoldingIteratorID().equals("-1")) p.setHoldingIteratorID(iterateID); 
+					if(p.getHoldingIteratorID().equals(iterateID)) {
+						if(p.lastTerritoryClock!=internalClock) { // recalculation bitch.
+							p.territoryCalculator();
+							p.saveInfluence();// it'll save twice if somebody just became a lord,
+							// otherwise it'll just save once to get towninfluence. NBD.
+							p.lastTerritoryClock=internalClock;
+					//		if(p.owedTicks>0) System.out.println(p.getUsername() + " is inactive and I am still doing his territories.");
+						//	else System.out.println(p.getUsername() + " is active and I am doing his territories.");
+						}
+						p.setHoldingIteratorID("-1");
+	
+					}
+					p.lock.unlock();
 				}
 				
 			}
@@ -156,24 +176,34 @@ public class Iterator implements Runnable {
 		//		System.out.println("iterating " + p.username);
 				if(t.owedTicks>0) t.update(); // could happen if suddenly a town had owed ticks but wasn't online for the raid to be sent.
 				// like a quest could get here. But we save them.
-				synchronized(t){if(t.getHoldingIteratorID().equals("-1")) t.setHoldingIteratorID(iterateID); }
-				if(t.getHoldingIteratorID().equals(iterateID)) {
-			//		System.out.println(iterateID + " caught " + p.username + "'s focus and is iterating at " + internalClock);
-			
-					try {
-						if(t.getPlayer().getUsername().equals("Jigglehammer")) 
-							System.out.println(iterateID + " is iterating " + t.getPlayer().getUsername());
-	
-						if(t.getPlayer().last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||t.stuffOut()) {
-						// System.out.println(p.getTownName() + ","+ p.getPlayer().getUsername() + " is active and has " + p.owedTicks + " ticks owed.");
-							t.iterate(internalClock-t.getInternalClock()); }
-						else { 
-							// System.out.println(p.getTownName() + ","+ p.getPlayer().getUsername() + " is inactive and has " + p.owedTicks + " ticks owed.");
-							t.owedTicks=God.gameClock; t.setInternalClock(internalClock); 
-						} 
-					} catch(Exception exc) { exc.printStackTrace(); } 
+				boolean locked = false;
+				try {
+					locked= t.lock.tryLock();
+				} finally {
+				//	System.out.println(iterateID + " tried to lock " + t.getTownName() + " and was " + locked + ", moving on or doing it for territories.");
+
+				}
+				if(locked) {
+					if(t.getHoldingIteratorID().equals("-1")) t.setHoldingIteratorID(iterateID); 
+					if(t.getHoldingIteratorID().equals(iterateID)) {
+				//		System.out.println(iterateID + " caught " + p.username + "'s focus and is iterating at " + internalClock);
 				
-					t.setHoldingIteratorID("-1");
+						try {
+						//	if(t.getPlayer().getUsername().equals("Jigglehammer")) 
+							//	System.out.println(iterateID + " is iterating " + t.getPlayer().getUsername());
+		
+							if(t.getPlayer().last_login.getTime()>(today.getTime()-GodGenerator.sessionLagTime)||t.stuffOut()) {
+							// System.out.println(p.getTownName() + ","+ p.getPlayer().getUsername() + " is active and has " + p.owedTicks + " ticks owed.");
+								t.iterate(internalClock-t.getInternalClock()); }
+							else { 
+								// System.out.println(p.getTownName() + ","+ p.getPlayer().getUsername() + " is inactive and has " + p.owedTicks + " ticks owed.");
+								t.owedTicks=God.gameClock; t.setInternalClock(internalClock); 
+							} 
+						} catch(Exception exc) { exc.printStackTrace(); } 
+					
+						t.setHoldingIteratorID("-1");
+					}
+					t.lock.unlock();
 				}
 			}
 			
